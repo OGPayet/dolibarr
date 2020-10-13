@@ -25,6 +25,7 @@
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
 
 /**
  * Class for SurveyBlocStatusPredefinedText
@@ -61,6 +62,22 @@ class SurveyBlocStatusPredefinedText extends CommonObject
     const STATUS_VALIDATED = 1;
     const STATUS_CANCELED = 9;
 
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyBlocStatusPredefinedTextId'=>objectOfSqlResult))
+     */
+
+    static public $DB_CACHE = array();
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyBlocStatusId'=>array('surveyBlocStatusPredefinedTextId'=>true)))
+     */
+
+    static public $DB_CACHE_FROM_SURVEYBLOCSTATUS = array();
 
     /**
      *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -187,8 +204,6 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      *      if property is a array and this properties_name value is a array then get blacklist set in the array
      */
     static protected $API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array();
-
-
 
     /**
      * Constructor
@@ -598,5 +613,12 @@ class SurveyBlocStatusPredefinedText extends CommonObject
             $this->db->rollback();
             return -1;
         }
+    }
+
+    public static function fillCacheFromParentObjectIds($arrayOfBlocStatusId) {
+        global $db;
+        $object = new self($db);
+        commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveyblocstatus IN ( ' . implode(",", $arrayOfBlocStatusId) . ')');
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYBLOCSTATUS, 'fk_surveyblocstatus', self::$DB_CACHE);
     }
 }

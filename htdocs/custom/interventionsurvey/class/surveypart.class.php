@@ -27,6 +27,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
 dol_include_once('/interventionsurvey/class/surveyblocquestion.class.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
 
 /**
  * Class for surveyPart
@@ -153,7 +154,7 @@ class SurveyPart extends CommonObject
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
     static public $API_WHITELIST_OF_PROPERTIES = array(
-        'id'=>'','label'=>'','fk_identifier_type'=>'',"fk_identifier_value"=>'','blocs'=>''
+        'id' => '', 'label' => '', 'fk_identifier_type' => '', "fk_identifier_value" => '', 'blocs' => ''
     );
 
     /**
@@ -190,6 +191,22 @@ class SurveyPart extends CommonObject
      */
     static protected $API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array();
 
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyPartId'=>objectOfSqlResult))
+     */
+
+    static public $DB_CACHE = array();
+
+    /**
+     * Array of cache data for massive api call, for getting surveyParts sql result from a given fich inter id
+     * @var array
+     * array('fichInterId'=>array('surveyPartId'=>true)))
+     */
+
+    static public $DB_CACHE_FROM_FICHINTER = array();
 
     /**
      * Constructor
@@ -235,7 +252,8 @@ class SurveyPart extends CommonObject
      * Override getFieldList to change method accessibility
      *
      */
-    public function getFieldList(){
+    public function getFieldList()
+    {
         return parent::getFieldList();
     }
 
@@ -279,7 +297,7 @@ class SurveyPart extends CommonObject
     {
         unset($this->blocs);
         $this->blocs = array();
-        $result = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocQuestion", $this->blocs, $this);
+        $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyBlocQuestion", $this->blocs, $this, SurveyBlocQuestion::$DB_CACHE_FROM_SURVEYPART, SurveyBlocQuestion::$DB_CACHE);
         foreach ($this->blocs as $bloc) {
             $bloc->fetch_optionals();
         }
@@ -373,7 +391,7 @@ class SurveyPart extends CommonObject
     {
         $fieldsToRemove = array('date_creation', 'fk_user_creat');
         $saveFields = $this->fields;
-        foreach($fieldsToRemove as $field){
+        foreach ($fieldsToRemove as $field) {
             unset($this->fields[$field]);
         }
         $result = $this->updateCommon($user, $notrigger);
@@ -396,13 +414,13 @@ class SurveyPart extends CommonObject
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
             foreach ($this->blocs as $bloc) {
-                if($bloc->delete($user, $notrigger, $disableDeletableBlocCheck) <= 0){
+                if ($bloc->delete($user, $notrigger, $disableDeletableBlocCheck) <= 0) {
                     $atLeastOneBlocHasNotBeenDeleted = true;
                 };
                 $errors = array_merge($errors, $bloc->errors ?? array());
             }
         }
-        if(!$atLeastOneBlocHasNotBeenDeleted){
+        if (!$atLeastOneBlocHasNotBeenDeleted) {
             $this->deleteCommon($user, $notrigger);
         }
         if (empty($errors)) {
@@ -452,7 +470,7 @@ class SurveyPart extends CommonObject
 
     public function setVarsFromFetchObj(&$obj, &$parent = null, bool $forceId = false)
     {
-        if(!is_object($obj)){
+        if (!is_object($obj)) {
             $obj = json_decode(json_encode($obj));
         }
         parent::setVarsFromFetchObj($obj);
@@ -460,11 +478,11 @@ class SurveyPart extends CommonObject
             $this->fichinter = $parent;
         }
 
-        if(!$this->fk_fichinter && $this->fichinter){
+        if (!$this->fk_fichinter && $this->fichinter) {
             $this->fk_fichinter = $this->fichinter->id;
         }
 
-        if($forceId && $obj->id){
+        if ($forceId && $obj->id) {
             $this->id = $obj->id;
         }
 
@@ -495,7 +513,7 @@ class SurveyPart extends CommonObject
      *
      */
 
-    public function save(&$user, $fk_fichinter = NULL, $noSurveyReadOnlyCheck = false, $notrigger = true)
+    public function save(&$user, $fk_fichinter = null, $noSurveyReadOnlyCheck = false, $notrigger = true)
     {
         global $langs;
         $this->db->begin();
@@ -575,13 +593,14 @@ class SurveyPart extends CommonObject
         return false;
     }
 
-     /**
+    /**
      *
      * Merge current InterventionSurvey with a given InterventionSurvey
      *
      */
 
-    public function mergeWithFollowingData(User &$user, self &$newSurveyPart, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false){
+    public function mergeWithFollowingData(User &$user, self &$newSurveyPart, bool $saveWholeObjectToBdd = false, int $position = null, $noTrigger = false)
+    {
 
         $this->db->begin();
         //We update property for this object
@@ -592,19 +611,20 @@ class SurveyPart extends CommonObject
         //We begin property update for subobject
 
         $parameters = array(
-            "blocs"=>array(
+            "blocs" => array(
                 "identifierPropertiesName" => array("id"),
-                "mergeSubItemNameMethod" => "mergeWithFollowingData"),
+                "mergeSubItemNameMethod" => "mergeWithFollowingData"
+            ),
         );
 
         $errors = mergeSubItemFromObject($user, $this, $newSurveyPart, $parameters, false, $noTrigger);
         $this->errors = array_merge($this->errors, $errors);
 
-        if($saveWholeObjectToBdd === true) {
+        if ($saveWholeObjectToBdd === true) {
             $this->save($user);
         }
 
-         if (empty($this->errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {
@@ -620,14 +640,14 @@ class SurveyPart extends CommonObject
     {
         $this->errors = array();
         global $user;
-        if(!$user->rights->interventionsurvey->survey->autocomplete){
+        if (!$user->rights->interventionsurvey->survey->autocomplete) {
             return 0;
         }
         $this->db->begin();
-            foreach ($this->blocs as $bloc) {
-                    $bloc->autocomplete();
-                    $this->errors = array_merge($this->errors, $bloc->errors);
-            }
+        foreach ($this->blocs as $bloc) {
+            $bloc->autocomplete();
+            $this->errors = array_merge($this->errors, $bloc->errors);
+        }
         if (empty($this->errors)) {
             $this->db->commit();
             return 1;
@@ -635,5 +655,14 @@ class SurveyPart extends CommonObject
             $this->db->rollback();
             return -1;
         }
+    }
+
+    public static function fillCacheFromParentObjectIds($arrayOfFichInterIds) {
+        global $db;
+        $object = new self($db);
+        commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_fichinter IN ( ' . implode(",", $arrayOfFichInterIds) . ')');
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_FICHINTER, 'fk_fichinter', self::$DB_CACHE);
+        $surveyPartIds = getCachedElementIds(self::$DB_CACHE);
+        SurveyBlocQuestion::fillCacheFromParentObjectIds($surveyPartIds);
     }
 }

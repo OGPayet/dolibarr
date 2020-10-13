@@ -28,6 +28,7 @@ dol_include_once('/interventionsurvey/lib/interventionsurvey.lib.php');
 dol_include_once('/interventionsurvey/class/surveyblocstatus.class.php');
 dol_include_once('/interventionsurvey/class/surveyquestion.class.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
 
 
 //require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
@@ -68,6 +69,22 @@ class SurveyBlocQuestion extends CommonObject
     const STATUS_VALIDATED = 1;
     const STATUS_CANCELED = 9;
 
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyBlocQuestionId'=>objectOfSqlResult))
+     */
+
+    static public $DB_CACHE = array();
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyPartId'=>array('surveyBlocQuestionId'=>true)))
+     */
+
+    static public $DB_CACHE_FROM_SURVEYPART = array();
 
     /**
      *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -330,11 +347,11 @@ class SurveyBlocQuestion extends CommonObject
         $this->chosen_status = null;
         $this->questions = array();
 
-        $result1 = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyQuestion", $this->questions, $this);
+        $result1 = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyQuestion", $this->questions, $this, SurveyQuestion::$DB_CACHE_FROM_SURVEYBLOCQUESTION, SurveyQuestion::$DB_CACHE);
         foreach ($this->questions as $question) {
             $question->fetch_optionals();
         }
-        $result2 = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocStatus", $this->status, $this);
+        $result2 = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyBlocStatus", $this->status, $this, SurveyBlocStatus::$DB_CACHE_FROM_SURVEYBLOCQUESTION, SurveyBlocStatus::$DB_CACHE);
         if ($this->fk_chosen_status) {
             $this->getChosenStatus();
         }
@@ -1036,5 +1053,15 @@ class SurveyBlocQuestion extends CommonObject
             $this->db->rollback();
             return -1;
         }
+    }
+
+    public static function fillCacheFromParentObjectIds($arrayOfSurveyPartIds) {
+        global $db;
+        $object = new self($db);
+        commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveypart IN ( ' . implode(",", $arrayOfSurveyPartIds) . ')');
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYPART, 'fk_surveypart', self::$DB_CACHE);
+        $surveyBlocQuestionIds = getCachedElementIds(self::$DB_CACHE);
+        SurveyBlocStatus::fillCacheFromParentObjectIds($surveyBlocQuestionIds);
+        SurveyQuestion::fillCacheFromParentObjectIds($surveyBlocQuestionIds);
     }
 }

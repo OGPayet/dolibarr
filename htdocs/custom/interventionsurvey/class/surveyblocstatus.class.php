@@ -26,6 +26,7 @@
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 dol_include_once('/interventionsurvey/class/surveyblocstatuspredefinedtext.class.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
 
 
 /**
@@ -199,7 +200,21 @@ class SurveyBlocStatus extends CommonObject
      */
     static protected $API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT = array();
 
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyBlocStatusId'=>objectOfSqlResult))
+     */
 
+    static public $DB_CACHE = array();
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyBlocQuestionId'=>array('surveyBlocStatusId'=>true)))
+     */
+
+    static public $DB_CACHE_FROM_SURVEYBLOCQUESTION = array();
 
     /**
      * Constructor
@@ -288,7 +303,7 @@ class SurveyBlocStatus extends CommonObject
     public function fetchLines()
     {
         $this->predefined_texts = array();
-        $result = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyBlocStatusPredefinedText", $this->predefined_texts, $this);
+        $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyBlocStatusPredefinedText", $this->predefined_texts, $this, SurveyBlocStatusPredefinedText::$DB_CACHE_FROM_SURVEYBLOCSTATUS, SurveyBlocStatusPredefinedText::$DB_CACHE);
         foreach ($this->predefined_texts as $predefined_text) {
             $predefined_text->surveyBlocStatus = $this;
         }
@@ -583,5 +598,14 @@ class SurveyBlocStatus extends CommonObject
             $this->db->rollback();
             return -1;
         }
+    }
+
+    public static function fillCacheFromParentObjectIds($arrayOfSurveyBlocQuestionIds) {
+        global $db;
+        $object = new self($db);
+        commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveyblocquestion IN ( ' . implode(",", $arrayOfSurveyBlocQuestionIds) . ')');
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYBLOCQUESTION, 'fk_surveyblocquestion', self::$DB_CACHE);
+        $surveyBlocStatusIds = getCachedElementIds(self::$DB_CACHE);
+        SurveyBlocStatusPredefinedText::fillCacheFromParentObjectIds($surveyBlocStatusIds);
     }
 }

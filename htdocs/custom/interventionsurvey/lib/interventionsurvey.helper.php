@@ -208,52 +208,6 @@ function fetchParentCommon($classname, $id, &$field, &$db)
     }
 }
 
-
-/**
- * Load object in memory from the database
- *
- * @param	string	$morewhere		More SQL filters (' AND ...')
- * @return 	int         			<0 if KO, 0 if not found, >0 if OK
- */
-function interventionSurveyFetchLinesCommon($morewhere = '', $objectlineclassname = null, &$resultValue, &$context)
-{
-
-    if (!class_exists($objectlineclassname)) {
-        $context->errors[] = 'Error, class ' . $objectlineclassname . ' not found during call of fetchLinesCommon';
-        return -1;
-    }
-
-    $objectline = new $objectlineclassname($context->db);
-
-    $sql = 'SELECT ' . $objectline->getFieldList();
-    $sql .= ' FROM ' . MAIN_DB_PREFIX . $objectline->table_element;
-    $sql .= ' WHERE fk_' . $context->element . ' = ' . $context->id;
-    if ($morewhere)   $sql .= $morewhere;
-
-    $resql = $context->db->query($sql);
-    if ($resql) {
-        $num_rows = $context->db->num_rows($resql);
-        $i = 0;
-        while ($i < $num_rows) {
-            $obj = $context->db->fetch_object($resql);
-            if ($obj) {
-                $newline = new $objectlineclassname($context->db);
-                $newline->setVarsFromFetchObj($obj, $context);
-                if (method_exists($newline, "fetchLines")) {
-                    $newline->fetchLines($context);
-                }
-                $resultValue[] = $newline;
-                $context->errors = array_merge($context->errors, $newline->errors);
-            }
-            $i++;
-        }
-    } else {
-        $context->errors[] = $context->db->lasterror();
-        return -1;
-    }
-    return empty($context->errors) ? 1 : -1;
-}
-
 /**
  * Get list of files information for a given intervention
  * @param string $interventionRef Reference of the intervention

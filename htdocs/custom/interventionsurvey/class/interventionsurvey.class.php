@@ -24,6 +24,7 @@
 require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 dol_include_once('/interventionsurvey/class/surveypart.class.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
 
 
 
@@ -178,7 +179,6 @@ class InterventionSurvey extends Fichinter
      */
     public $survey_taken_from_dictionary;
 
-
     /**
      * Constructor
      *
@@ -204,7 +204,7 @@ class InterventionSurvey extends Fichinter
      *  Fill dictionary caches
      *
      */
-    public function fillCaches()
+    public function fillDictionaryCaches()
     {
         if (!self::$cache_survey_bloc_question_dictionary) {
             self::$cache_survey_bloc_question_dictionary = self::fetchProperDataFromDictionary(
@@ -327,7 +327,7 @@ class InterventionSurvey extends Fichinter
 
     public function generateBlocsWithFollowingSettings($interventionTypeId, $productCategory)
     {
-        $this->fillCaches();
+        $this->fillDictionaryCaches();
         $listOfGeneratedBloc = array();
         foreach (self::$cache_survey_bloc_question_dictionary as $blocDictionary) {
             if (self::shouldThisBlocOfQuestionBeIntoThisSurvey($blocDictionary, $interventionTypeId, $productCategory)) {
@@ -362,7 +362,7 @@ class InterventionSurvey extends Fichinter
 
     public function generateInterventionSurveyPartsWithFollowingSettings($interventionTypeId, $arrayOfModuleNameAndItemId)
     {
-        $this->fillCaches();
+        $this->fillDictionaryCaches();
         $surveyParts = array();
         $generalSurveyBlocParts = array();
         foreach ($arrayOfModuleNameAndItemId as $moduleName => $listOfId) {
@@ -647,8 +647,11 @@ class InterventionSurvey extends Fichinter
     public function fetchSurvey()
     {
         $this->survey = array();
-        $data = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyPart", $this->survey, $this);
-        return $data;
+        return interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyPart", $this->survey, $this, SurveyPart::$DB_CACHE_FROM_FICHINTER, SurveyPart::$DB_CACHE);
+    }
+
+    public static function fillSurveyCacheForParentObjectIds($arrayOfFichInterIds) {
+        SurveyPart::fillCacheFromParentObjectIds($arrayOfFichInterIds);
     }
 
     /**
@@ -718,7 +721,7 @@ class InterventionSurvey extends Fichinter
             $result = $this->fetch_optionals();
         }
         if($result > 0 ) {
-            $result = $this->fetchSurvey();
+           $result = $this->fetchSurvey();
         }
         if($result > 0 ) {
             if($this->lines){

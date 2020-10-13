@@ -283,17 +283,22 @@ class InterventionSurveyApi extends DolibarrApi
         $result = $this->db->query($sql);
 
         if ($result) {
+            $arrayOfInterventionIds = array();
             $num = $this->db->num_rows($result);
             $min = min($num, ($limit <= 0 ? $num : $limit));
             $i = 0;
             while ($i < $min) {
                 $obj = $this->db->fetch_object($result);
+                $arrayOfInterventionIds[] = $obj->rowid;
+                $i++;
+            }
+            InterventionSurvey::fillSurveyCacheForParentObjectIds($arrayOfInterventionIds);
+            foreach($arrayOfInterventionIds as $id) {
                 $fichinter_static = new InterventionSurvey($this->db);
-                if ($fichinter_static->fetch($obj->rowid)) {
+                if ($fichinter_static->fetch($id)) {
                     $fichinter_static->fetchObjectLinked();
                     $obj_ret[] = $this->_cleanObjectData($fichinter_static);
                 }
-                $i++;
             }
         } else {
             throw new RestException(503, 'Error when retrieve fichinter list : ' . $this->db->lasterror());

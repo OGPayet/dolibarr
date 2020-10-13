@@ -26,6 +26,7 @@
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 dol_include_once('/interventionsurvey/class/surveyanswer.class.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
 
 /**
  * Class for surveyQuestion
@@ -62,6 +63,21 @@ class SurveyQuestion extends CommonObject
     const STATUS_VALIDATED = 1;
     const STATUS_CANCELED = 9;
 
+        /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyQuestionId'=>objectOfSqlResult))
+     */
+
+    static public $DB_CACHE = array();
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyBlocQuestionId'=>array('surveyQuestionId'=>true)))
+     */
+
+    static public $DB_CACHE_FROM_SURVEYBLOCQUESTION = array();
 
     /**
      *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -304,7 +320,7 @@ class SurveyQuestion extends CommonObject
         $this->answers = array();
         $this->chosen_answer = null;
 
-        $result = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswer", $this->answers, $this);
+        $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyAnswer", $this->answers, $this, SurveyAnswer::$DB_CACHE_FROM_SURVEYQUESTION, SurveyAnswer::$DB_CACHE);
 
         if ($this->fk_chosen_answer) {
             $this->getChosenAnswer();
@@ -906,5 +922,14 @@ class SurveyQuestion extends CommonObject
             $this->db->rollback();
             return -1;
         }
+    }
+
+    public static function fillCacheFromParentObjectIds($arrayOfSurveyBlocQuestionIds) {
+        global $db;
+        $object = new self($db);
+        commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveyblocquestion IN ( ' . implode(",", $arrayOfSurveyBlocQuestionIds) . ')');
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYBLOCQUESTION, 'fk_surveyblocquestion', self::$DB_CACHE);
+        $surveyQuestionIds = getCachedElementIds(self::$DB_CACHE);
+        SurveyAnswer::fillCacheFromParentObjectIds($surveyQuestionIds);
     }
 }

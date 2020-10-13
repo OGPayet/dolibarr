@@ -25,6 +25,7 @@
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
 
 
 /**
@@ -57,6 +58,21 @@ class SurveyAnswerPredefinedText extends CommonObject
      */
     public $picto = 'surveyanswerpredefinedtext@interventionsurvey';
 
+     /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyAnswerPredefinedTextId'=>objectOfSqlResult))
+     */
+
+    static public $DB_CACHE = array();
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyAnswerId'=>array('surveyAnswerPredefinedTextId'=>true)))
+     */
+
+    static public $DB_CACHE_FROM_SURVEYANSWER = array();
 
     /**
      *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -436,7 +452,7 @@ class SurveyAnswerPredefinedText extends CommonObject
      *
      *
      */
-    public function save(&$user, $fk_surveyanswer = NULL, $noSurveyReadOnlyCheck = false, $notrigger = true)
+    public function save(&$user, $fk_surveyanswer = null, $noSurveyReadOnlyCheck = false, $notrigger = true)
     {
         global $langs;
 
@@ -513,5 +529,12 @@ class SurveyAnswerPredefinedText extends CommonObject
             $this->db->rollback();
             return -1;
         }
+    }
+
+    public static function fillCacheFromParentObjectIds($arrayOfSurveyAnswerIds) {
+        global $db;
+        $object = new self($db);
+        commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveyanswer IN ( ' . implode(",", $arrayOfSurveyAnswerIds) . ')');
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYANSWER, 'fk_surveyanswer', self::$DB_CACHE);
     }
 }

@@ -26,6 +26,8 @@
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 dol_include_once('/interventionsurvey/class/surveyanswerpredefinedtext.class.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
+
 
 /**
  * Class for surveyAnswer
@@ -61,6 +63,22 @@ class SurveyAnswer extends CommonObject
     const STATUS_DRAFT = 0;
     const STATUS_VALIDATED = 1;
     const STATUS_CANCELED = 9;
+
+        /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyAnswerId'=>objectOfSqlResult))
+     */
+
+    static public $DB_CACHE = array();
+
+    /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('surveyQuestionId'=>array('surveyAnswerId'=>true)))
+     */
+
+    static public $DB_CACHE_FROM_SURVEYQUESTION = array();
 
 
     /**
@@ -284,7 +302,7 @@ class SurveyAnswer extends CommonObject
     {
         $this->predefined_texts = array();
 
-        $result = interventionSurveyFetchLinesCommon(" ORDER BY position ASC", "SurveyAnswerPredefinedText", $this->predefined_texts, $this);
+        $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyAnswerPredefinedText", $this->predefined_texts, $this, SurveyAnswerPredefinedText::$DB_CACHE_FROM_SURVEYANSWER, SurveyAnswerPredefinedText::$DB_CACHE);
         foreach ($this->predefined_texts as $predefined_text) {
             $predefined_text->surveyAnswer = $this;
         }
@@ -581,5 +599,14 @@ class SurveyAnswer extends CommonObject
             $this->db->rollback();
             return -1;
         }
+    }
+
+    public static function fillCacheFromParentObjectIds($arrayOfSurveyQuestionIds) {
+        global $db;
+        $object = new self($db);
+        commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveyquestion IN ( ' . implode(",", $arrayOfSurveyQuestionIds) . ')');
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYQUESTION, 'fk_surveyquestion', self::$DB_CACHE);
+        $surveyAnswerIds = getCachedElementIds(self::$DB_CACHE);
+        SurveyAnswerPredefinedText::fillCacheFromParentObjectIds($surveyAnswerIds);
     }
 }
