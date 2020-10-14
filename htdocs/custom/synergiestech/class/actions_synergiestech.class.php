@@ -1341,7 +1341,7 @@ SCRIPT;
                 if ($addlink == 'equipement' && !empty($idtolinkto)) {
                     dol_include_once('synergiestech/class/html.formsynergiestech.class.php');
                     foreach ($idtolinkto as $linkto) {
-                        $formHtmlSynergiesTech = new FormSynergiesTech($db);
+                        $formHtmlSynergiesTech = new FormSynergiesTech($this->db);
                         $formHtmlSynergiesTech->fetch_all_contract_for_these_company($object->socid, $object->socid_benefactor, true, true);
                         $listOfContract = $formHtmlSynergiesTech->getContractLinkedToEquipementId($linkto, true);
                         foreach($listOfContract as $contract){
