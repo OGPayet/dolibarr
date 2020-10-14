@@ -72,6 +72,14 @@ class SurveyQuestion extends CommonObject
     static public $DB_CACHE = array();
 
     /**
+     * Array of cache data for extrafield values for massive api call
+     * @var array
+     * array('surveyQuestionId'=>cacheArrayOptions))
+     */
+
+    static public $DB_CACHE_EXTRAFIELDS = array();
+
+    /**
      * Array of cache data for massive api call
      * @var array
      * array('surveyBlocQuestionId'=>array('surveyQuestionId'=>true)))
@@ -858,9 +866,15 @@ class SurveyQuestion extends CommonObject
     /**
      *	{@inheritdoc}
      */
-    function fetch_optionals($rowid = null, $optionsArray = null)
+    public function fetch_optionals($rowid = null, $optionsArray = null, $getDataFromCache = false)
     {
-        $result = parent::fetch_optionals($rowid, $optionsArray);
+        if($getDataFromCache) {
+            $this->array_options = is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id]) ? self::$DB_CACHE_EXTRAFIELDS[$this->id] : array();
+            $result = 1;
+        }
+        else {
+            $result = parent::fetch_optionals($rowid, $optionsArray);
+        }
         if ($result > 0) {
             $tmp = array();
             foreach ($this->array_options as $key => $val) {
@@ -949,6 +963,7 @@ class SurveyQuestion extends CommonObject
         commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveyblocquestion IN ( ' . implode(",", $arrayOfSurveyBlocQuestionIds) . ')');
         commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYBLOCQUESTION, 'fk_surveyblocquestion', self::$DB_CACHE);
         $surveyQuestionIds = getCachedElementIds(self::$DB_CACHE);
+        commonLoadExtrafieldCacheForItemWithIds($object, $db, self::$DB_CACHE_EXTRAFIELDS, $surveyQuestionIds);
         SurveyAnswer::fillCacheFromParentObjectIds($surveyQuestionIds);
     }
 }

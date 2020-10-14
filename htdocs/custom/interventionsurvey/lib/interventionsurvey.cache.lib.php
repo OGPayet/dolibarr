@@ -25,7 +25,7 @@
  * Function to fill cache of items fetched with sql filter
  * @param object $object instance of object to be fetched
  * @param DoliDB $db Database instance
- * @param array $cache cache value to save result too
+ * @param array $cache cache value to save result to
  * @param string $sqlFilter sql filter in order to limit number of object fetch
  * @return array value sql result fetch by this request
  */
@@ -57,6 +57,101 @@ function commonLoadCacheForItemWithFollowingSqlFilter($object, $db, &$cache, $sq
     }
     $object->errors = array_merge($object->errors, $errors);
     return empty($errors) ? 1 : -1;
+}
+
+/**
+ * Function to fill extrafield cache of items fetched with sql filter
+ * @param object $object instance of object to be fetched
+ * @param DoliDB $db Database instance
+ * @param array $cache cache value to save result to
+ * @param array $arrayOfIds ids of element extrafields to fetch;
+ * @return array value sql result fetch by this request
+ */
+
+function commonLoadExtrafieldCacheForItemWithIds($object, $db, &$cache, $arrayOfIds)
+{
+    global $extrafields;
+    $elementType = $object->table_element;
+
+    if (!isset($extrafields) || !is_object($extrafields))
+    {
+        require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+        $extrafields = new ExtraFields($db);
+    }
+
+    // Load array of extrafields for elementype = $this->table_element
+    if (empty($extrafields->attributes[$elementType]['loaded']))
+    {
+        $extrafields->fetch_name_optionals_label($elementType);
+    }
+    $optionsArray = (!empty($extrafields->attributes[$elementType]['label']) ? $extrafields->attributes[$elementType]['label'] : null);
+
+
+    if (is_array($optionsArray) && count($optionsArray) > 0)
+    {
+        $sql = "SELECT rowid, fk_object";
+        foreach ($optionsArray as $name => $label)
+        {
+            if (empty($extrafields->attributes[$elementType]['type'][$name]) || $extrafields->attributes[$elementType]['type'][$name] != 'separate')
+            {
+                $sql .= ", ".$name;
+            }
+        }
+        $sql .= " FROM ".MAIN_DB_PREFIX.$elementType."_extrafields";
+        $sql .= " WHERE fk_object IN ( " . implode(',', $arrayOfIds) . ')';
+        $resql = $db->query($sql);
+
+        if ($resql) {
+            $num_rows = $db->num_rows($resql);
+            $i = 0;
+            while ($i < $num_rows) {
+                $obj = $db->fetch_array($resql);
+                if ($obj) {
+                    $objectId = $obj["fk_object"];
+                    $cache[$objectId] = array();
+
+                    foreach ($obj as $key => $value)
+                    {
+                        if($key == "fk_object") {
+                            continue;
+                        }
+                        // Test fetch_array ! is_int($key) because fetch_array result is a mix table with Key as alpha and Key as int (depend db engine)
+                        if ($key != 'rowid' && $key != 'tms' && $key != 'fk_member' && !is_int($key))
+                        {
+                            // we can add this attribute to object
+                            if (!empty($extrafields) && in_array($extrafields->attributes[$elementType]['type'][$key], array('date', 'datetime')))
+                            {
+                                //var_dump($extrafields->attributes[$this->table_element]['type'][$key]);
+                                $cache[$objectId]["options_".$key] = $object->db->jdate($value);
+                            } else {
+                                $cache[$objectId]["options_".$key] = $value;
+                            }
+
+                            //var_dump('key '.$key.' '.$value.' type='.$extrafields->attributes[$this->table_element]['type'][$key].' '.$this->array_options["options_".$key]);
+                        }
+                    }
+
+                    // If field is a computed field, value must become result of compute
+                    foreach ($obj as $key => $value) {
+                        if (!empty($extrafields) && !empty($extrafields->attributes[$elementType]['computed'][$key]))
+                        {
+                            //var_dump($conf->disable_compute);
+                            if (empty($conf->disable_compute)) {
+                                $cache[$objectId]["options_".$key] = dol_eval($extrafields->attributes[$elementType]['computed'][$key], 1, 0);
+                            }
+                        }
+                    }
+                }
+                $i++;
+            }
+        } else {
+            $errors[] = $db->lasterror();
+            return -1;
+        }
+            $db->free($resql);
+            return 1;
+    }
+    return 0;
 }
 /**
  * Function to fill cache of ids of linked object

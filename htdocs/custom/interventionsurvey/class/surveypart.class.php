@@ -299,7 +299,7 @@ class SurveyPart extends CommonObject
         $this->blocs = array();
         $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyBlocQuestion", $this->blocs, $this, SurveyBlocQuestion::$DB_CACHE_FROM_SURVEYPART, SurveyBlocQuestion::$DB_CACHE, $forceDataFromCache);
         foreach ($this->blocs as $bloc) {
-            $bloc->fetch_optionals();
+            $bloc->fetch_optionals(null, null, $forceDataFromCache);
         }
         return $result;
     }

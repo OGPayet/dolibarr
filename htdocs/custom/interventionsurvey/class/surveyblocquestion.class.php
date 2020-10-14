@@ -87,6 +87,14 @@ class SurveyBlocQuestion extends CommonObject
     static public $DB_CACHE_FROM_SURVEYPART = array();
 
     /**
+     * Array of cache data for extrafield values for massive api call
+     * @var array
+     * array('surveyBlocQuestionId'=>cacheArrayOptions))
+     */
+
+    static public $DB_CACHE_EXTRAFIELDS = array();
+
+    /**
      *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
      *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
      *  'label' the translation key.
@@ -349,7 +357,7 @@ class SurveyBlocQuestion extends CommonObject
 
         $result1 = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyQuestion", $this->questions, $this, SurveyQuestion::$DB_CACHE_FROM_SURVEYBLOCQUESTION, SurveyQuestion::$DB_CACHE, $forceDataFromCache);
         foreach ($this->questions as $question) {
-            $question->fetch_optionals();
+            $question->fetch_optionals(null, null, $forceDataFromCache);
         }
         $result2 = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyBlocStatus", $this->status, $this, SurveyBlocStatus::$DB_CACHE_FROM_SURVEYBLOCQUESTION, SurveyBlocStatus::$DB_CACHE, $forceDataFromCache);
         if ($this->fk_chosen_status) {
@@ -777,9 +785,15 @@ class SurveyBlocQuestion extends CommonObject
     /**
      *	{@inheritdoc}
      */
-    function fetch_optionals($rowid = null, $optionsArray = null)
+    public function fetch_optionals($rowid = null, $optionsArray = null, $getDataFromCache = false)
     {
-        $result = parent::fetch_optionals($rowid, $optionsArray);
+        if($getDataFromCache) {
+            $this->array_options = is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id]) ? self::$DB_CACHE_EXTRAFIELDS[$this->id] : array();
+            $result = 1;
+        }
+        else {
+            $result = parent::fetch_optionals($rowid, $optionsArray);
+        }
         if ($result > 0) {
             $tmp = array();
             foreach ($this->array_options as $key => $val) {
@@ -1061,6 +1075,7 @@ class SurveyBlocQuestion extends CommonObject
         commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveypart IN ( ' . implode(",", $arrayOfSurveyPartIds) . ')');
         commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYPART, 'fk_surveypart', self::$DB_CACHE);
         $surveyBlocQuestionIds = getCachedElementIds(self::$DB_CACHE);
+        commonLoadExtrafieldCacheForItemWithIds($object, $db, self::$DB_CACHE_EXTRAFIELDS, $surveyBlocQuestionIds);
         SurveyBlocStatus::fillCacheFromParentObjectIds($surveyBlocQuestionIds);
         SurveyQuestion::fillCacheFromParentObjectIds($surveyBlocQuestionIds);
     }
