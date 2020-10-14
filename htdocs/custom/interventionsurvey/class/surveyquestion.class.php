@@ -856,6 +856,25 @@ class SurveyQuestion extends CommonObject
     }
 
     /**
+     *	{@inheritdoc}
+     */
+    function fetch_optionals($rowid = null, $optionsArray = null)
+    {
+        $result = parent::fetch_optionals($rowid, $optionsArray);
+        if ($result > 0) {
+            $tmp = array();
+            foreach ($this->array_options as $key => $val) {
+                if (in_array(substr($key, 8), $this->extrafields)) {
+                    $tmp[$key] = $val;
+                }
+            }
+            $this->array_options = $tmp;
+        }
+
+        return $result;
+    }
+
+    /**
      *
      * Merge current InterventionSurvey with a given InterventionSurvey
      *

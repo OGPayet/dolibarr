@@ -220,11 +220,12 @@ class DaoMulticompany extends CommonObject
 					}
 				}
 
-				$extrafields = new ExtraFields($this->db);
-				$extralabels = $extrafields->fetch_name_optionals_label($this->table_element, true);
-				if (count($extralabels) > 0) {
-					$this->fetch_optionals($this->id, $extralabels);
-				}
+				$this->fetch_optionals();
+				// $extrafields = new ExtraFields($this->db);
+				// $extralabels = $extrafields->fetch_name_optionals_label($this->table_element, true);
+				// if (count($extralabels) > 0) {
+				// 	$this->fetch_optionals($this->id, $extralabels);
+				// }
 
 				return 1;
 			}
