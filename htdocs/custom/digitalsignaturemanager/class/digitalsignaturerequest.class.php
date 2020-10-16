@@ -25,6 +25,11 @@
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryfield.class.php');
+dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
+
 
 /**
  * Class for DigitalSignatureRequest
@@ -60,9 +65,11 @@ class DigitalSignatureRequest extends CommonObject
 
 	const STATUS_DRAFT = 0;
 	const STATUS_IN_PROGRESS = 1;
-	const STATUS_CANCELED = 2;
-	const STATUS_SUCCESS = 3;
-	const STATUS_ERROR = 9;
+	const STATUS_CANCELED_BY_OPSY = 2;
+	const STATUS_CANCELED_BY_CUSTOMER = 3;
+	const STATUS_CANCELED_BY_STAKEHOLDER = 4;
+	const STATUS_SUCCESS = 6;
+	const STATUS_DELETED_FROM_SIGNATURE_SERVICE = 9;
 
 	/**
 	 * Array of status type to manage picto
@@ -144,6 +151,17 @@ class DigitalSignatureRequest extends CommonObject
 
 	public $people = array();
 
+
+	/**
+	 * @var DigitalSignatureDocument[] Array of digital signature documents
+	 */
+	public $documents = array();
+
+	/**
+	 * @var DigitalSignatureSignatoryField[] Array of digital signature documents
+	 */
+	public $signatoryFields = array();
+
 	/**
 	 * Constructor
 	 *
@@ -187,30 +205,36 @@ class DigitalSignatureRequest extends CommonObject
 			}
 		}
 		$this->status = self::STATUS_DRAFT;
+		$langs->load("digitalsignaturemanager@digitalsignaturemanager");
+		$this->labelStatus = array(
+			self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraft'),
+			self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgress'),
+			self::STATUS_CANCELED_BY_OPSY => $langs->trans('DigitalSignatureCanceledInOpsy'),
+			self::STATUS_CANCELED_BY_CUSTOMER => $langs->trans('DigitalSignatureCanceledByCustomer'),
+			self::STATUS_CANCELED_BY_STAKEHOLDER => $langs->trans('DigitalSignatureCanceledByStakeholder'),
+			self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccess'),
+			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureService')
+		);
 
-			$langs->load("digitalsignaturemanager");
-			$this->labelStatus = array(
-				self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraft'),
-				self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgress'),
-				self::STATUS_CANCELED => $langs->trans('DigitalSignatureCanceled'),
-				self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccess'),
-				self::STATUS_ERROR => $langs->trans('DigitalSignatureError')
-			);
-			$this->labelStatusShort = array(
-				self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraftShort'),
-				self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgressShort'),
-				self::STATUS_CANCELED => $langs->trans('DigitalSignatureCanceledShort'),
-				self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccessShort'),
-				self::STATUS_ERROR => $langs->trans('DigitalSignatureErrorShort')
-			);
+		$this->labelStatusShort = array(
+			self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraftShort'),
+			self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgressShort'),
+			self::STATUS_CANCELED_BY_OPSY => $langs->trans('DigitalSignatureCanceledInOpsyShort'),
+			self::STATUS_CANCELED_BY_CUSTOMER => $langs->trans('DigitalSignatureCanceledByCustomerShort'),
+			self::STATUS_CANCELED_BY_STAKEHOLDER => $langs->trans('DigitalSignatureCanceledByStakeholderShort'),
+			self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccessShort'),
+			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureServiceShort')
+		);
 
-			$this->statusType = array(
-				self::STATUS_DRAFT => 'status0',
-				self::STATUS_IN_PROGRESS => 'status3',
-				self::STATUS_CANCELED => 'status5',
-				self::STATUS_SUCCESS => 'status4',
-				self::STATUS_ERROR => 'status8'
-			);
+		$this->statusType = array(
+			self::STATUS_DRAFT => 'status0',
+			self::STATUS_IN_PROGRESS => 'status3',
+			self::STATUS_CANCELED_BY_OPSY => 'status5',
+			self::STATUS_CANCELED_BY_CUSTOMER => 'status5',
+			self::STATUS_CANCELED_BY_STAKEHOLDER => 'status5',
+			self::STATUS_SUCCESS => 'status4',
+			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => 'status8'
+		);
 	}
 
 	/**
@@ -223,6 +247,57 @@ class DigitalSignatureRequest extends CommonObject
 	public function create(User $user, $notrigger = false)
 	{
 		return $this->createCommon($user, $notrigger);
+	}
+
+	/**
+	 * Update object into database
+	 *
+	 * @param  User $user      User that modifies
+	 * @param  bool $notrigger false=launch triggers after, true=disable triggers
+	 * @return int             <0 if KO, >0 if OK
+	 */
+	public function update(User $user, $notrigger = false)
+	{
+		if(empty($this->fk_project)){
+			$this->fk_project = null;
+		}
+		return $this->updateCommon($user, $notrigger);
+	}
+
+
+
+	/**
+	 * Create or Update object into database
+	 *
+	 * @param  User $user      User that creates
+	 * @param  bool $notrigger false=launch triggers after, true=disable triggers
+	 * @return int             <0 if KO, Id of created object if OK
+	 */
+	public function createOrUpdate(User $user, $notrigger = false)
+	{
+		$this->db->begin();
+		if($this->id) {
+			$result = $this->update($user, $notrigger);
+		}
+		else {
+			$result = $this->create($user, $notrigger);
+		}
+		if($result > 0) {
+			foreach($this->people as $people) {
+				$result = $people->createOrUpdate($user, $notrigger);
+				$this->errors = array_merge($this->errors, $people->errors);
+				if($result < 0 ) {
+					break;
+				}
+			}
+		}
+		if($result > 0) {
+			$this->db->commit();
+		}
+		else {
+			$this->db->rollback();
+		}
+		return $result;
 	}
 
 	/**
@@ -244,12 +319,7 @@ class DigitalSignatureRequest extends CommonObject
 		$this->db->begin();
 
 		// Load source object
-		$result = $object->fetchCommon($fromid);
-		if ($result > 0 && !empty($object->table_element_line)) $object->fetchLines();
-
-		// get lines so they will be clone
-		//foreach($this->lines as $line)
-		//	$line->fetch_optionals();
+		$object->fetch($fromid);
 
 		// Reset some properties
 		unset($object->id);
@@ -279,30 +349,11 @@ class DigitalSignatureRequest extends CommonObject
 
 		// Create clone
 		$object->context['createfromclone'] = 'createfromclone';
-		$result = $object->createCommon($user);
+		$result = $object->createOrUpdate($user);
 		if ($result < 0) {
 			$error++;
 			$this->error = $object->error;
 			$this->errors = $object->errors;
-		}
-
-		if (!$error)
-		{
-			// copy internal contacts
-			if ($this->copy_linked_contact($object, 'internal') < 0)
-			{
-				$error++;
-			}
-		}
-
-		if (!$error)
-		{
-			// copy external contacts if same company
-			if (property_exists($this, 'socid') && $this->socid == $object->socid)
-			{
-				if ($this->copy_linked_contact($object, 'external') < 0)
-					$error++;
-			}
 		}
 
 		unset($object->context['createfromclone']);
@@ -327,117 +378,68 @@ class DigitalSignatureRequest extends CommonObject
 	public function fetch($id, $ref = null)
 	{
 		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
+		if($result > 0) {
+			$result = $this->fetch_optionals();
+		}
+		if ($result >= 0) {
+			$result = $this->fetchPeople();
+		}
+		if($result >=0) {
+			$result = $this->fetchDocuments();
+		}
+
+		if($result >=0) {
+			$result = $this->fetchSignatoryField();
+		}
 		return $result;
 	}
 
 	/**
-	 * Load object lines in memory from the database
+	 * Load object people in memory from the database
 	 *
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetchLines()
+	public function fetchPeople()
 	{
-		$this->lines = array();
-
-		$result = $this->fetchLinesCommon();
-		return $result;
-	}
-
-
-	/**
-	 * Load list of objects in memory from the database.
-	 *
-	 * @param  string      $sortorder    Sort Order
-	 * @param  string      $sortfield    Sort field
-	 * @param  int         $limit        limit
-	 * @param  int         $offset       Offset
-	 * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
-	 * @param  string      $filtermode   Filter mode (AND or OR)
-	 * @return array|int                 int <0 if KO, array of pages if OK
-	 */
-	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND')
-	{
-		global $conf;
-
-		dol_syslog(__METHOD__, LOG_DEBUG);
-
-		$records = array();
-
-		$sql = 'SELECT ';
-		$sql .= $this->getFieldList();
-		$sql .= ' FROM '.MAIN_DB_PREFIX.$this->table_element.' as t';
-		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN ('.getEntity($this->table_element).')';
-		else $sql .= ' WHERE 1 = 1';
-		// Manage filter
-		$sqlwhere = array();
-		if (count($filter) > 0) {
-			foreach ($filter as $key => $value) {
-				if ($key == 't.rowid') {
-					$sqlwhere[] = $key.'='.$value;
-				}
-				elseif (strpos($key, 'date') !== false) {
-					$sqlwhere[] = $key.' = \''.$this->db->idate($value).'\'';
-				}
-				elseif ($key == 'customsql') {
-					$sqlwhere[] = $value;
-				}
-				else {
-					$sqlwhere[] = $key.' LIKE \'%'.$this->db->escape($value).'%\'';
-				}
-			}
+		$staticDigitalSignaturePeople = new DigitalSignaturePeople($this->db);
+		$fetchedPeople = $staticDigitalSignaturePeople->fetchPeopleOfDigitalSignatureRequest($this);
+		$this->errors = array_merge($this->errors, $staticDigitalSignaturePeople->errors);
+		if(is_array($fetchedPeople)) {
+			$this->people = $fetchedPeople;
 		}
-		if (count($sqlwhere) > 0) {
-			$sql .= ' AND ('.implode(' '.$filtermode.' ', $sqlwhere).')';
-		}
-
-		if (!empty($sortfield)) {
-			$sql .= $this->db->order($sortfield, $sortorder);
-		}
-		if (!empty($limit)) {
-			$sql .= ' '.$this->db->plimit($limit, $offset);
-		}
-
-		$resql = $this->db->query($sql);
-		if ($resql) {
-			$num = $this->db->num_rows($resql);
-			$i = 0;
-			while ($i < ($limit ? min($limit, $num) : $num))
-			{
-				$obj = $this->db->fetch_object($resql);
-
-				$record = new self($this->db);
-				$record->setVarsFromFetchObj($obj);
-
-				$records[$record->id] = $record;
-
-				$i++;
-			}
-			$this->db->free($resql);
-
-			return $records;
-		} else {
-			$this->errors[] = 'Error '.$this->db->lasterror();
-			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
-
-			return -1;
-		}
+		return empty($staticDigitalSignaturePeople->errors) ? 1 : -1;
 	}
 
 	/**
-	 * Update object into database
-	 *
-	 * @param  User $user      User that modifies
-	 * @param  bool $notrigger false=launch triggers after, true=disable triggers
-	 * @return int             <0 if KO, >0 if OK
-	 */
-	public function update(User $user, $notrigger = false)
+	* Load documents in memory from the database
+	* @return int         <0 if KO, 0 if not found, >0 if OK
+	*/
+	public function fetchDocuments()
 	{
-		if(empty($this->fk_project)){
-			$this->fk_project = null;
+		global $user;
+		$staticDigitalSignatureDocument = new DigitalSignatureDocument($this->db);
+		$linkedDocuments = $staticDigitalSignatureDocument->fetchDocumentForDigitalSignature($this, $user);
+		$this->errors = array_merge($this->errors, $staticDigitalSignatureDocument->errors);
+		if(is_array($linkedDocuments)) {
+			$this->documents = $linkedDocuments;
 		}
+		return empty($staticDigitalSignatureDocument->errors) ? 1 : -1;
+	}
 
-		return $this->updateCommon($user, $notrigger);
+	/**
+	* Load signatory fields in memory from the database
+	* @return int         <0 if KO, 0 if not found, >0 if OK
+	*/
+	public function fetchSignatoryField()
+	{
+		global $user;
+		$staticDigitalSignatureSignatoryField = new DigitalSignatureSignatoryField($this->db);
+		$linkedSignatoryField = $staticDigitalSignatureSignatoryField->fetchSignatoryFieldForDigitalSignatureRequest($this, $user);
+		$this->errors = array_merge($this->errors, $staticDigitalSignatureSignatoryField->errors);
+		if(is_array($linkedSignatoryField)) {
+			$this->signatoryFields = $linkedSignatoryField;
+		}
+		return empty($staticDigitalSignatureSignatoryField->errors) ? 1 : -1;
 	}
 
 	/**
@@ -449,78 +451,153 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
-		return $this->deleteCommon($user, $notrigger);
-		//return $this->deleteCommon($user, $notrigger, 1);
-	}
-
-	/**
-	 *	Set draft status
-	 *
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, >0 if OK
-	 */
-	public function setBackToDraft($user, $notrigger = 0)
-	{
-		// Protection
-		if ($this->status === self::STATUS_DRAFT)
-		{
-			$result = 0;
+		$this->db->begin();
+		foreach($this->people as $people) {
+			$result = $people->delete($user, $notrigger);
+			$this->errors = array_merge($this->errors, $people->errors);
+			if($result < 0) {
+				break;
+			}
 		}
-		else
-		{
-			//toDo - cancel signature request
-			$isSignatureSuccessfullyCanceled = true;
-
-			if($isSignatureSuccessfullyCanceled)
-			{
-				$result = $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'DIGITALSIGNATUREREQUEST_UNVALIDATE');
-			}
-			else
-			{
-				global $langs;
-				$this->errors = $langs->trans('DigitalSignatureManagerCantDeleteThirdpartyRequest');
-				$result = -2;
-			}
+		if($result > 0) {
+			$result = $this->deleteCommon($user, $notrigger);
+		}
+		if($result > 0) {
+			$this->db->commit();
+		}
+		else {
+			$this->db->rollback();
 		}
 		return $result;
 	}
 
 	/**
-	 *	Set cancel status
-	 *
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 * Function to validate that all needed data have been put in order to be able to create one request
+	 * @return array arrayOfErrors
 	 */
-	public function validate($user, $notrigger = 0)
+	public function checkDataValidForCreateRequestOnProvider()
 	{
-		return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'DIGITALSIGNATUREREQUEST_CLOSE');
+	    global $langs;
+		$errors = array();
+		if(empty($this->people)) {
+			$errors[] = $langs->trans('DigitalSignatureMissingSignatory');
+		}
+
+		if(empty($this->documents)) {
+			$errors[] = $langs->trans('DigitalSignatureMissingFilesToSign');
+		}
+
+		foreach($this->documents as $document)
+		{
+			foreach($this->people as $people)
+			{
+				$signatureFieldForThisSignatoryOnThisDocument = getItemFromThisArray($this->signatoryFields, array(
+					'fk_chosen_digitalsignaturedocument'=>$document->id,
+					'fk_chosen_digitalsignaturepeople'=>$people->id,
+				));
+				if(!$signatureFieldForThisSignatoryOnThisDocument) {
+					$errors = $langs->trans('DigitalSignatureMissingSignatoryField', $people->displayName(), $document->getDocumentName());
+				}
+			}
+		}
+
+		foreach($this->people as $people) {
+			$errors = array_merge($errors, $people->checkDataValidForCreateRequestOnProvider());
+		}
+		return $errors;
 	}
 
 	/**
-	 *	Set cancel status
+	 *	Create request on the provider and change status of this object in case of success
 	 *
 	 *	@param	User	$user			Object user that modify
 	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
 	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
 	 */
-	public function cancel($user, $notrigger = 0)
+	public function validateAndCreateRequestOnTheProvider($user, $notrigger = 0)
 	{
-		return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'DIGITALSIGNATUREREQUEST_CLOSE');
+		$this->db->begin();
+		$validationErrors = $this->checkDataValidForCreateRequestOnProvider();
+		if(!empty($validationErrors)) {
+			$this->errors = array_merge($this->errors, $validationErrors);
+			$this->db->rollback();
+			return -1;
+		}
+
+		//toDo create request on universign
+		$signatureRequestSuccessfullyCreated = true;
+		$result = $this->setStatusCommon($user, self::STATUS_IN_PROGRESS, $notrigger, 'DIGITALSIGNATUREREQUEST_VALIDATE');
+		if($result > 0 && $signatureRequestSuccessfullyCreated) {
+			$this->db->commit();
+			return 1;
+		}
+		else {
+			$this->db->rollback();
+			return -1;
+		}
 	}
 
 	/**
-	 *	Set back to validated status
+	 * We have detected that request has been deleted on the provider server
+	 * We manage this event
+	 * 	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 */
+	public function manageRequestDeletedInProvider($user, $notrigger = 0)
+	{
+		return $this->setStatusCommon($user, self::STATUS_DELETED_FROM_SIGNATURE_SERVICE, $notrigger, 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER');
+	}
+
+	/**
+	 * We have detected that signature process is successfully ended
+	 * We manage this event
+	 * 	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 */
+	public function manageRequestRequestSuccess($user, $notrigger = 0)
+	{
+		return $this->setStatusCommon($user, self::STATUS_SUCCESS, $notrigger, 'DIGITALSIGNATUREREQUEST_SUCCESS');
+	}
+
+	/**
+	 *	We have to cancel this request on the provider side and manage success of it in this app
 	 *
 	 *	@param	User	$user			Object user that modify
 	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
 	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
 	 */
-	public function reopen($user, $notrigger = 0)
+	public function cancelRequestFromOpsy($user, $notrigger = 0)
 	{
-		return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'DIGITALSIGNATUREREQUEST_REOPEN');
+		return $this->setStatusCommon($user, self::STATUS_CANCELED_BY_OPSY, $notrigger, 'DIGITALSIGNATUREREQUEST_CANCEL');
 	}
+
+
+	/**
+     * We have detected that signature process has been canceled by the customer
+	 * We manage this event
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 */
+	public function manageRequestRequestCanceledByCustomer($user, $notrigger = 0)
+	{
+		return $this->setStatusCommon($user, self::STATUS_CANCELED_BY_CUSTOMER, $notrigger, 'DIGITALSIGNATUREREQUEST_CANCELEDBYCUSTOMER');
+	}
+
+	/**
+     * We have detected that signature process has been canceled by the stakeholder
+	 * We manage this event
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 */
+	public function manageRequestRequestCanceledByStakeholder($user, $notrigger = 0)
+	{
+		return $this->setStatusCommon($user, self::STATUS_CANCELED_BY_STAKEHOLDER, $notrigger, 'DIGITALSIGNATUREREQUEST_CANCELEDBYSTAKEHOLDER');
+	}
+
 
 	/**
 	 *  Return a link to the object card (with optionaly the picto)
@@ -647,7 +724,7 @@ class DigitalSignatureRequest extends CommonObject
 		if($status == self::STATUS_IN_PROGRESS){
 			$labelStatus .= $langs->trans('DigitalSignatureRequestActionToDoForPeople') . ' ' . $this->getInProgressStatusLabelSuffix();
 		}
-		elseif($status == self::STATUS_CANCELED){
+		elseif(in_array($status, array(self::STATUS_CANCELED_BY_CUSTOMER, self::STATUS_CANCELED_BY_STAKEHOLDER))){
 			$labelStatus .= $langs->trans('DigitalSignatureRequestActionCanceledBy') . ' ' . $this->getCanceledStatusLabelSuffix();
 		}
 		return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
@@ -970,29 +1047,11 @@ class DigitalSignatureRequest extends CommonObject
 	}
 
 	/**
-	 * Function to create a request on universign
-	 * @return int >0 if success
-	 */
-	private function createRequestOnUniversign()
+	 * Is this object editable by the user
+	 * @return boolean
+	*/
+	public function isEditable()
 	{
-		return 1;
-	}
-
-	/**
-	 * Function to fetch progress of a request on universign and manage update on local item
-	 * @return int >0 if succcess
-	 */
-	private function fetchProgressOnUniversign()
-	{
-		return 1;
-	}
-
-	/**
-	 * Cancel progress on universign
-	 * @return int >0 if succcess
-	 */
-	private function cancelRequestOnUniversign()
-	{
-		return 1;
+		return $this->statut == self::STATUS_DRAFT;
 	}
 }

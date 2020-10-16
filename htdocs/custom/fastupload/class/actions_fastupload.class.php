@@ -110,7 +110,7 @@ class ActionsFastUpload
 					dropzone_div.append($("<span class=\"bigger-150 grey\">'.(addslashes($langs->transnoentities('FastUpload_DefaultMessage'))).'</span>"));
 					dropzone_div.append($("<div id=\"dropzone-previews-box\" class=\"dz dropzone-previews dz-max-files-reached\"></div>"));
 
-					var dropzone_form = $("<form id=\'dropzone_form\' action=\'"+fu_action+"\' method=\'"+fu_method+"\' enctype=\'multipart/form-data\'></form>");
+					var dropzone_form = $("<form id=\'dropzone_form\' action=\'"+fu_action+"\' method=\'"+fu_method+"\' enctype=\'multipart/form-data\' ></form>");
 					dropzone_form.append(dropzone_div);
 					dropzone_form.append("<br /><div '.(!empty($conf->global->FASTUPLOAD_ENABLE_AUTOUPLOAD) ? 'style=\'display:none;\'' : '').'>"+dropzone_submit+"</div>");
 					if (dropzone_savingdocmask) dropzone_form.append(dropzone_savingdocmask);

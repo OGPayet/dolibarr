@@ -50,8 +50,7 @@ $langs->loadLangs(array("digitalsignaturemanager@digitalsignaturemanager", "comp
 
 $action = GETPOST('action', 'aZ09');
 $confirm = GETPOST('confirm');
-$id = (GETPOST('socid', 'int') ? GETPOST('socid', 'int') : GETPOST('id', 'int'));
-$ref = GETPOST('ref', 'alpha');
+$id = GETPOST('id', 'int');
 
 // Get parameters
 $limit = GETPOST('limit', 'int') ? GETPOST('limit', 'int') : $conf->liste_limit;
@@ -87,7 +86,14 @@ if (!$permissiontoread) accessforbidden();
  * Actions
  */
 
-include_once DOL_DOCUMENT_ROOT.'/core/actions_linkedfiles.inc.php';
+
+$parameters = array('upload_dir' => $upload_dir, 'confirm' => $confirm);
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
+if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+if (empty($reshook)) {
+    include_once DOL_DOCUMENT_ROOT . '/core/actions_linkedfiles.inc.php';
+}
 
 /*
  * View

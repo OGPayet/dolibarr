@@ -50,7 +50,43 @@ DigitalSignatureRequestListOfSignedFiles = Liste des fichiers signés électroni
 #
 # Status
 #
-DigitalSignatureDraft = Brouillon
+DigitalSignatureDraft = Signature brouillon
+DigitalSignatureDraftShort = Brouillon
+DigitalSignatureInProgress = Processus de signature en cours
+DigitalSignatureInProgressShort = En cours
+DigitalSignatureCanceledInOpsy = Processus annulé dans Opsy
+DigitalSignatureCanceledInOpsyShort = Annulé dans Opsy
+DigitalSignatureCanceledByCustomer = Processus annulé par le client
+DigitalSignatureCanceledByCustomerShort = Annulé par le client
+DigitalSignatureCanceledByStakeholder = Processus annulé par le prestataire
+DigitalSignatureCanceledByStakeholderShort = Annulé par le prestataire
+DigitalSignatureSuccess = Processus de signature terminé
+DigitalSignatureSuccessShort = Processus terminé
+DigitalSignatureErrorDeletedInSignatureService = Demande de signature supprimé chez le prestataire
+DigitalSignatureErrorDeletedInSignatureServiceShort = Supprimé par le prestataire
+DigitalSignaturePeopleDraft = Processus de signature non débuté
+DigitalSignaturePeopleWaitingToSign = En attente de pouvoir signer
+DigitalSignaturePeopleShouldSign = A son tour de signer
+DigitalSignaturePeopleSuccessfullySigned = Signature effectuée
+DigitalSignaturePeopleRefusedToSign = A refusé de signer
+DigitalSignaturePeopleDontHaveBeenAskedToSign = Processus stoppé avant de signer
+DigitalSignaturePeopleDraftShort = Processus non débuté
+DigitalSignaturePeopleWaitingToSignShort = En attente
+DigitalSignaturePeopleShouldSignShort = Doit signer
+DigitalSignaturePeopleSuccessfullySignedShort = Signé
+DigitalSignaturePeopleRefusedToSignShort = Refusé
+DigitalSignaturePeopleDontHaveBeenAskedToSignShort = Stoppé prématurément
+
+#
+# Vérification des données
+#
+DigitalSignatureMissingSignatory = Au moins un signataire doit être renseigné sur ce document
+DigitalSignatureMissingFilesToSign = Aucun fichier n'est à signer
+DigitalSignaturePeopleMissingLastName = Nom de famille manquant pour le signataire %s
+DigitalSignaturePeopleMissingFirstName = Prénom manquant pour le signataire %s
+DigitalSignaturePeopleMissingPhoneNumber = Numéro de téléphone manquant pour le signataire %s
+DigitalSignaturePeopleMissingMail = Adresse email manquante pour le signataire %s
+DigitalSignatureMissingSignatoryField = Champs de signature pour le signataire %s manquant sur le document %s
 
 #
 # Propriété des champs

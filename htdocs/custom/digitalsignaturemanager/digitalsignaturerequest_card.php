@@ -185,8 +185,8 @@ if (empty($reshook)) {
 	// include DOL_DOCUMENT_ROOT . '/core/actions_sendmails.inc.php';
 }
 
-
-
+// Load object
+include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be include, not include_once.
 
 /*
  * View

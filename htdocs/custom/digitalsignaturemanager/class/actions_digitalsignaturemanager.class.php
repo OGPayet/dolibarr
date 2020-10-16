@@ -94,27 +94,7 @@ class ActionsDigitalSignatureManager
 	 */
 	public function doActions($parameters, &$object, &$action, $hookmanager)
 	{
-		global $conf, $user, $langs;
-
-		$error = 0; // Error counter
-
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-		if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2')))	    // do something only for the context 'somecontext1' or 'somecontext2'
-		{
-			// Do what you want here...
-			// You can for example call global vars like $fieldstosearchall to overwrite them, or update database depending on $action and $_POST values.
-		}
-
-		if (!$error) {
-			$this->results = array('myreturn' => 999);
-			$this->resprints = 'A text to show';
-			return 0; // or return 1 to replace standard code
-		} else {
-			$this->errors[] = 'Error message';
-			return -1;
-		}
 	}
-
 
 	/**
 	 * Overloading the doMassActions function : replacing the parent's function with the one below
