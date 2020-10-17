@@ -29,6 +29,7 @@ dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.ph
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryfield.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
+dol_include_once('/digitalsignaturemanager/class/universign.class.php');
 
 
 /**
@@ -525,6 +526,7 @@ class DigitalSignatureRequest extends CommonObject
 		}
 
 		//toDo create request on universign
+		//$responseFrom
 		$signatureRequestSuccessfullyCreated = true;
 		$result = $this->setStatusCommon($user, self::STATUS_IN_PROGRESS, $notrigger, 'DIGITALSIGNATUREREQUEST_VALIDATE');
 		if($result > 0 && $signatureRequestSuccessfullyCreated) {

@@ -94,6 +94,11 @@ DigitalSignatureMissingSignatoryField = Champs de signature pour le signataire %
 DigitalSignatureManagerLinkToThirparty = Tiers
 
 #
+# Evènements automatiques
+#
+
+
+#
 # Page À propos
 #
 About = À propos

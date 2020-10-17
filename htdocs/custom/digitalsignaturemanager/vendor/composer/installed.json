@@ -1,0 +1,98 @@
+[
+    {
+        "name": "globalis/universign-service",
+        "version": "0.1.6",
+        "version_normalized": "0.1.6.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/globalis-ms/universign-service.git",
+            "reference": "2a6bf7e5cdc70693da47d8cf6d49e9fb4c179fc6"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/globalis-ms/universign-service/zipball/2a6bf7e5cdc70693da47d8cf6d49e9fb4c179fc6",
+            "reference": "2a6bf7e5cdc70693da47d8cf6d49e9fb4c179fc6",
+            "shasum": ""
+        },
+        "require": {
+            "phpxmlrpc/phpxmlrpc": "^4.2"
+        },
+        "time": "2018-02-02T09:26:19+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Globalis\\Universign\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Romain GUGERT",
+                "email": "romain.gugert@globalis-ms.com"
+            },
+            {
+                "name": "GLOBALIS media systems",
+                "homepage": "https://www.globalis-ms.com/"
+            }
+        ],
+        "description": "PHP library for universign service",
+        "homepage": "https://github.com/globalis-ms/universign-service"
+    },
+    {
+        "name": "phpxmlrpc/phpxmlrpc",
+        "version": "4.4.2",
+        "version_normalized": "4.4.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/gggeek/phpxmlrpc.git",
+            "reference": "9b400d2c102f2a55839af8f73279274ebe148526"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/gggeek/phpxmlrpc/zipball/9b400d2c102f2a55839af8f73279274ebe148526",
+            "reference": "9b400d2c102f2a55839af8f73279274ebe148526",
+            "shasum": ""
+        },
+        "require": {
+            "ext-xml": "*",
+            "php": ">=5.3.0"
+        },
+        "require-dev": {
+            "codeclimate/php-test-reporter": "dev-master",
+            "docbook/docbook-xsl": "~1.78",
+            "ext-curl": "*",
+            "ext-mbstring": "*",
+            "indeyets/pake": "~1.99",
+            "phpunit/phpunit": ">=4.0.0, <6.0.0",
+            "phpunit/phpunit-selenium": "*",
+            "sami/sami": "~3.1"
+        },
+        "suggest": {
+            "ext-curl": "Needed for HTTPS and HTTP 1.1 support, NTLM Auth etc...",
+            "ext-mbstring": "Needed to allow reception of requests/responses in character sets other than ASCII,LATIN-1,UTF-8",
+            "ext-zlib": "Needed for sending compressed requests and receiving compressed responses, if cURL is not available"
+        },
+        "time": "2020-03-04T10:26:33+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "PhpXmlRpc\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "description": "A php library for building xmlrpc clients and servers",
+        "homepage": "http://gggeek.github.io/phpxmlrpc/",
+        "keywords": [
+            "webservices",
+            "xmlrpc"
+        ]
+    }
+]
