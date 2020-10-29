@@ -176,7 +176,15 @@ if (empty($reshook)) {
         {
             setEventMessages($object->error, $object->errors, 'errors');
         }
-    }
+	}
+
+	if($action == 'confirm_validateAndCreateRequestToProvider' && $permissioncreate && $confirm == 'yes') {
+		$result = $object->validateAndCreateRequestOnTheProvider($user);
+		if ($result < 0)
+        {
+            setEventMessages($object->error, $object->errors, 'errors');
+        }
+	}
 
 	// // Actions to send emails
 	// $triggersendname = 'DIGITALSIGNATUREREQUEST_SENTBYMAIL';
@@ -312,6 +320,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ToClone'), $langs->trans('ConfirmCloneAsk', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
 	}
 
+	if($action == 'validateAndCreateRequestToProvider' && $permissioncreate) {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('DigitalSignatureRequestValidate'), $langs->trans('DigitalSignatureRequestValidateDetails'), 'confirm_validateAndCreateRequestToProvider', '', 0, 1);
+	}
+
 	// Confirmation of action xxxx
 	if ($action == 'xxx') {
 		$formquestion = array();
@@ -427,16 +439,16 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// }
 
 			// Modify
-			if ($permissiontoedit) {
+			if ($permissiontoedit && $object->status == $object::STATUS_DRAFT) {
 				print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=edit">' . $langs->trans("Modify") . '</a>' . "\n";
-			} else {
+			} elseif(!$permissiontoedit) {
 				print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Modify') . '</a>' . "\n";
 			}
 
 			// Validate
 			if ($object->status == $object::STATUS_DRAFT) {
 				if ($permissiontoadd) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_validate&confirm=yes">' . $langs->trans("Validate") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=validateAndCreateRequestToProvider">' . $langs->trans("DigitalSignatureRequestValidateButton") . '</a>';
 				}
 			}
 
@@ -468,7 +480,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 		$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
 		// files to sign
-		print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForFilesToSign(), $object->getUploadDirOfFilesToSign(), $urlsource, 0, $permissionToAddAndDelFiles, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang, null, $object, 0);
+		print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForFilesToSign(), $object->getUploadDirOfFilesToSign(), $urlsource, 0, $permissionToAddAndDelFiles, $object->model_pdf, 1, 0, 0, 28, 0, '', $langs->trans('DigitalSignatureRequestListOfFileToSign'), '', $langs->defaultlang, null, $object, 0);
 
 		// signed files
 		print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForSignedFiles(), $object->getUploadDirOfSignedFiles(), $urlsource, 0, 0, $object->model_pdf, 1, 0, 0, 28, 0, '', $langs->trans('DigitalSignatureRequestListOfSignedFiles'), '', $langs->defaultlang, null, $object, 0);

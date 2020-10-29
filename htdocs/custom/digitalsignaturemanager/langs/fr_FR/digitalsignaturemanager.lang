@@ -46,7 +46,10 @@ DigitalSignatureCardNotes = Notes
 DigitalSignatureCardLinkedFiles = Fichiers joints
 DigitalSignatureCardLinkedEvents = Evènements liés
 DigitalSignatureRequestListOfSignedFiles = Liste des fichiers signés électroniquement
-
+DigitalSignatureRequestListOfFileToSign = Liste des fichiers à signer électroniquement
+DigitalSignatureRequestValidateButton = Lancer le processus
+DigitalSignatureRequestValidate = Créer la demande de signature chez le prestataire
+DigitalSignatureRequestValidateDetails = Confirmez-vous le lancement du processus de signature électronique ?
 #
 # Status
 #
@@ -56,26 +59,37 @@ DigitalSignatureInProgress = Processus de signature en cours
 DigitalSignatureInProgressShort = En cours
 DigitalSignatureCanceledInOpsy = Processus annulé dans Opsy
 DigitalSignatureCanceledInOpsyShort = Annulé dans Opsy
-DigitalSignatureCanceledByCustomer = Processus annulé par le client
-DigitalSignatureCanceledByCustomerShort = Annulé par le client
-DigitalSignatureCanceledByStakeholder = Processus annulé par le prestataire
-DigitalSignatureCanceledByStakeholderShort = Annulé par le prestataire
+DigitalSignatureCanceledBySigners = Processus annulé par un signataire
+DigitalSignatureCanceledBySignersShort = Annulé par un signataire
+DigitalSignatureFailed = Processus ayant echoué
 DigitalSignatureSuccess = Processus de signature terminé
 DigitalSignatureSuccessShort = Processus terminé
 DigitalSignatureErrorDeletedInSignatureService = Demande de signature supprimé chez le prestataire
 DigitalSignatureErrorDeletedInSignatureServiceShort = Supprimé par le prestataire
+DigitalSignatureFailedShort = Echec
 DigitalSignaturePeopleDraft = Processus de signature non débuté
 DigitalSignaturePeopleWaitingToSign = En attente de pouvoir signer
 DigitalSignaturePeopleShouldSign = A son tour de signer
+DigitalSignaturePeopleHasOpenFormToSign = A ouvert le formulaire de signature
+DigitalSignaturePeopleCodeSent = Code de vérification envoyé
+DigitalSignaturePeopleSendingIdDocs = Envoi des documents d'identité
+DigitalSignaturePeopleValidatingIdDocs = Validation des documents d'identité
+DigitalSignaturePeopleFailed = Echec de la signature
 DigitalSignaturePeopleSuccessfullySigned = Signature effectuée
 DigitalSignaturePeopleRefusedToSign = A refusé de signer
 DigitalSignaturePeopleDontHaveBeenAskedToSign = Processus stoppé avant de signer
 DigitalSignaturePeopleDraftShort = Processus non débuté
 DigitalSignaturePeopleWaitingToSignShort = En attente
 DigitalSignaturePeopleShouldSignShort = Doit signer
+DigitalSignaturePeopleHasOpenFormToSignShort = Formulaire de signature ouvert
+DigitalSignaturePeopleCodeSentShort = Code envoyé
+DigitalSignaturePeopleSendingIdDocsShort = Envoi des documents d'identité
+DigitalSignaturePeopleValidatingIdDocsShort = Validation doc d'identité
+DigitalSignaturePeopleFailedShort = Echec
 DigitalSignaturePeopleSuccessfullySignedShort = Signé
 DigitalSignaturePeopleRefusedToSignShort = Refusé
 DigitalSignaturePeopleDontHaveBeenAskedToSignShort = Stoppé prématurément
+DigitalSignatureManagerUnknownStatusFromProvider = Statut de la demande inconnu chez le prestataire
 
 #
 # Vérification des données
@@ -97,6 +111,10 @@ DigitalSignatureManagerLinkToThirparty = Tiers
 # Evènements automatiques
 #
 
+#
+# Erreurs
+#
+DigitalSignatureManagerUniversignErrorSavingFileInServer = Une erreur est intervenue lors de la sauvegarde du document signé %s dans le serveur
 
 #
 # Page À propos

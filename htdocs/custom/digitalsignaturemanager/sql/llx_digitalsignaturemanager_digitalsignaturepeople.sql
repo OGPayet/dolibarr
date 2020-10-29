@@ -25,7 +25,7 @@ CREATE TABLE llx_digitalsignaturemanager_digitalsignaturepeople(
 	firstName varchar(255),
 	phoneNumber varchar(255),
 	mail varchar(255),
-	providerSignatoryId varchar(255),
+	externalUrl varchar(255),
 	fk_digitalsignaturerequest integer NOT NULL,
 	position integer,
 	fk_people_object integer,

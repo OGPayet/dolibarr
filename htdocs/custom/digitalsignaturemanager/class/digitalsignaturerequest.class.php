@@ -29,7 +29,7 @@ dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.ph
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryfield.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
-dol_include_once('/digitalsignaturemanager/class/universign.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalSignatureManagerUniversign.class.php');
 
 
 /**
@@ -67,9 +67,10 @@ class DigitalSignatureRequest extends CommonObject
 	const STATUS_DRAFT = 0;
 	const STATUS_IN_PROGRESS = 1;
 	const STATUS_CANCELED_BY_OPSY = 2;
-	const STATUS_CANCELED_BY_CUSTOMER = 3;
-	const STATUS_CANCELED_BY_STAKEHOLDER = 4;
+	const STATUS_CANCELED_BY_SIGNERS = 5;
 	const STATUS_SUCCESS = 6;
+	const STATUS_FAILED = 8;
+	const STATUS_EXPIRED = 8;
 	const STATUS_DELETED_FROM_SIGNATURE_SERVICE = 9;
 
 	/**
@@ -122,6 +123,7 @@ class DigitalSignatureRequest extends CommonObject
 		'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>'1', 'position'=>1000, 'notnull'=>-1, 'visible'=>-2,),
 		'status' => array('type'=>'smallint', 'label'=>'Status', 'enabled'=>'1', 'position'=>1000, 'notnull'=>1, 'visible'=>0, 'noteditable'=>'1', 'default'=>'0', 'index'=>1, 'arrayofkeyval'=>array('0'=>'Brouillon', '1'=>'Processus de signature en cours', '2'=>'Annul&eacute;', '3'=>'Signature termin&eacute;e', '9'=>'Erreur Technique'),),
 		'externalId' => array('type'=>'varchar(255)', 'label'=>'Id of the signature process at external provider', 'enabled'=>'1', 'position'=>1002, 'notnull'=>0, 'visible'=>-5, 'index'=>1,),
+		'externalUrl' => array('type'=>'varchar(255)', 'label'=>'Url given by universign after request have been created', 'enabled'=>'1', 'position'=>1002, 'notnull'=>0, 'visible'=>-5, 'index'=>1,),
 		'elementtype' => array('type'=>'varchar(128)', 'label'=>'Linked Element Type', 'enabled'=>'1', 'position'=>1003, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
 		'fk_object' => array('type'=>'integer', 'label'=>'Id of the dolibarr object we sign', 'enabled'=>'1', 'position'=>1004, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
 		'listOfFileNameToSign' => array('type'=>'array', 'label'=>'Ordered Array of filename to be signed', 'enabled'=>'1', 'position'=>1005, 'notnull'=>0, 'visible'=>0,),
@@ -141,6 +143,7 @@ class DigitalSignatureRequest extends CommonObject
 	public $import_key;
 	public $status;
 	public $externalId;
+	public $externalUrl;
 	public $elementtype;
 	public $fk_object;
 	public $listOfFileNameToSign;
@@ -162,6 +165,11 @@ class DigitalSignatureRequest extends CommonObject
 	 * @var DigitalSignatureSignatoryField[] Array of digital signature documents
 	 */
 	public $signatoryFields = array();
+
+	/**
+	 * @var DigitalSignatureManagerUniversign Accessible service for this request
+	 */
+	public $externalProviderService;
 
 	/**
 	 * Constructor
@@ -211,8 +219,9 @@ class DigitalSignatureRequest extends CommonObject
 			self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraft'),
 			self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgress'),
 			self::STATUS_CANCELED_BY_OPSY => $langs->trans('DigitalSignatureCanceledInOpsy'),
-			self::STATUS_CANCELED_BY_CUSTOMER => $langs->trans('DigitalSignatureCanceledByCustomer'),
-			self::STATUS_CANCELED_BY_STAKEHOLDER => $langs->trans('DigitalSignatureCanceledByStakeholder'),
+			self::STATUS_CANCELED_BY_SIGNERS => $langs->trans('DigitalSignatureCanceledBySigners'),
+			self::STATUS_FAILED => $langs->trans('DigitalSignatureFailed'),
+			self::STATUS_EXPIRED => $langs->trans('DigitalSignatureExpired'),
 			self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccess'),
 			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureService')
 		);
@@ -221,8 +230,9 @@ class DigitalSignatureRequest extends CommonObject
 			self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraftShort'),
 			self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgressShort'),
 			self::STATUS_CANCELED_BY_OPSY => $langs->trans('DigitalSignatureCanceledInOpsyShort'),
-			self::STATUS_CANCELED_BY_CUSTOMER => $langs->trans('DigitalSignatureCanceledByCustomerShort'),
-			self::STATUS_CANCELED_BY_STAKEHOLDER => $langs->trans('DigitalSignatureCanceledByStakeholderShort'),
+			self::STATUS_CANCELED_BY_SIGNERS => $langs->trans('DigitalSignatureCanceledBySignersShort'),
+			self::STATUS_FAILED => $langs->trans('DigitalSignatureFailedShort'),
+			self::STATUS_EXPIRED => $langs->trans('DigitalSignatureExpired'),
 			self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccessShort'),
 			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureServiceShort')
 		);
@@ -231,11 +241,14 @@ class DigitalSignatureRequest extends CommonObject
 			self::STATUS_DRAFT => 'status0',
 			self::STATUS_IN_PROGRESS => 'status3',
 			self::STATUS_CANCELED_BY_OPSY => 'status5',
-			self::STATUS_CANCELED_BY_CUSTOMER => 'status5',
-			self::STATUS_CANCELED_BY_STAKEHOLDER => 'status5',
+			self::STATUS_CANCELED_BY_SIGNERS => 'status5',
 			self::STATUS_SUCCESS => 'status4',
+			self::STATUS_FAILED => 'status8',
+			self::STATUS_EXPIRED => 'status8',
 			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => 'status8'
 		);
+
+		$this->externalProviderService = new DigitalSignatureManagerUniversign($this);
 	}
 
 	/**
@@ -525,9 +538,21 @@ class DigitalSignatureRequest extends CommonObject
 			return -1;
 		}
 
-		//toDo create request on universign
-		//$responseFrom
-		$signatureRequestSuccessfullyCreated = true;
+		try {
+			$returnedValues = $this->externalProviderService->create($this);
+			if($returnedValues['id']) {
+				$this->externalId = $returnedValues['id'];
+			}
+			if($returnedValues['url']) {
+				$this->externalId = $returnedValues['url'];
+			}
+			$signatureRequestSuccessfullyCreated = true;
+			$this->update($user);
+		}
+		catch (Exception $e) {
+			$this->errors = array_merge($this->errors, $e);
+			$signatureRequestSuccessfullyCreated = false;
+		}
 		$result = $this->setStatusCommon($user, self::STATUS_IN_PROGRESS, $notrigger, 'DIGITALSIGNATUREREQUEST_VALIDATE');
 		if($result > 0 && $signatureRequestSuccessfullyCreated) {
 			$this->db->commit();
@@ -552,54 +577,45 @@ class DigitalSignatureRequest extends CommonObject
 	}
 
 	/**
-	 * We have detected that signature process is successfully ended
-	 * We manage this event
-	 * 	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
-	 */
-	public function manageRequestRequestSuccess($user, $notrigger = 0)
-	{
-		return $this->setStatusCommon($user, self::STATUS_SUCCESS, $notrigger, 'DIGITALSIGNATUREREQUEST_SUCCESS');
-	}
-
-	/**
 	 *	We have to cancel this request on the provider side and manage success of it in this app
 	 *
 	 *	@param	User	$user			Object user that modify
 	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
 	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
 	 */
-	public function cancelRequestFromOpsy($user, $notrigger = 0)
+	public function cancelRequest($user, $notrigger = 0)
 	{
-		return $this->setStatusCommon($user, self::STATUS_CANCELED_BY_OPSY, $notrigger, 'DIGITALSIGNATUREREQUEST_CANCEL');
+		if($this->externalId && $this->externalProviderService->cancel($this->externalId)) {
+			return $this->setStatus($user, self::STATUS_CANCELED_BY_OPSY, $notrigger);
+		}
 	}
 
 
 	/**
-     * We have detected that signature process has been canceled by the customer
-	 * We manage this event
-	 *	@param	User	$user			Object user that modify
+	 * Function to manage status change with proper trigger
+	 * 	@param	User	$user			Object user that modify
+	 * 	@param	string	$statusValue	status code value
 	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK$
 	 */
-	public function manageRequestRequestCanceledByCustomer($user, $notrigger = 0)
+	public function setStatus($user, $statusValue, $notrigger = false)
 	{
-		return $this->setStatusCommon($user, self::STATUS_CANCELED_BY_CUSTOMER, $notrigger, 'DIGITALSIGNATUREREQUEST_CANCELEDBYCUSTOMER');
+		$statusAndTriggerCode = array(
+			self::STATUS_IN_PROGRESS => 'DIGITALSIGNATUREREQUEST_INPROGRESS',
+			self::STATUS_CANCELED_BY_OPSY => 'DIGITALSIGNATUREREQUEST_CANCELEDBYOPSY',
+			self::STATUS_CANCELED_BY_SIGNERS => 'DIGITALSIGNATUREREQUEST_CANCELEDBYSIGNERS',
+			self::STATUS_SUCCESS => 'DIGITALSIGNATUREREQUEST_SUCCESS',
+			self::STATUS_FAILED => 'DIGITALSIGNATUREREQUEST_FAILED',
+			self::STATUS_EXPIRED => 'DIGITALSIGNATUREREQUEST_EXPIRED',
+			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER'
+		);
+		if($statusValue != $this->statut) {
+			return $this->setStatusCommon($user, $statusValue, $notrigger, $statusAndTriggerCode[$statusValue]);
+		}
+		else {
+			return 0;
+		}
 	}
-
-	/**
-     * We have detected that signature process has been canceled by the stakeholder
-	 * We manage this event
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
-	 */
-	public function manageRequestRequestCanceledByStakeholder($user, $notrigger = 0)
-	{
-		return $this->setStatusCommon($user, self::STATUS_CANCELED_BY_STAKEHOLDER, $notrigger, 'DIGITALSIGNATUREREQUEST_CANCELEDBYSTAKEHOLDER');
-	}
-
 
 	/**
 	 *  Return a link to the object card (with optionaly the picto)
@@ -726,7 +742,7 @@ class DigitalSignatureRequest extends CommonObject
 		if($status == self::STATUS_IN_PROGRESS){
 			$labelStatus .= $langs->trans('DigitalSignatureRequestActionToDoForPeople') . ' ' . $this->getInProgressStatusLabelSuffix();
 		}
-		elseif(in_array($status, array(self::STATUS_CANCELED_BY_CUSTOMER, self::STATUS_CANCELED_BY_STAKEHOLDER))){
+		elseif($status == self::STATUS_CANCELED_BY_SIGNERS){
 			$labelStatus .= $langs->trans('DigitalSignatureRequestActionCanceledBy') . ' ' . $this->getCanceledStatusLabelSuffix();
 		}
 		return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
@@ -987,7 +1003,7 @@ class DigitalSignatureRequest extends CommonObject
 	 * Return last digitalsignaturepeople that have done an action
 	 * @return DigitalSignaturePeople|null
 	 */
-	private function getLastPeopleThatDidAnAction()
+	public function getLastPeopleThatDidAnAction()
 	{
 		$result = null;
 		foreach(array_reverse($this->people) as &$people){
@@ -1003,7 +1019,7 @@ class DigitalSignatureRequest extends CommonObject
 	 * Return digitalsignaturepeople that canceled progress
 	 * @return DigitalSignaturePeople|null
 	 */
-	private function getPeopleThatCanceledProcess()
+	public function getPeopleThatCanceledProcess()
 	{
 		$result = null;
 		foreach(array_reverse($this->people) as &$people){
@@ -1055,5 +1071,12 @@ class DigitalSignatureRequest extends CommonObject
 	public function isEditable()
 	{
 		return $this->statut == self::STATUS_DRAFT;
+	}
+
+	/**
+	 * Update data from external service
+	 */
+	public function updateDataFromExternalService($user) {
+		return $this->externalProviderService->getAndUpdateData($this)
 	}
 }

@@ -65,8 +65,13 @@ class DigitalSignaturePeople extends CommonObject
 	const STATUS_WAITING_TO_SIGN = 1;
 	const STATUS_SHOULD_SIGN = 2;
 	const STATUS_REFUSED = 3;
-	const STATUS_SUCCESS = 4;
-	const STATUS_PROCESS_STOPPED_BEFORE = 9;
+	const STATUS_ACCESSED = 10;
+    const STATUS_CODE = 11;
+    const STATUS_PENDING_ID_DOCS = 20;
+    const STATUS_PENDING_VALIDATION = 21;
+	const STATUS_SUCCESS = 80;
+	const STATUS_FAILED = 90;
+	const STATUS_PROCESS_STOPPED_BEFORE = 99;
 
 	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -107,7 +112,7 @@ class DigitalSignaturePeople extends CommonObject
 		'firstName' => array('type'=>'varchar(255)', 'label'=>'First name of the signatory person', 'enabled'=>'1', 'position'=>503, 'notnull'=>0, 'visible'=>1,),
 		'phoneNumber' => array('type'=>'varchar(255)', 'label'=>'Phone number of the signatory to identify him', 'enabled'=>'1', 'position'=>504, 'notnull'=>0, 'visible'=>1,),
 		'mail' => array('type'=>'varchar(255)', 'label'=>'Email Address of the signatory to identify him', 'enabled'=>'1', 'position'=>504, 'notnull'=>0, 'visible'=>1,),
-		'providerSignatoryId' => array('type'=>'varchar(255)', 'label'=>'Id of the signatory in the provider system', 'enabled'=>'1', 'position'=>504, 'notnull'=>0, 'visible'=>1,),
+		'externalUrl' => array('type'=>'varchar(255)', 'label'=>'Url for people to be able to sign', 'enabled'=>'1', 'position'=>504, 'notnull'=>0, 'visible'=>1,),
 		'fk_digitalsignaturerequest' => array('type'=>'integer:DigitalSignatureRequest:digitalsignaturemanager/class/digitalsignaturerequest.class.php	', 'label'=>'Linked Digital Signature request', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
 		'position' => array('type'=>'integer', 'label'=>'Position of the signatory people into signature process', 'enabled'=>'1', 'position'=>11, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
 		'fk_people_object' => array('type'=>'integer', 'label'=>'Id of the linked people (contact or user)', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
@@ -122,7 +127,7 @@ class DigitalSignaturePeople extends CommonObject
 	public $firstName;
 	public $phoneNumber;
 	public $mail;
-	public $providerSignatoryId;
+	public $externalUrl;
 	public $fk_digitalsignaturerequest;
 	public $position;
 	public $fk_people_object;
@@ -178,27 +183,43 @@ class DigitalSignaturePeople extends CommonObject
 			self::STATUS_DRAFT => $langs->trans('DigitalSignaturePeopleDraft'),
 			self::STATUS_WAITING_TO_SIGN => $langs->trans('DigitalSignaturePeopleWaitingToSign'),
 			self::STATUS_SHOULD_SIGN => $langs->trans('DigitalSignaturePeopleShouldSign'),
-			self::STATUS_SUCCESS => $langs->trans('DigitalSignaturePeopleSuccessfullySigned'),
 			self::STATUS_REFUSED => $langs->trans('DigitalSignaturePeopleRefusedToSign'),
-			self::STATUS_PROCESS_STOPPED_BEFORE => $langs->trans('DigitalSignaturePeopleDontHaveBeenAskedToSign'),
+			self::STATUS_ACCESSED => $langs->trans('DigitalSignaturePeopleHasOpenFormToSign'),
+			self::STATUS_CODE => $langs->trans('DigitalSignaturePeopleCodeSent'),
+			self::STATUS_PENDING_ID_DOCS =>$langs->trans('DigitalSignaturePeopleSendingIdDocs'),
+			self::STATUS_PENDING_VALIDATION =>$langs->trans('DigitalSignaturePeopleValidatingIdDocs'),
+			self::STATUS_SUCCESS => $langs->trans('DigitalSignaturePeopleSuccessfullySigned'),
+			self::STATUS_FAILED => $langs->trans('DigitalSignaturePeopleFailed'),
+			self::STATUS_PROCESS_STOPPED_BEFORE =>$langs->trans('DigitalSignaturePeopleDontHaveBeenAskedToSign'),
 		);
 
 		$this->labelStatusShort = array(
 			self::STATUS_DRAFT => $langs->trans('DigitalSignaturePeopleDraftShort'),
 			self::STATUS_WAITING_TO_SIGN => $langs->trans('DigitalSignaturePeopleWaitingToSignShort'),
 			self::STATUS_SHOULD_SIGN => $langs->trans('DigitalSignaturePeopleShouldSignShort'),
-			self::STATUS_SUCCESS => $langs->trans('DigitalSignaturePeopleSuccessfullySignedShort'),
 			self::STATUS_REFUSED => $langs->trans('DigitalSignaturePeopleRefusedToSignShort'),
-			self::STATUS_PROCESS_STOPPED_BEFORE => $langs->trans('DigitalSignaturePeopleDontHaveBeenAskedToSignShort'),
+			self::STATUS_ACCESSED => $langs->trans('DigitalSignaturePeopleHasOpenFormToSignShort'),
+			self::STATUS_CODE => $langs->trans('DigitalSignaturePeopleCodeSentShort'),
+			self::STATUS_PENDING_ID_DOCS =>$langs->trans('DigitalSignaturePeopleSendingIdDocsShort'),
+			self::STATUS_PENDING_VALIDATION =>$langs->trans('DigitalSignaturePeopleValidatingIdDocsShort'),
+			self::STATUS_SUCCESS => $langs->trans('DigitalSignaturePeopleSuccessfullySignedShort'),
+			self::STATUS_FAILED => $langs->trans('DigitalSignaturePeopleFailedShort'),
+			self::STATUS_PROCESS_STOPPED_BEFORE =>$langs->trans('DigitalSignaturePeopleDontHaveBeenAskedToSignShort'),
 		);
 
 		$this->statusType = array(
 			self::STATUS_DRAFT => 'status0',
 			self::STATUS_WAITING_TO_SIGN => 'status1',
 			self::STATUS_SHOULD_SIGN => 'status3',
-			self::STATUS_SUCCESS => 'status4',
 			self::STATUS_REFUSED => 'status8',
+			self::STATUS_ACCESSED => 'status3',
+			self::STATUS_CODE => 'status3',
+			self::STATUS_PENDING_ID_DOCS => 'status3',
+			self::STATUS_PENDING_VALIDATION => 'status3',
+			self::STATUS_SUCCESS => 'status4',
+			self::STATUS_FAILED => 'status3',
 			self::STATUS_PROCESS_STOPPED_BEFORE => 'status5',
+
 		);
 	}
 
@@ -368,24 +389,6 @@ class DigitalSignaturePeople extends CommonObject
 	public function delete(User $user, $notrigger = false)
 	{
 		return $this->deleteCommon($user, $notrigger);
-	}
-
-	/**
-	 *	Set draft status
-	 *
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, >0 if OK
-	 */
-	public function setDraft($user, $notrigger = 0)
-	{
-		// Protection
-		if ($this->status <= self::STATUS_DRAFT)
-		{
-			return 0;
-		}
-
-		return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'DIGITALSIGNATUREPEOPLE_UNVALIDATE');
 	}
 
 	/**
@@ -600,6 +603,35 @@ class DigitalSignaturePeople extends CommonObject
 	}
 
 	/**
+	 * Function to manage status change with proper trigger
+	 * 	@param	User	$user			Object user that modify
+	 * 	@param	string	$statusValue	status code value
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK$
+	 */
+	public function setStatus($user, $statusValue, $notrigger = false)
+	{
+		$statusAndTriggerCode = array(
+		self::STATUS_WAITING_TO_SIGN => 'DIGITALSIGNATUREPEOPLE_WAITINGTOSIGN',
+		self::STATUS_SHOULD_SIGN => 'DIGITALSIGNATUREPEOPLE_SHOULDSIGN',
+		self::STATUS_REFUSED => 'DIGITALSIGNATUREPEOPLE_REFUSED',
+		self::STATUS_ACCESSED => 'DIGITALSIGNATUREPEOPLE_ACCESSED',
+		self::STATUS_CODE => 'DIGITALSIGNATUREPEOPLE_CODESENT',
+		self::STATUS_PENDING_ID_DOCS => 'DIGITALSIGNATUREPEOPLE_PENDINGIDDOCS',
+		self::STATUS_PENDING_VALIDATION => 'DIGITALSIGNATUREPEOPLE_PENDINGVALIDATION',
+		self::STATUS_SUCCESS => 'DIGITALSIGNATUREPEOPLE_SUCCESS',
+		self::STATUS_FAILED => 'DIGITALSIGNATUREPEOPLE_FAILED',
+		self::STATUS_PROCESS_STOPPED_BEFORE => 'DIGITALSIGNATUREPEOPLE_PROCESSSTOPPEDBEFORE',
+		);
+		if($statusValue != $this->statut) {
+			return $this->setStatusCommon($user, $statusValue, $notrigger, $statusAndTriggerCode[$statusValue]);
+		}
+		else {
+			return 0;
+		}
+	}
+
+	/**
 	 * Function to validate that all needed data have been put in order to be able to create one request
 	 * @return array arrayOfErrors
 	 */
@@ -621,4 +653,13 @@ class DigitalSignaturePeople extends CommonObject
 		}
 		return $errors;
 	}
+
+	/**
+	 * Function to know if this people is a customer or a stakeholder
+	 * @return bool
+	 */
+	public function isThisPeopleACustomer() {
+		return $this->fk_people_type == 'contact';
+	}
+
 }
