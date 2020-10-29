@@ -252,35 +252,34 @@ Class DigitalSignatureManagerUniversign
 	 * @param DigitalSignatureRequest $digitalSignatureRequest current request data
 	 * @return bool true if files have succesfully been downloaded
 	 */
-	public function downloadSignedDocuments(&$digitalSignatureRequest)
+	public function downloadSignedDocuments()
 	{
 		global $langs;
 		$errors = array();
 		$requester = $this->getUniversignRequester();
-		$transactionId = $digitalSignatureRequest->externalId;
+		$transactionId = $this->digitalSignatureRequest->externalId;
 		$response = $requester->getTransactionInfo($transactionId);
 		if ($response->status === \Globalis\Universign\Response\TransactionInfo::STATUS_COMPLETED) {
 			$docs = $requester->getDocuments($transactionId);
 			foreach ($docs as $doc) {
-				$res = file_put_contents($digitalSignatureRequest->getUploadDirOfSignedFiles() . '/' . $doc->name, $doc->content);
+				$res = file_put_contents($this->digitalSignatureRequest->getUploadDirOfSignedFiles() . '/' . $doc->name, $doc->content);
 				if(!$res) {
 					$errors[] = $langs->trans('DigitalSignatureManagerUniversignErrorSavingFileInServer', $doc->name);
 				}
 			}
 		}
-		$digitalSignatureRequest->errors = array_merge($digitalSignatureRequest->errors, $errors);
+		$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $errors);
 		return empty($errors);
 	}
 
 	/**
 	 * Get information about a signature request on universign
-	 * @param string $universignRequestId universign Request id to be canceled
 	 * @return bool return success of cancelation of request
 	 */
-	public function cancel($universignRequestId)
+	public function cancel()
 	{
 		$requester = $this->getUniversignRequester();
-		$response = $requester->cancelTransaction($universignRequestId);
+		$response = $requester->cancelTransaction($this->digitalSignatureRequest->externalId);
 		return $response->status === \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED;
 	}
 
