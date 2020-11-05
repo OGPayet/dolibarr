@@ -396,8 +396,8 @@ class modCompanyRelationships extends DolibarrModules
 
             // benefactor
             $extrafieldName = $extrafieldToKeepArray[0];
-            $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 1, '0', array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1'=>null)), 1, '', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
-            $result = $extrafields->update($extrafieldName, $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', '',  $elementType,   0, 1, $extrafieldToKeepList[$extrafieldName]['pos'], array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1:Societe:societe/class/societe.class.php'=>null)), 1, '', 0, 0, '0'); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+            $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 1, '0', array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1'=>null)), 1, '', 1, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
+            $result = $extrafields->update($extrafieldName, $langs->trans('CompanyRelationshipsBenefactorCompany'), 'sellist', '',  $elementType,   0, 1, $extrafieldToKeepList[$extrafieldName]['pos'], array('options'=>array('societe:nom:rowid::(client = 1 OR client = 2 OR client = 3) AND status=1:Societe:societe/class/societe.class.php'=>null)), 1, '', 1, 0, '0'); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
 
             // public space availability principal and benefactor
             $extrafieldName = $extrafieldToKeepArray[1];
