@@ -377,7 +377,7 @@ class InvoicesContractTools
         $contract_end = null;
         $termination_date = $contract->array_options['options_' . self::EF_TERMINATION_DATE];
         if (!empty($termination_date)) {
-            $contract_end = Carbon::createFromFormat('Y-m-d', $termination_date);
+            $contract_end = Carbon::createFromTimestamp($termination_date);
             if (!isset($contract_end)) {
                 $this->errors[] = $langs->trans('STCErrorBadFieldValue', $langs->transnoentitiesnoconv('STCTerminationDate'), $termination_date);
                 return null;
@@ -502,7 +502,7 @@ class InvoicesContractTools
             $enable_to_revaluation_date = null;
             $enable_to_revaluation_date_t = $contract->array_options['options_' . self::EF_ENABLE_TO_REVALUATION_DATE];
             if (!empty($enable_to_revaluation_date_t)) {
-                $enable_to_revaluation_date = Carbon::createFromFormat('Y-m-d', $enable_to_revaluation_date_t);
+                $enable_to_revaluation_date = Carbon::createFromTimestamp($enable_to_revaluation_date_t);
                 if (!isset($enable_to_revaluation_date)) {
                     $this->errors[] = $langs->trans('STCErrorBadFieldValue', $langs->transnoentitiesnoconv('STCContractStartRevaluationDate'), $enable_to_revaluation_date_t);
                     return null;
@@ -1330,7 +1330,7 @@ class InvoicesContractTools
         $effective_date_t = $contract->array_options['options_' . self::EF_EFFECTIVE_DATE];
         $effective_date = null;
         if (!empty($effective_date_t)) {
-            $effective_date = Carbon::createFromFormat('Y-m-d', $effective_date_t);
+            $effective_date = Carbon::createFromTimestamp($effective_date_t);
         }
         if (!isset($effective_date)) {
             $this->errors[] = $langs->trans('STCErrorBadFieldValue', $langs->transnoentitiesnoconv('STCContractEffectiveDate'), $effective_date_t);
