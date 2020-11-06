@@ -69,12 +69,8 @@ if (empty($dolibarr_nocache)) header('Cache-Control: max-age=10800, public, must
 else header('Cache-Control: no-cache');
 
 ?>
-/*
-div.mainmenu.digitalsignaturemanager_TopMenu::before {
-	content:"";
+.icon-digitalsignaturemanager.mainvmenu:before {
+    content: "\e61a";
 }
 
-div.mainmenu.digitalsignaturemanager_TopMenu  {
-	background-image: url('../img/object_digitalsignaturerequest_large_white.png' );
-}
-*/
+
