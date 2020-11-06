@@ -300,7 +300,7 @@ class SurveyBlocStatus extends CommonObject
      *
      * @return int         <0 if KO, 0 if not found, >0 if OK
      */
-    public function fetchLines($forceDataFromCache)
+    public function fetchLines($forceDataFromCache = false)
     {
         $this->predefined_texts = array();
         $result = interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyBlocStatusPredefinedText", $this->predefined_texts, $this, SurveyBlocStatusPredefinedText::$DB_CACHE_FROM_SURVEYBLOCSTATUS, SurveyBlocStatusPredefinedText::$DB_CACHE, $forceDataFromCache);
