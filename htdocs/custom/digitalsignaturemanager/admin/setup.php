@@ -53,12 +53,29 @@ $action = GETPOST('action', 'alpha');
 $backtopage = GETPOST('backtopage', 'alpha');
 
 $value = GETPOST('value', 'alpha');
-$arrayofparameters = array(
-	'MAIN_AGENDA_ACTIONAUTO_DIGITALSIGNATUREREQUEST_CREATE'=>array('css'=>'minwidth200', 'enabled'=>1),
-);
 
 $error = 0;
-$setupnotempty = 0;
+
+$arrayOfParametersForProductionSettings = array(
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONURL'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUrl'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUrlToolTip')),
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONUSERNAME'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUsername'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUsernameTooltip')),
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONPASSWORD'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiPassword'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiPasswordToolTip')),
+);
+$arrayOfParametersForTestSettings = array(
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTURL'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUrl'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUrlToolTip')),
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTUSERNAME'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUsername'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUsernameTooltip')),
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTPASSWORD'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiPassword'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiPasswordToolTip')),
+);
+$arrayOfParametersForTestMode = array(
+	'DIGITALSIGNATUREMANAGER_TESTMODE'=>array('name'=>$langs->trans('DigitalSignatureTestMode'), 'tooltip'=>$langs->trans('DigitalSignatureTestModeToolTIp')),
+	);;
+$arrayOfParametersForAutomaticEventManagment = array(
+	'DIGITALSIGNATUREMANAGER_REQUESTCREATIONEVENT'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestCreateEvent'), 'tooltip'=>$langs->trans('DigitalSignatureManagerRequestCreateEventToolTIp')),
+	'DIGITALSIGNATUREMANAGER_REQUESTSUBMITEVENT'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestSubmitEvent'), 'tooltip'=>$langs->trans('DigitalSignatureManagerRequestSubmitEventToolTIp')),
+	'DIGITALSIGNATUREMANAGER_REQUESTSTATUSCHANGEEVENT'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestStatusChangeEvent'), 'tooltip'=>$langs->trans('DigitalSignatureManagerRequestStatusChangeEventToolTIp')),
+	'DIGITALSIGNATUREMANAGER_SIGNERSTATUSCHANGEEVENT'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestStatusChangeEvent'), 'tooltip'=>$langs->trans('DigitalSignatureManagerSignerStatusChangeEventToolTIp')),
+	);
+$arrayofparameters = array_merge($arrayOfParametersForProductionSettings, $arrayOfParametersForTestSettings, $arrayOfParametersForTestMode, $arrayOfParametersForAutomaticEventManagment);
 
 
 /*
@@ -76,6 +93,14 @@ if ($action == 'updateMask')
 	$maskorder = GETPOST('maskorder', 'alpha');
 
 	if ($maskconstorder) $res = dolibarr_set_const($db, $maskconstorder, $maskorder, 'chaine', 0, '', $conf->entity);
+
+	if (!$res > 0) $error++;
+
+
+	$maskconstbom = GETPOST('maskconstBom', 'alpha');
+	$maskDigitalSignatureRequest = GETPOST('maskDigitalSignatureRequest', 'alpha');
+
+	if ($maskconstbom) $res = dolibarr_set_const($db, $maskconstbom, $maskDigitalSignatureRequest, 'chaine', 0, '', $conf->entity);
 
 	if (!$res > 0) $error++;
 
@@ -195,67 +220,12 @@ dol_fiche_head($head, 'settings', '', -1, "digitalsignaturemanager@digitalsignat
 // Setup page goes here
 echo '<span class="opacitymedium">'.$langs->trans("DigitalSignatureManagerSetupPage").'</span><br><br>';
 
-
-if ($action == 'edit')
-{
-	print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
-	print '<input type="hidden" name="token" value="'.newToken().'">';
-	print '<input type="hidden" name="action" value="update">';
-
-	print '<table class="noborder centpercent">';
-	print '<tr class="liste_titre"><td class="titlefield">'.$langs->trans("Parameter").'</td><td>'.$langs->trans("Value").'</td></tr>';
-
-	foreach ($arrayofparameters as $key => $val)
-	{
-		print '<tr class="oddeven"><td>';
-		$tooltiphelp = (($langs->trans($key.'Tooltip') != $key.'Tooltip') ? $langs->trans($key.'Tooltip') : '');
-		print $form->textwithpicto($langs->trans($key), $tooltiphelp);
-		print '</td><td><input name="'.$key.'"  class="flat '.(empty($val['css']) ? 'minwidth200' : $val['css']).'" value="'.$conf->global->$key.'"></td></tr>';
-	}
-	print '</table>';
-
-	print '<br><div class="center">';
-	print '<input class="button" type="submit" value="'.$langs->trans("Save").'">';
-	print '</div>';
-
-	print '</form>';
-	print '<br>';
-} else {
-	if (!empty($arrayofparameters))
-	{
-		print '<table class="noborder centpercent">';
-		print '<tr class="liste_titre"><td class="titlefield">'.$langs->trans("Parameter").'</td><td>'.$langs->trans("Value").'</td></tr>';
-
-		foreach ($arrayofparameters as $key => $val)
-		{
-			$setupnotempty++;
-
-			print '<tr class="oddeven"><td>';
-			$tooltiphelp = (($langs->trans($key.'Tooltip') != $key.'Tooltip') ? $langs->trans($key.'Tooltip') : '');
-			print $form->textwithpicto($langs->trans($key), $tooltiphelp);
-			print '</td><td>'.$conf->global->$key.'</td></tr>';
-		}
-
-		print '</table>';
-
-		print '<div class="tabsAction">';
-		print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=edit">'.$langs->trans("Modify").'</a>';
-		print '</div>';
-	}
-	else
-	{
-		print '<br>'.$langs->trans("NothingToSetup");
-	}
-}
-
-
 $moduledir = 'digitalsignaturemanager';
 $myTmpObjects = array();
-$myTmpObjects['MyObject']=array('includerefgeneration'=>0, 'includedocgeneration'=>0);
+$myTmpObjects['DigitalSignatureRequest']=array('includerefgeneration'=>1, 'includedocgeneration'=>0);
 
 
 foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
-	if ($myTmpObjectKey == 'MyObject') continue;
 	if ($myTmpObjectArray['includerefgeneration']) {
 		/*
 		 * Orders Numbering model
@@ -512,9 +482,111 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 	}
 }
 
-if (empty($setupnotempty)) {
-	print '<br>'.$langs->trans("NothingToSetup");
+
+print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
+print '<input type="hidden" name="action" value="update">';
+
+// Universign Production Api Informations
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td class="titlefield" style="min-width:520px;">'.$langs->trans("DigitalSignatureParameterProductionUniversignSettings").'</td>';
+print '<td class="minwidth300">'.$langs->trans("Value").'</td>';
+print '</tr>';
+
+foreach($arrayOfParametersForProductionSettings as $key=>$parameter) {
+	print '<tr class="oddeven">';
+	print '<td>';
+	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
+	print '</td>';
+	print '<td>';
+	print '<input name="'. $key .'"  class="flat minwidth300" value="'.$conf->global->$key.'">';
+	print '</td>';
 }
+
+print '</table>';
+
+// Universign Test Api Informations
+
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td class="titlefield" style="min-width:520px;">'.$langs->trans("DigitalSignatureParameterTestUniversignSettings").'</td>';
+print '<td class="minwidth300">'.$langs->trans("Value").'</td>';
+print '</tr>';
+
+foreach($arrayOfParametersForTestSettings as $key=>$parameter) {
+	print '<tr class="oddeven">';
+	print '<td>';
+	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
+	print '</td>';
+	print '<td>';
+	print '<input name="'. $key .'"  class="flat minwidth300" value="'.$conf->global->$key.'">';
+	print '</td>';
+}
+
+print '</table>';
+
+//Test Mode
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td class="titlefield" style="min-width:500px;">'.$langs->trans("DigitalSignatureManagerTestMode").'</td>';
+print '<td class="minwidth300">'.$langs->trans("Value").'</td>';
+print '</tr>';
+foreach($arrayOfParametersForTestMode as $key=>$parameter) {
+	print '<tr class="oddeven">';
+	print '<td>';
+	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
+	print '</td>';
+	print '<td>';
+	if (!empty($conf->use_javascript_ajax)) {
+		print ajax_constantonoff($key);
+	} else {
+		if (empty($conf->global->$key)) {
+			print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_'. $key .'">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+		} else {
+			print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_'. $key .'">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+		}
+	}
+	print '</td>';
+}
+
+print '</table>';
+
+//Automatic Event Managment
+//Test Mode
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td class="titlefield" style="min-width:500px;">'.$langs->trans("DigitalSignatureManagerAutomaticEventManagment").'</td>';
+print '<td class="minwidth300">'.$langs->trans("Value").'</td>';
+print '</tr>';
+foreach($arrayOfParametersForAutomaticEventManagment as $key=>$parameter) {
+	print '<tr class="oddeven">';
+	print '<td>';
+	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
+	print '</td>';
+	print '<td>';
+	if (!empty($conf->use_javascript_ajax)) {
+		print ajax_constantonoff($key);
+	} else {
+		if (empty($conf->global->$key)) {
+			print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_'. $key .'">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+		} else {
+			print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_'. $key .'">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+		}
+	}
+	print '</td>';
+}
+
+print '</table>';
+
+
+
+print '<br><div class="center">';
+print '<input class="button" type="submit" value="'.$langs->trans("Save").'">';
+print '</div>';
+
+print '</form>';
+print '<br>';
 
 // Page end
 dol_fiche_end();

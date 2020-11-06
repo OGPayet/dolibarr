@@ -36,7 +36,7 @@ class mod_digitalsignaturerequest_standard extends ModeleNumRefDigitalSignatureR
 	 */
 	public $version = 'dolibarr'; // 'development', 'experimental', 'dolibarr'
 
-	public $prefix = 'DIGITALSIGNATUREREQUEST';
+	public $prefix = 'SIGNATURE';
 
 	/**
 	 * @var string Error code (or message)
@@ -68,7 +68,7 @@ class mod_digitalsignaturerequest_standard extends ModeleNumRefDigitalSignatureR
 	 */
 	public function getExample()
 	{
-		return $this->prefix."0501-0001";
+		return $this->prefix."2001-0001";
 	}
 
 

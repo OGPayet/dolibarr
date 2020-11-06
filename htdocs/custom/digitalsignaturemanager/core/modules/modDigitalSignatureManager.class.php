@@ -468,6 +468,12 @@ class modDigitalSignatureManager extends DolibarrModules
 		//$result4=$extrafields->addExtraField('digitalsignaturemanager_myattr4', "New Attr 4 label", 'select',  1,  3, 'thirdparty',   0, 1, '', array('options'=>array('code1'=>'Val1','code2'=>'Val2','code3'=>'Val3')), 1,'', 0, 0, '', '', 'digitalsignaturemanager@digitalsignaturemanager', '$conf->digitalsignaturemanager->enabled');
 		//$result5=$extrafields->addExtraField('digitalsignaturemanager_myattr5', "New Attr 5 label", 'text',    1, 10, 'user',         0, 0, '', '', 1, '', 0, 0, '', '', 'digitalsignaturemanager@digitalsignaturemanager', '$conf->digitalsignaturemanager->enabled');
 
+		if(empty($conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTURL)) {
+			dolibarr_set_const($this->db, 'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTURL', 'https://sign.test.cryptolog.com/sign/rpc/', 'chaine', 0, null, $conf->entity);
+		}
+		if(empty($conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONURL)) {
+			dolibarr_set_const($this->db, 'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONURL', 'https://ws.universign.eu/sign/rpc/', 'chaine', 0, null, $conf->entity);
+		}
 		// Permissions
 		$this->remove($options);
 

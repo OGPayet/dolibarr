@@ -1075,8 +1075,22 @@ class DigitalSignatureRequest extends CommonObject
 
 	/**
 	 * Update data from external service
+	 * @param User $user $user object requesting update
 	 */
-	public function updateDataFromExternalService($user) {
-		return $this->externalProviderService->getAndUpdateData($this)
+	public function updateDataFromExternalService($user)
+	{
+		return $this->externalProviderService->getAndUpdateData($user);
 	}
+
+
+    /**
+     * Initialise object with example values
+     * Id must be 0 if object instance is a specimen
+     *
+     * @return void
+     */
+    public function initAsSpecimen()
+    {
+        $this->initAsSpecimenCommon();
+    }
 }

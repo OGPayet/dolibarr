@@ -84,8 +84,10 @@ Class DigitalSignatureManagerUniversign
 	 *
 	 * @param DigitalSignatureRequest $db Database handler
 	 */
-	public function __construct(&$digitalSignatureRequest) {
+	public function __construct(&$digitalSignatureRequest)
+	{
 		$this->digitalSignatureRequest = $digitalSignatureRequest;
+		$this->loadConnectionSettings();
 	}
 
 	/**
@@ -168,7 +170,6 @@ Class DigitalSignatureManagerUniversign
 			$this->digitalSignatureRequest->errors[] = $e;
 			return null;
 		}
-
 	}
 
 	/**
@@ -290,13 +291,32 @@ Class DigitalSignatureManagerUniversign
 	private function getUniversignRequester()
 	{
 		// Create XmlRpc Client
-		$client = new \PhpXmlRpc\Client('https://url.to.universign/end_point/');
+		$client = new \PhpXmlRpc\Client($this->url);
 
 		$client->setCredentials(
-		'UNIVERSIGN_USER',
-		'UNIVERSIGN_PASSWORD'
+			$this->username,
+			$this->password
 		);
 
 		return new \Globalis\Universign\Requester($client);
+	}
+
+	/**
+	 * Get Universign parameter to use
+	 * @return void
+	 */
+	private function loadConnectionSettings()
+	{
+		global $conf;
+		if(!empty($conf->global->DIGITALSIGNATUREMANAGER_TESTMODE)) {
+			$this->endPoint = $conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTURL;
+			$this->username = $conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTUSERNAME;
+			$this->password = $conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTPASSWORD;
+		}
+		else {
+			$this->endPoint = $conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONURL;
+			$this->username = $conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONUSERNAME;
+			$this->password = $conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONPASSWORD;
+		}
 	}
 }
