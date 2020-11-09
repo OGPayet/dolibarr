@@ -184,4 +184,8 @@ class FormDigitalSignatureManager
 
         return $num;
 	}
+
+	/**
+	 * Function to display documents file lines
+	 */
 }

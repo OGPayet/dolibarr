@@ -68,7 +68,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formprojet.class.php';
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturemanager_digitalsignaturerequest.lib.php');
-dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturemanager.class.php');
+dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturerequest.class.php');
 
 // Load translation files required by the page
 $langs->loadLangs(array("digitalsignaturemanager@digitalsignaturemanager", "other"));
@@ -118,12 +118,6 @@ $permissioncreate = $permissiontoadd && $object->status == $object::STATUS_DRAFT
 $permissionToAddAndDelFiles = $permissioncreate;
 
 $upload_dir = $object->getBaseUploadDir();
-
-// Security check - Protection if external user
-//if ($user->socid > 0) accessforbidden();
-//if ($user->socid > 0) $socid = $user->socid;
-//$isdraft = (($object->statut == $object::STATUS_DRAFT) ? 1 : 0);
-//$result = restrictedArea($user, 'digitalsignaturemanager', $object->id, '', '', 'fk_soc', 'rowid', $isdraft);
 
 if (!$permissiontoread) accessforbidden();
 
@@ -204,7 +198,7 @@ include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be incl
  */
 
 $form = new Form($db);
-$formdigitalsignaturemanager = new FormDigitalSignatureManager($db);
+$formdigitalsignaturerequest = new FormDigitalSignatureRequest($db);
 $formfile = new FormFile($db);
 $formproject = new FormProjets($db);
 
@@ -481,18 +475,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 		if (empty($reshook)) {
-			// // Send
-			// if (empty($user->socid)) {
-			// 	print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendMail') . '</a>' . "\n";
-			// }
-
-			// Back to draft
-			// if ($object->status == $object::STATUS_VALIDATED) {
-			// 	if ($permissiontoadd) {
-			// 		print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_setdraft&confirm=yes">' . $langs->trans("SetToDraft") . '</a>';
-			// 	}
-			// }
-
 			// Modify
 			if ($permissiontoedit && $object->status == $object::STATUS_DRAFT) {
 				print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=edit">' . $langs->trans("Modify") . '</a>' . "\n";
@@ -522,13 +504,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</div>' . "\n";
 	}
 
-
-	// Select mail models is same action as presend
-	if (GETPOST('modelselected')) {
-		$action = 'presend';
-	}
-
-	if ($action != 'presend') {
 		print '<div class="fichecenter"><div class="fichehalfleft">';
 		print '<a name="builddoc"></a>'; // ancre
 
@@ -541,34 +516,21 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForSignedFiles(), $object->getUploadDirOfSignedFiles(), $urlsource, 0, 0, $object->model_pdf, 1, 0, 0, 28, 0, '', $langs->trans('DigitalSignatureRequestListOfSignedFiles'), '', $langs->defaultlang, null, $object, 0);
 
 		// Show links to link elements
-		$linktoelem = $form->showLinkToObjectBlock($object, null, array('digitalsignaturerequest'));
-		$somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
+		$somethingshown = $form->showLinkedObjectBlock($object, $form->showLinkToObjectBlock($object, null, array('digitalsignaturerequest')));
 
 
 		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 
-		$MAXEVENT = 10;
+		$MAXEVENT = 30;
 
-		$morehtmlright = '<a href="' . dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_agenda.php', 1) . '?id=' . $object->id . '">';
-		$morehtmlright .= $langs->trans("SeeAll");
-		$morehtmlright .= '</a>';
+		// $morehtmlright = '<a href="' . dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_agenda.php', 1) . '?id=' . $object->id . '">';
+		// $morehtmlright .= $langs->trans("SeeAll");
+		// $morehtmlright .= '</a>';
 
 		// List of actions on element
-		$somethingshown = $formdigitalsignaturemanager->showActions($object, (is_object($object->thirdparty) ? $object->thirdparty->id : 0), 1, '', $MAXEVENT, '', $morehtmlright);
+		$somethingshown = $formdigitalsignaturerequest->showActions($object, (is_object($object->thirdparty) ? $object->thirdparty->id : 0), 1, '', $MAXEVENT, '', $morehtmlright);
 
 		print '</div></div></div>';
-	}
-
-	// //Select mail models is same action as presend
-	// if (GETPOST('modelselected')) $action = 'presend';
-
-	// // Presend form
-	// $modelmail = 'digitalsignaturerequest';
-	// $defaulttopic = 'InformationMessage';
-	// $diroutput = $conf->digitalsignaturemanager->dir_output;
-	// $trackid = 'digitalsignaturerequest' . $object->id;
-
-	// include DOL_DOCUMENT_ROOT . '/core/tpl/card_presend.tpl.php';
 }
 
 // End of page
