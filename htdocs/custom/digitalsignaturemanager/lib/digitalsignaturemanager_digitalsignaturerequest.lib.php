@@ -69,10 +69,10 @@ function digitalsignaturerequestPrepareHead($object)
 	$head[$h][2] = 'document';
 	$h++;
 
-	$head[$h][0] = dol_buildpath("/digitalsignaturemanager/digitalsignaturerequest_agenda.php", 1).'?id='.$object->id;
-	$head[$h][1] = $langs->trans("DigitalSignatureCardLinkedEvents");
-	$head[$h][2] = 'agenda';
-	$h++;
+	// $head[$h][0] = dol_buildpath("/digitalsignaturemanager/digitalsignaturerequest_agenda.php", 1).'?id='.$object->id;
+	// $head[$h][1] = $langs->trans("DigitalSignatureCardLinkedEvents");
+	// $head[$h][2] = 'agenda';
+	// $h++;
 
 	// Show more tabs from modules
 	// Entries must be declared in modules descriptor with line

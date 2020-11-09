@@ -370,6 +370,8 @@ class DigitalSignatureRequest extends CommonObject
 			$this->errors = $object->errors;
 		}
 
+		//toDo clone people, document and signatory field
+
 		unset($object->context['createfromclone']);
 
 		// End
@@ -466,6 +468,7 @@ class DigitalSignatureRequest extends CommonObject
 	public function delete(User $user, $notrigger = false)
 	{
 		$this->db->begin();
+		$result = 1;
 		foreach($this->people as $people) {
 			$result = $people->delete($user, $notrigger);
 			$this->errors = array_merge($this->errors, $people->errors);
@@ -553,7 +556,8 @@ class DigitalSignatureRequest extends CommonObject
 			$this->errors = array_merge($this->errors, $e);
 			$signatureRequestSuccessfullyCreated = false;
 		}
-		$result = $this->setStatusCommon($user, self::STATUS_IN_PROGRESS, $notrigger, 'DIGITALSIGNATUREREQUEST_VALIDATE');
+		$result = $this->setStatus($user, self::STATUS_IN_PROGRESS, $notrigger);
+
 		if($result > 0 && $signatureRequestSuccessfullyCreated) {
 			$this->db->commit();
 			return 1;
@@ -573,7 +577,7 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function manageRequestDeletedInProvider($user, $notrigger = 0)
 	{
-		return $this->setStatusCommon($user, self::STATUS_DELETED_FROM_SIGNATURE_SERVICE, $notrigger, 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER');
+		return $this->setStatusCommon($user, self::STATUS_DELETED_FROM_SIGNATURE_SERVICE, $notrigger);
 	}
 
 	/**
@@ -1092,5 +1096,24 @@ class DigitalSignatureRequest extends CommonObject
     public function initAsSpecimen()
     {
         $this->initAsSpecimenCommon();
-    }
+	}
+
+	/**
+	 * Function to get linked project id
+	 * @return int|null returned linked project to this digital signature request
+	 */
+	public function getLinkedProjectId()
+	{
+		return $this->fk_project;
+	}
+
+
+	/**
+	 * Function to get linked thirdparty id
+	 * @return int|null returned linked thirdparty to this digital signature request
+	 */
+	public function getLinkedThirdpartyId()
+	{
+		return $this->fk_soc;
+	}
 }

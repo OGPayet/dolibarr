@@ -68,6 +68,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formprojet.class.php';
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturemanager_digitalsignaturerequest.lib.php');
+dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturemanager.class.php');
 
 // Load translation files required by the page
 $langs->loadLangs(array("digitalsignaturemanager@digitalsignaturemanager", "other"));
@@ -203,6 +204,7 @@ include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be incl
  */
 
 $form = new Form($db);
+$formdigitalsignaturemanager = new FormDigitalSignatureManager($db);
 $formfile = new FormFile($db);
 $formproject = new FormProjets($db);
 
@@ -417,6 +419,59 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	dol_fiche_end();
 
+	/*
+	 * Lines
+	 */
+
+	if (!empty($object->table_element_line))
+	{
+		// Show object lines
+		$result = $object->getLinesArray();
+
+		print '	<form name="addproduct" id="addproduct" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.(($action != 'editline') ? '#addline' : '#line_'.GETPOST('lineid', 'int')).'" method="POST">
+		<input type="hidden" name="token" value="' . newToken().'">
+		<input type="hidden" name="action" value="' . (($action != 'editline') ? 'addline' : 'updateline').'">
+		<input type="hidden" name="mode" value="">
+		<input type="hidden" name="id" value="' . $object->id.'">
+		';
+
+		if (!empty($conf->use_javascript_ajax) && $object->status == 0) {
+			include DOL_DOCUMENT_ROOT.'/core/tpl/ajaxrow.tpl.php';
+		}
+
+		print '<div class="div-table-responsive-no-min">';
+		if (!empty($object->lines) || ($object->status == $object::STATUS_DRAFT && $permissiontoadd && $action != 'selectlines' && $action != 'editline'))
+		{
+			print '<table id="tablelines" class="noborder noshadow" width="100%">';
+		}
+
+		if (!empty($object->lines))
+		{
+			$object->printObjectLines($action, $mysoc, null, GETPOST('lineid', 'int'), 1);
+		}
+
+		// Form to add new line
+		if ($object->status == 0 && $permissiontoadd && $action != 'selectlines')
+		{
+			if ($action != 'editline')
+			{
+				// Add products/services form
+				$object->formAddObjectLine(1, $mysoc, $soc);
+
+				$parameters = array();
+				$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+			}
+		}
+
+		if (!empty($object->lines) || ($object->status == $object::STATUS_DRAFT && $permissiontoadd && $action != 'selectlines' && $action != 'editline'))
+		{
+			print '</table>';
+		}
+		print '</div>';
+
+		print "</form>\n";
+	}
+
 	// Buttons for actions
 
 	if ($action != 'presend' && $action != 'editline') {
@@ -454,7 +509,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 			// Clone
 			if ($permissiontoadd) {
-				// print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&socid=' . $object->socid . '&action=clone&object=digitalsignaturerequest">' . $langs->trans("ToClone") . '</a>' . "\n";
+				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&socid=' . $object->socid . '&action=clone&object=digitalsignaturerequest">' . $langs->trans("ToClone") . '</a>' . "\n";
 			}
 
 			// Delete (need delete permission, or if draft, just need create/modify permission)
@@ -499,9 +554,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$morehtmlright .= '</a>';
 
 		// List of actions on element
-		include_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
-		$formactions = new FormActions($db);
-		$somethingshown = $formactions->showactions($object, $object->element, (is_object($object->thirdparty) ? $object->thirdparty->id : 0), 1, '', $MAXEVENT, '', $morehtmlright);
+		$somethingshown = $formdigitalsignaturemanager->showActions($object, (is_object($object->thirdparty) ? $object->thirdparty->id : 0), 1, '', $MAXEVENT, '', $morehtmlright);
 
 		print '</div></div></div>';
 	}

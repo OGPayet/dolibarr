@@ -658,8 +658,26 @@ class DigitalSignaturePeople extends CommonObject
 	 * Function to know if this people is a customer or a stakeholder
 	 * @return bool
 	 */
-	public function isThisPeopleACustomer() {
+	public function isThisPeopleACustomer()
+	{
 		return $this->fk_people_type == 'contact';
 	}
 
+	/**
+	 * Function to get linked project id
+	 * @return int|null returned linked project to this digital signature request
+	 */
+	public function getLinkedProjectId()
+	{
+		return $this->digitalSignatureRequest ?  $this->digitalSignatureRequest->getLinkedProjectId() : null;
+	}
+
+		/**
+	 * Function to get linked thirdparty id
+	 * @return int|null returned linked thirdparty to this digital signature request
+	 */
+	public function getLinkedThirdpartyId()
+	{
+		return $this->digitalSignatureRequest ?  $this->digitalSignatureRequest->getLinkedThirdpartyId() : null;
+	}
 }

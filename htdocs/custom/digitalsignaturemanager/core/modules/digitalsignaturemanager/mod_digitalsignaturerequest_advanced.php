@@ -50,6 +50,14 @@ class mod_digitalsignaturerequest_advanced extends ModeleNumRefDigitalSignatureR
 	 */
 	public $name = 'advanced';
 
+	/**
+	 * Constructor
+	 */
+	public function __construct()
+	{
+		global $langs;
+		$this->name = $langs->trans('DigitalSignatureManagerAdvancedNumberModuleName');
+	}
 
 	/**
 	 *  Returns the description of the numbering model

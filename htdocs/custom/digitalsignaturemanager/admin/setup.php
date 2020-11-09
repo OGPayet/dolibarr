@@ -56,31 +56,49 @@ $value = GETPOST('value', 'alpha');
 
 $error = 0;
 
-$arrayOfParametersForProductionSettings = array(
-	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONURL'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUrl'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUrlToolTip')),
-	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONUSERNAME'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUsername'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUsernameTooltip')),
-	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONPASSWORD'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiPassword'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiPasswordToolTip')),
-);
-$arrayOfParametersForTestSettings = array(
-	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTURL'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUrl'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUrlToolTip')),
-	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTUSERNAME'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUsername'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUsernameTooltip')),
-	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTPASSWORD'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiPassword'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiPasswordToolTip')),
-);
-$arrayOfParametersForTestMode = array(
-	'DIGITALSIGNATUREMANAGER_TESTMODE'=>array('name'=>$langs->trans('DigitalSignatureTestMode'), 'tooltip'=>$langs->trans('DigitalSignatureTestModeToolTIp')),
-	);;
-$arrayOfParametersForAutomaticEventManagment = array(
-	'DIGITALSIGNATUREMANAGER_REQUESTCREATIONEVENT'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestCreateEvent'), 'tooltip'=>$langs->trans('DigitalSignatureManagerRequestCreateEventToolTIp')),
-	'DIGITALSIGNATUREMANAGER_REQUESTSUBMITEVENT'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestSubmitEvent'), 'tooltip'=>$langs->trans('DigitalSignatureManagerRequestSubmitEventToolTIp')),
-	'DIGITALSIGNATUREMANAGER_REQUESTSTATUSCHANGEEVENT'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestStatusChangeEvent'), 'tooltip'=>$langs->trans('DigitalSignatureManagerRequestStatusChangeEventToolTIp')),
-	'DIGITALSIGNATUREMANAGER_SIGNERSTATUSCHANGEEVENT'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestStatusChangeEvent'), 'tooltip'=>$langs->trans('DigitalSignatureManagerSignerStatusChangeEventToolTIp')),
-	);
-$arrayofparameters = array_merge($arrayOfParametersForProductionSettings, $arrayOfParametersForTestSettings, $arrayOfParametersForTestMode, $arrayOfParametersForAutomaticEventManagment);
-
-
 /*
  * Actions
  */
+
+$arrayOfParametersForProductionSettings = array(
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONURL'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUrl'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignApiUrlToolTip')),
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONUSERNAME'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUsername')),
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONPASSWORD'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiPassword')),
+);
+$arrayOfParametersForTestSettings = array(
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTURL'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUrl'), 'tooltip'=>$langs->trans('DigitalSignatureUniversignTestApiUrlToolTip')),
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTUSERNAME'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiUsername')),
+	'DIGITALSIGNATUREMANAGER_UNIVERSIGNTESTPASSWORD'=>array('name'=>$langs->trans('DigitalSignatureUniversignApiPassword')),
+);
+$arrayOfParametersForTestMode = array(
+	'DIGITALSIGNATUREMANAGER_TESTMODE'=>array('name'=>$langs->trans('DigitalSignatureTestMode'), 'tooltip'=>$langs->trans('DigitalSignatureTestModeToolTip')),
+	);;
+$arrayOfParametersForAutomaticEventManagment = array(
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_CREATION'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestCreateEvent')),
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_INPROGRESS'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestInProgressEvent')),
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_CANCELEDBYOPSY'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestCanceledByOpsyEvent')),
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_CANCELEDBYSIGNERS'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestCanceledBySignersEvent')),
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_SUCCESS'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestSuccessEvent')),
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_FAILED'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestFailedEvent')),
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_EXPIRED'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestExpiredEvent')),
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_DELETEDINPROVIDER'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestDeletedInProviderEvent')),
+	'DIGITALSIGNATUREMANAGER_REQUESTEVENT_DELETE'=>array('name'=>$langs->trans('DigitalSignatureManagerRequestDeleteEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_CREATE'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleCreateEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_WAITINGTOSIGN'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleWaitingToSignEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_SHOULDSIGN'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleShouldSignEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_REFUSED'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleRefusedEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_ACCESSED'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleAccessedEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_CODESENT'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleCodeSentEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_PENDINGDDOCS'=>array('name'=>$langs->trans('DigitalSignatureManagerPeoplePendingDocsEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_PENDINGVALIDATION'=>array('name'=>$langs->trans('DigitalSignatureManagerPeoplePendingDocsValidationEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_SUCCESS'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleSuccessEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_FAILED'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleFailedEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_PROCESSSTOPPEDBEFORE'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleProcessStoppedBeforeEvent')),
+	'DIGITALSIGNATUREMANAGER_PEOPLEEVENT_DELETE'=>array('name'=>$langs->trans('DigitalSignatureManagerPeopleDeleteEvent')),
+
+	);
+
+$arrayofparameters = array_merge($arrayOfParametersForProductionSettings, $arrayOfParametersForTestSettings, $arrayOfParametersForTestMode, $arrayOfParametersForAutomaticEventManagment);
 
 if ((float) DOL_VERSION >= 6)
 {
@@ -232,7 +250,7 @@ foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 		 */
 		$setupnotempty++;
 
-		print load_fiche_titre($langs->trans("NumberingModules", $myTmpObjectKey), '', '');
+		print load_fiche_titre($langs->trans("DigitalSignatureManagerNumberingModules", $myTmpObjectKey), '', '');
 
 		print '<table class="noborder centpercent">';
 		print '<tr class="liste_titre">';
@@ -538,22 +556,16 @@ foreach($arrayOfParametersForTestMode as $key=>$parameter) {
 	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
 	print '</td>';
 	print '<td>';
-	if (!empty($conf->use_javascript_ajax)) {
-		print ajax_constantonoff($key);
-	} else {
-		if (empty($conf->global->$key)) {
-			print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_'. $key .'">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-		} else {
-			print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_'. $key .'">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-		}
-	}
+	print '<input size="64" type="hidden" name="' . $key . '" value="0">';
+	print '<input size="64" type="checkbox" name="' . $key . '" value="1" ';
+	print !empty($conf->global->$key) ? 'checked="checked"' : '';
+	print '>';
 	print '</td>';
 }
 
 print '</table>';
 
 //Automatic Event Managment
-//Test Mode
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre">';
 print '<td class="titlefield" style="min-width:500px;">'.$langs->trans("DigitalSignatureManagerAutomaticEventManagment").'</td>';
@@ -565,25 +577,20 @@ foreach($arrayOfParametersForAutomaticEventManagment as $key=>$parameter) {
 	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
 	print '</td>';
 	print '<td>';
-	if (!empty($conf->use_javascript_ajax)) {
-		print ajax_constantonoff($key);
-	} else {
-		if (empty($conf->global->$key)) {
-			print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_'. $key .'">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-		} else {
-			print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_'. $key .'">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-		}
-	}
+	print '<input size="64" type="hidden" name="' . $key . '" value="0">';
+	print '<input size="64" type="checkbox" name="' . $key . '" value="1" ';
+	print !empty($conf->global->$key) ? 'checked="checked"' : '';
+	print '>';
+	print '</td>';
 	print '</td>';
 }
 
 print '</table>';
 
-
-
 print '<br><div class="center">';
 print '<input class="button" type="submit" value="'.$langs->trans("Save").'">';
 print '</div>';
+print '<br>';
 
 print '</form>';
 print '<br>';

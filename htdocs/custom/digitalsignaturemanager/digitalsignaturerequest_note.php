@@ -150,6 +150,7 @@ if ($id > 0 || !empty($ref))
 
 
 	$cssclass = "titlefield";
+	$permission = $permissionnote;
 	include DOL_DOCUMENT_ROOT.'/core/tpl/notes.tpl.php';
 
 	print '</div>';

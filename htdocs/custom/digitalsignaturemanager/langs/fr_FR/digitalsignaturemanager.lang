@@ -33,10 +33,23 @@ DigitalSignatureRequest = Demande de signature electronique
 #
 # Page d'administration
 #
-DigitalSignatureManagerSetup = Configuration du module DigitalSignatureManager
+DigitalSignatureManagerSetup = Configuration du module Digital Signature Manager
 Settings = Réglages
-DigitalSignatureManagerSetupPage = Page de configuration du module DigitalSignatureManager
-
+DigitalSignatureManagerSetupPage = Page de configuration du module Digital Signature Manager
+DigitalSignatureManagerNumberingModules = Paramétrage de la numérotation des demandes de signature électronique
+DigitalSignatureParameterProductionUniversignSettings = Paramètres pour l'environnement de production
+DigitalSignatureUniversignApiUrl = Url des Api Universign
+DigitalSignatureUniversignApiUrlToolTip = Lien vers les api Universign pour l'environnement de production (par defaut : https://ws.universign.eu/sign/rpc/)
+DigitalSignatureUniversignApiUsername = Nom d'utilisateur
+DigitalSignatureUniversignApiPassword = Mot de passe
+DigitalSignatureParameterTestUniversignSettings = Paramètres pour l'environnement de test
+DigitalSignatureUniversignTestApiUrlToolTip = Lien vers les api Universign pour l'environnement de test (par defaut : https://sign.test.cryptolog.com/sign/rpc/)
+DigitalSignatureManagerTestMode = Gestion du mode de test universign
+DigitalSignatureTestMode = Faire fonctionner le module en mode test
+DigitalSignatureTestModeToolTip = Lorsque le mode test est activé, vous avez la possibilité de faire des essais de fonctionnement du module et de gratuitement valider vos processus de signature
+DigitalSignatureManagerAutomaticEventManagment = Gestion des évènements automatiques
+DigitalSignatureManagerStandardNumberModuleName = Standard
+DigitalSignatureManagerAdvancedNumberModuleName = Avancé
 #
 # Card
 #
@@ -110,6 +123,91 @@ DigitalSignatureManagerLinkToThirparty = Tiers
 #
 # Evènements automatiques
 #
+DigitalSignatureManagerEventAuthor = Auteur %s
+
+DigitalSignatureManagerRequestCreateEvent = Créer un évènement lors de la création d'une demande de signature électronique
+DigitalSignatureManagerRequestCreateEventTitle = Demande de signature électronique %s crée
+DigitalSignatureManagerRequestCreateEventDescription = Demande de signature électronique %s crée
+
+DigitalSignatureManagerRequestInProgressEvent = Créer un évènement lors de réussite de la soumission de la signature électronique
+DigitalSignatureManagerRequestInProgressEventTitle = Processus de signature électronique %s soumis avec succès
+DigitalSignatureManagerRequestInProgressEventDescription = Processus de signature électronique %s soumis et démarré avec succès
+
+DigitalSignatureManagerRequestCanceledByOpsyEvent = Créer un évènement lors l'annulation de la signature électronique depuis Opsy
+DigitalSignatureManagerRequestCanceledByOpsyEventTitle = Signature électronique %s annulé depuis Opsy
+DigitalSignatureManagerRequestCanceledByOpsyEventDescription = Processus de signature électronique %s annulé avec succès depuis Opsy
+
+DigitalSignatureManagerRequestCanceledBySignersEvent = Créer un évènement lors de l'annulation de la signature électronique par un signataire
+DigitalSignatureManagerRequestCanceledBySignersEventTitle = Signature électronique %s annulé par un signataire
+DigitalSignatureManagerRequestCanceledBySignersEventDescription = Processus de signature électronique %s annulé par un signataire depuis l'interface du prestataire
+
+DigitalSignatureManagerRequestSuccessEvent = Créer un évènement lors du succès du processus de signature électronique
+DigitalSignatureManagerRequestSuccessEventTitle = Signature électronique %s terminée avec succès
+DigitalSignatureManagerRequestSuccessEventDescription = Signature électronique %s terminée avec succès. L'ensemble des signataires et documents ont été signés électronique avec succès.
+
+DigitalSignatureManagerRequestFailedEvent = Créer un évènement lors de l'échec du processus de signature électronique
+DigitalSignatureManagerRequestFailedEventTitle = Echec de la signature électronique %sauvegarde
+DigitalSignatureManagerRequestFailedEventDescription = La signature électronique %s a échouée pour une raison technique.
+
+DigitalSignatureManagerRequestExpiredEvent = Créer un évènement lors de l'expiration du processus de signature électronique
+DigitalSignatureManagerRequestExpiredEventTitle = Signature électronique %s expiré
+DigitalSignatureManagerRequestExpiredEventDescription = La signature électronique %s a expiré car il n'a pas été clôturé dans les délais imparti
+
+DigitalSignatureManagerRequestDeletedInProviderEvent = Créer un évènement lors de la suppression de la signature électronique de la part du prestataire
+DigitalSignatureManagerRequestDeletedInProviderEventTitle = Signature électronique %s supprimée chez le prestataire
+DigitalSignatureManagerRequestDeletedInProviderEventDescription = La signature électronique %s a été supprimé dans le système du prestataire informatique
+
+DigitalSignatureManagerRequestDeleteEvent = Créer un évènement lors de la suppression d'une signature électronique
+DigitalSignatureManagerRequestDeleteEventTitle = Signature électronique %s supprimée
+DigitalSignatureManagerRequestDeleteEventDescription = Signature électronique %s supprimée
+
+DigitalSignatureManagerPeopleCreateEvent = Créer un évènement lors de la création d'un signataire
+DigitalSignatureManagerPeopleCreateEventTitle = Signataire %s créé
+DigitalSignatureManagerPeopleCreateEventDescription = Signataire %s créer avec succès
+
+DigitalSignatureManagerPeopleWaitingToSignEvent = Créer un évènement lorsqu'un signataire attend de pouvoir signer
+DigitalSignatureManagerPeopleWaitingToSignEventTitle = Signataire %s attend de pouvoir signer
+DigitalSignatureManagerPeopleWaitingToSignEventDescription = Le signataire %s est dans le processus de signature mais ce n'est pas encore à son tour d'effectuer une action
+
+DigitalSignatureManagerPeopleShouldSignEvent = Créer un évènement lorsque c'est au tour d'un signatraire d'effectuer une action
+DigitalSignatureManagerPeopleShouldSignEventTitle = Signataire %s doit signer
+DigitalSignatureManagerPeopleShouldSignEventDescription = C'est au tour du signataire %s de signer
+
+DigitalSignatureManagerPeopleRefusedEvent = Créer un évènement lorsqu'un signataire refuse un document
+DigitalSignatureManagerPeopleRefusedEventTitle = Signataire %s a refusé de signer
+DigitalSignatureManagerPeopleRefusedEventDescription = Le signataire %s a refusé de signer ce document
+
+DigitalSignatureManagerPeopleAccessedEvent = Créer un évènement lorsqu'un signataire accède à la page de signature
+DigitalSignatureManagerPeopleAccessedEventTitle = Signataire %s sur le formulaire de signature
+DigitalSignatureManagerPeopleAccessedEventDescription = Le signataire %s a ouvert le formulaire de signature auprès du prestataire
+
+DigitalSignatureManagerPeopleCodeSentEvent = Créer un évènement lorsqu'un signataire attend la réception du sms d'authentification
+DigitalSignatureManagerPeopleCodeSentEventTitle = SMS d'authentification émis pour le signataire %s
+DigitalSignatureManagerPeopleCodeSentEventDescription = Le SMS d'authentification pour le signataire %s a été expédié et le signataire doit désormais le saisir
+
+DigitalSignatureManagerPeoplePendingDocsEvent = Créer un évènement lorsqu'un signataire doit fournir ses documents d'identités
+DigitalSignatureManagerPeoplePendingDocsEventTitle = En attente des documents d'identité de %s
+DigitalSignatureManagerPeoplePendingDocsEventDescription = Le signataire %s doit fournir des documents d'identité afin de l'authentifier de manière approfondie
+
+DigitalSignatureManagerPeoplePendingDocsValidationEvent = Créer un évènements lorsque les documents d'identités du signataires ont été validés
+DigitalSignatureManagerPeoplePendingDocsValidationEventTitle = Documents d'identité de %s validés
+DigitalSignatureManagerPeoplePendingDocsValidationEventDescription = Les documents d'identité de %s permettant de l'authentifier ont été validés
+
+DigitalSignatureManagerPeopleSuccessEvent = Créer un évènement lorsqu'un signataire a signé avec succès
+DigitalSignatureManagerPeopleSuccessEventTitle = Signature achevée pour %s
+DigitalSignatureManagerPeopleSuccessEventDescription = Le signataire %s a achevée avec succès la signature
+
+DigitalSignatureManagerPeopleFailedEvent = Créer un évènement lorsqu'un signataire a échoué à signer
+DigitalSignatureManagerPeopleFailedEventTitle = Echec de signature pour %s
+DigitalSignatureManagerPeopleFailedEventDescription = Le signataire %s n'a pas réussi à signer
+
+DigitalSignatureManagerPeopleProcessStoppedBeforeEvent = Créer un évènement lorsque le signataire ne peux plus signer à cause de l'arrêt du processus
+DigitalSignatureManagerPeopleProcessStoppedBeforeEventTitle = Signataire %s ne pourra pas signer
+DigitalSignatureManagerPeopleProcessStoppedBeforeEventDescription = Le signataire %s ne pourra plus signer. Le processus a été arrêté avant le tour de ce signataire
+
+DigitalSignatureManagerPeopleDeleteEvent = Créer un évènement lorsqu'un signataire est supprimé
+DigitalSignatureManagerPeopleDeleteEventTitle = Signataire %s supprimé
+DigitalSignatureManagerPeopleDeleteEventDescription = Signataire %s supprimé
 
 #
 # Erreurs
@@ -120,5 +218,5 @@ DigitalSignatureManagerUniversignErrorSavingFileInServer = Une erreur est interv
 # Page À propos
 #
 About = À propos
-DigitalSignatureManagerAbout = À propos de DigitalSignatureManager
-DigitalSignatureManagerAboutPage = Page à propos de DigitalSignatureManager
+DigitalSignatureManagerAbout = À propos de Digital Signature Manager
+DigitalSignatureManagerAboutPage = Page à propos de Digital Signature Manager

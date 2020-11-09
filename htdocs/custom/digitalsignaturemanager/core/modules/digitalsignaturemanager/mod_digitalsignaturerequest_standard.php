@@ -48,6 +48,14 @@ class mod_digitalsignaturerequest_standard extends ModeleNumRefDigitalSignatureR
 	 */
 	public $name = 'standard';
 
+	/**
+	 * Constructor
+	 */
+	public function __construct()
+	{
+		global $langs;
+		$this->name = $langs->trans('DigitalSignatureManagerStandardNumberModuleName');
+	}
 
 	/**
 	 *  Return description of numbering module

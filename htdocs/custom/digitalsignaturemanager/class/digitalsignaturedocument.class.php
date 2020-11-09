@@ -364,11 +364,12 @@ class DigitalSignatureDocument extends CommonObject
 			return $this->ecmFile->filename;
 		}
 	}
-/**
+	/**
 	 * Function to get full path of the file linked to this document
 	 * @return string label or filename of the document
 	 */
-	public function getLinkedFileAbsolutePath() {
+	public function getLinkedFileAbsolutePath()
+	{
 		if(!$this->ecmFile) {
 			$this->fetchLinkedEcmFile();
 		}
