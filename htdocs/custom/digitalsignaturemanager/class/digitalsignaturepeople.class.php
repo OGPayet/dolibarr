@@ -117,6 +117,8 @@ class DigitalSignaturePeople extends CommonObject
 		'position' => array('type'=>'integer', 'label'=>'Position of the signatory people into signature process', 'enabled'=>'1', 'position'=>11, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
 		'fk_people_object' => array('type'=>'integer', 'label'=>'Id of the linked people (contact or user)', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
 		'fk_people_type' => array('type'=>'varchar(255)', 'label'=>'Type of the linked people', 'enabled'=>'1', 'position'=>21, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
+		'date_creation' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>500, 'notnull'=>1, 'visible'=>-2,),
+		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>501, 'notnull'=>0, 'visible'=>-2,),
 	);
 	public $rowid;
 	public $fk_user_creat;
@@ -132,6 +134,8 @@ class DigitalSignaturePeople extends CommonObject
 	public $position;
 	public $fk_people_object;
 	public $fk_people_type;
+	public $date_creation;
+	public $tms;
 	// END MODULEBUILDER PROPERTIES
 
 	/**

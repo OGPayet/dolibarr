@@ -21,6 +21,7 @@
  *	\brief      File of class with all html predefined components
  */
 
+dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
 
 /**
  *	Class to manage generation of HTML components
@@ -46,7 +47,12 @@ class FormDigitalSignatureRequest
 	/**
      * @var FormHelperDigitalSignatureManager  Instance of the form
      */
-    public $helper;
+	public $helper;
+
+	/**
+     * @var FormDigitalSignatureDocument  Instance of the form
+     */
+	public $formDigitalSignatureDocument;
 
     /**
      * Constructor
@@ -62,6 +68,9 @@ class FormDigitalSignatureRequest
 
 		dol_include_once('/digitalsignaturemanager/class/helper.formdigitalsignaturemanager.class.php');
 		$this->helper = new FormHelperDigitalSignatureManager($db);
+
+		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
+		$this->formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
     }
 
 
@@ -189,48 +198,73 @@ class FormDigitalSignatureRequest
 	 * Function to display documents file lines
 	 * @param DigitalSignatureRequest $object Parent object of lines to display
 	 * @param int $currentDocumentIdEdited current document id which is edited
-	 * @param bool $readOnly - force readonly mode
+	 * @param bool $readOnlyMode - force readonly mode
 	 * @param bool $permissionToEdit - boolean indicating if user can edit document
 	 * @param bool $permissionToDelete - boolean indicating if user can delete document
 	 * @return void
 	 */
-	public function showDocumentLines($object, $currentDocumentIdEdited, $readOnly, $permissionToEdit, $permissionToDelete) {
-		global $conf, $hookmanager;
+	public function showDocumentLines($object, $currentDocumentIdEdited, $readOnlyMode, $permissionToEdit, $permissionToDelete)
+	{
+		global $conf, $langs;
 
 		$documents = $object->documents;
-		$isALineBeingEdited = empty($readOnly) && empty($currentDocumentIdEdited);
-		$userCanChangeOrder = empty($readOnly) && !empty($permissionToEdit) && count($documents) > 0 && !$isALineBeingEdited;
-		$userCanAskToEditDocumentLine = empty($readOnly) && !empty($permissionToEdit);
-		$userCanAskToDeleteDocumentLine = empty($readOnly) && !empty($permissionToDelete);
-		$userCanSeeFormToAddNewLine = empty($readOnly) && !$isALineBeingEdited && !empty($permissionToEdit);
+		$currentLineEdited = findObjectInArrayByProperty($documents, 'id', $currentDocumentIdEdited);
+		$isALineBeingEdited = (bool) $currentLineEdited;
 
-		print '	<form name="documentForm" id="documentForm" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.($isALineBeingEdited ? '#addline' : '#line_'.$currentDocumentIdEdited).'" method="POST">
-		<input type="hidden" name="token" value="' . newToken().'">
-		<input type="hidden" name="action" value="' . ($isALineBeingEdited ? 'addline' : 'updateline').'">
-		';
-
-		if (!empty($conf->use_javascript_ajax) && $userCanChangeOrder) {
-			//toDo ajust param for ajaxrow.tpl.php
-			include DOL_DOCUMENT_ROOT.'/core/tpl/ajaxrow.tpl.php';
-		}
+		$userCanChangeOrder = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit) && count($documents) > 0;
+		$userCanAskToEditDocumentLine = false; //there is no information that can be edited
+		$userCanAskToDeleteDocumentLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToDelete);
 
 		print '<div class="div-table-responsive-no-min">';
-		print '<table id="tablelines" class="noborder noshadow" width="100%">';
+		print '<table id="tableofdocument" class="noborder noshadow tabBar" width="100%">';
 
 		//display document lines headers
+		$numberOfActionColumns = 0;
+		print '<tr class="liste_titre nodrag nodrop">';
+		print '<td class="linecoldescription">' . $langs->trans('DigitalSignatureManagerDocumentColumnTitle') . '</td>';
 
-		//display each document lines
-
-
-		// Form to add new line
-		if ($userCanSeeFormToAddNewLine)
-		{
-			$object->formAddObjectLine(1, $mysoc, $soc);
-			$parameters = array();
-			$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+		if($userCanAskToEditDocumentLine) {
+			print '<td class="linecoledit"></td>';
+			$numberOfActionColumns++;
 		}
+
+		if($userCanAskToDeleteDocumentLine) {
+			print '<td class="linecoldelete" style="width: 10px"></td>';
+			$numberOfActionColumns++;
+		}
+
+		if($userCanChangeOrder) {
+			print '<td class="linecolmove" style="width: 10px"></td>';
+			$numberOfActionColumns++;
+		}
+		print '</tr>';
+
+		//display each document lines or only document line being edited
+		if($isALineBeingEdited) {
+			//We display the form to edit line
+			$this->formDigitalSignatureDocument->showDocumentEditForm($object, $currentLineEdited, $numberOfActionColumns);
+		}
+		else {
+			//we display lines and form to add a new line
+			$userCanSeeFormToAddNewLine = !$readOnlyMode && !empty($permissionToEdit);
+			if (!empty($conf->use_javascript_ajax) && $userCanChangeOrder) {
+				//toDo ajust param for ajaxrow.tpl.php
+				$IdOfTableDisplayingRowToBeSorted = "tableofdocument";
+				$elementType = 'digitalsignaturedocument';
+				include dol_buildpath('digitalsignaturemanager/tpl/ajax/ajaxrow.tpl.php');
+			}
+			//we display documents
+			foreach($documents as $document) {
+				$this->formDigitalSignatureDocument->showDocument($document, $userCanAskToEditDocumentLine, $userCanAskToDeleteDocumentLine, $userCanChangeOrder);
+			}
+			//We display form to add new document
+			if ($userCanSeeFormToAddNewLine)
+			{
+				$this->formDigitalSignatureDocument->showDocumentEditForm($object, new DigitalSignatureDocument($this->db), $numberOfActionColumns);
+			}
+		}
+
 		print '</table>';
 		print '</div>';
-		print "</form>\n";
 	}
 }

@@ -99,6 +99,8 @@ class DigitalSignatureSignatoryField extends CommonObject
 		'y' => array('type'=>'double(24,8)', 'label'=>'Y axis coordinate', 'enabled'=>'1', 'position'=>13, 'notnull'=>0, 'visible'=>1,),
 		'page' => array('type'=>'double(24,8)', 'label'=>'page Number into documents', 'enabled'=>'1', 'position'=>14, 'notnull'=>0, 'visible'=>1,),
 		'label' => array('type'=>'varchar(255)', 'label'=>'Signature Field Label', 'enabled'=>'1', 'position'=>15, 'notnull'=>0, 'visible'=>1,),
+		'date_creation' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>500, 'notnull'=>1, 'visible'=>-2,),
+		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>501, 'notnull'=>0, 'visible'=>-2,),
 	);
 	public $rowid;
 	public $fk_digitalsignaturerequest;
@@ -108,6 +110,8 @@ class DigitalSignatureSignatoryField extends CommonObject
 	public $y;
 	public $page;
 	public $label;
+	public $date_creation;
+	public $tms;
 	// END MODULEBUILDER PROPERTIES
 
 	/**

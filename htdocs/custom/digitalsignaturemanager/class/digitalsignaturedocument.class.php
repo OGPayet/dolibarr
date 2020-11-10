@@ -26,6 +26,18 @@
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 dol_include_once('/ecm/class/ecmfiles.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
+
+/**
+ *
+ * Function to sort digital signature documents
+ */
+function digitalsignaturedocument_cmp($a, $b)
+{
+    if ($a->position == $b->position) {
+        return 0;
+    }
+    return $a->position < $b->position ? -1 : 1;
+}
 /**
  * Class for DigitalSignatureDocument
  */
@@ -101,13 +113,15 @@ class DigitalSignatureDocument extends CommonObject
 		'fk_digitalsignaturerequest' => array('type'=>'integer:DigitalSignatureRequest:digitalsignaturemanager/class/digitalsignaturerequest.class.php', 'label'=>'Linked Digital Signature request', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
 		'fk_ecm' => array('type'=>'integer:EcmFiles:ecm/class/ecmfiles.class.php', 'label'=>'Linked To ECM Files', 'enabled'=>'1', 'position'=>11, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
 		'position' => array('type'=>'integer', 'label'=>'Position of files in digital signature request', 'enabled'=>'1', 'position'=>12, 'notnull'=>0, 'visible'=>1,),
-		'checkBoxTexts' => array('type'=>'array', 'label'=>'Array of text in order to create checkbox text', 'enabled'=>'1', 'position'=>50, 'notnull'=>0, 'visible'=>-1,),
+		'date_creation' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>500, 'notnull'=>1, 'visible'=>-2,),
+		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>501, 'notnull'=>0, 'visible'=>-2,),
 	);
 	public $rowid;
 	public $fk_digitalsignaturerequest;
 	public $fk_ecm;
 	public $position;
-	public $checkBoxTexts;
+	public $date_creation;
+	public $tms;
 	// END MODULEBUILDER PROPERTIES
 
 	/**
@@ -117,7 +131,7 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function __construct(DoliDB $db)
 	{
-		global $conf, $langs;
+		global $conf;
 
 		$this->db = $db;
 
@@ -138,21 +152,6 @@ class DigitalSignatureDocument extends CommonObject
 				unset($this->fields[$key]);
 			}
 		}
-
-		// Translate some data of arrayofkeyval
-		if (is_object($langs))
-		{
-			foreach ($this->fields as $key => $val)
-			{
-				if (is_array($val['arrayofkeyval']))
-				{
-					foreach ($val['arrayofkeyval'] as $key2 => $val2)
-					{
-						$this->fields[$key]['arrayofkeyval'][$key2] = $langs->trans($val2);
-					}
-				}
-			}
-		}
 	}
 
 	/**
@@ -164,6 +163,9 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function create(User $user, $notrigger = false)
 	{
+		if(!$this->position) {
+			$this->position = 0;
+		}
 		return $this->createCommon($user, $notrigger);
 	}
 
@@ -316,6 +318,12 @@ class DigitalSignatureDocument extends CommonObject
 		}
 		$ecmFiles = $staticEcm->lines;
 		$digitalSignatureDocuments = $this->fetchAll('ASC', 'position', null, null, array('fk_digitalsignaturerequest'=>$digitalSignatureRequest->id));
+		$maxPositionOfDigitalSignatureDocumentsAlreadyFetched = 0;
+		foreach($digitalSignatureDocuments as $document) {
+			if($document->position > $maxPositionOfDigitalSignatureDocumentsAlreadyFetched) {
+				$maxPositionOfDigitalSignatureDocumentsAlreadyFetched = $document->position;
+			}
+		}
 		$errors = array_merge($errors, $this->errors);
 		$effectiveDigitalSignatureDocuments = array();
 		foreach($ecmFiles as $ecm) {
@@ -324,6 +332,8 @@ class DigitalSignatureDocument extends CommonObject
 				$linkedDocumentObject = new self($this->db);
 				$linkedDocumentObject->fk_ecm = $ecm->id;
 				$linkedDocumentObject->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
+				$linkedDocumentObject->ecmFile = $ecm;
+				$linkedDocumentObject->position = $maxPositionOfDigitalSignatureDocumentsAlreadyFetched++;
 				$successfullyCreated = $linkedDocumentObject->create($user);
 				if($successfullyCreated < 0) {
 					$errors = array_merge($errors, $linkedDocumentObject->errors);
@@ -333,13 +343,16 @@ class DigitalSignatureDocument extends CommonObject
 			$linkedDocumentObject->ecmFile = $ecm;
 			$effectiveDigitalSignatureDocuments[] = $linkedDocumentObject;
 		}
-		foreach($digitalSignatureDocuments as $digitalSignatureDocument) {
+		foreach($digitalSignatureDocuments as $index => $digitalSignatureDocument) {
 			$linkedEcm = findObjectInArrayByProperty($ecmFiles, 'id', $digitalSignatureDocument->fk_ecm);
 			if(!$linkedEcm) {
 				$digitalSignatureDocument->delete($user);
 				$errors = array_merge($errors, $digitalSignatureDocument->errors);
 			}
 		}
+
+		usort($effectiveDigitalSignatureDocuments, 'digitalsignaturedocument_cmp');
+
 		if(empty($errors)) {
 			$this->db->commit();
 			return $effectiveDigitalSignatureDocuments;
@@ -376,5 +389,23 @@ class DigitalSignatureDocument extends CommonObject
 		if($this->ecmFile) {
 			return $this->ecmFile->fullpath_orig;
 		}
+	}
+
+	/**
+	 * Function to get full path of the file linked to this document
+	 * @return string label or filename of the document
+	 */
+	public function getLinkedFileRelativePath()
+	{
+		return $this->digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $this->getDocumentName();
+	}
+
+	/**
+	 * Function to get the entity linked to this file
+	 * @return string label or filename of the document
+	 */
+	public function getEntity()
+	{
+		return $this->digitalSignatureRequest->entity;
 	}
 }

@@ -26,7 +26,7 @@
  *	Class to manage generation of HTML components
  *	Only common components must be here.
  */
-class FormDigitalSignatureManager
+class FormDigitalSignatureDocument
 {
 	/**
      * @var DoliDb		Database handler (result of a new DoliDB)
@@ -36,7 +36,17 @@ class FormDigitalSignatureManager
     /**
      * @var Form  Instance of the form
      */
-    public $form;
+	public $form;
+
+	/**
+	 * @var FormFile Instance of the formFile
+	 */
+	public $formFile;
+
+	/**
+	 * @var FormDigitalSignatureManager Instance of the shared form
+	 */
+	public $formDigitalSignatureManager;
 
     /**
      * @var array
@@ -44,148 +54,189 @@ class FormDigitalSignatureManager
 	public static $errors = array();
 
 	/**
-     * @var FormHelperDigitalSignatureManager  Instance of the form
-     */
-    public $helper;
+	 * @var string Delete Document Action Name
+	 */
+	const DELETE_ACTION_NAME = 'deleteDocument';
+
+	/**
+	 * @var string Edit Document Action Name
+	 */
+	const EDIT_ACTION_NAME = 'editDocument';
+
+	/**
+	 * @var string Add Document Action Name
+	 */
+	const ADD_ACTION_NAME = 'addDocument';
+
+	/**
+	 * @var string move up Document Action Name
+	 */
+	const MOVE_UP_ACTION_NAME = 'moveUpDocument';
+
+	/**
+	 * @var string move up Document Action Name
+	 */
+	const MOVE_DOWN_ACTION_NAME = 'moveDownDocument';
+
+	/**
+	 * @var string name of the post field containing document id
+	 */
+	const DOCUMENT_POST_ID_FIELD_NAME = 'documentId';
 
     /**
      * Constructor
      *
      * @param   DoliDB $db Database handler
      */
-    public function __construct(DoliDb $db)
-    {
-        $this->db = $db;
-
-        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+	public function __construct(DoliDb $db)
+	{
+		$this->db = $db;
+		require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+		dol_include_once('/core/class/html.form.class.php');
 		$this->form = new Form($db);
-
-		dol_include_once('/digitalsignaturemanager/class/helper.formdigitalsignaturemanager.class.php');
-		$this->helper = new FormHelperDigitalSignatureManager($db);
-    }
+		dol_include_once('/core/class/html.formfile.class.php');
+		$this->formFile = new FormFile($db);
 
 
-	/**
-     *  Show list of actions for element
-     *
-     *  @param	Object	$object			Object
-     *	@param	int		$socid			socid of user
-     *  @param	int		$forceshowtitle	Show title even if there is no actions to show
-     *  @param  string  $morecss        More css on table
-     *  @param	int		$max			Max number of record
-     *  @param	string	$moreparambacktopage	More param for the backtopage
-     *	@return	int						<0 if KO, >=0 if OK
-     */
-    function showActions($object, $socid = 0, $forceshowtitle = 0, $morecss = 'listactions', $max = 0, $moreparambacktopage = '')
-    {
-		global $langs,$conf;
-
-		$listofactions = $this->helper->getActions($socid, $object->id,  '', '', '', ($max?($max+1):0));
-		if (! is_array($listofactions)) dol_print_error($this->db, 'FailedToGetActions');
-
-        $num = count($listofactions);
-        if ($num || $forceshowtitle)
-        {
-			$title=$langs->trans("Actions");
-
-            $urlbacktopage=$_SERVER['PHP_SELF'].'?id='.$object->id.($moreparambacktopage?'&'.$moreparambacktopage:'');
-
-			if ($conf->agenda->enabled) {
-				$buttontoaddnewevent = '<a href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create&datep=' . dol_print_date(dol_now(), 'dayhourlog') . '&origin=' . $typeelement . '&originid=' . $object->id . '&socid=' . $object->socid . '&projectid=' . $object->fk_project . '&backtopage=' . urlencode($urlbacktopage) . '">';
-				$buttontoaddnewevent.= $langs->trans("AddEvent");
-				$buttontoaddnewevent.= '</a>';
-			}
-			print load_fiche_titre($title, $buttontoaddnewevent, '');
-
-		$page=0; $param=''; $sortfield='a.datep';
-
-		$total = 0;
-
-		print '<div class="div-table-responsive">';
-		print '<table class="noborder'.($morecss?' '.$morecss:'').'" width="100%">';
-		print '<tr class="liste_titre">';
-		print_liste_field_titre('Ref', $_SERVER["PHP_SELF"], '', $page, $param, '');
-		print_liste_field_titre('Action', $_SERVER["PHP_SELF"], '', $page, $param, '');
-		print_liste_field_titre('Type', $_SERVER["PHP_SELF"], '', $page, $param, '');
-		print_liste_field_titre('Date', $_SERVER["PHP_SELF"], '', $page, $param, 'align="center"');
-		print_liste_field_titre('By', $_SERVER["PHP_SELF"], '', $page, $param, '');
-		print_liste_field_titre('', $_SERVER["PHP_SELF"], '', $page, $param, 'align="right"');
-		print '</tr>';
-		print "\n";
-
-		$userstatic = new User($this->db);
-
-		$cursorevent = 0;
-		foreach($listofactions as $action)
-		{
-			if ($max && $cursorevent >= $max) break;
-				if(empty($action->id)) {
-					continue;
-				}
-			$ref=$action->getNomUrl(1, -1);
-			$label=$action->getNomUrl(0, 38);
-
-			print '<tr class="oddeven">';
-				print '<td>'.$ref.'</td>';
-			print '<td>'.$label.'</td>';
-			print '<td>';
-			if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
-			{
-			    if ($action->type_picto) print img_picto('', $action->type_picto);
-			    else {
-			        if ($action->type_code == 'AC_RDV')   print img_picto('', 'object_group').' ';
-			        if ($action->type_code == 'AC_TEL')   print img_picto('', 'object_phoning').' ';
-			        if ($action->type_code == 'AC_FAX')   print img_picto('', 'object_phoning_fax').' ';
-			        if ($action->type_code == 'AC_EMAIL') print img_picto('', 'object_email').' ';
-			    }
-			}
-			print $action->type;
-			print '</td>';
-			print '<td align="center">'.dol_print_date($action->datep, 'dayhour');
-			if ($action->datef)
-			{
-				$tmpa=dol_getdate($action->datep);
-				$tmpb=dol_getdate($action->datef);
-				if ($tmpa['mday'] == $tmpb['mday'] && $tmpa['mon'] == $tmpb['mon'] && $tmpa['year'] == $tmpb['year'])
-				{
-					if ($tmpa['hours'] != $tmpb['hours'] || $tmpa['minutes'] != $tmpb['minutes'] && $tmpa['seconds'] != $tmpb['seconds']) print '-'.dol_print_date($action->datef, 'hour');
-				}
-				else print '-'.dol_print_date($action->datef, 'dayhour');
-			}
-			print '</td>';
-			print '<td>';
-			if (! empty($action->author->id))
-			{
-				$userstatic->id = $action->author->id;
-				$userstatic->firstname = $action->author->firstname;
-				$userstatic->lastname = $action->author->lastname;
-				print $userstatic->getNomUrl(1, '', 0, 0, 16, 0, '', '');
-			}
-			print '</td>';
-			print '<td align="right">';
-			if (! empty($action->author->id))
-			{
-				print $action->getLibStatut(3);
-			}
-			print '</td>';
-			print '</tr>';
-
-			$cursorevent++;
-		}
-
-		if ($max && $num > $max)
-		{
-			print '<tr class="oddeven"><td colspan="6">'.$langs->trans("More").'...</td></tr>';
-		}
-
-		print '</table>';
-		print '</div>';
-        }
-
-        return $num;
+		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturemanager.class.php');
+		$this->formDigitalSignatureManager = new FormDigitalSignatureManager($db);
 	}
 
 	/**
-	 * Function to display documents file lines
+     *  Display form to add a new document into card lines
+     *
+     *  @param	DigitalSignatureRequest	$object			Object
+	 *  @param  DigitalSignatureDocument $document Document being edited
+	 *  @param int $numberOfActionColumns number of column used by actions
+     *	@return	int						<0 if KO, >=0 if OK
+     */
+	public function showDocumentEditForm($object, $document, $numberOfActionColumns)
+	{
+		global $hookmanager, $action;
+		$parameters = array();
+		$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+
+		if(!is_object($document)) {
+			$line = new DigitalSignatureDocument($object->db);
+			$line->digitalSignatureRequest = $object;
+		}
+		$colspan = 0; //used for extrafields
+		global $conf, $langs;
+		//We display row
+		print '<tr ';
+		if($document->id) {
+			print 'id="row-' . $document->id .'" ';
+		}
+		print ' class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
+		//We display number column
+		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+			print '<td class="linecolnum" align="center"></td>';
+			$colspan++;
+		}
+		// We show upload file form
+		print '<td>';
+		print '<input class="flat minwidth400" type="file" name="newDocumentToSign" accept=".pdf">';
+		print '</td>';
+		$colspan++;
+
+		// Show add button
+		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumns .'">';
+		print '<input type="submit" class="button" value="'. $langs->trans('Add') .'" name="addDocument" id="addDocument">';
+		print '</td>';
+		$colspan++;
+
+		//We end row
+		print '</tr>';
+	}
+
+
+	/**
+     *  Display form to add a new document into card lines
+     *
+	 *  @param  DigitalSignatureDocument $document Document being edited
+	 *  @param bool $userCanAskToEditLine display edit button
+	 *  @param bool $userCanAskToDeleteLine display delete button
+	 *  @param bool $userCanMoveLine display move button
+     *  @param  string  $morecss        More css on table
+     *  @param	string	$moreparambacktopage	More param for the backtopage
+     *	@return	int						<0 if KO, >=0 if OK
+     */
+	public function showDocument($document, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)
+	{
+		$colspan = 0; //used for extrafields
+		$digitalSignatureRequestId = $document->digitalSignatureRequest->id;
+		$numberOfDocuments = count($document->digitalSignatureRequest->documents);
+		global $conf;
+		//We display row
+		print '<tr id="row-' . $document->id . '" class="oddeven drag drop">';
+		//We display number column
+		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+			print '<td class="linecolnum" align="center"></td>';
+			$colspan++;
+		}
+		// We show uploaded file
+		print '<td>';
+		print $this->getDocumentLinkAndPreview($document);
+
+		//print '<input class="flat minwidth400" type="file" name="newDocumentToSign" accept=".pdf">';
+		print '</td>';
+		$colspan++;
+
+		// Show edit button
+		if($userCanAskToEditLine) {
+			print '<td class="linecoledit" align="center">';
+			print '<a href="' . $_SERVER["PHP_SELF"] . '?id='.$digitalSignatureRequestId . '&amp;action="' . self::EDIT_ACTION_NAME . '"&amp;' . self::DOCUMENT_POST_ID_FIELD_NAME . '=' . $document->id . '">';
+			print img_edit();
+			print '</td>';
+			$colspan++;
+		}
+
+		if($userCanAskToDeleteLine) {
+			print '<td class="linecoledit" align="center">';
+			print '<a href="' . $_SERVER["PHP_SELF"] . '?id='.$digitalSignatureRequestId . '&amp;action="' . self::DELETE_ACTION_NAME . '"&amp;' . self::DOCUMENT_POST_ID_FIELD_NAME . '=' . $document->id . '">';
+			print img_delete();
+			print '</td>';
+			$colspan++;
+		}
+
+		if($userCanMoveLine) {
+			$this->formDigitalSignatureManager->showMoveActionButtonsForLine($digitalSignatureRequestId, $document->id, $document->position, $numberOfDocuments, self::MOVE_UP_ACTION_NAME, self::MOVE_DOWN_ACTION_NAME, self::DOCUMENT_POST_ID_FIELD_NAME);
+			$colspan++;
+		}
+		//We end row
+		print '</tr>';
+	}
+
+	/**
+	 * Function to display document file by its filename with link to download it and ability to preview it
+	 * @param DigitalSignatureDocument $digitalSignatureDocument
+	 * @return string
 	 */
+	public function getDocumentLinkAndPreview($digitalSignatureDocument)
+	{
+		global $conf, $langs;
+		//We prepare data to use elements from form file, as done by dolibarr core
+		$documentUrl = DOL_URL_ROOT.'/document.php';
+		$modulePart = 'digitalsignaturemanager';
+		$relativePath = $digitalSignatureDocument->getLinkedFileRelativePath();
+		$fileName = $digitalSignatureDocument->getDocumentName();
+		$entityOfThisDocument = $digitalSignatureDocument->getEntity() ? $digitalSignatureDocument->getEntity() : $conf->entity;
+		$entityParam = '&entity=' . $entityOfThisDocument;
+		$arrayWithFileInformation = array('name'=>$fileName);
+
+
+		$out = '<a class="documentdownload paddingright" href="' . $documentUrl . '?modulepart=' . $modulePart . '&amp;file=' . urlencode($relativePath) . $entityParam;
+
+		$mime = dol_mimetype($relativePath, '', 0);
+		if (preg_match('/text/', $mime)) {
+			$out .= ' target="_blank"';
+		}
+		$out .= '>';
+		$out .= img_mime($fileName, $langs->trans("File").': '.$fileName);
+		$out .= dol_trunc($fileName, 150);
+		$out .= '</a>'."\n";
+		$out .= $this->formFile->showPreview($arrayWithFileInformation, $modulePart, $relativePath, 0, $entityParam);
+		$out .= '</td>';
+		return $out;
+	}
 }

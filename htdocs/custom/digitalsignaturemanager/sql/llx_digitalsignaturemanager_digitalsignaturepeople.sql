@@ -29,6 +29,8 @@ CREATE TABLE llx_digitalsignaturemanager_digitalsignaturepeople(
 	fk_digitalsignaturerequest integer NOT NULL,
 	position integer,
 	fk_people_object integer,
-	fk_people_type varchar(255)
+	fk_people_type varchar(255),
+	date_creation datetime NOT NULL,
+	tms timestamp
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

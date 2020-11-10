@@ -20,6 +20,7 @@ CREATE TABLE llx_digitalsignaturemanager_digitalsignaturedocument(
 	fk_digitalsignaturerequest integer NOT NULL,
 	fk_ecm integer NOT NULL,
 	position integer,
-	checkBoxTexts text
+	date_creation datetime NOT NULL,
+	tms timestamp
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

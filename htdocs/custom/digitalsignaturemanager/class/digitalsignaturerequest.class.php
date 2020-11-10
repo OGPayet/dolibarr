@@ -125,8 +125,7 @@ class DigitalSignatureRequest extends CommonObject
 		'externalId' => array('type'=>'varchar(255)', 'label'=>'Id of the signature process at external provider', 'enabled'=>'1', 'position'=>1002, 'notnull'=>0, 'visible'=>-5, 'index'=>1,),
 		'externalUrl' => array('type'=>'varchar(255)', 'label'=>'Url given by universign after request have been created', 'enabled'=>'1', 'position'=>1002, 'notnull'=>0, 'visible'=>-5, 'index'=>1,),
 		'elementtype' => array('type'=>'varchar(128)', 'label'=>'Linked Element Type', 'enabled'=>'1', 'position'=>1003, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
-		'fk_object' => array('type'=>'integer', 'label'=>'Id of the dolibarr object we sign', 'enabled'=>'1', 'position'=>1004, 'notnull'=>0, 'visible'=>0, 'index'=>1,),
-		'listOfFileNameToSign' => array('type'=>'array', 'label'=>'Ordered Array of filename to be signed', 'enabled'=>'1', 'position'=>1005, 'notnull'=>0, 'visible'=>0,),
+		'fk_object' => array('type'=>'integer', 'label'=>'Id of the dolibarr object we sign', 'enabled'=>'1', 'position'=>1004, 'notnull'=>0, 'visible'=>0, 'index'=>1,)
 	);
 	public $rowid;
 	public $entity;
@@ -146,7 +145,6 @@ class DigitalSignatureRequest extends CommonObject
 	public $externalUrl;
 	public $elementtype;
 	public $fk_object;
-	public $listOfFileNameToSign;
 	// END MODULEBUILDER PROPERTIES
 
 	/**
@@ -899,7 +897,7 @@ class DigitalSignatureRequest extends CommonObject
 	}
 
 	/**
-	 * Get base upload dir for object of this module
+	 * Get base upload dir for object of this module, according to the entity
 	 * @return string local path
 	 */
 	public function getBaseUploadDir()

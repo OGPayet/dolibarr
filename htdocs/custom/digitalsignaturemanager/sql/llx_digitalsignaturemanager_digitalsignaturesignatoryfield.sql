@@ -23,6 +23,8 @@ CREATE TABLE llx_digitalsignaturemanager_digitalsignaturesignatoryfield(
 	x double(24,8),
 	y double(24,8),
 	page double(24,8),
-	label varchar(255)
+	label varchar(255),
+	date_creation datetime NOT NULL,
+	tms timestamp
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;
