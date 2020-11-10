@@ -385,6 +385,24 @@ class InterventionSurveyApi extends DolibarrApi
             $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user, $request, true);
         }
 
+        //Add linked equipment to the intervention and update intervention survey
+        if ($request_data->linkedObjectsIds->equipement) {
+            $newLinkedEquipements = [];
+
+            foreach($request_data->linkedObjectsIds->equipement as $requestDataLinkedEquipement) {
+                if (in_array($this->interventionSurvey->linkedObjectsIds->equipement, $requestDataLinkedEquipement)) {
+                    array_push($newLinkedEquipements, $requestDataLinkedEquipement);
+                }
+            }
+
+            foreach($newLinkedEquipements as $newLinkedEquipement) {
+                $this->interventionSurvey->add_object_linked('equipment', $newLinkedEquipement);
+            }
+
+            $this->interventionSurvey->fetchObjectLinked();
+            softUpdateOfSurveyFromDictionary();
+        }
+
         if ($result > 0) {
             $this->db->commit();
             $this->interventionSurvey->fetchObjectLinked();
