@@ -387,20 +387,20 @@ class InterventionSurveyApi extends DolibarrApi
 
         //Add linked equipment to the intervention and update intervention survey
         if ($request_data->linkedObjectsIds->equipement) {
-            $newLinkedEquipements = [];
+            $newLinkedEquipementsIds = [];
 
-            foreach($request_data->linkedObjectsIds->equipement as $requestDataLinkedEquipement) {
-                if (in_array($this->interventionSurvey->linkedObjectsIds->equipement, $requestDataLinkedEquipement)) {
-                    array_push($newLinkedEquipements, $requestDataLinkedEquipement);
+            foreach($request_data->linkedObjectsIds->equipement as $requestDataLinkedEquipementId) {
+                if (!in_array($this->interventionSurvey->linkedObjectsIds->equipement, $requestDataLinkedEquipementId)) {
+                    array_push($newLinkedEquipementsIds, $requestDataLinkedEquipementId);
                 }
             }
 
-            foreach($newLinkedEquipements as $newLinkedEquipement) {
-                $this->interventionSurvey->add_object_linked('equipment', $newLinkedEquipement);
+            foreach($newLinkedEquipementsIds as $newLinkedEquipementId) {
+                $this->interventionSurvey->add_object_linked('equipement', $newLinkedEquipementId);
             }
 
             $this->interventionSurvey->fetchObjectLinked();
-            softUpdateOfSurveyFromDictionary();
+            $this->interventionSurvey->softUpdateOfSurveyFromDictionary();
         }
 
         if ($result > 0) {
