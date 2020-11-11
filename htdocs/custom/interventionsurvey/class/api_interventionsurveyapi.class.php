@@ -389,18 +389,26 @@ class InterventionSurveyApi extends DolibarrApi
         if ($request_data->linkedObjectsIds->equipement) {
             $newLinkedEquipementsIds = [];
 
+            $this->interventionSurvey->fetchObjectLinked();
+            $alreadyLinkedEquipements = json_decode(json_encode($this->interventionSurvey->linkedObjectsIds))->equipement;
+            $alreadyLinkedEquipementsIds = [];
+
+            foreach($alreadyLinkedEquipements as $key => $value) {
+		array_push($alreadyLinkedEquipementsIds, $value);
+            }
+
             foreach($request_data->linkedObjectsIds->equipement as $requestDataLinkedEquipementId) {
-                if (!in_array($this->interventionSurvey->linkedObjectsIds->equipement, $requestDataLinkedEquipementId)) {
+                if (!in_array($requestDataLinkedEquipementId, $alreadyLinkedEquipementsIds)) {
                     array_push($newLinkedEquipementsIds, $requestDataLinkedEquipementId);
                 }
             }
 
             foreach($newLinkedEquipementsIds as $newLinkedEquipementId) {
-                $this->interventionSurvey->add_object_linked('equipement', $newLinkedEquipementId);
+                $this->interventionSurvey->add_object_linked('equipement', intval($newLinkedEquipementId));
             }
 
             $this->interventionSurvey->fetchObjectLinked();
-            $this->interventionSurvey->softUpdateOfSurveyFromDictionary();
+            $this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
         }
 
         if ($result > 0) {
