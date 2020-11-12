@@ -1,5 +1,6 @@
 <?php
 require '../config.php';
+session_cache_limiter('public');
 
 $langs->load('fastupload@fastupload');
 
