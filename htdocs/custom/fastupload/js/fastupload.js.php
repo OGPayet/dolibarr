@@ -1,6 +1,10 @@
 <?php
-require '../config.php';
 session_cache_limiter('public');
+// false or '' = keep cache instruction added by server
+// 'public'  = remove cache instruction added by server
+// and if no cache-control added later, a default cache delay (10800) will be added by PHP.
+
+require '../config.php';
 
 $langs->load('fastupload@fastupload');
 
