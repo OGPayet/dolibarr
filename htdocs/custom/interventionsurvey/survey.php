@@ -63,7 +63,7 @@ $readOnlySurvey = true;
 
 // Load object
 if ($id > 0 || !empty($ref)) {
-    $ret = $object->fetch($id, $ref);
+    $ret = $object->fetch($id, $ref, true, true);
     $object->fetch_thirdparty();
     if(!$object->checkUserAccess($user)){
         accessforbidden();
@@ -311,7 +311,7 @@ if ($object->id > 0) {
 
     //Prepare needed data for following form
     $object->fetch_attached_files();
-    $object->fetchSurvey();
+    $object->fetch($id, $ref, true, true);
 
     if (!empty($object->errors)) {
         setEventMessages("", $object->errors, 'errors');
