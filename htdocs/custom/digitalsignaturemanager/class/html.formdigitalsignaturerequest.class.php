@@ -54,6 +54,12 @@ class FormDigitalSignatureRequest
      */
 	public $formDigitalSignatureDocument;
 
+	/**
+	 * @var string id of the table displaying row of digital signature document on card
+	 *  should be only with minus character to make order ajax worked
+	 */
+	const DIGITALSIGNATUREDOCUMENT_TABLEID = "digitalsignaturedocumenttable";
+
     /**
      * Constructor
      *
@@ -90,8 +96,9 @@ class FormDigitalSignatureRequest
 		global $langs,$conf;
 
 		$listofactions = $this->helper->getActions($socid, $object->id,  '', '', '', ($max?($max+1):0));
-		if (! is_array($listofactions)) dol_print_error($this->db, 'FailedToGetActions');
-
+		if (! is_array($listofactions)) {
+			dol_print_error($this->db, 'FailedToGetActions');
+		}
         $num = count($listofactions);
         if ($num || $forceshowtitle)
         {
@@ -218,7 +225,7 @@ class FormDigitalSignatureRequest
 		$userCanAddDocumentLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
 
 		print '<div class="div-table-responsive-no-min">';
-		print '<table id="tableofdocument" class="noborder noshadow tabBar" width="100%">';
+		print '<table id="' . self::DIGITALSIGNATUREDOCUMENT_TABLEID . '" class="noborder noshadow tabBar" width="100%">';
 
 		$neededActionColumnForDocumentRead = count(array_filter(array($userCanAskToEditDocumentLine, $userCanAskToDeleteDocumentLine, $userCanChangeOrder)));
 		$neddedActionColumnForDocumentEdition = $isALineBeingEdited ? count(array_filter(array(true, $userCanChangeOrder))) : 0;
@@ -260,8 +267,8 @@ class FormDigitalSignatureRequest
 
 		if (!empty($conf->use_javascript_ajax) && $userCanChangeOrder) {
 			//toDo ajust param for ajaxrow.tpl.php
-			$IdOfTableDisplayingRowToBeSorted = "tableofdocument";
-			$elementType = 'digitalsignaturedocument';
+			$IdOfTableDisplayingRowToBeSorted = self::DIGITALSIGNATUREDOCUMENT_TABLEID;
+			$elementType = $this->formDigitalSignatureDocument->elementObjectStatic->element;
 			include dol_buildpath('digitalsignaturemanager/tpl/ajax/ajaxrow.tpl.php');
 		}
 

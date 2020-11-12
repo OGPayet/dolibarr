@@ -42,31 +42,32 @@ print '<!-- Ajax page called with url '.dol_escape_htmltag($_SERVER["PHP_SELF"])
 $rowOrder = GETPOST('rowOrder');
 $elementType = GETPOST('elementType');
 
-$managedElementTypeAndClassName = array(
-	'digitalsignaturedocument'=> 'DigitalSignatureDocument',
-	'digitalsignaturesignatoryfield'=> 'DigitalSignatureSignatoryField'
-);
-
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryField.class.php');
+global $db;
+$staticDigitalSignatureDocument = new DigitalSignatureDocument($db);
+
+$managedElementTypeAndStaticInstance = array(
+	$staticDigitalSignatureDocument->element => $staticDigitalSignatureDocument,
+);
+
+
 
 
 // Registering the location of boxes
-if (!empty($managedElementTypeAndClassName[$elementType]))
+if ($managedElementTypeAndStaticInstance[$elementType])
 {
-	global $db, $user;
-	global $langs;
+	global $langs, $user;
 	$langs = $GLOBALS['langs'];
 	$orderOfElementId = array_filter(explode(',', $rowOrder));
 	$db->begin();
 	$errors = array();
 	foreach($orderOfElementId as $position=>$id) {
-		$className = $managedElementTypeAndClassName[$elementType];
-		$element = new $className($db);
-		if($element->fetch($id) > 0) {
-			$element->position = $position;
-			$element->update($user);
-			$errors = array_merge($errors, $element->errors);
+		$staticObject = $managedElementTypeAndStaticInstance[$elementType];
+		if($staticObject->fetch($id) > 0) {
+			$staticObject->position = $position;
+			$staticObject->update($user);
+			$errors = array_merge($errors, $staticObject->errors);
 		}
 	}
 	if(empty($errors))

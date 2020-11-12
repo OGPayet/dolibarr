@@ -187,7 +187,7 @@ if (empty($reshook)) {
 
 	//Action to manage delete of digitalsignaturedocument
 	if($permissiontodelete) {
-		$formDigitalSignatureDocument->manageDeleteAction($action, $confirm, $db, $user);
+		$formDigitalSignatureDocument->manageDeleteAction($action, $confirm, $user);
 	}
 
 	//Action to manage addition of digitalsignaturedocument
@@ -197,12 +197,12 @@ if (empty($reshook)) {
 
 	//Action to manage save of digitalsignaturedocument
 	if($permissiontoedit) {
-		$formDigitalSignatureDocument->manageSaveAction($action, $db, $user);
+		$formDigitalSignatureDocument->manageSaveAction($action, $user);
 	}
 
 	//Action to manage edit of digitalsignaturedocument
 	if($permissiontoedit) {
-		$currentEditedDocumentLine = $formDigitalSignatureDocument->getCurrentAskedEditedDocumentId($action);
+		$currentEditedDocumentLine = $formDigitalSignatureDocument->getCurrentAskedEditedElementId($action);
 	}
 }
 
