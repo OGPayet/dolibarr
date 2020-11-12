@@ -66,8 +66,8 @@ if (!empty($managedElementTypeAndClassName[$elementType]))
 		if($element->fetch($id) > 0) {
 			$element->position = $position;
 			$element->update($user);
+			$errors = array_merge($errors, $element->errors);
 		}
-		$errors = array_merge($errors, $element->errors);
 	}
 	if(empty($errors))
 	{

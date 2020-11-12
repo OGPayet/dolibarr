@@ -59,6 +59,11 @@ class FormDigitalSignatureDocument
 	const DELETE_ACTION_NAME = 'deleteDocument';
 
 	/**
+	 * @var string confirm Delete Document Action
+	 */
+	const CONFIRM_DELETE_ACTION_NAME = 'confirmDeleteDocument';
+
+	/**
 	 * @var string Edit Document Action Name
 	 */
 	const EDIT_ACTION_NAME = 'editDocument';
@@ -117,14 +122,16 @@ class FormDigitalSignatureDocument
 	public function showDocumentAddForm($object, $numberOfActionColumns)
 	{
 		global $hookmanager, $action;
+		//We display row
+		print '<tr id="newDocumentRow" class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
+		print '<form action="'. $_SERVER["PHP_SELF"].'?id=' . $object->id . '#newDocumentRow' .'" enctype="multipart/form-data" method="post">';
+		print '<input type="hidden" name="token" value="' . newToken() . '">';
+
 		$parameters = array();
 		$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 
 		$colspan = 0; //used for extrafields
 		global $conf, $langs;
-		//We display row
-		print '<tr id="newDocumentRow"';
-		print ' class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
 		//We display number column
 		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
@@ -145,6 +152,7 @@ class FormDigitalSignatureDocument
 		$colspan++;
 
 		//We end row
+		print '</form>';
 		print '</tr>';
 	}
 
@@ -154,9 +162,10 @@ class FormDigitalSignatureDocument
      *  @param	DigitalSignatureRequest	$object			Object
 	 *  @param  DigitalSignatureDocument $document Document being edited
 	 *  @param int $numberOfActionColumns number of column used by actions
+	 *  @param string $userCanMoveLine
      *	@return	int						<0 if KO, >=0 if OK
      */
-	public function showDocumentEditForm($object, $document, $numberOfActionColumns)
+	public function showDocumentEditForm($object, $document, $numberOfActionColumns, $userCanMoveLine)
 	{
 		global $hookmanager, $action;
 		$parameters = array();
@@ -164,12 +173,13 @@ class FormDigitalSignatureDocument
 
 		$colspan = 0; //used for extrafields
 		global $conf, $langs;
+
 		//We display row
-		print '<tr ';
-		if($document->id) {
-			print 'id="document-' . $document->id .'" ';
-		}
-		print ' class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
+		print '<tr id="document-' . $document->id .'" class="oddeven drag drop">';
+
+		print '<form action="'. $_SERVER["PHP_SELF"].'?id=' . $object->id . '#document-' . $document->id .'" enctype="multipart/form-data" method="post">';
+		print '<input type="hidden" name="token" value="' . newToken() . '">';
+
 		//We display number column
 		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
@@ -183,7 +193,11 @@ class FormDigitalSignatureDocument
 		$colspan++;
 
 		// Show save and cancel button
-		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumns .'">';
+		$colSpanForActionButton = $numberOfActionColumns - 1;
+		if($userCanMoveLine > 1) {
+			$colSpanForActionButton -= 1;
+		}
+		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $colSpanForActionButton .'">';
 		print '<input type="hidden" name="action" value="'. self::SAVE_ACTION_NAME .'">';
 		print '<input type="hidden" name="'. self::DOCUMENT_POST_ID_FIELD_NAME .'" value="'. $document->id .'">';
 		print '<input type="submit" class="button" name="save" value="'. $langs->trans('Save') .'">';
@@ -191,7 +205,14 @@ class FormDigitalSignatureDocument
 		print '</td>';
 		$colspan++;
 
+		//Show move button
+		if($userCanMoveLine) {
+			$this->formDigitalSignatureManager->showMoveActionButtonsForLine($object->id, $document->id, $document->position, count($object->documents), self::MOVE_UP_ACTION_NAME, self::MOVE_DOWN_ACTION_NAME, self::DOCUMENT_POST_ID_FIELD_NAME);
+			$colspan++;
+		}
+
 		//We end row
+		print '</form>';
 		print '</tr>';
 	}
 
@@ -203,14 +224,21 @@ class FormDigitalSignatureDocument
 	 *  @param bool $userCanAskToEditLine display edit button
 	 *  @param bool $userCanAskToDeleteLine display delete button
 	 *  @param bool $userCanMoveLine display move button
+	 *  @param int  $numberOfActionColumns number of column into action
      *	@return	int						<0 if KO, >=0 if OK
      */
-	public function showDocument($document, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)
+	public function showDocument($document, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine, $numberOfActionColumns)
 	{
 		$colspan = 0; //used for extrafields
 		$digitalSignatureRequestId = $document->digitalSignatureRequest->id;
-		$numberOfDocuments = count($document->digitalSignatureRequest->documents);
 		global $conf;
+
+		$numberOfColumnDisplayed = count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)));
+		$colSpanForFirstCell = 1;
+		if($numberOfActionColumns > $numberOfColumnDisplayed) {
+			$colSpanForFirstCell+= $numberOfActionColumns - $numberOfColumnDisplayed;
+		}
+
 		//We display row
 		print '<tr id="document-' . $document->id . '" class="oddeven drag drop">';
 		//We display number column
@@ -219,7 +247,7 @@ class FormDigitalSignatureDocument
 			$colspan++;
 		}
 		// We show uploaded file
-		print '<td>';
+		print '<td colspan="' . $colSpanForFirstCell . '">';
 		print $this->getDocumentLinkAndPreview($document);
 		print '</td>';
 		$colspan++;
@@ -242,7 +270,7 @@ class FormDigitalSignatureDocument
 		}
 
 		if($userCanMoveLine) {
-			$this->formDigitalSignatureManager->showMoveActionButtonsForLine($digitalSignatureRequestId, $document->id, $document->position, $numberOfDocuments, self::MOVE_UP_ACTION_NAME, self::MOVE_DOWN_ACTION_NAME, self::DOCUMENT_POST_ID_FIELD_NAME);
+			$this->formDigitalSignatureManager->showMoveActionButtonsForLine($digitalSignatureRequestId, $document->id, $document->position, count($document->digitalSignatureRequest->documents), self::MOVE_UP_ACTION_NAME, self::MOVE_DOWN_ACTION_NAME, self::DOCUMENT_POST_ID_FIELD_NAME);
 			$colspan++;
 		}
 		//We end row
@@ -289,13 +317,17 @@ class FormDigitalSignatureDocument
 	 * @param User $user User doing actions
 	 * @return void
 	 */
-	public function manageDeleteAction($action, $db, $user)
+	public function manageDeleteAction($action, $confirm, $db, $user)
 	{
-		if($action == self::DELETE_ACTION_NAME) {
+		if($action == self::CONFIRM_DELETE_ACTION_NAME && $confirm == 'yes') {
 			$idToDelete = $this->getDocumentId();
 			$object = new DigitalSignatureDocument($db);
-			if($object->fetch($idToDelete) > 0 && $object->delete($user) > 0) {
-				global $langs;
+			$result = $object->fetch($idToDelete);
+			global $langs;
+			if($result < 0) {
+				setEventMessages($langs->trans('DigitalSignatureRequestDocumentAlreadyDeleted'), array(), 'errors');
+			}
+			if($result > 0 && $object->delete($user) > 0) {
 				setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyDeleted', $object->getDocumentName()), array());
 			}
 			if(!empty($object->errors) || !empty($object->error)) {
@@ -349,7 +381,7 @@ class FormDigitalSignatureDocument
 							setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileAddingFileToSignatureRequest'), $newDigitalSignatureDocument->errors, 'errors');
 						}
 						else {
-							setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyAddedToRequest'), array());
+							setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyAddedToRequest', $newDigitalSignatureDocument->getDocumentName()), array());
 						}
 					}
 					else {
@@ -370,7 +402,7 @@ class FormDigitalSignatureDocument
 	public function manageSaveAction(&$action, $db, $user)
 	{
 		global $langs;
-		if($action == self::SAVE_ACTION_NAME && GETPOST('save','alpha') == $langs->trans("Save")) {
+		if($action == self::SAVE_ACTION_NAME && GETPOST('save', 'alpha') == $langs->trans("Save")) {
 			$newFileName = GETPOST('documentFileName');
 			if(empty($newFileName)) {
 				setEventMessages($langs->trans('DigitalSignatureManagerErrorDocumentNameRequired'), array(), 'errors');
@@ -419,5 +451,26 @@ class FormDigitalSignatureDocument
 	{
 		$result = GETPOST(self::DOCUMENT_POST_ID_FIELD_NAME);
 		return $result ? $result : null;
+	}
+
+	/**
+	 * Get formConfirm for delete action
+	 * @param string $action current card name
+	 * @param DigitalSignatureRequest $object Current edited request signature
+	 * @param string $formconfirm previous form confirm generated
+	 * @return string Content to be printed
+	 */
+	public function getDeleteFormConfirm($action, $object, $formconfirm = "")
+    {
+		if($action == self::DELETE_ACTION_NAME) {
+			global $langs;
+			$formquestion = array(
+				array('type'=>'hidden', 'name'=>self::DOCUMENT_POST_ID_FIELD_NAME, 'value'=>$this->getDocumentId())
+			);
+			$documentStatic = new DigitalSignatureDocument($this->db);
+			$documentStatic->fetch($this->getDocumentId());
+			return $this->form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestDocumentConfirmDeleteTitle'), $langs->trans('DigitalSignatureRequestDocumentConfirmDeleteDescription', $documentStatic->getDocumentName()), self::CONFIRM_DELETE_ACTION_NAME, $formquestion, 0, 1, 220);
+		}
+		return $formconfirm;
 	}
 }

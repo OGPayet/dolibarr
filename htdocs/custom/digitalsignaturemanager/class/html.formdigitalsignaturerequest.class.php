@@ -199,11 +199,12 @@ class FormDigitalSignatureRequest
 	 * @param DigitalSignatureRequest $object Parent object of lines to display
 	 * @param int $currentDocumentIdEdited current document id which is edited
 	 * @param bool $readOnlyMode - force readonly mode
+	 * @param bool $permissionToAdd - boolean indicating if user can edit document
 	 * @param bool $permissionToEdit - boolean indicating if user can edit document
 	 * @param bool $permissionToDelete - boolean indicating if user can delete document
 	 * @return void
 	 */
-	public function showDocumentLines($object, $currentDocumentIdEdited, $readOnlyMode, $permissionToEdit, $permissionToDelete)
+	public function showDocumentLines($object, $currentDocumentIdEdited, $readOnlyMode, $permissionToAdd, $permissionToEdit, $permissionToDelete)
 	{
 		global $conf, $langs;
 
@@ -211,82 +212,76 @@ class FormDigitalSignatureRequest
 		$currentLineEdited = findObjectInArrayByProperty($documents, 'id', $currentDocumentIdEdited);
 		$isALineBeingEdited = (bool) $currentLineEdited;
 
-		$userCanChangeOrder = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit) && count($documents) > 1;
+		$userCanChangeOrder = !$readOnlyMode && !empty($permissionToEdit) && count($documents) > 1;
 		$userCanAskToEditDocumentLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit);
 		$userCanAskToDeleteDocumentLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToDelete);
-		$userCanOnlyAddDocuments = !$isALineBeingEdited && !$userCanChangeOrder && !$userCanAskToEditDocumentLine && !$userCanAskToDeleteDocumentLine;
-
-		$anchorForForm = !$isALineBeingEdited ? '#newDocumentRow' : '#document-' . $currentDocumentIdEdited;
-		$formActionLink = $_SERVER["PHP_SELF"].'?id=' . $object->id . $anchorForForm;
-
-		print '<form action="'.$formActionLink .'" enctype="multipart/form-data" method="post">';
-		print '<input type="hidden" name="token" value="' . newToken() . '">';
+		$userCanAddDocumentLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
 
 		print '<div class="div-table-responsive-no-min">';
 		print '<table id="tableofdocument" class="noborder noshadow tabBar" width="100%">';
 
+		$neededActionColumnForDocumentRead = count(array_filter(array($userCanAskToEditDocumentLine, $userCanAskToDeleteDocumentLine, $userCanChangeOrder)));
+		$neddedActionColumnForDocumentEdition = $isALineBeingEdited ? count(array_filter(array(true, $userCanChangeOrder))) : 0;
+		$neededActionColumnForDocumentCreation = $userCanAddDocumentLine ? 1 : 0;
+
+		$neededActionColumn = max($neededActionColumnForDocumentRead, $neddedActionColumnForDocumentEdition, $neededActionColumnForDocumentCreation);
+
 		//display document lines headers
-		$numberOfActionColumns = 0;
+		$nbOfActionColumn = 0;
 		print '<tr class="liste_titre nodrag nodrop">';
+
+		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+			print '<td class="linecolnum" align="center"></td>';
+		}
+
 		print '<td class="linecoldescription">' . $langs->trans('DigitalSignatureManagerDocumentColumnTitle') . '</td>';
 
 		if($userCanAskToEditDocumentLine) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
-			$numberOfActionColumns++;
+			$nbOfActionColumn++;
 		}
 
 		if($userCanAskToDeleteDocumentLine) {
 			print '<td class="linecoldelete" style="width: 10px"></td>';
-			$numberOfActionColumns++;
+			$nbOfActionColumn++;
 		}
 
 		if($userCanChangeOrder) {
 			print '<td class="linecolmove" style="width: 10px"></td>';
-			$numberOfActionColumns++;
+			$nbOfActionColumn++;
 		}
 
-		if($isALineBeingEdited || $userCanOnlyAddDocuments) {
+		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
-			$numberOfActionColumns;
+			$nbOfActionColumn++;
 		}
+
 		print '</tr>';
 
-		//display each document lines or only document line being edited
-		if($isALineBeingEdited)
-		{
-			//we display documents
-			foreach($documents as $document) {
-				if($document->id != $currentDocumentIdEdited) {
-					$this->formDigitalSignatureDocument->showDocument($document, false, false, false);
-				}
-				else {
-					//We display the form to edit line
-					$this->formDigitalSignatureDocument->showDocumentEditForm($object, $currentLineEdited, $numberOfActionColumns);
-				}
+		if (!empty($conf->use_javascript_ajax) && $userCanChangeOrder) {
+			//toDo ajust param for ajaxrow.tpl.php
+			$IdOfTableDisplayingRowToBeSorted = "tableofdocument";
+			$elementType = 'digitalsignaturedocument';
+			include dol_buildpath('digitalsignaturemanager/tpl/ajax/ajaxrow.tpl.php');
+		}
+
+		//we display documents
+		foreach($documents as $document) {
+			if($document->id != $currentDocumentIdEdited) {
+				$this->formDigitalSignatureDocument->showDocument($document, $userCanAskToEditDocumentLine, $userCanAskToDeleteDocumentLine, $userCanChangeOrder, $nbOfActionColumn);
+			}
+			else {
+				//We display the form to edit line
+				$this->formDigitalSignatureDocument->showDocumentEditForm($object, $currentLineEdited, $nbOfActionColumn, $userCanChangeOrder);
 			}
 		}
-		else {
-			//we display lines and form to add a new line
-			$userCanSeeFormToAddNewLine = !$readOnlyMode && !empty($permissionToEdit);
-			if (!empty($conf->use_javascript_ajax) && $userCanChangeOrder) {
-				//toDo ajust param for ajaxrow.tpl.php
-				$IdOfTableDisplayingRowToBeSorted = "tableofdocument";
-				$elementType = 'digitalsignaturedocument';
-				include dol_buildpath('digitalsignaturemanager/tpl/ajax/ajaxrow.tpl.php');
-			}
-			//we display documents
-			foreach($documents as $document) {
-				$this->formDigitalSignatureDocument->showDocument($document, $userCanAskToEditDocumentLine, $userCanAskToDeleteDocumentLine, $userCanChangeOrder);
-			}
-			//We display form to add new document
-			if ($userCanSeeFormToAddNewLine)
-			{
-				$this->formDigitalSignatureDocument->showDocumentAddForm($object, $numberOfActionColumns);
-			}
+		//We display form to add new document
+		if ($userCanAddDocumentLine)
+		{
+			$this->formDigitalSignatureDocument->showDocumentAddForm($object, $nbOfActionColumn);
 		}
 
 		print '</table>';
 		print '</div>';
-		print '</form>';
 	}
 }

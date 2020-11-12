@@ -67,14 +67,16 @@ DigitalSignatureManagerDocumentColumnTitle = Nom de fichier
 DigitalSignatureManagerErrorWhileSavingFile = Erreur lors de l'enregistrement du fichier
 DigitalSignatureManagerErrorFileRequired = Aucun fichier sélectionné
 DigitalSignatureManagerErrorWhileAddingFileToSignatureRequest = Erreur lors de l'ajout du fichier à la demande de signature électronique
-DigitalSignatureManagerFileSuccessfullyAddedToRequest = Fichier ajouté avec succès à la demande de signature électronique
+DigitalSignatureManagerFileSuccessfullyAddedToRequest = Fichier %s ajouté avec succès à la demande de signature électronique
 DigitalSignatureManagerFileCantFindIntoEcmDatabase = Fichier introuvable dans la gestion des fichiers électronique de Dolibarr
-DigitalSignatureManagerFileSuccessfullyDeleted = Fichier supprimé et retiré avec succès de la demande de signature électronique
+DigitalSignatureManagerFileSuccessfullyDeleted = Fichier %s supprimé et retiré avec succès de la demande de signature électronique
 DigitalSignatureManagerErrorDocumentNameRequired = Un nom de fichier doit nécessairement être fourni
 DigitalSignatureManagerErrorWhileSavingEditedDocument = Erreur lors du renommage du fichier
-DigitalSignatureManagerDocumentSuccesfullyUpdate = Informations du document mis à jour avec succès
+DigitalSignatureManagerDocumentSuccesfullyUpdate = Informations du document %s mis à jour avec succès
 DigitalSignatureManagerDocumentErrorWhileUpdating = Erreur lors de la mise à jour des informations du document
-
+DigitalSignatureRequestDocumentAlreadyDeleted = Ce document a déjà été supprimé
+DigitalSignatureRequestDocumentConfirmDeleteTitle = Confirmation de la suppression d'un document
+DigitalSignatureRequestDocumentConfirmDeleteDescription = Confirmez-vous la suppression du fichier %s ?
 #
 # Status
 #
