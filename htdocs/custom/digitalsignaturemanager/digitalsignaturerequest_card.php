@@ -181,11 +181,15 @@ if (empty($reshook)) {
         }
 	}
 
-	// // Actions to send emails
-	// $triggersendname = 'DIGITALSIGNATUREREQUEST_SENTBYMAIL';
-	// $autocopy = 'MAIN_MAIL_AUTOCOPY_DIGITALSIGNATUREREQUEST_TO';
-	// $trackid = 'digitalsignaturerequest' . $object->id;
-	// include DOL_DOCUMENT_ROOT . '/core/actions_sendmails.inc.php';
+	//Action to manage delete of digitalsignaturedocument
+	dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
+	$formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
+	$formDigitalSignatureDocument->manageDeleteAction($action, $db, $user);
+
+	//Action to manage addition of digitalsignaturedocument
+	dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
+	$formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
+	$formDigitalSignatureDocument->manageAddAction($action, $object, $user);
 }
 
 // Load object

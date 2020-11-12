@@ -211,9 +211,14 @@ class FormDigitalSignatureRequest
 		$currentLineEdited = findObjectInArrayByProperty($documents, 'id', $currentDocumentIdEdited);
 		$isALineBeingEdited = (bool) $currentLineEdited;
 
-		$userCanChangeOrder = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit) && count($documents) > 0;
+		$userCanChangeOrder = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit) && count($documents) > 1;
 		$userCanAskToEditDocumentLine = false; //there is no information that can be edited
 		$userCanAskToDeleteDocumentLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToDelete);
+
+		print '<form action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'" enctype="multipart/form-data" method="post">';
+		print '<input type="hidden" name="token" value="' . newToken() . '">';
+		$formActionName = $isALineBeingEdited ? $this->formDigitalSignatureDocument::EDIT_ACTION_NAME : $this->formDigitalSignatureDocument::ADD_ACTION_NAME;
+		print '<input type="hidden" name="action" value="'. $formActionName .'">';
 
 		print '<div class="div-table-responsive-no-min">';
 		print '<table id="tableofdocument" class="noborder noshadow tabBar" width="100%">';
@@ -266,5 +271,6 @@ class FormDigitalSignatureRequest
 
 		print '</table>';
 		print '</div>';
+		print '</form>';
 	}
 }

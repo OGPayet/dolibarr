@@ -178,7 +178,14 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function fetch($id, $ref = null)
 	{
-		return $this->fetchCommon($id, $ref);
+		$result = $this->fetchCommon($id, $ref);
+		if($result > 0) {
+			$result = $this->fetchLinkedEcmFile();
+		}
+		if($result > 0) {
+			$result = $this->fetchLinkedDigitalSignatureRequest();
+		}
+		return $result;
 	}
 
 
@@ -195,6 +202,22 @@ class DigitalSignatureDocument extends CommonObject
 		 }
 		 return $result;
 	 }
+
+	 /**
+	 * Function to fetch linked digital signature request
+	 * @return int         <0 if KO, 0 if not found, >0 if OK
+	 */
+
+	public function fetchLinkedDigitalSignatureRequest()
+	{
+		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
+		$digitalSignatureRequestStatic = new DigitalSignatureRequest($this->db);
+		$result = $digitalSignatureRequestStatic->fetch($this->fk_digitalsignaturerequest);
+		if($result > 0) {
+			$this->digitalSignatureRequest = $digitalSignatureRequestStatic;
+		};
+		return $result;
+	}
 
 	/**
 	 * Load list of objects in memory from the database.
@@ -296,7 +319,12 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
-		return $this->deleteCommon($user, $notrigger);
+		$result = $this->deleteCommon($user, $notrigger);
+		if($result > 0) {
+			//we delete file
+			$result = dol_delete_file($this->getLinkedFileAbsolutePath()) ? 1 : -1;
+		}
+		return $result;
 	}
 
 	/**
@@ -310,6 +338,8 @@ class DigitalSignatureDocument extends CommonObject
 		$this->db->begin();
 		$errors = array();
 		$staticEcm = new EcmFiles($this->db);
+		//We have to clean ecm database table as some file must be present into it and not on disk
+		self::cleanEcmFileDatabase($this->db, $digitalSignatureRequest->getUploadDirOfFilesToSign(), $digitalSignatureRequest->getRelativePathForFilesToSign(), $user);
 		$staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath'=>$digitalSignatureRequest->getRelativePathForFilesToSign()));
 		if(!empty($staticEcm->errors)) {
 			$errors = array_merge($errors, $staticEcm->errors);
@@ -318,12 +348,7 @@ class DigitalSignatureDocument extends CommonObject
 		}
 		$ecmFiles = $staticEcm->lines;
 		$digitalSignatureDocuments = $this->fetchAll('ASC', 'position', null, null, array('fk_digitalsignaturerequest'=>$digitalSignatureRequest->id));
-		$maxPositionOfDigitalSignatureDocumentsAlreadyFetched = 0;
-		foreach($digitalSignatureDocuments as $document) {
-			if($document->position > $maxPositionOfDigitalSignatureDocumentsAlreadyFetched) {
-				$maxPositionOfDigitalSignatureDocumentsAlreadyFetched = $document->position;
-			}
-		}
+		$maxPositionOfDigitalSignatureDocumentsAlreadyFetched = self::getLastPositionOfDocument($digitalSignatureDocuments);
 		$errors = array_merge($errors, $this->errors);
 		$effectiveDigitalSignatureDocuments = array();
 		foreach($ecmFiles as $ecm) {
@@ -343,7 +368,7 @@ class DigitalSignatureDocument extends CommonObject
 			$linkedDocumentObject->ecmFile = $ecm;
 			$effectiveDigitalSignatureDocuments[] = $linkedDocumentObject;
 		}
-		foreach($digitalSignatureDocuments as $index => $digitalSignatureDocument) {
+		foreach($digitalSignatureDocuments as $digitalSignatureDocument) {
 			$linkedEcm = findObjectInArrayByProperty($ecmFiles, 'id', $digitalSignatureDocument->fk_ecm);
 			if(!$linkedEcm) {
 				$digitalSignatureDocument->delete($user);
@@ -379,15 +404,15 @@ class DigitalSignatureDocument extends CommonObject
 	}
 	/**
 	 * Function to get full path of the file linked to this document
-	 * @return string label or filename of the document
+	 * @return string|null label or filename of the document
 	 */
 	public function getLinkedFileAbsolutePath()
 	{
-		if(!$this->ecmFile) {
-			$this->fetchLinkedEcmFile();
+		if(!$this->digitalSignatureRequest) {
+			$this->fetchLinkedDigitalSignatureRequest();
 		}
-		if($this->ecmFile) {
-			return $this->ecmFile->fullpath_orig;
+		if($this->digitalSignatureRequest) {
+			return $this->digitalSignatureRequest->getBaseUploadDir() . "/" . $this->getLinkedFileRelativePath();
 		}
 	}
 
@@ -397,7 +422,12 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getLinkedFileRelativePath()
 	{
-		return $this->digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $this->getDocumentName();
+		if(!$this->digitalSignatureRequest) {
+			$this->fetchLinkedDigitalSignatureRequest();
+		}
+		if($this->digitalSignatureRequest) {
+			return $this->digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $this->getDocumentName();
+		}
 	}
 
 	/**
@@ -407,5 +437,62 @@ class DigitalSignatureDocument extends CommonObject
 	public function getEntity()
 	{
 		return $this->digitalSignatureRequest->entity;
+	}
+
+	/**
+	 * Function to get the max position of the list of given document
+	 * @param array $listOfDocuments
+	 * @return int
+	 */
+	public static function getLastPositionOfDocument($listOfDocuments) {
+		$maximum = 0;
+		foreach($listOfDocuments as $document) {
+			if($document->position > $maximum) {
+				$maximum = $document->position;
+			}
+		}
+		return $maximum;
+	}
+
+	/**
+	 * Function to clean the ecm file database
+	 * @param DoliDB $db database instance
+	 * @param string $absoluteDirectoryOnDisk Absolute directory into system where check files
+	 * @param string $relativeDirectoryInDatabase relative directory into database
+	 * @param User $user calling clean of database
+	 * @return array $array of errors
+	 */
+	public static function cleanEcmFileDatabase($db, $absoluteDirectoryOnDisk, $relativeDirectoryInDatabase, $user) {
+		$listOfFileOnDisk = dol_dir_list($absoluteDirectoryOnDisk, 'files');
+		$staticEcm = new EcmFiles($db);
+		$staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath'=>$relativeDirectoryInDatabase));
+		$listOfFilesIntoDatabase = $staticEcm->lines;
+		$errors = array();
+		foreach($listOfFilesIntoDatabase as $ecm) {
+			$fileInDisk = findObjectInArrayByProperty($listOfFileOnDisk, 'name', $ecm->filename);
+			if(!$fileInDisk) {
+				//Dolibarr bullshit adaptation
+				$properEcmObject = new EcmFiles($db);
+				$properEcmObject->fetch($ecm->id);
+				$properEcmObject->delete($user);
+				$errors = array_merge($errors, $properEcmObject->errors);
+			}
+		}
+		return $errors;
+	}
+
+	/**
+	 * Function to get ecm instance of a file based thanks to its directory
+	 * @param DoliDB $db database instance to use
+	 * @param string $relativePath relative directory path to use
+	 * @param string $filename filename to find
+	 * @return EcmFiles|null
+	 */
+
+	public static function getEcmInstanceOfFile($db, $relativePath, $filename)
+	{
+		$ecmStatic = new EcmFiles($db);
+		$isThisFileIntoDatabase = $ecmStatic->fetch(null, null, 'digitalsignaturemanager/' . $relativePath . '/' . $filename);
+		return $isThisFileIntoDatabase ? $ecmStatic : null;
 	}
 }

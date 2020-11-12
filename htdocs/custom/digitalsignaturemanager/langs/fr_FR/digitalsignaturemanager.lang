@@ -63,6 +63,12 @@ DigitalSignatureRequestListOfFileToSign = Liste des fichiers à signer électron
 DigitalSignatureRequestValidateButton = Lancer le processus
 DigitalSignatureRequestValidate = Créer la demande de signature chez le prestataire
 DigitalSignatureRequestValidateDetails = Confirmez-vous le lancement du processus de signature électronique ?
+DigitalSignatureManagerDocumentColumnTitle = Fichier à signer
+DigitalSignatureManagerErrorWhileSavingFile = Erreur lors de l'enregistrement du fichier
+DigitalSignatureManagerErrorWhileAddingFileToSignatureRequest = Erreur lors de l'ajout du fichier à la demande de signature électronique
+DigitalSignatureManagerFileSuccessfullyAddedToRequest = Fichier ajouté avec succès à la demande de signature électronique
+DigitalSignatureManagerFileCantFindIntoEcmDatabase = Fichier introuvable dans la gestion des fichiers électronique de Dolibarr
+DigitalSignatureManagerFileSuccessfullyDeleted = Fichier supprimé et retiré avec succès de la demande de signature électronique
 #
 # Status
 #

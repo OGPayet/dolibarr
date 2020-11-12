@@ -135,13 +135,14 @@ class FormDigitalSignatureDocument
 		}
 		// We show upload file form
 		print '<td>';
-		print '<input class="flat minwidth400" type="file" name="newDocumentToSign" accept=".pdf">';
+		print '<input type="hidden" name="max_file_size" value="' . 1024 * 1024 * 1024 . '">'; //Value must be given in B
+		print '<input class="flat minwidth400" type="file" name="addDigitalSignatureDocument" accept=".pdf">';
 		print '</td>';
 		$colspan++;
 
 		// Show add button
 		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumns .'">';
-		print '<input type="submit" class="button" value="'. $langs->trans('Add') .'" name="addDocument" id="addDocument">';
+		print '<input type="submit" class="button" value="'. $langs->trans('Add') .'">';
 		print '</td>';
 		$colspan++;
 
@@ -157,8 +158,6 @@ class FormDigitalSignatureDocument
 	 *  @param bool $userCanAskToEditLine display edit button
 	 *  @param bool $userCanAskToDeleteLine display delete button
 	 *  @param bool $userCanMoveLine display move button
-     *  @param  string  $morecss        More css on table
-     *  @param	string	$moreparambacktopage	More param for the backtopage
      *	@return	int						<0 if KO, >=0 if OK
      */
 	public function showDocument($document, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)
@@ -177,8 +176,6 @@ class FormDigitalSignatureDocument
 		// We show uploaded file
 		print '<td>';
 		print $this->getDocumentLinkAndPreview($document);
-
-		//print '<input class="flat minwidth400" type="file" name="newDocumentToSign" accept=".pdf">';
 		print '</td>';
 		$colspan++;
 
@@ -192,8 +189,8 @@ class FormDigitalSignatureDocument
 		}
 
 		if($userCanAskToDeleteLine) {
-			print '<td class="linecoledit" align="center">';
-			print '<a href="' . $_SERVER["PHP_SELF"] . '?id='.$digitalSignatureRequestId . '&amp;action="' . self::DELETE_ACTION_NAME . '"&amp;' . self::DOCUMENT_POST_ID_FIELD_NAME . '=' . $document->id . '">';
+			print '<td class="linecoldelete" align="center">';
+			print '<a href="' . $_SERVER["PHP_SELF"] . '?id='.$digitalSignatureRequestId . '&amp;action=' . self::DELETE_ACTION_NAME . '&amp;' . self::DOCUMENT_POST_ID_FIELD_NAME . '=' . $document->id . '">';
 			print img_delete();
 			print '</td>';
 			$colspan++;
@@ -209,7 +206,7 @@ class FormDigitalSignatureDocument
 
 	/**
 	 * Function to display document file by its filename with link to download it and ability to preview it
-	 * @param DigitalSignatureDocument $digitalSignatureDocument
+	 * @param DigitalSignatureDocument $digitalSignatureDocument Given digital signature comment to be previewed
 	 * @return string
 	 */
 	public function getDocumentLinkAndPreview($digitalSignatureDocument)
@@ -238,5 +235,77 @@ class FormDigitalSignatureDocument
 		$out .= $this->formFile->showPreview($arrayWithFileInformation, $modulePart, $relativePath, 0, $entityParam);
 		$out .= '</td>';
 		return $out;
+	}
+
+	/**
+	 * Function to manage delete on page which called showDocument methods
+	 * @param string $action current action name on card
+	 * @param DoliDB	$db DoliDb instance
+	 * @param User $user User doing actions
+	 * @return void
+	 */
+	public function manageDeleteAction($action, $db, $user)
+	{
+		if($action == self::DELETE_ACTION_NAME) {
+			$idToDelete = GETPOST(self::DOCUMENT_POST_ID_FIELD_NAME);
+			$object = new DigitalSignatureDocument($db);
+			if($object->fetch($idToDelete) > 0 && $object->delete($user) > 0) {
+				global $langs;
+				setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyDeleted', $object->getDocumentName()), array());
+			}
+			if(!empty($object->errors) || !empty($object->error)) {
+				setEventMessages($object->error, $object->errors, 'errors');
+			}
+		}
+	}
+
+	/**
+	 * Function to manage addition of a file on page which called showDocumentEditForm methods
+	 * @param string $action current action name on card
+	 * @param DigitalSignatureRequest $digitalSignatureRequest digital signature request instance on which action are did
+	 * @param User $user User doing actions
+	 * @return void
+	 */
+	public function manageAddAction($action, $digitalSignatureRequest, $user)
+	{
+		if($action == self::ADD_ACTION_NAME) {
+			global $langs;
+			$result = dol_add_file_process($digitalSignatureRequest->getUploadDirOfFilesToSign(), 0, 1, 'addDigitalSignatureDocument');
+			if($result < 0) {
+				setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileSavingFile'), array(), 'errors');
+			}
+			else {
+				//We have to get filename of the uploaded file
+				$TFile = $_FILES['addDigitalSignatureDocument'];
+				if (!is_array($TFile['name']))
+				{
+					foreach ($TFile as $key => &$val)
+					{
+						$val = array($val);
+					}
+				}
+				$filename = $TFile['name'][0];
+				//Now we  are able to find its ecm instance
+				$ecmFile = DigitalSignatureDocument::getEcmInstanceOfFile($this->db, $digitalSignatureRequest->getRelativePathForFilesToSign(), $filename);
+				//With ecm instance we can get ecm file id
+				if($ecmFile) {
+					$newDigitalSignatureDocument = new DigitalSignatureDocument($this->db);
+					$newDigitalSignatureDocument->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
+					$newDigitalSignatureDocument->fk_ecm = $ecmFile->id;
+					$newDigitalSignatureDocument->position = $newDigitalSignatureDocument::getLastPositionOfDocument($digitalSignatureRequest->documents);
+					//We may add here property elements from the form
+					$result = $newDigitalSignatureDocument->create($user);
+					if($result<0) {
+						setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileAddingFileToSignatureRequest'), $newDigitalSignatureDocument->errors, 'errors');
+					}
+					else {
+						setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyAddedToRequest'), array());
+					}
+				}
+				else {
+					setEventMessages($langs->trans('DigitalSignatureManagerFileCantFindIntoEcmDatabase'), array(), 'errors');
+				}
+			}
+		}
 	}
 }
