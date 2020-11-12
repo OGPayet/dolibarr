@@ -207,7 +207,6 @@ class DigitalSignatureDocument extends CommonObject
 	 * Function to fetch linked digital signature request
 	 * @return int         <0 if KO, 0 if not found, >0 if OK
 	 */
-
 	public function fetchLinkedDigitalSignatureRequest()
 	{
 		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
@@ -494,5 +493,17 @@ class DigitalSignatureDocument extends CommonObject
 		$ecmStatic = new EcmFiles($db);
 		$isThisFileIntoDatabase = $ecmStatic->fetch(null, null, 'digitalsignaturemanager/' . $relativePath . '/' . $filename);
 		return $isThisFileIntoDatabase ? $ecmStatic : null;
+	}
+
+	/**
+	 * Function to rename file
+	 * @param string $newFilename
+	 * @param User $user
+	 * @return bool
+	 */
+	public function renameDocumentFilename($newFilename, $user) {
+		$oldFileFullPath = $this->getLinkedFileAbsolutePath();
+		$newFilePath = $this->digitalSignatureRequest->getBaseUploadDir() . "/" . $this->digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $newFilename;
+		return dol_move($oldFileFullPath, $newFilePath);
 	}
 }

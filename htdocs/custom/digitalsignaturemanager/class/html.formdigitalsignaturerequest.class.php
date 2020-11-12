@@ -212,13 +212,15 @@ class FormDigitalSignatureRequest
 		$isALineBeingEdited = (bool) $currentLineEdited;
 
 		$userCanChangeOrder = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit) && count($documents) > 1;
-		$userCanAskToEditDocumentLine = false; //there is no information that can be edited
+		$userCanAskToEditDocumentLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit);
 		$userCanAskToDeleteDocumentLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToDelete);
+		$userCanOnlyAddDocuments = !$isALineBeingEdited && !$userCanChangeOrder && !$userCanAskToEditDocumentLine && !$userCanAskToDeleteDocumentLine;
 
-		print '<form action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'" enctype="multipart/form-data" method="post">';
+		$anchorForForm = !$isALineBeingEdited ? '#newDocumentRow' : '#document-' . $currentDocumentIdEdited;
+		$formActionLink = $_SERVER["PHP_SELF"].'?id=' . $object->id . $anchorForForm;
+
+		print '<form action="'.$formActionLink .'" enctype="multipart/form-data" method="post">';
 		print '<input type="hidden" name="token" value="' . newToken() . '">';
-		$formActionName = $isALineBeingEdited ? $this->formDigitalSignatureDocument::EDIT_ACTION_NAME : $this->formDigitalSignatureDocument::ADD_ACTION_NAME;
-		print '<input type="hidden" name="action" value="'. $formActionName .'">';
 
 		print '<div class="div-table-responsive-no-min">';
 		print '<table id="tableofdocument" class="noborder noshadow tabBar" width="100%">';
@@ -229,7 +231,7 @@ class FormDigitalSignatureRequest
 		print '<td class="linecoldescription">' . $langs->trans('DigitalSignatureManagerDocumentColumnTitle') . '</td>';
 
 		if($userCanAskToEditDocumentLine) {
-			print '<td class="linecoledit"></td>';
+			print '<td class="linecoledit" style="width: 10px"></td>';
 			$numberOfActionColumns++;
 		}
 
@@ -242,12 +244,26 @@ class FormDigitalSignatureRequest
 			print '<td class="linecolmove" style="width: 10px"></td>';
 			$numberOfActionColumns++;
 		}
+
+		if($isALineBeingEdited || $userCanOnlyAddDocuments) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$numberOfActionColumns;
+		}
 		print '</tr>';
 
 		//display each document lines or only document line being edited
-		if($isALineBeingEdited) {
-			//We display the form to edit line
-			$this->formDigitalSignatureDocument->showDocumentEditForm($object, $currentLineEdited, $numberOfActionColumns);
+		if($isALineBeingEdited)
+		{
+			//we display documents
+			foreach($documents as $document) {
+				if($document->id != $currentDocumentIdEdited) {
+					$this->formDigitalSignatureDocument->showDocument($document, false, false, false);
+				}
+				else {
+					//We display the form to edit line
+					$this->formDigitalSignatureDocument->showDocumentEditForm($object, $currentLineEdited, $numberOfActionColumns);
+				}
+			}
 		}
 		else {
 			//we display lines and form to add a new line
@@ -265,7 +281,7 @@ class FormDigitalSignatureRequest
 			//We display form to add new document
 			if ($userCanSeeFormToAddNewLine)
 			{
-				$this->formDigitalSignatureDocument->showDocumentEditForm($object, new DigitalSignatureDocument($this->db), $numberOfActionColumns);
+				$this->formDigitalSignatureDocument->showDocumentAddForm($object, $numberOfActionColumns);
 			}
 		}
 

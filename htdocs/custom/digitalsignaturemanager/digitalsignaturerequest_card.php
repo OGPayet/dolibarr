@@ -181,15 +181,20 @@ if (empty($reshook)) {
         }
 	}
 
-	//Action to manage delete of digitalsignaturedocument
+	//Action on digitalsignaturedocument
 	dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
 	$formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
+	//Action to manage delete of digitalsignaturedocument
 	$formDigitalSignatureDocument->manageDeleteAction($action, $db, $user);
 
 	//Action to manage addition of digitalsignaturedocument
-	dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
-	$formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
 	$formDigitalSignatureDocument->manageAddAction($action, $object, $user);
+
+	//Action to manage save of digitalsignaturedocument
+	$formDigitalSignatureDocument->manageSaveAction($action, $db, $user);
+
+	//Action to manage edit of digitalsignaturedocument
+	$currentEditedDocumentLine = $formDigitalSignatureDocument->getCurrentAskedEditedDocumentId($action);
 }
 
 // Load object
@@ -421,7 +426,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	 * Document lines
 	 */
 
-	$formdigitalsignaturerequest->showDocumentLines($object, null, !$object->isEditable(), $permissionToAddAndDelFiles, $permissionToAddAndDelFiles);
+    $formdigitalsignaturerequest->showDocumentLines($object, $currentEditedDocumentLine, !$object->isEditable(), $permissionToAddAndDelFiles, $permissionToAddAndDelFiles);
 
 	// Buttons for actions
 
