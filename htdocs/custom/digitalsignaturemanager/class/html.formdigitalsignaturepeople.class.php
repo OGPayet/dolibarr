@@ -245,26 +245,28 @@ class FormDigitalSignaturePeople
 		$parameters = array();
 		$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 
-		$colspan = 0; //used for extrafields
-		global $conf, $langs;
-		//We display number column
-		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
-			print '<td class="linecolnum" align="center"></td>';
-			$colspan++;
-		}
-		// We show contact select form
-		print '<td colspan="' . $numberOfColumnOfContentTable . '">';
-		print '<input type="hidden" name="action" value="' . self::ADD_ACTION_NAME_FROM_CONTACT . '">';
-		global $action;
-		$selectedContactId = $action == self::ADD_ACTION_NAME_FROM_CONTACT ? GETPOST(self::ELEMENT_POST_FOREIGN_KEY_LINKED_CONTACT) : null;
-		print $this->getAvailableContactSelectForm($object, $selectedContactId);
-		print '</td>';
+		if($reshook > 0) {
+			$colspan = 0; //used for extrafields
+			global $conf, $langs;
+			//We display number column
+			if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+				print '<td class="linecolnum" align="center"></td>';
+				$colspan++;
+			}
+			// We show contact select form
+			print '<td colspan="' . $numberOfColumnOfContentTable . '">';
+			print '<input type="hidden" name="action" value="' . self::ADD_ACTION_NAME_FROM_CONTACT . '">';
+			global $action;
+			$selectedContactId = $action == self::ADD_ACTION_NAME_FROM_CONTACT ? GETPOST(self::ELEMENT_POST_FOREIGN_KEY_LINKED_CONTACT) : null;
+			print $this->getAvailableContactSelectForm($object, $selectedContactId);
+			print '</td>';
 
-		// Show add button
-		$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
-		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
-		print '<input type="submit" class="button" value="' . $langs->trans('DigitalSignatureManagerAddPeopleFromContact') . '">';
-		print '</td>';
+			// Show add button
+			$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
+			print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
+			print '<input type="submit" class="button" value="' . $langs->trans('DigitalSignatureManagerAddPeopleFromContact') . '">';
+			print '</td>';
+		}
 
 		//We end row
 		print '</form>';
@@ -274,7 +276,8 @@ class FormDigitalSignaturePeople
 	/**
 	 *  Display form to add a new element from Userinto card lines
 	 *  @param	DigitalSignatureRequest	$object			Object
-	 *  @param int $numberOfActionColumnOfTheTable number of column into parent table
+	 *  @param int $numberOfColumnOfContentTable number of column into parent table for content
+	 *  @param int $numberOfActionColumnOfTheTable number of column into parent table for actions
 	 *	@return	int						<0 if KO, >=0 if OK
 	 */
 	public function showFromUserAddForm($object, $numberOfColumnOfContentTable, $numberOfActionColumnOfTheTable)
@@ -288,26 +291,28 @@ class FormDigitalSignaturePeople
 		$parameters = array();
 		$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 
-		$colspan = 0; //used for extrafields
-		global $conf, $langs;
-		//We display number column
-		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
-			print '<td class="linecolnum" align="center"></td>';
-			$colspan++;
-		}
-		// We show user select form
-		print '<td colspan="' . $numberOfColumnOfContentTable . '">';
-		print '<input type="hidden" name="action" value="' . self::ADD_ACTION_NAME_FROM_USER . '">';
-		global $action;
-		$selectedUserId = $action == self::ADD_ACTION_NAME_FROM_USER ? GETPOST(self::ELEMENT_POST_FOREIGN_KEY_LINKED_USER) : null;
-		print $this->getAvailableUserSelectForm($object, $selectedUserId);
-		print '</td>';
+		if($reshook == 0) {
+			$colspan = 0; //used for extrafields
+			global $conf, $langs;
+			//We display number column
+			if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+				print '<td class="linecolnum" align="center"></td>';
+				$colspan++;
+			}
+			// We show user select form
+			print '<td colspan="' . $numberOfColumnOfContentTable . '">';
+			print '<input type="hidden" name="action" value="' . self::ADD_ACTION_NAME_FROM_USER . '">';
+			global $action;
+			$selectedUserId = $action == self::ADD_ACTION_NAME_FROM_USER ? GETPOST(self::ELEMENT_POST_FOREIGN_KEY_LINKED_USER) : null;
+			print $this->getAvailableUserSelectForm($object, $selectedUserId);
+			print '</td>';
 
-		// Show add button
-		$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
-		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
-		print '<input type="submit" class="button" value="' . $langs->trans('DigitalSignatureManagerAddPeopleFromUser') . '">';
-		print '</td>';
+			// Show add button
+			$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
+			print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
+			print '<input type="submit" class="button" value="' . $langs->trans('DigitalSignatureManagerAddPeopleFromUser') . '">';
+			print '</td>';
+		}
 
 		//We end row
 		print '</form>';
@@ -318,8 +323,8 @@ class FormDigitalSignaturePeople
 	 *  Display form to add a new free element
 	 *
 	 *  @param	DigitalSignatureRequest	$object			Object
-	 *  @param int $numberOfColumnOfContentTable number of column into parent table
-	 *  @param int $numberOfActionColumnOfTheTable
+	 *  @param int $numberOfColumnOfContentTable number of column into parent table for content
+	 *  @param int $numberOfActionColumnOfTheTable number of column into parent table for action button
 	 *	@return	int						<0 if KO, >=0 if OK
 	 */
 	public function showFreeAddForm($object, $numberOfColumnOfContentTable, $numberOfActionColumnOfTheTable)
@@ -334,30 +339,32 @@ class FormDigitalSignaturePeople
 		$parameters = array();
 		$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 
-		global $conf, $langs;
-		//We display number column
-		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
-			print '<td class="linecolnum" align="center"></td>';
+		if($reshook == 0) {
+			global $conf, $langs;
+			//We display number column
+			if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+				print '<td class="linecolnum" align="center"></td>';
+			}
+
+			for ($i = 4; $i < $numberOfColumnOfContentTable; $i++) {
+				print '<td class="content"></td>';
+			}
+
+			global $action;
+			if ($action == self::ADD_ACTION_NAME) {
+				$this->elementObjectStatic = self::updateFromPost($this->elementObjectStatic);
+			}
+			$digitalSignaturePeople = $this->elementObjectStatic;
+
+			//we display input form
+			print $this->getInputForm($digitalSignaturePeople);
+
+			// Show add button
+			$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
+			print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
+			print '<input type="submit" class="button" value="' . $langs->trans('DigitalSignatureManagerAddFreePeople') . '">';
+			print '</td>';
 		}
-
-		for ($i = 4; $i < $numberOfColumnOfContentTable; $i++) {
-			print '<td class="content"></td>';
-		}
-
-		global $action;
-		if ($action == self::ADD_ACTION_NAME) {
-			$this->elementObjectStatic = self::updateFromPost($this->elementObjectStatic);
-		}
-		$digitalSignaturePeople = $this->elementObjectStatic;
-
-		//we display input form
-		print $this->getInputForm($digitalSignaturePeople);
-
-		// Show add button
-		$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
-		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
-		print '<input type="submit" class="button" value="' . $langs->trans('DigitalSignatureManagerAddFreePeople') . '">';
-		print '</td>';
 
 		//We end row
 		print '</form>';
@@ -370,8 +377,9 @@ class FormDigitalSignaturePeople
 	 *
 	 *  @param	DigitalSignatureRequest	$object			Object
 	 *  @param  DigitalSignatureSigner $digitalSignaturePeople People being edited
-	 *  @param string $userCanMoveLine
-	 *  @param int $numberOfActionColumnOfTheTable
+	 *  @param string $userCanMoveLine can user ask to move line ?
+	 *  @param int $numberOfColumnOfContentTable number of column into parent table for content
+	 *  @param int $numberOfActionColumnOfTheTable number of column into parent table for action button
 	 *  @param bool $showPreviewColumn should we display Column for linked object getNomUrl
 	 *	@return	int						<0 if KO, >=0 if OK
 	 */
@@ -379,11 +387,6 @@ class FormDigitalSignaturePeople
 	{
 		global $hookmanager, $action;
 		$parameters = array();
-		$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
-
-		$colspan = 0; //used for extrafields
-		global $conf, $langs;
-
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_ROW . '-' . $digitalSignaturePeople->id . '" class="oddeven drag drop">';
 
@@ -392,42 +395,46 @@ class FormDigitalSignaturePeople
 		print '<input type="hidden" name="action" value="' . self::SAVE_ACTION_NAME . '">';
 		print '<input type="hidden" name="' . self::ELEMENT_POST_ID_FIELD_NAME . '" value="' . $digitalSignaturePeople->id . '">';
 
+		$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+		global $conf, $langs;
+
 		$digitalSignaturePeople = self::updateFromPost($digitalSignaturePeople, true);
 
-		//We display number column
-		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
-			print '<td class="linecolnum" align="center"></td>';
-		}
+		if($reshook == 0) {
+			//We display number column
+			if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+				print '<td class="linecolnum" align="center"></td>';
+			}
 
-		for ($i = 5; $i < $numberOfColumnOfContentTable; $i++) {
-			print '<td class="content"></td>';
-		}
+			for ($i = 5; $i < $numberOfColumnOfContentTable; $i++) {
+				print '<td class="content"></td>';
+			}
 
-		//We display linked object column
-		if ($showPreviewColumn) {
-			// We show linked object
-			print '<td>';
-			print self::showPeopleLinkedObject($digitalSignaturePeople);
+			//We display linked object column
+			if ($showPreviewColumn) {
+				// We show linked object
+				print '<td>';
+				print self::showPeopleLinkedObject($digitalSignaturePeople);
+				print '</td>';
+			}
+
+			//we display input form
+			print $this->getInputForm($digitalSignaturePeople, true);
+
+			if ($userCanMoveLine) {
+				$numberOfActionColumnOfTheTable -= 1;
+			}
+			$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
+			print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
+			print '<input type="submit" class="button" name="' . self::ELEMENT_SAVE_BUTTON_NAME . '" value="' . $langs->trans('Save') . '">';
+			print '<input type="submit" class="button" name="cancel" value="' . $langs->trans('Cancel') . '">';
 			print '</td>';
+
+			//Show move button
+			if ($userCanMoveLine) {
+				$this->formDigitalSignatureManager->showMoveActionButtonsForLine($object->id, $digitalSignaturePeople->id, $digitalSignaturePeople->position, count($object->people), self::MOVE_UP_ACTION_NAME, self::MOVE_DOWN_ACTION_NAME, self::ELEMENT_POST_ID_FIELD_NAME);
+			}
 		}
-
-		//we display input form
-		print $this->getInputForm($digitalSignaturePeople, true);
-
-		if ($userCanMoveLine) {
-			$numberOfActionColumnOfTheTable -= 1;
-		}
-		$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
-		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
-		print '<input type="submit" class="button" name="' . self::ELEMENT_SAVE_BUTTON_NAME . '" value="' . $langs->trans('Save') . '">';
-		print '<input type="submit" class="button" name="cancel" value="' . $langs->trans('Cancel') . '">';
-		print '</td>';
-
-		//Show move button
-		if ($userCanMoveLine) {
-			$this->formDigitalSignatureManager->showMoveActionButtonsForLine($object->id, $digitalSignaturePeople->id, $digitalSignaturePeople->position, count($object->people), self::MOVE_UP_ACTION_NAME, self::MOVE_DOWN_ACTION_NAME, self::ELEMENT_POST_ID_FIELD_NAME);
-		}
-
 		//We end row
 		print '</form>';
 		print '</tr>';
@@ -772,7 +779,7 @@ class FormDigitalSignaturePeople
 
 	/**
 	 * Function to update digital signature people from POST
-	 * @param DigitalSignaturePeople $digitalSignaturePeople
+	 * @param DigitalSignaturePeople $digitalSignaturePeople object instance to be updated with data from post
 	 * @param bool $fillOnlyIfFieldIsPresentOnPost - fill field only field that are in POST
 	 * @return DigitalSignaturePeople updated object
 	 */

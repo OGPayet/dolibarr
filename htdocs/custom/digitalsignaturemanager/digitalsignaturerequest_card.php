@@ -82,7 +82,6 @@ $cancel     = GETPOST('cancel', 'aZ09');
 $contextpage = GETPOST('contextpage', 'aZ') ? GETPOST('contextpage', 'aZ') : 'digitalsignaturerequestcard'; // To manage different context of search
 $backtopage = GETPOST('backtopage', 'alpha');
 $backtopageforcancel = GETPOST('backtopageforcancel', 'alpha');
-//$lineid   = GETPOST('lineid', 'int');
 
 // Initialize technical objects
 $object = new DigitalSignatureRequest($db);
@@ -143,11 +142,13 @@ if (empty($reshook)) {
 
 	$backurlforlist = dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_list.php', 1);
 
-	if (empty($backtopage) || ($cancel && empty($id))) {
-		if (empty($backtopage) || ($cancel && strpos($backtopage, '__ID__'))) {
-			if (empty($id) && (($action != 'add' && $action != 'create') || $cancel)) $backtopage = $backurlforlist;
-			else $backtopage = dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_card.php', 1) . '?id=' . ($id > 0 ? $id : '__ID__');
-		}
+	if ((empty($backtopage) || ($cancel && empty($id))) && (empty($backtopage) || ($cancel && strpos($backtopage, '__ID__')))) {
+			if (empty($id) && (($action != 'add' && $action != 'create') || $cancel)) {
+				$backtopage = $backurlforlist;
+			}
+			else {
+				$backtopage = dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_card.php', 1) . '?id=' . ($id > 0 ? $id : '__ID__');
+			}
 	}
 	$triggermodname = 'DIGITALSIGNATUREMANAGER_DIGITALSIGNATUREREQUEST_MODIFY'; // Name of trigger action code to execute when we modify record
 
@@ -284,8 +285,6 @@ if ($action == 'create') {
 	print '</div>';
 
 	print '</form>';
-
-	//dol_set_focus('input[name="ref"]');
 }
 
 // Part to edit record
@@ -462,10 +461,8 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			// Validate
-			if ($object->status == $object::STATUS_DRAFT) {
-				if ($permissiontoadd) {
+			if ($object->status == $object::STATUS_DRAFT && $permissiontoadd) {
 					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=validateAndCreateRequestToProvider">' . $langs->trans("DigitalSignatureRequestValidateButton") . '</a>';
-				}
 			}
 
 			// Clone
@@ -498,10 +495,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 
 	$MAXEVENT = 30;
-
-	// $morehtmlright = '<a href="' . dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_agenda.php', 1) . '?id=' . $object->id . '">';
-	// $morehtmlright .= $langs->trans("SeeAll");
-	// $morehtmlright .= '</a>';
 
 	// List of actions on element
 	$somethingshown = $formdigitalsignaturerequest->showActions($object, (is_object($object->thirdparty) ? $object->thirdparty->id : 0), 1, '', $MAXEVENT, '', $morehtmlright);

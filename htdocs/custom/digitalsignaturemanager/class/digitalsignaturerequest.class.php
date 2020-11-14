@@ -180,13 +180,9 @@ class DigitalSignatureRequest extends CommonObject
 
 		$this->db = $db;
 
-		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
-
-		// Example to show how to set values of fields definition dynamically
-		/*if ($user->rights->digitalsignaturemanager->digitalsignaturerequest->read) {
-			$this->fields['myfield']['visible'] = 1;
-			$this->fields['myfield']['noteditable'] = 0;
-		}*/
+		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) {
+			$this->fields['rowid']['visible'] = 0;
+		}
 
 		// Unset fields that are disabled
 		foreach ($this->fields as $key => $val)
@@ -353,7 +349,6 @@ class DigitalSignatureRequest extends CommonObject
 				$shortkey = preg_replace('/options_/', '', $key);
 				if (!empty($extrafields->attributes[$this->element]['unique'][$shortkey]))
 				{
-					//var_dump($key); var_dump($clonedObj->array_options[$key]); exit;
 					unset($object->array_options[$key]);
 				}
 			}
@@ -633,7 +628,9 @@ class DigitalSignatureRequest extends CommonObject
 	{
 		global $conf, $langs, $hookmanager;
 
-		if (!empty($conf->dol_no_mouse_hover)) $notooltip = 1; // Force disable tooltips
+		if (!empty($conf->dol_no_mouse_hover)) {
+			$notooltip = 1; // Force disable tooltips
+		}
 
 		$result = '';
 
@@ -650,8 +647,12 @@ class DigitalSignatureRequest extends CommonObject
 		{
 			// Add param to save lastsearch_values or not
 			$add_save_lastsearch_values = ($save_lastsearch_value == 1 ? 1 : 0);
-			if ($save_lastsearch_value == -1 && preg_match('/list\.php/', $_SERVER["PHP_SELF"])) $add_save_lastsearch_values = 1;
-			if ($add_save_lastsearch_values) $url .= '&save_lastsearch_values=1';
+			if ($save_lastsearch_value == -1 && preg_match('/list\.php/', $_SERVER["PHP_SELF"])) {
+				$add_save_lastsearch_values = 1;
+			}
+			if ($add_save_lastsearch_values) {
+				$url .= '&save_lastsearch_values=1';
+			}
 		}
 
 		$linkclose = '';
@@ -665,7 +666,9 @@ class DigitalSignatureRequest extends CommonObject
 			$linkclose .= ' title="'.dol_escape_htmltag($label, 1).'"';
 			$linkclose .= ' class="classfortooltip'.($morecss ? ' '.$morecss : '').'"';
 		}
-		else $linkclose = ($morecss ? ' class="'.$morecss.'"' : '');
+		else {
+			$linkclose = ($morecss ? ' class="'.$morecss.'"' : '');
+		}
 
 		$linkstart = '<a href="'.$url.'"';
 		$linkstart .= $linkclose.'>';
@@ -674,7 +677,9 @@ class DigitalSignatureRequest extends CommonObject
 		$result .= $linkstart;
 
 		if (empty($this->showphoto_on_popup)) {
-			if ($withpicto) $result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="'.(($withpicto != 2) ? 'paddingright ' : '').'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
+			if ($withpicto) {
+				$result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="'.(($withpicto != 2) ? 'paddingright ' : '').'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
+			}
 		} else {
 			if ($withpicto) {
 				require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
@@ -702,17 +707,21 @@ class DigitalSignatureRequest extends CommonObject
 			}
 		}
 
-		if ($withpicto != 2) $result .= $this->ref;
-
+		if ($withpicto != 2) {
+			$result .= $this->ref;
+		}
 		$result .= $linkend;
-		//if ($withpicto != 2) $result.=(($addlabel && $this->label) ? $sep . dol_trunc($this->label, ($addlabel > 1 ? $addlabel : 0)) : '');
 
 		global $action, $hookmanager;
 		$hookmanager->initHooks(array('digitalsignaturerequestdao'));
 		$parameters = array('id'=>$this->id, 'getnomurl'=>$result);
 		$reshook = $hookmanager->executeHooks('getNomUrl', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
-		if ($reshook > 0) $result = $hookmanager->resPrint;
-		else $result .= $hookmanager->resPrint;
+		if ($reshook > 0) {
+			$result = $hookmanager->resPrint;
+		}
+		else {
+			$result .= $hookmanager->resPrint;
+		}
 
 		return $result;
 	}
@@ -851,7 +860,6 @@ class DigitalSignatureRequest extends CommonObject
 				else
 				{
 					$this->error = $obj->error;
-					//dol_print_error($this->db,get_class($this)."::getNextNumRef ".$obj->error);
 					return "";
 				}
 			} else {
@@ -876,8 +884,6 @@ class DigitalSignatureRequest extends CommonObject
 	public function doScheduledJob()
 	{
 		global $conf, $langs;
-
-		//$conf->global->SYSLOG_FILE = 'DOL_DATA_ROOT/dolibarr_mydedicatedlofile.log';
 
 		$error = 0;
 		$this->output = '';
@@ -957,7 +963,6 @@ class DigitalSignatureRequest extends CommonObject
 	 *  @param	string		$relativename	For recursive purpose only. Must be "" at first call.
 	 *  @return	array						Array of array('name'=>'xxx','fullname'=>'/abc/xxx','date'=>'yyy','size'=>99,'type'=>'dir|file',...)
 	 *  @see dol_dir_list_indatabase
-	 * @return array
 	 */
 	public function getListOfFilesToSign($types = "all", $recursive = 0, $filter = "", $excludefilter = "", $sortcriteria = "name", $sortorder = SORT_ASC, $mode = 1, $nohook = 0, $relativename = "")
 	{
@@ -978,7 +983,6 @@ class DigitalSignatureRequest extends CommonObject
 	 *  @param	string		$relativename	For recursive purpose only. Must be "" at first call.
 	 *  @return	array						Array of array('name'=>'xxx','fullname'=>'/abc/xxx','date'=>'yyy','size'=>99,'type'=>'dir|file',...)
 	 *  @see dol_dir_list_indatabase
-	 * @return array
 	 */
 	public function getListOfSignedFiles($types = "all", $recursive = 0, $filter = "", $excludefilter = "", $sortcriteria = "name", $sortorder = SORT_ASC, $mode = 1, $nohook = 0, $relativename = "")
 	{
@@ -1078,6 +1082,7 @@ class DigitalSignatureRequest extends CommonObject
 	/**
 	 * Update data from external service
 	 * @param User $user $user object requesting update
+	 * @return bool true if data succesfully updated
 	 */
 	public function updateDataFromExternalService($user)
 	{
@@ -1114,5 +1119,4 @@ class DigitalSignatureRequest extends CommonObject
 	{
 		return $this->fk_soc;
 	}
-
 }

@@ -65,6 +65,11 @@ class FormDigitalSignatureRequest
 	public $formDigitalSignatureManager;
 
 	/**
+	 * @var DigitalSignatureRequest static element
+	 */
+	public $elementStatic;
+
+	/**
 	 * @var string id of the table displaying row of digital signature document on card
 	 *  should be only with minus character to make order ajax worked
 	 */
@@ -99,6 +104,9 @@ class FormDigitalSignatureRequest
 
 		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturemanager.class.php');
 		$this->formDigitalSignatureManager = new FormDigitalSignatureManager($db);
+
+		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
+		$this->elementStatic = new DigitalSignatureRequest($db);
     }
 
 
@@ -113,7 +121,7 @@ class FormDigitalSignatureRequest
      *  @param	string	$moreparambacktopage	More param for the backtopage
      *	@return	int						<0 if KO, >=0 if OK
      */
-    function showActions($object, $socid = 0, $forceshowtitle = 0, $morecss = 'listactions', $max = 0, $moreparambacktopage = '')
+    public function showActions($object, $socid = 0, $forceshowtitle = 0, $morecss = 'listactions', $max = 0, $moreparambacktopage = '')
     {
 		global $langs,$conf;
 
@@ -129,7 +137,7 @@ class FormDigitalSignatureRequest
             $urlbacktopage=$_SERVER['PHP_SELF'].'?id='.$object->id.($moreparambacktopage?'&'.$moreparambacktopage:'');
 
 			if ($conf->agenda->enabled) {
-				$buttontoaddnewevent = '<a href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create&datep=' . dol_print_date(dol_now(), 'dayhourlog') . '&origin=' . $typeelement . '&originid=' . $object->id . '&socid=' . $object->socid . '&projectid=' . $object->fk_project . '&backtopage=' . urlencode($urlbacktopage) . '">';
+				$buttontoaddnewevent = '<a href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create&datep=' . dol_print_date(dol_now(), 'dayhourlog') . '&origin=' . $this->elementStatic->element . '&originid=' . $object->id . '&socid=' . $object->socid . '&projectid=' . $object->fk_project . '&backtopage=' . urlencode($urlbacktopage) . '">';
 				$buttontoaddnewevent.= $langs->trans("AddEvent");
 				$buttontoaddnewevent.= '</a>';
 			}

@@ -58,13 +58,13 @@ class FormDigitalSignatureManager
 	/**
      *  Show list of actions for element
      *
-	 *  @param	int		$digitalSignatureRequestId
-	 *  @param	int		$lineId
+	 *  @param	int		$digitalSignatureRequestId id of the digital request manager on which we are moving elements
+	 *  @param	int		$lineId id of the element on which we display the action button
 	 *  @param	int		$currentLineIndex	Current index for the line
 	 *	@param	int		$numberOfDocumentLines	number of document of the linked request
-	 *  @param 	string 	$upActionName
-	 *  @param	string  $downActionName
-	 * 	@param	string  $paramLineIdName
+	 *  @param 	string 	$upActionName name of the action allowing up move action
+	 *  @param	string  $downActionName name of the action allowing down move action
+	 * 	@param	string  $paramLineIdName name of the field where is stored moved line id
      *	@return	void
      */
     public function showMoveActionButtonsForLine($digitalSignatureRequestId, $lineId, $currentLineIndex, $numberOfDocumentLines, $upActionName, $downActionName, $paramLineIdName)
@@ -105,9 +105,10 @@ class FormDigitalSignatureManager
      *	@param	integer	$showsoc	    Add company into label
      * 	@param	int		$forcecombo		Force to use combo box
      *  @param	array	$events			Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
-     *	@return	 int					<0 if KO, Nb of contact in list if OK
+	 *  @param bool 	$hideDisabledItem should we hide disabled choice
+	 *	@return	 int					<0 if KO, Nb of contact in list if OK
      */
-    function selectcontacts($socid, $selected = '', $htmlname = 'contactid', $showempty = 0, $exclude = '', $limitto = '', $showfunction = 0, $moreclass = '', $options_only = false, $showsoc = 0, $forcecombo = 0, $events = array(), $hideDisabledItem = false)
+    public function selectcontacts($socid, $selected = '', $htmlname = 'contactid', $showempty = 0, $exclude = '', $limitto = '', $showfunction = 0, $moreclass = '', $options_only = false, $showsoc = 0, $forcecombo = 0, $events = array(), $hideDisabledItem = false)
     {
         global $conf,$langs;
 
@@ -129,7 +130,7 @@ class FormDigitalSignatureManager
         $resql=$this->db->query($sql);
         if ($resql)
         {
-            $num=$this->db->num_rows($resql);
+            $this->db->num_rows($resql);
 
             if ($conf->use_javascript_ajax && ! $forcecombo && ! $options_only)
             {
@@ -267,7 +268,7 @@ class FormDigitalSignatureManager
 	/**
 	 * Function to get info box
 	 * @param bool $displayInfo should we display warning box
-	 * @param string[] $content warning content texts
+	 * @param string[] $informationContent warning content texts
 	 * @return string html content
 	 */
 	public function getInfoBox($displayInfo, $informationContent)
@@ -303,7 +304,7 @@ class FormDigitalSignatureManager
 	/**
 	 * Function to get current digital signature people id edited on page using showDocument
 	 * @param string $action current action name on card
-	 * @param string $action current action name on card
+	 * @param string $editElementAction name of the edit action to check
 	 * @return bool
 	 */
 	public function isAnElementBeingEdited($action, $editElementAction)
