@@ -63,7 +63,8 @@ DigitalSignatureRequestListOfFileToSign = Liste des fichiers à signer électron
 DigitalSignatureRequestValidateButton = Lancer le processus
 DigitalSignatureRequestValidate = Créer la demande de signature chez le prestataire
 DigitalSignatureRequestValidateDetails = Confirmez-vous le lancement du processus de signature électronique ?
-DigitalSignatureManagerDocumentColumnTitle = Nom de fichier
+DigitalSignatureManagerDocumentList = Liste des documents, par ordre de présentation lors de la signature
+DigitalSignatureManagerDocumentColumnTitle = Nom du document
 DigitalSignatureManagerErrorWhileSavingFile = Erreur lors de l'enregistrement du fichier
 DigitalSignatureManagerErrorFileRequired = Aucun fichier sélectionné
 DigitalSignatureManagerErrorWhileAddingFileToSignatureRequest = Erreur lors de l'ajout du fichier à la demande de signature électronique
@@ -77,6 +78,39 @@ DigitalSignatureManagerDocumentErrorWhileUpdating = Erreur lors de la mise à jo
 DigitalSignatureRequestDocumentAlreadyDeleted = Ce document a déjà été supprimé
 DigitalSignatureRequestDocumentConfirmDeleteTitle = Confirmation de la suppression d'un document
 DigitalSignatureRequestDocumentConfirmDeleteDescription = Confirmez-vous la suppression du fichier %s ?
+
+DigitalSignatureManagerPeopleList = Liste des signataire, dans l'ordre chronologique de signature des documents
+DigitalSignatureLinkedObjectTitle = Contact/utilisateur lié
+DigitalSignaturePeopleLastname = Nom
+DigitalSignaturePeopleFirstname = Prénom
+DigitalSignaturePeopleMail = Adresse Mail
+DigitalSignaturePeopleMobilePhoneNumber = Numéro téléphone portable
+DigitalSignatureManagerAddFreePeople = Ajouter un signataire libre
+DigitalSignatureManagerAddPeopleFromContact = Ajouter depuis un contact
+DigitalSignatureManagerAddPeopleFromUser = Ajouter depuis un utilisateur
+DigitalSignaturePeopleNotFoundOrAlreadyDeleted = Signataire introuvable ou déjà supprimé
+DigitalSignatureManagerPeopleSuccessfullyDeleted = Signataire %s supprimé avec succès
+DigitalSignatureManagerPeopleErrorWhileDeletingPeople = Erreur lors de la suppresion du signataire %
+DigitalSignatureRequestPeopleSuccesfullyAdded = Signataire ajouté avec succès
+DigitalSignatureRequestPeopleErrorWhenAdded = Erreur lors de l'ajout du signataire
+DigitalSignatureErrorNoUserSelected = Aucun utilisateur sélectionné
+DigitalSignatureErrorUserAlreadyAdded = Cet utilisateur est déjà un signataire
+DigitalSignatureErrorWhenFillingDataFromUser = Erreur lors de la récupération des informations depuis la fiche utilisateur
+DigitalSignatureRequestPeopleSuccesfullyAddedFromUser = Signataire %s ajouté avec succès
+DigitalSignatureRequestPeopleErrorWhenAddedFromUser = Erreur lors de l'ajout du signataire %s
+DigitalSignatureErrorNoContactSelected = Aucun contact sélectionné
+DigitalSignatureErrorContactAlreadyAdded = Ce contact est déjà un signataire
+DigitalSignatureErrorWhenFillingDataFromContact = Erreur lors de la récupération des informations depuis la fiche contact
+DigitalSignatureRequestPeopleSuccesfullyAddedFromContact = Signataire %s ajouté avec succès
+DigitalSignatureRequestPeopleErrorWhenAddedFromContact = Erreur lors de l'ajout du signataire %s
+DigitalSignaturePeopleNotFound = Signataire non trouvé - impossible d'éditer ces informations
+DigitalSignaturePeopleErrorWhileSaving = Erreur lors de la sauvegarde des données du signataire %s
+DigitalSignaturePeopleSuccessfullySaved = Mise à jour des informations de %s effectuée avec succès
+DigitalSignatureManagerPeopleConfirmDeleteTitle = Confirmation de la suppression d'un signataire
+DigitalSignatureManagerPeopleConfirmDeleteDescription = Confirmez-vous la suppression du signatire %s ?
+DigitalSignatureManagerSourceObjectNotFound = Elément lié introuvable
+DigitalSignatureManagerNoSourceObject = Signataire libre
+
 #
 # Status
 #

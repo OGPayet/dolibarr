@@ -113,7 +113,7 @@ Class DigitalSignatureManagerUniversign
 			$signer = new \Globalis\Universign\Request\TransactionSigner();
 			$signer->setFirstname($people->firstName)
 				->setLastname($people->lastName)
-				->setPhoneNum($people->phoneNumber)
+				->setPhoneNum('33' . substr($people->phoneNumber, -9)) // to do - use of libPhone number google library to properly format phone number
 				->setEmailAddress($people->mail);
 			$universignSigners[] = $signer;
 		}

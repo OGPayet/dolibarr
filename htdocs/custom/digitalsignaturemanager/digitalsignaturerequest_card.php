@@ -126,6 +126,14 @@ if (!$permissiontoread) accessforbidden();
  * Actions
  */
 
+//Action on digitalsignaturedocument
+dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
+$formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
+
+//Action on digitalsignaturepeople
+dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturepeople.class.php');
+$formDigitalSignaturePeople = new FormDigitalSignaturePeople($db);
+
 $parameters = array();
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
@@ -167,42 +175,60 @@ if (empty($reshook)) {
 
 	if ($action == 'setref_client' && $permissiontoedit) {
 		$result = $object->setValueFrom('ref_client', GETPOST('ref_client'));
-        if ($result < 0)
-        {
-            setEventMessages($object->error, $object->errors, 'errors');
-        }
+		if ($result < 0) {
+			setEventMessages($object->error, $object->errors, 'errors');
+		}
 	}
 
-	if($action == 'confirm_validateAndCreateRequestToProvider' && $permissioncreate && $confirm == 'yes') {
+	if ($action == 'confirm_validateAndCreateRequestToProvider' && $permissioncreate && $confirm == 'yes') {
 		$result = $object->validateAndCreateRequestOnTheProvider($user);
-		if ($result < 0)
-        {
-            setEventMessages($object->error, $object->errors, 'errors');
-        }
+		if ($result < 0) {
+			setEventMessages($object->error, $object->errors, 'errors');
+		}
 	}
-
-	//Action on digitalsignaturedocument
-	dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
-	$formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
 
 	//Action to manage delete of digitalsignaturedocument
-	if($permissiontodelete) {
+	if ($permissiontodelete) {
 		$formDigitalSignatureDocument->manageDeleteAction($action, $confirm, $user);
 	}
 
 	//Action to manage addition of digitalsignaturedocument
-	if($permissiontoadd) {
+	if ($permissiontoadd) {
 		$formDigitalSignatureDocument->manageAddAction($action, $object, $user);
 	}
 
 	//Action to manage save of digitalsignaturedocument
-	if($permissiontoedit) {
+	if ($permissiontoedit) {
 		$formDigitalSignatureDocument->manageSaveAction($action, $user);
 	}
 
 	//Action to manage edit of digitalsignaturedocument
-	if($permissiontoedit) {
+	if ($permissiontoedit) {
 		$currentEditedDocumentLine = $formDigitalSignatureDocument->getCurrentAskedEditedElementId($action);
+	}
+
+
+
+	//Action to manage delete of digitalsignaturpeople
+	if ($permissiontodelete) {
+		$formDigitalSignaturePeople->manageDeleteAction($object, $action, $confirm, $user);
+	}
+
+	//Action to manage addition of digitalsignaturedocument
+	if ($permissiontoadd) {
+		$formDigitalSignaturePeople->manageAddAction($action, $object, $user);
+		$formDigitalSignaturePeople->manageAddFromContactAction($action, $object, $user);
+		$formDigitalSignaturePeople->manageAddFromUserAction($action, $object, $user);
+	}
+
+	//Action to manage save of digitalsignaturedocument
+	if ($permissiontoedit) {
+		$formDigitalSignaturePeople->manageSaveAction($action, $object, $user);
+	}
+
+	//Action to manage edit of digitalsignaturedocument
+	if ($permissiontoedit) {
+		$currentPeopleIdEdited = $formDigitalSignaturePeople->getCurrentAskedEditedElementId($action);
 	}
 }
 
@@ -318,12 +344,15 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ToClone'), $langs->trans('ConfirmCloneAsk', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
 	}
 
-	if($action == 'validateAndCreateRequestToProvider' && $permissioncreate) {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('DigitalSignatureRequestValidate'), $langs->trans('DigitalSignatureRequestValidateDetails'), 'confirm_validateAndCreateRequestToProvider', '', 0, 1);
+	if ($action == 'validateAndCreateRequestToProvider' && $permissioncreate) {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestValidate'), $langs->trans('DigitalSignatureRequestValidateDetails'), 'confirm_validateAndCreateRequestToProvider', '', 0, 1);
 	}
 
 	//Form confirm for digital signature request
 	$formconfirm = $formDigitalSignatureDocument->getDeleteFormConfirm($action, $object, $formconfirm);
+
+	//form confirm for digital signature people
+	$formconfirm = $formDigitalSignaturePeople->getDeleteFormConfirm($action, $object, $formconfirm);
 
 	// Call Hook formConfirm
 	$parameters = array('formConfirm' => $formconfirm, 'lineid' => $lineid);
@@ -403,10 +432,18 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	dol_fiche_end();
 
 	/*
-	 * Document lines
+	 * List Of Digital Signature Documents
 	 */
 
-    $formdigitalsignaturerequest->showDocumentLines($object, $currentEditedDocumentLine, !$object->isEditable(), $permissionToAddAndDelFiles, $permissionToAddAndDelFiles, $permissionToAddAndDelFiles);
+	$formdigitalsignaturerequest->showDocumentLines($object, $currentEditedDocumentLine, !$object->isEditable(), $permissionToAddAndDelFiles, $permissionToAddAndDelFiles, $permissionToAddAndDelFiles);
+
+	/*
+	*  List Of Digital Signature People
+	*/
+
+	$formdigitalsignaturerequest->showPeopleLines($object, $currentPeopleIdEdited, !$object->isEditable(), $permissiontoedit, $permissiontoedit, $permissiontoedit);
+
+
 
 	// Buttons for actions
 
@@ -420,7 +457,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// Modify
 			if ($permissiontoedit && $object->status == $object::STATUS_DRAFT) {
 				print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=edit">' . $langs->trans("Modify") . '</a>' . "\n";
-			} elseif(!$permissiontoedit) {
+			} elseif (!$permissiontoedit) {
 				print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Modify') . '</a>' . "\n";
 			}
 
@@ -446,30 +483,30 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</div>' . "\n";
 	}
 
-		print '<div class="fichecenter"><div class="fichehalfleft">';
-		print '<a name="builddoc"></a>'; // ancre
+	print '<div class="fichecenter"><div class="fichehalfleft">';
+	print '<a name="builddoc"></a>'; // ancre
 
 
-		$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
-		// signed files
-		print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForSignedFiles(), $object->getUploadDirOfSignedFiles(), $urlsource, 0, 0, $object->model_pdf, 1, 0, 0, 28, 0, '', $langs->trans('DigitalSignatureRequestListOfSignedFiles'), '', $langs->defaultlang, null, $object, 0);
+	$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
+	// signed files
+	print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForSignedFiles(), $object->getUploadDirOfSignedFiles(), $urlsource, 0, 0, $object->model_pdf, 1, 0, 0, 28, 0, '', $langs->trans('DigitalSignatureRequestListOfSignedFiles'), '', $langs->defaultlang, null, $object, 0);
 
-		// Show links to link elements
-		$somethingshown = $form->showLinkedObjectBlock($object, $form->showLinkToObjectBlock($object, null, array('digitalsignaturerequest')));
+	// Show links to link elements
+	$somethingshown = $form->showLinkedObjectBlock($object, $form->showLinkToObjectBlock($object, null, array('digitalsignaturerequest')));
 
 
-		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
+	print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 
-		$MAXEVENT = 30;
+	$MAXEVENT = 30;
 
-		// $morehtmlright = '<a href="' . dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_agenda.php', 1) . '?id=' . $object->id . '">';
-		// $morehtmlright .= $langs->trans("SeeAll");
-		// $morehtmlright .= '</a>';
+	// $morehtmlright = '<a href="' . dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_agenda.php', 1) . '?id=' . $object->id . '">';
+	// $morehtmlright .= $langs->trans("SeeAll");
+	// $morehtmlright .= '</a>';
 
-		// List of actions on element
-		$somethingshown = $formdigitalsignaturerequest->showActions($object, (is_object($object->thirdparty) ? $object->thirdparty->id : 0), 1, '', $MAXEVENT, '', $morehtmlright);
+	// List of actions on element
+	$somethingshown = $formdigitalsignaturerequest->showActions($object, (is_object($object->thirdparty) ? $object->thirdparty->id : 0), 1, '', $MAXEVENT, '', $morehtmlright);
 
-		print '</div></div></div>';
+	print '</div></div></div>';
 }
 
 // End of page

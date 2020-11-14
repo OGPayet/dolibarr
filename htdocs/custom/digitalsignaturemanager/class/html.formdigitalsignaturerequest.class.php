@@ -55,10 +55,21 @@ class FormDigitalSignatureRequest
 	public $formDigitalSignatureDocument;
 
 	/**
+     * @var FormDigitalSignaturePeople  Instance of the form
+     */
+	public $formDigitalSignaturePeople;
+
+	/**
 	 * @var string id of the table displaying row of digital signature document on card
 	 *  should be only with minus character to make order ajax worked
 	 */
 	const DIGITALSIGNATUREDOCUMENT_TABLEID = "digitalsignaturedocumenttable";
+
+	/**
+	 * @var string id of the table displaying row of digital signature people on card
+	 *  should be only with minus character to make order ajax worked
+	 */
+	const DIGITALSIGNATUREPEOPLE_TABLEID = "digitalsignaturepeopletable";
 
     /**
      * Constructor
@@ -77,6 +88,10 @@ class FormDigitalSignatureRequest
 
 		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
 		$this->formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
+
+
+		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturepeople.class.php');
+		$this->formDigitalSignaturePeople = new FormDigitalSignaturePeople($db);
     }
 
 
@@ -225,6 +240,8 @@ class FormDigitalSignatureRequest
 		$userCanAddDocumentLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
 
 		print '<div class="div-table-responsive-no-min">';
+		print '<div class="titre"><h3>' . $langs->trans('DigitalSignatureManagerDocumentList') . '</h3></div>';
+
 		print '<table id="' . self::DIGITALSIGNATUREDOCUMENT_TABLEID . '" class="noborder noshadow tabBar" width="100%">';
 
 		$neededActionColumnForDocumentRead = count(array_filter(array($userCanAskToEditDocumentLine, $userCanAskToDeleteDocumentLine, $userCanChangeOrder)));
@@ -286,6 +303,133 @@ class FormDigitalSignatureRequest
 		if ($userCanAddDocumentLine)
 		{
 			$this->formDigitalSignatureDocument->showDocumentAddForm($object, $nbOfActionColumn);
+		}
+
+		print '</table>';
+		print '</div>';
+	}
+
+	/**
+	 * Function to display digital signature people lines
+	 * @param DigitalSignatureRequest $object Parent object of lines to display
+	 * @param int $currentPeopleIdEdited current document id which is edited
+	 * @param bool $readOnlyMode - force readonly mode
+	 * @param bool $permissionToAdd - boolean indicating if user can edit document
+	 * @param bool $permissionToEdit - boolean indicating if user can edit document
+	 * @param bool $permissionToDelete - boolean indicating if user can delete document
+	 * @return void
+	 */
+	public function showPeopleLines($object, $currentPeopleIdEdited, $readOnlyMode, $permissionToAdd, $permissionToEdit, $permissionToDelete)
+	{
+		global $conf, $langs;
+
+		$listOfpeople = $object->people;
+		$currentLineEdited = findObjectInArrayByProperty($listOfpeople, 'id', $currentPeopleIdEdited);
+		$isALineBeingEdited = (bool) $currentLineEdited;
+
+		$userCanChangeOrder = !$readOnlyMode && !empty($permissionToEdit) && count($listOfpeople) > 1;
+		$userCanAskToEditLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit) && count($listOfpeople) > 0;
+		$userCanAskToDeleteLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToDelete) && count($listOfpeople) > 0;
+		$userCanAddLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
+
+		//$numberOfContentColumnForShowPeople
+		$displayLinkedObjectColumn = true;
+		if (count($listOfpeople) > 0 && $this->formDigitalSignaturePeople->elementObjectStatic::isThereOnlyFreePeople($listOfpeople)) {
+			$displayLinkedObjectColumn = false;
+		}
+		if(count($listOfpeople) == 0) {
+			$numberOfContentColumnForShowPeople = null;
+		}
+		else {
+			$numberOfContentColumnForShowPeople = $displayLinkedObjectColumn ? 5 : 4;
+		}
+
+		$numberOfContentColumnPerComponentsDisplayed = array(
+			'showPeople'=>$numberOfContentColumnForShowPeople,
+			'showEditForm'=> $isALineBeingEdited ? 5 : null,
+			'showFromContactAddForm' => $userCanAddLine ? 1 : null,
+			'showFromUserAddForm' => $userCanAddLine ? 1 : null,
+			'showFreeAddForm' => $userCanAddLine ? 4:null
+		);
+		$neededContentColumn = max(array_values(array_filter($numberOfContentColumnPerComponentsDisplayed)));
+		$neededContentColumn = $neededContentColumn < 1 ? 1 : $neededContentColumn;
+
+		$numberOfActionColumnPerComponentsDisplayed = array(
+			'showPeople'=>count($listOfpeople) > 0 ? count(array_filter(array($userCanChangeOrder , $userCanAskToEditLine, $userCanAskToDeleteLine))) : null,
+			'showEditForm'=> $isALineBeingEdited ? 1 + count(array($userCanChangeOrder)) : null,
+			'showFromContactAddForm' => $userCanAddLine ? 1 : null,
+			'showFromUserAddForm' => $userCanAddLine ? 1 : null,
+			'showFreeAddForm' => $userCanAddLine ? 1: null
+		);
+		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
+
+		print '<div class="div-table-responsive-no-min">';
+		print '<div class="titre"><h3>' . $langs->trans('DigitalSignatureManagerPeopleList') . '</h3></div>';
+		print '<table id="' . self::DIGITALSIGNATUREPEOPLE_TABLEID . '" class="noborder noshadow tabBar" width="100%">';
+
+		//display people lines header
+
+		print '<tr class="liste_titre nodrag nodrop">';
+
+		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+			print '<td class="linecolnum" align="center"></td>';
+		}
+
+		if($displayLinkedObjectColumn) {
+			print '<td class="linecoldescription">' . $langs->trans('DigitalSignatureLinkedObjectTitle') . '</td>';
+		}
+
+		print '<td class="linecoldescription">' . $langs->trans('DigitalSignaturePeopleLastname') . '</td>';
+		print '<td class="linecoldescription">' . $langs->trans('DigitalSignaturePeopleFirstname') . '</td>';
+		print '<td class="linecoldescription">' . $langs->trans('DigitalSignaturePeopleMail') . '</td>';
+		print '<td class="linecoldescription">' . $langs->trans('DigitalSignaturePeopleMobilePhoneNumber') . '</td>';
+
+		$nbOfActionColumn = 0;
+		if($userCanAskToEditLine) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+
+		if($userCanAskToDeleteLine) {
+			print '<td class="linecoldelete" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+
+		if($userCanChangeOrder) {
+			print '<td class="linecolmove" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+
+		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+		print '</tr>';
+
+
+		if (!empty($conf->use_javascript_ajax) && $userCanChangeOrder) {
+			//toDo ajust param for ajaxrow.tpl.php
+			$IdOfTableDisplayingRowToBeSorted = self::DIGITALSIGNATUREPEOPLE_TABLEID;
+			$elementType = $this->formDigitalSignaturePeople->elementObjectStatic->element;
+			include dol_buildpath('digitalsignaturemanager/tpl/ajax/ajaxrow.tpl.php');
+		}
+
+		//we display digital signature people
+		foreach($listOfpeople as $people) {
+			if($people->id != $currentPeopleIdEdited) {
+				$this->formDigitalSignaturePeople->showPeople($people, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder, $neededActionColumn, $displayLinkedObjectColumn);
+			}
+			else {
+				//We display the form to edit line
+				$this->formDigitalSignaturePeople->showEditForm($object, $people, $userCanChangeOrder, $neededContentColumn, $neededActionColumn, $displayLinkedObjectColumn);
+			}
+		}
+		//We display form to add new document
+		if ($userCanAddLine)
+		{
+			$this->formDigitalSignaturePeople->showFreeAddForm($object, $neededContentColumn, $neededActionColumn);
+			$this->formDigitalSignaturePeople->showFromContactAddForm($object, $neededContentColumn, $neededActionColumn);
+			$this->formDigitalSignaturePeople->showFromUserAddForm($object, $neededContentColumn, $neededActionColumn);
 		}
 
 		print '</table>';

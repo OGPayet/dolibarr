@@ -1114,4 +1114,5 @@ class DigitalSignatureRequest extends CommonObject
 	{
 		return $this->fk_soc;
 	}
+
 }

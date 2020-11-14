@@ -406,7 +406,7 @@ class FormDigitalSignatureDocument
 						$newDigitalSignatureDocument = $this->elementObjectStatic;
 						$newDigitalSignatureDocument->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
 						$newDigitalSignatureDocument->fk_ecm = $ecmFile->id;
-						$newDigitalSignatureDocument->position = $newDigitalSignatureDocument::getLastPositionOfDocument($digitalSignatureRequest->documents);
+						$newDigitalSignatureDocument->position = $newDigitalSignatureDocument::getLastPositionOfDocument($digitalSignatureRequest->documents) + 1;
 						//We may add here property elements from the form
 						$result = $newDigitalSignatureDocument->create($user);
 						if($result<0) {

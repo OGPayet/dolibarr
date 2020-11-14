@@ -22,6 +22,8 @@
  * \brief       This file is a CRUD class file for DigitalSignaturePeople (Create/Read/Update/Delete)
  */
 
+use PhpXmlRpc\Value;
+
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 
@@ -72,6 +74,21 @@ class DigitalSignaturePeople extends CommonObject
 	const STATUS_SUCCESS = 80;
 	const STATUS_FAILED = 90;
 	const STATUS_PROCESS_STOPPED_BEFORE = 99;
+
+	/**
+	 * @var string Linked contact type value
+	 */
+	const LINKED_OBJECT_CONTACT_TYPE = 'contact';
+
+	/**
+	 * @var string Linked User type value
+	 */
+	const LINKED_OBJECT_USER_TYPE = 'user';
+
+	/**
+	 * @var Contact|User Linked source object
+	 */
+	public $linkedSourceObject;
 
 	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -664,7 +681,7 @@ class DigitalSignaturePeople extends CommonObject
 	 */
 	public function isThisPeopleACustomer()
 	{
-		return $this->fk_people_type == 'contact';
+		return $this->fk_people_type == self::LINKED_OBJECT_CONTACT_TYPE;
 	}
 
 	/**
@@ -683,5 +700,153 @@ class DigitalSignaturePeople extends CommonObject
 	public function getLinkedThirdpartyId()
 	{
 		return $this->digitalSignatureRequest ?  $this->digitalSignatureRequest->getLinkedThirdpartyId() : null;
+	}
+
+	/**
+	 * Function to get list of id of contact into an array if digitalsignaturepeople
+	 * @param DigitalSignaturePeople[] $arrayOfPeople Array of people to be analyzed
+	 * @return int[] Array of ids
+	 */
+	public static function getIdOfContactIntoThesePeople($arrayOfPeople)
+	{
+		return self::getFilteredLinkedObjectId($arrayOfPeople, self::LINKED_OBJECT_CONTACT_TYPE);
+	}
+
+	/**
+	 * Function to get list of id of user into an array if digitalsignaturepeople
+	 * @param DigitalSignaturePeople[] $arrayOfPeople Array of people to be analyzed
+	 * @return int[] Array of ids
+	 */
+	public static function getIdOfUserIntoThesePeople($arrayOfPeople)
+	{
+		return self::getFilteredLinkedObjectId($arrayOfPeople, self::LINKED_OBJECT_USER_TYPE);
+	}
+
+	/**
+	 * Function to know if there is only free people into an array of people
+	 * @param DigitalSignaturePeople[] $arrayOfPeople Array of people to be analyzed
+	 * @return bool
+	 */
+	public static function isThereOnlyFreePeople($arrayOfPeople)
+	{
+		return empty(self::getIdOfUserIntoThesePeople($arrayOfPeople)) && empty(self::getIdOfContactIntoThesePeople($arrayOfPeople)) ;
+	}
+
+	/**
+	 * Function to filter user according to linked object type and return id of these linked object
+	 * @param DigitalSignaturePeople[] $arrayOfPeople Array of people to be analyzed
+	 * @param string $linkedObjectType linked object type
+	 * @return int[] Array of ids
+	 */
+	private static function getFilteredLinkedObjectId($arrayOfPeople, $linkedObjectType)
+	{
+		$result = array();
+		foreach($arrayOfPeople as $people) {
+			if($people->fk_people_type == $linkedObjectType) {
+				$result[] = $people->fk_people_object;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Function to fetch linked object type of this people
+	 * @return Contact|User|null linked object type if found and not a free people
+	 */
+	public function getLinkedSourceObject()
+	{
+		$this->linkedSourceObject = self::fetchObjectWithItsIdAndType($this->fk_people_object, $this->fk_people_type, $this->db);
+		return $this->linkedSourceObject;
+	}
+
+	/**
+	 * Function to fetch a linked object according to its type
+	 * @param int $objectId researched object id
+	 * @param string $objectType researched object type
+	 * @return Contact|User|null searched object if found
+	 */
+	private static function fetchObjectWithItsIdAndType($objectId, $objectType, $db)
+	{
+		if($objectType == self::LINKED_OBJECT_CONTACT_TYPE) {
+			dol_include_once("/contact/class/contact.class.php");
+			$linkedStatic = new Contact($db);
+		}
+		if($objectType == self::LINKED_OBJECT_USER_TYPE) {
+			dol_include_once("/user/class/user.class.php");
+			$linkedStatic = new User($db);
+		}
+		if($linkedStatic && $linkedStatic->fetch($objectId) > 0)
+		{
+			return $linkedStatic;
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Function to fill data from Contact
+	 * @param int $contactId id from which fill data
+	 * @param bool $overrideData Override data even if destination field is not empty and source field empty
+	 * @return int         <0 if KO, >0 if OK
+	 * */
+	public function fillDataFromContactId($contactId, $overrideData)
+	{
+		$contact = self::fetchObjectWithItsIdAndType($contactId, self::LINKED_OBJECT_CONTACT_TYPE, $this->db);
+		if(!$contact) {
+			return -1;
+		}
+
+		$contactPhoneNumber = array_shift(array_filter(array($contact->phone_mobile, $contact->phone_pro, $contact->phone_perso)));
+		$dataToUpdate = array('firstName' => $contact->firstname, 'lastName'=>$contact->lastname, 'mail'=>$contact->email, 'phoneNumber'=>$contactPhoneNumber);
+		foreach($dataToUpdate as $fieldName=>$value) {
+			if($overrideData || !empty($value)) {
+				$this->$fieldName = $value;
+			}
+		}
+		$this->fk_people_object = $contactId;
+		$this->fk_people_type = self::LINKED_OBJECT_CONTACT_TYPE;
+		return 1;
+	}
+
+	/**
+	 * Function to fill data from User
+	 * @param int $userId id from which fill data
+	 * @param bool $overrideData Override data even if destination field is not empty and source field empty
+	 * @return int         <0 if KO, >0 if OK
+	 * */
+	public function fillDataFromUserId($userId, $overrideData)
+	{
+		$user = self::fetchObjectWithItsIdAndType($userId, self::LINKED_OBJECT_USER_TYPE, $this->db);
+		if(!$user) {
+			return -1;
+		}
+
+		$userPhoneNumber = array_shift(array_filter(array($user->user_mobile, $user->office_phone)));
+		$dataToUpdate = array('firstName' => $user->firstname, 'lastName'=>$user->lastname, 'mail'=>$user->email, 'phoneNumber'=>$userPhoneNumber);
+		foreach($dataToUpdate as $fieldName=>$value) {
+			if($overrideData || !empty($value)) {
+				$this->$fieldName = $value;
+			}
+		}
+		$this->fk_people_object = $userId;
+		$this->fk_people_type = self::LINKED_OBJECT_USER_TYPE;
+		return 1;
+	}
+
+	/**
+	 * Function to get the max position of the list of given people
+	 * @param DigitalSignaturePeople[] $listOfPeople list of people to get last position
+	 * @return int
+	 */
+	public static function getLastPosition($listOfPeople)
+	{
+		$maximum = 0;
+		foreach($listOfPeople as $people) {
+			if($people->position > $maximum) {
+				$maximum = $people->position;
+			}
+		}
+		return $maximum;
 	}
 }

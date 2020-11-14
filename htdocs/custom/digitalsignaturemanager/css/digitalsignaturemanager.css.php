@@ -73,4 +73,7 @@ else header('Cache-Control: no-cache');
     content: "\e61a";
 }
 
+.fullwidth {
+	width: 100%;
+}
 

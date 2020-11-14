@@ -43,12 +43,14 @@ $rowOrder = GETPOST('rowOrder');
 $elementType = GETPOST('elementType');
 
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
-dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryField.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.php');
 global $db;
 $staticDigitalSignatureDocument = new DigitalSignatureDocument($db);
+$staticDigitalSignaturePeople = new DigitalSignaturePeople($db);
 
 $managedElementTypeAndStaticInstance = array(
 	$staticDigitalSignatureDocument->element => $staticDigitalSignatureDocument,
+	$staticDigitalSignaturePeople->element => $staticDigitalSignaturePeople,
 );
 
 
