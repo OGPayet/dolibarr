@@ -511,7 +511,7 @@ class DigitalSignatureRequest extends CommonObject
 					'fk_chosen_digitalsignaturepeople'=>$people->id,
 				));
 				if(!$signatureFieldForThisSignatoryOnThisDocument) {
-					$errors = $langs->trans('DigitalSignatureMissingSignatoryField', $people->displayName(), $document->getDocumentName());
+					$errors[] = $langs->trans('DigitalSignatureMissingSignatoryField', $people->displayName(), $document->getDocumentName());
 				}
 			}
 		}

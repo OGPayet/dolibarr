@@ -658,19 +658,66 @@ class DigitalSignaturePeople extends CommonObject
 	 */
 	public function checkDataValidForCreateRequestOnProvider()
 	{
+		return array_merge(
+			$this->checkFirstNameValidity(),
+			$this->checkLastNameValidity(),
+			$this->checkPhoneNumberValidity(),
+			$this->checkMailValidity()
+		);
+	}
+
+	/**
+	 * Function to check lastName content
+	 * @return string[] array of errors
+	 */
+	public function checkLastNameValidity()
+	{
 		global $langs;
 		$errors = array();
 		if(empty($this->lastName)) {
 			$errors[] = $langs->trans('DigitalSignaturePeopleMissingLastName', $this->displayName(""));
 		}
+		return $errors;
+	}
+
+	/**
+	 * Function to check firstName content
+	 * @return string[] array of errors
+	 */
+	public function checkFirstNameValidity()
+	{
+		global $langs;
+		$errors = array();
 		if(empty($this->firstName)) {
 			$errors[] = $langs->trans('DigitalSignaturePeopleMissingFirstName', $this->displayName(""));
 		}
-		if(empty($this->phoneNumber)) {
-			$errors[] = $langs->trans('DigitalSignaturePeopleMissingPhoneNumber', $this->displayName());
+		return $errors;
+	}
+
+	/**
+	 * Function to check mail content
+	 * @return string[] array of errors
+	 */
+	public function checkMailValidity()
+	{
+		global $langs;
+		$errors = array();
+		if(empty($this->mail)) {
+			$errors[] = $langs->trans('DigitalSignaturePeopleMissingMail', $this->displayName(""));
 		}
-		if(empty($this->mail)){
-			$errors[] = $langs->trans('DigitalSignaturePeopleMissingMail', $this->displayName());
+		return $errors;
+	}
+
+	/**
+	 * Function to check phoneNumber content
+	 * @return string[] array of errors
+	 */
+	public function checkPhoneNumberValidity()
+	{
+		global $langs;
+		$errors = array();
+		if(empty($this->phoneNumber)) {
+			$errors[] = $langs->trans('DigitalSignaturePeopleMissingPhoneNumber', $this->displayName(""));
 		}
 		return $errors;
 	}

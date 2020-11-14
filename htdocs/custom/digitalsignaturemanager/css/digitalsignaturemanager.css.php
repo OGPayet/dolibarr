@@ -74,6 +74,5 @@ else header('Cache-Control: no-cache');
 }
 
 .fullwidth {
-	width: 100%;
+	width:100%;
 }
-

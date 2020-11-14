@@ -215,5 +215,99 @@ class FormDigitalSignatureManager
             dol_print_error($this->db);
             return -1;
         }
-    }
+	}
+
+	/**
+	 * Function to display input column
+	 * @param string $fieldName Input post field name
+	 * @param string $fieldValue value to be displayed
+	 * @param bool $displayInfoBox should we display info box
+	 * @param string $infoBoxContent helper text to be displayed
+	 * @param bool $displayWarning should we display warning box
+	 * @param string[] $warningsContent warning content texts
+	 * @return string html content
+	 */
+	public function getInputFieldColumn($fieldName, $fieldValue, $displayInfoBox, $infoBoxContent, $displayWarning, $warningsContent)
+	{
+		$out = '<td>';
+		$out .= '<div style="display: flex;">';
+		$shouldInfoBoxBeingDisplayed = $displayInfoBox && !empty($infoBoxContent);
+		if ($shouldInfoBoxBeingDisplayed) {
+			$out .= $this->form->textwithpicto('', $infoBoxContent, 1, 'help', '', 0, 2);
+		}
+		$out .= '<input class="flat" type="text" name="' . $fieldName . '"value="' . $fieldValue . '" style="width: -webkit-fill-available;">';
+		$out .= $this->getWarningInfoBox($displayWarning, $warningsContent);
+		$out .= '</div>';
+		$out .= '</td>';
+		return $out;
+	}
+
+
+	/**
+	 * Function to get tooltip box
+	 * @param bool $displayToolTip should we display warning box
+	 * @param string[]|string $content warning content texts
+	 * @param string $toolTipPictoName name of the picto to use
+	 * @return string html content
+	 */
+	public function getTooltipBox($displayToolTip, $content, $toolTipPictoName = 'info')
+	{
+		$out = "";
+		if(!empty($content) && !is_array($content)) {
+			$content = array($content);
+		}
+		$shouldWarningBoxBeingDisplayed = $displayToolTip && !empty($content);
+		if ($shouldWarningBoxBeingDisplayed) {
+			$out .= $this->form->textwithpicto('', implode('<br>', $content), 1, $toolTipPictoName, '', 0, 2);
+		}
+		return $out;
+	}
+
+
+	/**
+	 * Function to get info box
+	 * @param bool $displayInfo should we display warning box
+	 * @param string[] $content warning content texts
+	 * @return string html content
+	 */
+	public function getInfoBox($displayInfo, $informationContent)
+	{
+		return $this->getTooltipBox($displayInfo, $informationContent, 'info');
+	}
+
+	/**
+	 * Function to get warning tooltip box
+	 * @param bool $displayWarning should we display warning box
+	 * @param string[] $warningsContent warning content texts
+	 * @return string html content
+	 */
+	public function getWarningInfoBox($displayWarning, $warningsContent)
+	{
+		return $this->getTooltipBox($displayWarning, $warningsContent, 'warning');
+	}
+
+	/**
+	 * Get current digital signature people id on which an action is performed
+	 * @param string $postFieldName name of the post field to get values from
+	 * @return int
+	 */
+	public function getFormElementId($postFieldName)
+	{
+		$result = null;
+		if(!empty($postFieldName)) {
+			$result = GETPOST($postFieldName);
+		}
+		return !empty($result) ? $result : null;
+	}
+
+	/**
+	 * Function to get current digital signature people id edited on page using showDocument
+	 * @param string $action current action name on card
+	 * @param string $action current action name on card
+	 * @return bool
+	 */
+	public function isAnElementBeingEdited($action, $editElementAction)
+	{
+		return $action == $editElementAction;
+	}
 }

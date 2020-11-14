@@ -110,7 +110,10 @@ DigitalSignatureManagerPeopleConfirmDeleteTitle = Confirmation de la suppression
 DigitalSignatureManagerPeopleConfirmDeleteDescription = Confirmez-vous la suppression du signatire %s ?
 DigitalSignatureManagerSourceObjectNotFound = Elément lié introuvable
 DigitalSignatureManagerNoSourceObject = Signataire libre
-
+DigitalSignatureManagerLastNameInfoBox = Nom de famille du signataire <br> Vérifier bien l'exactitude des données pour garantir la validité juridique de la signature
+DigitalSignatureManagerFirstNameInfoBox = Prénom du signataire <br> Vérifier bien l'exactitude des données pour garantir la validité juridique de la signature
+DigitalSignatureManagerMailInfoBox = Mail du signataire <br> Le signataire recevra sur cette adresse mail les informations lui permettant de réaliser la signature électronique
+DigitalSignatureManagerPhoneInfoBox = Numéro de téléphone mobile du signataire <br> Ce numéro permettra d'identifier juridiquement le signataire en lui envoyant un sms d'authentification
 #
 # Status
 #

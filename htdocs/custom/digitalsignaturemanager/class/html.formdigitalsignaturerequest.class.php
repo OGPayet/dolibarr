@@ -60,6 +60,11 @@ class FormDigitalSignatureRequest
 	public $formDigitalSignaturePeople;
 
 	/**
+	 * @var FormDigitalSignatureManager Instance of the form
+	 */
+	public $formDigitalSignatureManager;
+
+	/**
 	 * @var string id of the table displaying row of digital signature document on card
 	 *  should be only with minus character to make order ajax worked
 	 */
@@ -89,9 +94,11 @@ class FormDigitalSignatureRequest
 		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturedocument.class.php');
 		$this->formDigitalSignatureDocument = new FormDigitalSignatureDocument($db);
 
-
 		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturepeople.class.php');
 		$this->formDigitalSignaturePeople = new FormDigitalSignaturePeople($db);
+
+		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturemanager.class.php');
+		$this->formDigitalSignatureManager = new FormDigitalSignatureManager($db);
     }
 
 
@@ -379,10 +386,10 @@ class FormDigitalSignatureRequest
 			print '<td class="linecoldescription">' . $langs->trans('DigitalSignatureLinkedObjectTitle') . '</td>';
 		}
 
-		print '<td class="linecoldescription">' . $langs->trans('DigitalSignaturePeopleLastname') . '</td>';
-		print '<td class="linecoldescription">' . $langs->trans('DigitalSignaturePeopleFirstname') . '</td>';
-		print '<td class="linecoldescription">' . $langs->trans('DigitalSignaturePeopleMail') . '</td>';
-		print '<td class="linecoldescription">' . $langs->trans('DigitalSignaturePeopleMobilePhoneNumber') . '</td>';
+		print '<td class="linecoldescription">' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerLastNameInfoBox')) . $langs->trans('DigitalSignaturePeopleLastname') . '</td>';
+		print '<td class="linecoldescription">' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerFirstNameInfoBox')) .$langs->trans('DigitalSignaturePeopleFirstname') . '</td>';
+		print '<td class="linecoldescription">' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerMailInfoBox')) .$langs->trans('DigitalSignaturePeopleMail') . '</td>';
+		print '<td class="linecoldescription">' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerPhoneInfoBox')) .$langs->trans('DigitalSignaturePeopleMobilePhoneNumber') . '</td>';
 
 		$nbOfActionColumn = 0;
 		if($userCanAskToEditLine) {

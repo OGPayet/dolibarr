@@ -351,7 +351,7 @@ class FormDigitalSignaturePeople
 		$digitalSignaturePeople = $this->elementObjectStatic;
 
 		//we display input form
-		print self::getInputForm($digitalSignaturePeople);
+		print $this->getInputForm($digitalSignaturePeople);
 
 		// Show add button
 		$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
@@ -412,7 +412,7 @@ class FormDigitalSignaturePeople
 		}
 
 		//we display input form
-		print self::getInputForm($digitalSignaturePeople);
+		print $this->getInputForm($digitalSignaturePeople, true);
 
 		if ($userCanMoveLine) {
 			$numberOfActionColumnOfTheTable -= 1;
@@ -437,32 +437,52 @@ class FormDigitalSignaturePeople
 	/**
 	 * get input form of digital signature people
 	 * @param DigitalSignaturePeople $digitalSignaturePeople - object to be displayed
+	 * @param bool $displayWarnings should warning be displayed displaying data validation result
+	 * @param bool $displayInformation should we display helper about fields
 	 * @return string html output to be printed
 	 */
-
-	public static function getInputForm($digitalSignaturePeople)
+	public function getInputForm($digitalSignaturePeople, $displayWarnings = false, $displayInformation = true)
 	{
-
+		global $langs;
 		$out = '';
 		// We show Last Name Field
-		$out .= '<td>';
-		$out .= '<input class="flat minwidth400 fullwidth" type="text" name="' . self::ELEMENT_POST_LASTNAME_FIELD_NAME . '"value="' . $digitalSignaturePeople->lastName . '">';
-		$out .= '</td>';
-
+		$out .= $this->formDigitalSignatureManager->getInputFieldColumn(
+			self::ELEMENT_POST_LASTNAME_FIELD_NAME,
+			$digitalSignaturePeople->lastName,
+			$displayInformation,
+			$langs->trans('DigitalSignatureManagerLastNameInfoBox'),
+			$displayWarnings,
+			$digitalSignaturePeople->checkLastNameValidity()
+		);
 		//We show first name field
-		$out .= '<td>';
-		$out .= '<input class="flat minwidth400 fullwidth" type="text" name="' . self::ELEMENT_POST_FIRSTNAME_FIELD_NAME . '"value="' . $digitalSignaturePeople->firstName . '">';
-		$out .= '</td>';
+		$out .= $this->formDigitalSignatureManager->getInputFieldColumn(
+			self::ELEMENT_POST_FIRSTNAME_FIELD_NAME,
+			$digitalSignaturePeople->firstName,
+			$displayInformation,
+			$langs->trans('DigitalSignatureManagerFirstNameInfoBox'),
+			$displayWarnings,
+			$digitalSignaturePeople->checkFirstNameValidity()
+		);
 
 		//We show mail field
-		$out .= '<td>';
-		$out .= '<input class="flat minwidth400 fullwidth" type="text" name="' . self::ELEMENT_POST_MAIL_FIELD_NAME . '"value="' . $digitalSignaturePeople->mail . '">';
-		$out .= '</td>';
+		$out .= $this->formDigitalSignatureManager->getInputFieldColumn(
+			self::ELEMENT_POST_MAIL_FIELD_NAME,
+			$digitalSignaturePeople->mail,
+			$displayInformation,
+			$langs->trans('DigitalSignatureManagerMailInfoBox'),
+			$displayWarnings,
+			$digitalSignaturePeople->checkMailValidity()
+		);
 
 		//We show phone field
-		$out .= '<td>';
-		$out .= '<input class="flat minwidth400 fullwidth" type="text" name="' . self::ELEMENT_POST_PHONE_FIELD_NAME . '"value="' . $digitalSignaturePeople->phoneNumber . '">';
-		$out .= '</td>';
+		$out .= $this->formDigitalSignatureManager->getInputFieldColumn(
+			self::ELEMENT_POST_PHONE_FIELD_NAME,
+			$digitalSignaturePeople->phoneNumber,
+			$displayInformation,
+			$langs->trans('DigitalSignatureManagerPhoneInfoBox'),
+			$displayWarnings,
+			$digitalSignaturePeople->checkPhoneNumberValidity()
+		);
 		return $out;
 	}
 
@@ -500,21 +520,25 @@ class FormDigitalSignaturePeople
 		// We show Last Name Field
 		print '<td>';
 		print $digitalSignaturePeople->lastName;
+		print $this->formDigitalSignatureManager->getWarningInfoBox($userCanAskToEditLine, $digitalSignaturePeople->checkLastNameValidity());
 		print '</td>';
 
 		//We show first name field
 		print '<td>';
 		print $digitalSignaturePeople->firstName;
+		print $this->formDigitalSignatureManager->getWarningInfoBox($userCanAskToEditLine, $digitalSignaturePeople->checkFirstNameValidity());
 		print '</td>';
 
 		//We show mail field
 		print '<td>';
 		print $digitalSignaturePeople->mail;
+		print $this->formDigitalSignatureManager->getWarningInfoBox($userCanAskToEditLine, $digitalSignaturePeople->checkMailValidity());
 		print '</td>';
 
 		//We show phone field
 		print '<td>';
 		print $digitalSignaturePeople->phoneNumber;
+		print $this->formDigitalSignatureManager->getWarningInfoBox($userCanAskToEditLine, $digitalSignaturePeople->checkPhoneNumberValidity());
 		print '</td>';
 
 		$nbOfActionColumn = count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)));
@@ -559,11 +583,9 @@ class FormDigitalSignaturePeople
 		$linkedSourceObject = $digitalSignaturePeople->getLinkedSourceObject();
 		if ($linkedSourceObject) {
 			$out = $linkedSourceObject->getNomUrl(1);
-		}
-		elseif(!$digitalSignaturePeople->fk_people_object) {
+		} elseif (!$digitalSignaturePeople->fk_people_object) {
 			$out = $langs->trans('DigitalSignatureManagerNoSourceObject');
-		}
-		else {
+		} else {
 			$out = $langs->trans("DigitalSignatureManagerSourceObjectNotFound");
 		}
 		return $out;
@@ -724,8 +746,7 @@ class FormDigitalSignaturePeople
 	 */
 	public function getFormElementId()
 	{
-		$result = GETPOST(self::ELEMENT_POST_ID_FIELD_NAME);
-		return $result ? $result : null;
+		return $this->formDigitalSignatureManager->getFormElementId(self::ELEMENT_POST_ID_FIELD_NAME);
 	}
 
 	/**

@@ -467,22 +467,18 @@ class FormDigitalSignatureDocument
 	 */
 	public function getCurrentAskedEditedElementId($action)
 	{
-		$currentDocumentIdEdited = null;
-		if($action == self::EDIT_ACTION_NAME) {
-			$currentDocumentIdEdited = $this->getFormElementId();
-		}
-		return !empty($currentDocumentIdEdited) ? $currentDocumentIdEdited : null;
+		return $this->formDigitalSignatureManager->isAnElementBeingEdited($action, self::EDIT_ACTION_NAME) ? $this->getFormElementId() : null;
 	}
 
 	/**
-	 * Get current document id on which an action is performed
+	 * Get current digital signature people id on which an action is performed
 	 * @return int
 	 */
 	public function getFormElementId()
 	{
-		$result = GETPOST(self::ELEMENT_POST_ID_FIELD_NAME);
-		return $result ? $result : null;
+		return $this->formDigitalSignatureManager->getFormElementId(self::ELEMENT_POST_ID_FIELD_NAME);
 	}
+
 
 	/**
 	 * Get formConfirm for delete action
