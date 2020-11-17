@@ -114,6 +114,31 @@ DigitalSignatureManagerLastNameInfoBox = Nom de famille du signataire <br> Véri
 DigitalSignatureManagerFirstNameInfoBox = Prénom du signataire <br> Vérifier bien l'exactitude des données pour garantir la validité juridique de la signature
 DigitalSignatureManagerMailInfoBox = Mail du signataire <br> Le signataire recevra sur cette adresse mail les informations lui permettant de réaliser la signature électronique
 DigitalSignatureManagerPhoneInfoBox = Numéro de téléphone mobile du signataire <br> Ce numéro permettra d'identifier juridiquement le signataire en lui envoyant un sms d'authentification
+
+DigitalSignatureManagerSignatureSignatoryList = Liste des emplacement de signature de chaque signataire, pour chaque document où il dispose d'un emplacement
+DigitalSignatureSignatoryFieldLinkedSignatory = Signataire
+DigitalSignatureSignatoryFieldLinkedDocument = Document
+DigitalSignatureSignatoryFieldPage = Numéro de page
+DigitalSignatureSignatoryFieldPageInfoBox = Indiquer à quelle page du document se situe la zone de signature
+DigitalSignatureSignatoryFieldXAxis = Coordonné sur l'axe horizontale
+DigitalSignatureSignatoryFieldXAxisInfoBox = Indiquer la coordonné horizontale du coin supérieur gauche de la zone de signature
+DigitalSignatureSignatoryFieldYAxis = Coordonné sur l'axe verticale
+DigitalSignatureSignatoryFieldYAxisInfoBox = Indiquer la coordonné verticale du coin supérieur gauche de la zone de signature
+DigitalSignatureManagerSignatoryFieldConfirmDeleteTitle = Confirmation de la suppression d'une zone de signature
+DigitalSignatureManagerSignatoryFieldConfirmDeleteDescription = Confirmez-vous la suppression de cette zone de signature ?
+DigitalSignatureSignatoryFieldSuccessfullySaved = Information du champs de signature mise à jour avec succès
+DigitalSignatureSignatoryFieldErrorWhileSaving = Erreur lors de l'enregistrement des informations du champs de signature
+DigitalSignatureSignatoryFieldNotFound = Champs de signature introuvable
+DigitalSignatureRequestSignatoryFieldeErrorWhenAdded = Erreur lors de l'ajout de ce champs de signature
+DigitalSignatureRequestSignatoryFieldSuccesfullyAdded = Champs de signature ajouté avec succès
+DigitalSignatureManagerSignatoryFieldErrorWhileDeleting = Erreur lors de la suppression du champs de signature
+DigitalSignatureManagerSignatoryFielduccessfullyDeleted = Champs de signature supprimé avec succès
+DigitalSignatureSignatoryFieldNotFoundOrAlreadyDeleted = Champ de signature introuvable ou déjà supprimé
+DigitalSignatureManagerSignatoryFieldChosenDocumentDoesNotExistAnymore = Le document a été supprimé
+DigitalSignatureManagerSignatoryFieldChosenSignatoryDoesNotExistAnymore = Le signataire a été supprimé
+DigitalSignatureAddSignatoryField = Ajouter une zone de signature
+
+
 #
 # Status
 #

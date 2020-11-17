@@ -31,7 +31,6 @@ dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryfield.
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
 dol_include_once('/digitalsignaturemanager/class/digitalSignatureManagerUniversign.class.php');
 
-
 /**
  * Class for DigitalSignatureRequest
  */
@@ -1118,5 +1117,43 @@ class DigitalSignatureRequest extends CommonObject
 	public function getLinkedThirdpartyId()
 	{
 		return $this->fk_soc;
+	}
+
+	/**
+	 * Function to get linked document list
+	 * @return DigitalSignatureDocument[]
+	 */
+	public function getLinkedDocuments()
+	{
+		return is_array($this->documents) ? $this->documents : array();
+	}
+
+	/**
+	 * Function to get linked document list
+	 * @return DigitalSignaturePeople[]
+	 */
+	public function getLinkedPeople()
+	{
+		return is_array($this->people) ? $this->people : array();
+	}
+
+	/**
+	 * Function to get linked document object by id
+	 * @param int $documentId searched document id
+	 * @return DigitalSignatureDocument|null researched linked document
+	 */
+	public function getLinkedDocumentById($documentId)
+	{
+		return findObjectInArrayByProperty($this->getLinkedDocuments(), 'id', $documentId);
+	}
+
+	/**
+	 * Function to get linked people object by id
+	 * @param int $peopleId searched people id
+	 * @return DigitalSignaturePeople|null researched linked digital signature people
+	 */
+	public function getLinkedPeopleById($peopleId)
+	{
+		return findObjectInArrayByProperty($this->getLinkedPeople(), 'id', $peopleId);
 	}
 }

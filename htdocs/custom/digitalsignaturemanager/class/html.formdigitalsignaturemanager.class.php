@@ -218,6 +218,25 @@ class FormDigitalSignatureManager
         }
 	}
 
+
+	/**
+	 * Function to get column title
+	 * @param string $columnTitle Title of the column
+	 * @param string $infoBoxContent Content of the helper info box
+	 * @param bool $displayInfoBox should we display infobox helper
+	 * @return string html content ready to be displayed
+	 */
+	public function getColumnTitle($columnTitle, $infoBoxContent = "", $displayInfoBox = false)
+	{
+		$out ='<td class="linecoldescription"><div style="display: flex;">';
+		if($displayInfoBox && !empty($infoBoxContent)) {
+			$out .= $this->getInfoBox(true, $infoBoxContent);
+		}
+		$out .= $columnTitle;
+		$out .= '</div></td>';
+		return $out;
+	}
+
 	/**
 	 * Function to display input column
 	 * @param string $fieldName Input post field name
@@ -226,9 +245,11 @@ class FormDigitalSignatureManager
 	 * @param string $infoBoxContent helper text to be displayed
 	 * @param bool $displayWarning should we display warning box
 	 * @param string[] $warningsContent warning content texts
+	 * @param string $inputValueType html input value type
+	 * @param string $moreInputParameter more input value type
 	 * @return string html content
 	 */
-	public function getInputFieldColumn($fieldName, $fieldValue, $displayInfoBox, $infoBoxContent, $displayWarning, $warningsContent)
+	public function getInputFieldColumn($fieldName, $fieldValue, $displayInfoBox, $infoBoxContent, $displayWarning, $warningsContent, $inputValueType = 'text', $moreInputParameter = '')
 	{
 		$out = '<td>';
 		$out .= '<div style="display: flex;">';
@@ -236,7 +257,33 @@ class FormDigitalSignatureManager
 		if ($shouldInfoBoxBeingDisplayed) {
 			$out .= $this->form->textwithpicto('', $infoBoxContent, 1, 'help', '', 0, 2);
 		}
-		$out .= '<input class="flat" type="text" name="' . $fieldName . '"value="' . $fieldValue . '" style="width: -webkit-fill-available;">';
+		$out .= '<input class="flat" type="'. $inputValueType . '" name="' . $fieldName . '" value="' . $fieldValue . '" ' . $moreInputParameter . '" style="width: -webkit-fill-available;">';
+		$out .= $this->getWarningInfoBox($displayWarning, $warningsContent);
+		$out .= '</div>';
+		$out .= '</td>';
+		return $out;
+	}
+
+		/**
+	 * Function to display select field into column
+	 * @param string $fieldName Input post field name
+	 * @param string $fieldValue value to be displayed
+	 * @param string[] $arrayOfItemIntoKeyArray array of string with values key=>displayValue
+	 * @param bool $displayInfoBox should we display info box
+	 * @param string $infoBoxContent helper text to be displayed
+	 * @param bool $displayWarning should we display warning box
+	 * @param string[] $warningsContent warning content texts
+	 * @return string html content
+	 */
+	public function getSelectFieldColumn($fieldName, $fieldValue, $arrayOfItemIntoKeyArray, $displayInfoBox, $infoBoxContent, $displayWarning, $warningsContent)
+	{
+		$out = '<td>';
+		$out .= '<div style="display: flex;">';
+		$shouldInfoBoxBeingDisplayed = $displayInfoBox && !empty($infoBoxContent);
+		if ($shouldInfoBoxBeingDisplayed) {
+			$out .= $this->form->textwithpicto('', $infoBoxContent, 1, 'help', '', 0, 2);
+		}
+		$out .= $this->form->selectarray($fieldName, $arrayOfItemIntoKeyArray, $fieldValue, 0, 0, 0, 'style="width: 95%;"', 0, 0, 0, '', '', 1);
 		$out .= $this->getWarningInfoBox($displayWarning, $warningsContent);
 		$out .= '</div>';
 		$out .= '</td>';
@@ -310,5 +357,43 @@ class FormDigitalSignatureManager
 	public function isAnElementBeingEdited($action, $editElementAction)
 	{
 		return $action == $editElementAction;
+	}
+
+	/**
+	 * Function to build an url for subItem action
+	 * @param int $objectId Digital signature request id
+	 * @param string $actionName Name of the asked action
+	 * @param int $subObjectIdFieldName name of the sub Object parameter which will contain id field
+	 * @param int $subObjectId value of the sub Object Id
+	 * @param string $htmlRowPrefix Value of the prefix of the html item to scroll
+	 * @return string action url with parameters
+	 */
+	public function buildActionUrlForLine($objectId, $actionName = null, $subObjectIdFieldName = null, $subObjectId = null, $htmlRowPrefix = null)
+	{
+		$out = $_SERVER["PHP_SELF"];
+		$parameters = array('action' => $actionName, 'id' => $objectId);
+		if($subObjectIdFieldName && $subObjectId) {
+			$parameters[$subObjectIdFieldName] = $subObjectId;
+		}
+		$parameters = array_filter($parameters);
+
+		$stringValues = array();
+		foreach($parameters as $key=>$value) {
+			$stringValues[] = $key . '=' . $value;
+		}
+
+		if(!empty($stringValues)) {
+			$out .= '?';
+		}
+
+		$out .= implode('&amp;', $stringValues);
+
+		if($htmlRowPrefix) {
+			$out .= '#' . $htmlRowPrefix;
+			if($subObjectId) {
+				$out .= '-' . $subObjectId;
+			}
+		}
+		return $out;
 	}
 }

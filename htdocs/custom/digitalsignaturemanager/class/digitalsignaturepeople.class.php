@@ -716,9 +716,9 @@ class DigitalSignaturePeople extends CommonObject
 	{
 		global $langs;
 		$errors = array();
-		if(empty($this->phoneNumber)) {
-			$errors[] = $langs->trans('DigitalSignaturePeopleMissingPhoneNumber', $this->displayName(""));
-		}
+		// if(empty($this->phoneNumber)) {
+		// 	$errors[] = $langs->trans('DigitalSignaturePeopleMissingPhoneNumber', $this->displayName(""));
+		// }
 		return $errors;
 	}
 

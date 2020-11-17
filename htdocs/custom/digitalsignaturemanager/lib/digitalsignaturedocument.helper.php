@@ -55,7 +55,7 @@ function compareValues($a, $b)
   * @param boolean $returnPosition return position of object in array instead of the object
   * @return null|any
  */
-function getItemFromThisArray(array &$array, array $arrayOfParameters = array(), bool $returnPosition = false)
+function getItemFromThisArray(&$array, array $arrayOfParameters = array(), bool $returnPosition = false)
 {
     $result = null;
     foreach ($array as $index => &$item) {

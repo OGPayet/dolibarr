@@ -239,13 +239,13 @@ class FormDigitalSignaturePeople
 		global $hookmanager, $action;
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_NEW_ROW_FROM_CONTACT . '" class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
-		print '<form action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '#' . self::ELEMENT_PREFIX_NEW_ROW_FROM_CONTACT . '" enctype="multipart/form-data" method="post">';
+		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, null, self::ELEMENT_PREFIX_NEW_ROW_FROM_CONTACT) . '" enctype="multipart/form-data" method="post">';
 		print '<input type="hidden" name="token" value="' . newToken() . '">';
 
 		$parameters = array();
 		$reshook = $hookmanager->executeHooks('formAddObjectLine', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 
-		if($reshook > 0) {
+		if($reshook == 0) {
 			$colspan = 0; //used for extrafields
 			global $conf, $langs;
 			//We display number column
@@ -285,7 +285,7 @@ class FormDigitalSignaturePeople
 		global $hookmanager, $action;
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_NEW_ROW_FROM_USER . '" class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
-		print '<form action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '#' . self::ELEMENT_PREFIX_NEW_ROW_FROM_USER . '" enctype="multipart/form-data" method="post">';
+		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, null, self::ELEMENT_PREFIX_NEW_ROW_FROM_USER) . '" enctype="multipart/form-data" method="post">';
 		print '<input type="hidden" name="token" value="' . newToken() . '">';
 
 		$parameters = array();
@@ -332,7 +332,7 @@ class FormDigitalSignaturePeople
 		global $hookmanager, $action;
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_NEW_FREE_ROW . '" class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
-		print '<form action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '#' . self::ELEMENT_PREFIX_NEW_FREE_ROW . '" enctype="multipart/form-data" method="post">';
+		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, null, self::ELEMENT_PREFIX_NEW_FREE_ROW) . '" enctype="multipart/form-data" method="post">';
 		print '<input type="hidden" name="action" value="' . self::ADD_ACTION_NAME . '">';
 		print '<input type="hidden" name="token" value="' . newToken() . '">';
 
@@ -390,7 +390,7 @@ class FormDigitalSignaturePeople
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_ROW . '-' . $digitalSignaturePeople->id . '" class="oddeven drag drop">';
 
-		print '<form action="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '#' . self::ELEMENT_PREFIX_ROW . '-' . $digitalSignaturePeople->id . '" enctype="multipart/form-data" method="post">';
+		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, $digitalSignaturePeople->id, self::ELEMENT_PREFIX_ROW) . '" enctype="multipart/form-data" method="post">';
 		print '<input type="hidden" name="token" value="' . newToken() . '">';
 		print '<input type="hidden" name="action" value="' . self::SAVE_ACTION_NAME . '">';
 		print '<input type="hidden" name="' . self::ELEMENT_POST_ID_FIELD_NAME . '" value="' . $digitalSignaturePeople->id . '">';
@@ -558,14 +558,14 @@ class FormDigitalSignaturePeople
 		// Show edit button
 		if ($userCanAskToEditLine) {
 			print '<td class="linecoledit" align="center">';
-			print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $digitalSignatureRequestId . '&amp;action=' . self::EDIT_ACTION_NAME . '&amp;' . self::ELEMENT_POST_ID_FIELD_NAME . '=' . $digitalSignaturePeople->id . '#' . self::ELEMENT_PREFIX_ROW . '-' . $digitalSignaturePeople->id . '">';
+			print '<a href="' . $this->formDigitalSignatureManager->buildActionUrlForLine($digitalSignatureRequestId, self::EDIT_ACTION_NAME, self::ELEMENT_POST_ID_FIELD_NAME, $digitalSignaturePeople->id, self::ELEMENT_PREFIX_ROW) . '">';
 			print img_edit();
 			print '</td>';
 		}
 		//Show delete button
 		if ($userCanAskToDeleteLine) {
 			print '<td class="linecoldelete" align="center">';
-			print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $digitalSignatureRequestId . '&amp;action=' . self::DELETE_ACTION_NAME . '&amp;' . self::ELEMENT_POST_ID_FIELD_NAME . '=' . $digitalSignaturePeople->id . '">';
+			print '<a href="' . $this->formDigitalSignatureManager->buildActionUrlForLine($digitalSignatureRequestId, self::DELETE_ACTION_NAME, self::ELEMENT_POST_ID_FIELD_NAME, $digitalSignaturePeople->id, self::ELEMENT_PREFIX_ROW) . '">';
 			print img_delete();
 			print '</td>';
 		}
@@ -772,7 +772,7 @@ class FormDigitalSignaturePeople
 			);
 			$documentStatic = $this->elementObjectStatic;
 			$documentStatic->fetch($this->getFormElementId());
-			return $this->form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureManagerPeopleConfirmDeleteTitle'), $langs->trans('DigitalSignatureManagerPeopleConfirmDeleteDescription', $documentStatic->displayName()), self::CONFIRM_DELETE_ACTION_NAME, $formquestion, 0, 1, 220);
+			return $this->form->formconfirm($this->formDigitalSignatureManager->buildActionUrlForLine($object->id), $langs->trans('DigitalSignatureManagerPeopleConfirmDeleteTitle'), $langs->trans('DigitalSignatureManagerPeopleConfirmDeleteDescription', $documentStatic->displayName()), self::CONFIRM_DELETE_ACTION_NAME, $formquestion, 0, 1, 220);
 		}
 		return $formconfirm;
 	}

@@ -26,6 +26,36 @@
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 
 /**
+ * Function to be used with usort to sort array of signatory according to document and signatory orders
+ * @param DigitalSignatureSignatoryField $a first element
+ * @param DigitalSignatureSignatoryField $b second element
+ * @return int proper int according to usort
+ */
+function sortSignatoryByDocumentAndSignatoryOrder($a, $b) {
+	$aDocument = $a->getChosenDigitalSignatureDocument();
+	$aDocumentOrder = $aDocument ? $aDocument->position : null;
+
+	$bDocument = $b->getChosenDigitalSignatureDocument();
+	$bDocumentOrder = $bDocument ? $bDocument->position : null;
+
+	if ($aDocumentOrder== $bDocumentOrder) {
+		$aSignatory = $a->getChosenDigitalSignaturePeople();
+		$aSignatoryOrder = $aSignatory ? $aSignatory->position : null;
+
+		$bSignatory = $b->getChosenDigitalSignaturePeople();
+		$bSignatoryOrder = $bSignatory ? $bSignatory->position : null;
+
+		if($aSignatoryOrder == $bSignatoryOrder) {
+			return 0;
+		}
+		else {
+			return $aSignatoryOrder < $bSignatoryOrder ? -1 : 1;
+		}
+	}
+	return $aDocumentOrder < $bDocumentOrder ? -1 : 1;
+}
+
+/**
  * Class for DigitalSignatureSignatoryField
  */
 class DigitalSignatureSignatoryField extends CommonObject
@@ -60,6 +90,16 @@ class DigitalSignatureSignatoryField extends CommonObject
 	 * @var DigitalSignatureRequest linkedDigitalSignatureRequest
 	 */
 	public $digitalSignatureRequest;
+
+	/**
+	 * @var DigitalSignatureDocument Chosen Digital signature Document
+	 */
+	public $digitalSignatureDocument;
+
+	/**
+	 * @var DigitalSignaturePeople Chosen Digital signature people
+	 */
+	public $digitalSignaturePeople;
 
 	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -302,8 +342,136 @@ class DigitalSignatureSignatoryField extends CommonObject
 				$signatoryField->digitalSignatureRequest = $digitalSignatureRequest;
 				$signatoryField->fetch_optionals();
 			}
+			usort($result, 'sortSignatoryByDocumentAndSignatoryOrder');
 			return $result;
 		}
 		return -1;
+	}
+
+	/**
+	 * Function to check page number value validity
+	 * @return string[] array of errors
+	 */
+	public function checkPageNumberValidity()
+	{
+		global $langs;
+		$errors = array();
+		if($this->page == null || $this->page == 0) {
+			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldPageValueIncorrect');
+		}
+		return $errors;
+	}
+
+
+	/**
+	 * Function to x axis value
+	 * @return string[] array of errors
+	 */
+	public function checkXAxisValidity()
+	{
+		global $langs;
+		$errors = array();
+		if($this->x == null) {
+			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldXAxisValueIncorrect');
+		}
+		return $errors;
+	}
+
+
+	/**
+	 * Function to y axis value
+	 * @return string[] array of errors
+	 */
+	public function checkYAxisValidity()
+	{
+		global $langs;
+		$errors = array();
+		if($this->y == null) {
+			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldYAxisValueIncorrect');
+		}
+		return $errors;
+	}
+
+	/**
+	 * Function to check linked document value
+	 * @return string [] array of errors
+	 * */
+	public function checkLinkedDocumentValidity()
+	{
+		global $langs;
+		$errors = array();
+		if($this->fk_chosen_digitalsignaturedocument == null) {
+			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldDocumentNotChosen');
+		}
+		if(!$this->getChosenDigitalSignatureDocument()) {
+			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldChosenDocumentDoesNotExistAnymore');
+		}
+		return $errors;
+	}
+
+		/**
+	 * Function to check linked signatory value
+	 * @return string [] array of errors
+	 * */
+	public function checkLinkedSignatoryValidity()
+	{
+		global $langs;
+		$errors = array();
+		if($this->fk_chosen_digitalsignaturepeople == null) {
+			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldDSignatoryNotChosen');
+		}
+		if(!$this->getChosenDigitalSignaturePeople()) {
+			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldChosenSignatoryDoesNotExistAnymore');
+		}
+		return $errors;
+	}
+	 /**
+	 * Function to fetch linked digital signature request
+	 * @return int         <0 if KO, 0 if not found, >0 if OK
+	 */
+	public function fetchLinkedDigitalSignatureRequest()
+	{
+		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
+		$digitalSignatureRequestStatic = new DigitalSignatureRequest($this->db);
+		if(!$this->fk_digitalsignaturerequest) {
+			return 0;
+		}
+		$result = $digitalSignatureRequestStatic->fetch($this->fk_digitalsignaturerequest);
+		if($result > 0) {
+			$this->digitalSignatureRequest = $digitalSignatureRequestStatic;
+		}
+		return $result;
+	}
+
+	/**
+	 * Function to get linked digital signature document
+	 * @return DigitalSignatureDocument|null researched digital signature document
+	 */
+	public function getChosenDigitalSignatureDocument()
+	{
+		$digitalSignatureRequestStatic = $this->getLinkedDigitalSignatureRequest();
+		return $digitalSignatureRequestStatic ? $digitalSignatureRequestStatic->getLinkedDocumentById($this->fk_chosen_digitalsignaturedocument) : null;
+	}
+
+	/**
+	 * Function to get linked digital signature people
+	 * @return DigitalSignaturePeople|null researched digital signature people
+	 */
+	public function getChosenDigitalSignaturePeople()
+	{
+		$digitalSignatureRequestStatic = $this->getLinkedDigitalSignatureRequest();
+		return $digitalSignatureRequestStatic ? $digitalSignatureRequestStatic->getLinkedPeopleById($this->fk_chosen_digitalsignaturepeople) : null;
+	}
+
+	/**
+	 * Function to get linked digital signature request
+	 * @return DigitalSignatureRequest
+	 */
+	public function getLinkedDigitalSignatureRequest()
+	{
+		if(!$this->digitalSignatureRequest) {
+			$this->fetchLinkedDigitalSignatureRequest();
+		}
+		return $this->digitalSignatureRequest;
 	}
 }

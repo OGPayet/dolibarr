@@ -65,6 +65,11 @@ class FormDigitalSignatureRequest
 	public $formDigitalSignatureManager;
 
 	/**
+	 * @var FormDigitalSignatureSignatoryField Instance of the form
+	 */
+	public $formDigitalSignatureSignatoryField;
+
+	/**
 	 * @var DigitalSignatureRequest static element
 	 */
 	public $elementStatic;
@@ -80,6 +85,12 @@ class FormDigitalSignatureRequest
 	 *  should be only with minus character to make order ajax worked
 	 */
 	const DIGITALSIGNATUREPEOPLE_TABLEID = "digitalsignaturepeopletable";
+
+	/**
+	 * @var string id of the table displaying row of digital signatory fields on card
+	 *  should be only with minus character to make order ajax worked
+	 */
+	const DIGITALSIGNATURESIGNATORYFIELD_TABLEID = "digitalsignaturesignatoryfield";
 
     /**
      * Constructor
@@ -104,6 +115,9 @@ class FormDigitalSignatureRequest
 
 		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturemanager.class.php');
 		$this->formDigitalSignatureManager = new FormDigitalSignatureManager($db);
+
+		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturesignatoryfield.class.php');
+		$this->formDigitalSignatureSignatoryField = new FormDigitalSignatureSignatoryField($db);
 
 		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 		$this->elementStatic = new DigitalSignatureRequest($db);
@@ -234,7 +248,7 @@ class FormDigitalSignatureRequest
 	/**
 	 * Function to display documents file lines
 	 * @param DigitalSignatureRequest $object Parent object of lines to display
-	 * @param int $currentDocumentIdEdited current document id which is edited
+	 * @param int $currentDocumentIdEdited current people id which is edited
 	 * @param bool $readOnlyMode - force readonly mode
 	 * @param bool $permissionToAdd - boolean indicating if user can edit document
 	 * @param bool $permissionToEdit - boolean indicating if user can edit document
@@ -245,7 +259,7 @@ class FormDigitalSignatureRequest
 	{
 		global $conf, $langs;
 
-		$documents = $object->documents;
+		$documents = $object->getLinkedDocuments();
 		$currentLineEdited = findObjectInArrayByProperty($documents, 'id', $currentDocumentIdEdited);
 		$isALineBeingEdited = (bool) $currentLineEdited;
 
@@ -273,7 +287,11 @@ class FormDigitalSignatureRequest
 			print '<td class="linecolnum" align="center"></td>';
 		}
 
-		print '<td class="linecoldescription">' . $langs->trans('DigitalSignatureManagerDocumentColumnTitle') . '</td>';
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureManagerDocumentColumnTitle'),
+			$langs->trans('DigitalSignatureManagerDocumentColumnTitleInfoBox'),
+			false
+		);
 
 		if($userCanAskToEditDocumentLine) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
@@ -325,6 +343,111 @@ class FormDigitalSignatureRequest
 	}
 
 	/**
+	 * Function to display digital signature signatory lines lines
+	 * @param DigitalSignatureRequest $object Parent object of lines to display
+	 * @param int $currentPeopleIdEdited current document id which is edited
+	 * @param bool $readOnlyMode - force readonly mode
+	 * @param bool $permissionToAdd - boolean indicating if user can edit document
+	 * @param bool $permissionToEdit - boolean indicating if user can edit document
+	 * @param bool $permissionToDelete - boolean indicating if user can delete document
+	 * @return void
+	 */
+	public function showSignatoryFieldLines($object, $currentSignatoryFieldEditedId, $readOnlyMode, $permissionToAdd, $permissionToEdit, $permissionToDelete)
+	{
+		global $conf, $langs;
+
+		$listOfSignatoryField = $object->signatoryFields;
+		$currentLineEdited = findObjectInArrayByProperty($listOfSignatoryField, 'id', $currentSignatoryFieldEditedId);
+		$isALineBeingEdited = (bool) $currentLineEdited;
+
+		$userCanAskToEditLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit) && count($listOfSignatoryField) > 0;
+		$userCanAskToDeleteLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToDelete) && count($listOfSignatoryField) > 0;
+		$userCanAddLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
+
+		$numberOfActionColumnPerComponentsDisplayed = array(
+			'showSignatoryField'=>count($listOfSignatoryField) > 0 ? count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine))) : null,
+			'editSignatoryField'=> $isALineBeingEdited ? 1 : null,
+			'addSignatoryField' => $userCanAddLine ? 1 : null,
+		);
+		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
+
+		print '<div class="div-table-responsive-no-min">';
+		print '<div class="titre"><h3>' . $langs->trans('DigitalSignatureManagerSignatureSignatoryList') . '</h3></div>';
+		print '<table id="' . self::DIGITALSIGNATURESIGNATORYFIELD_TABLEID . '" class="noborder noshadow tabBar" width="100%">';
+
+		//display people lines header
+
+		print '<tr class="liste_titre nodrag nodrop">';
+
+		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+			print '<td class="linecolnum" align="center"></td>';
+		}
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureSignatoryFieldLinkedSignatory')
+		);
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureSignatoryFieldLinkedDocument')
+		);
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureSignatoryFieldPage'),
+			$langs->trans('DigitalSignatureSignatoryFieldPageInfoBox'),
+			true
+		);
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureSignatoryFieldXAxis'),
+			$langs->trans('DigitalSignatureSignatoryFieldXAxisInfoBox'),
+			true
+		);
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureSignatoryFieldYAxis'),
+			$langs->trans('DigitalSignatureSignatoryFieldYAxisInfoBox'),
+			true
+		);
+
+		$nbOfActionColumn = 0;
+		if($userCanAskToEditLine) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+
+		if($userCanAskToDeleteLine) {
+			print '<td class="linecoldelete" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+
+		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+		print '</tr>';
+
+		$nbOfContentColumn = 5;
+
+		//we display digital signature people
+		foreach($listOfSignatoryField as $signatoryField) {
+			if($signatoryField->id != $currentSignatoryFieldEditedId) {
+				$this->formDigitalSignatureSignatoryField->show($signatoryField, $userCanAskToEditLine, $userCanAskToDeleteLine, $neededActionColumn);
+			}
+			else {
+				//We display the form to edit line
+				$this->formDigitalSignatureSignatoryField->showEditForm($object, $signatoryField, $nbOfContentColumn, $neededActionColumn);
+			}
+		}
+		//We display form to add new document
+		if ($userCanAddLine)
+		{
+			$this->formDigitalSignatureSignatoryField->showAddForm($object, $nbOfContentColumn, $neededActionColumn);
+		}
+
+		print '</table>';
+		print '</div>';
+	}
+
+		/**
 	 * Function to display digital signature people lines
 	 * @param DigitalSignatureRequest $object Parent object of lines to display
 	 * @param int $currentPeopleIdEdited current document id which is edited
@@ -391,13 +514,36 @@ class FormDigitalSignatureRequest
 		}
 
 		if($displayLinkedObjectColumn) {
-			print '<td class="linecoldescription">' . $langs->trans('DigitalSignatureLinkedObjectTitle') . '</td>';
+			print $this->formDigitalSignatureManager->getColumnTitle(
+				$langs->trans('DigitalSignatureLinkedObjectTitle'),
+				$langs->trans('DigitalSignatureLinkedObjectTitleInfoBox'),
+				false
+			);
 		}
 
-		print '<td class="linecoldescription">' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerLastNameInfoBox')) . $langs->trans('DigitalSignaturePeopleLastname') . '</td>';
-		print '<td class="linecoldescription">' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerFirstNameInfoBox')) .$langs->trans('DigitalSignaturePeopleFirstname') . '</td>';
-		print '<td class="linecoldescription">' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerMailInfoBox')) .$langs->trans('DigitalSignaturePeopleMail') . '</td>';
-		print '<td class="linecoldescription">' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerPhoneInfoBox')) .$langs->trans('DigitalSignaturePeopleMobilePhoneNumber') . '</td>';
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignaturePeopleLastname'),
+			$langs->trans('DigitalSignatureManagerLastNameInfoBox'),
+			false
+		);
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignaturePeopleFirstname'),
+			$langs->trans('DigitalSignatureManagerFirstNameInfoBox'),
+			false
+		);
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignaturePeopleMail'),
+			$langs->trans('DigitalSignatureManagerMailInfoBox'),
+			false
+		);
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignaturePeopleLastname'),
+			$langs->trans('DigitalSignaturePeopleMobilePhoneNumber'),
+			false
+		);
 
 		$nbOfActionColumn = 0;
 		if($userCanAskToEditLine) {
