@@ -137,6 +137,10 @@ $formDigitalSignaturePeople = new FormDigitalSignaturePeople($db);
 dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturesignatoryfield.class.php');
 $formDigitalSignatureSignatoryField = new FormDigitalSignatureSignatoryField($db);
 
+//Action on digital signature check box
+dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturecheckbox.class.php');
+$formDigitalSignatureCheckBox = new FormDigitalSignatureCheckBox($db);
+
 $parameters = array();
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
@@ -253,6 +257,26 @@ if (empty($reshook)) {
 	if ($permissiontoedit) {
 		$currentSignatoryFieldEditedId = $formDigitalSignatureSignatoryField->getCurrentAskedEditedElementId($action);
 	}
+
+		//Action to manage delete of digital check box
+		if ($permissiontodelete) {
+			$formDigitalSignatureCheckBox->manageDeleteAction($object, $action, $confirm, $user);
+		}
+
+		//Action to manage addition of digital check box
+		if ($permissiontoadd) {
+			$formDigitalSignatureCheckBox->manageAddAction($action, $object, $user);
+		}
+
+		//Action to manage save of digital check box
+		if ($permissiontoedit) {
+			$formDigitalSignatureCheckBox->manageSaveAction($action, $object, $user);
+		}
+
+		//Action to manage edit of digital check box
+		if ($permissiontoedit) {
+			$currentCheckBoxEditedId = $formDigitalSignatureCheckBox->getCurrentAskedEditedElementId($action);
+		}
 }
 
 // Load object
@@ -378,6 +402,9 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	//form confirm for digital signature signatory field
 	$formconfirm = $formDigitalSignatureSignatoryField->getDeleteFormConfirm($action, $object, $formconfirm);
 
+	//form confirm for digital signature check box
+	$formconfirm = $formDigitalSignatureCheckBox->getDeleteFormConfirm($action, $object, $formconfirm);
+
 	// Call Hook formConfirm
 	$parameters = array('formConfirm' => $formconfirm, 'lineid' => $lineid);
 	$reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
@@ -458,20 +485,22 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	/*
 	 * List Of Digital Signature Documents
 	 */
-
 	$formdigitalsignaturerequest->showDocumentLines($object, $currentEditedDocumentLine, !$object->isEditable(), $permissionToAddAndDelFiles, $permissionToAddAndDelFiles, $permissionToAddAndDelFiles);
 
 	/*
 	*  List Of Digital Signature People
 	*/
-
 	$formdigitalsignaturerequest->showPeopleLines($object, $currentPeopleIdEdited, !$object->isEditable(), $permissiontoedit, $permissiontoedit, $permissiontoedit);
 
 	/*
 	*  List Of Digital Signature People
 	*/
-
 	$formdigitalsignaturerequest->showSignatoryFieldLines($object, $currentSignatoryFieldEditedId, !$object->isEditable(), $permissiontoedit, $permissiontoedit, $permissiontoedit);
+
+	/**
+	 * List Of Digital Signature Checkbox
+	 */
+	$formdigitalsignaturerequest->showCheckBoxLines($object, $currentCheckBoxEditedId, !$object->isEditable(), $permissiontoedit, $permissiontoedit, $permissiontoedit);
 
 	// Buttons for actions
 

@@ -14,14 +14,15 @@
 -- along with this program.  If not, see https://www.gnu.org/licenses/.
 
 
-CREATE TABLE llx_digitalsignaturemanager_digitalsignaturedocument(
+CREATE TABLE llx_digitalsignaturemanager_digitalsignaturecheckbox(
 	-- BEGIN MODULEBUILDER FIELDS
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
-	fk_digitalsignaturerequest integer NOT NULL,
-	fk_ecm integer NOT NULL,
-	position integer,
 	date_creation datetime NOT NULL,
 	tms timestamp,
-	check_box_ids text
+	fk_user_creat integer NOT NULL,
+	fk_user_modif integer,
+	label text,
+	fk_digitalsignaturerequest integer NOT NULL,
+	position integer
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

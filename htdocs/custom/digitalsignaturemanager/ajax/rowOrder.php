@@ -52,13 +52,16 @@ $elementType = GETPOST('elementType');
 
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturecheckbox.class.php');
 global $db;
 $staticDigitalSignatureDocument = new DigitalSignatureDocument($db);
 $staticDigitalSignaturePeople = new DigitalSignaturePeople($db);
+$staticDigitalSignatureCheckBox = new DigitalSignatureCheckBox($db);
 
 $managedElementTypeAndStaticInstance = array(
 	$staticDigitalSignatureDocument->element => $staticDigitalSignatureDocument,
 	$staticDigitalSignaturePeople->element => $staticDigitalSignaturePeople,
+	$staticDigitalSignatureCheckBox->element => $staticDigitalSignatureCheckBox
 );
 
 

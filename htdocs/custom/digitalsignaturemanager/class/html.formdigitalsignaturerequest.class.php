@@ -70,6 +70,11 @@ class FormDigitalSignatureRequest
 	public $formDigitalSignatureSignatoryField;
 
 	/**
+	 * @var FormDigitalSignatureCheckBox Instance of the form
+	 */
+	public $formDigitalSignatureCheckBox;
+
+	/**
 	 * @var DigitalSignatureRequest static element
 	 */
 	public $elementStatic;
@@ -91,6 +96,12 @@ class FormDigitalSignatureRequest
 	 *  should be only with minus character to make order ajax worked
 	 */
 	const DIGITALSIGNATURESIGNATORYFIELD_TABLEID = "digitalsignaturesignatoryfield";
+
+	/**
+	 * @var string id of the table displaying row of digital signatory fields on card
+	 *  should be only with minus character to make order ajax worked
+	 */
+	const DIGITALSIGNATURECHECKBOX_TABLEID = "digitalsignaturecheckbox";
 
     /**
      * Constructor
@@ -118,6 +129,9 @@ class FormDigitalSignatureRequest
 
 		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturesignatoryfield.class.php');
 		$this->formDigitalSignatureSignatoryField = new FormDigitalSignatureSignatoryField($db);
+
+		dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturecheckbox.class.php');
+		$this->formDigitalSignatureCheckBox = new FormDigitalSignatureCheckBox($db);
 
 		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 		$this->elementStatic = new DigitalSignatureRequest($db);
@@ -345,7 +359,7 @@ class FormDigitalSignatureRequest
 	/**
 	 * Function to display digital signature signatory lines lines
 	 * @param DigitalSignatureRequest $object Parent object of lines to display
-	 * @param int $currentPeopleIdEdited current document id which is edited
+	 * @param int $currentSignatoryFieldEditedId current document id which is edited
 	 * @param bool $readOnlyMode - force readonly mode
 	 * @param bool $permissionToAdd - boolean indicating if user can edit document
 	 * @param bool $permissionToEdit - boolean indicating if user can edit document
@@ -447,7 +461,7 @@ class FormDigitalSignatureRequest
 		print '</div>';
 	}
 
-		/**
+	/**
 	 * Function to display digital signature people lines
 	 * @param DigitalSignatureRequest $object Parent object of lines to display
 	 * @param int $currentPeopleIdEdited current document id which is edited
@@ -591,6 +605,102 @@ class FormDigitalSignatureRequest
 			$this->formDigitalSignaturePeople->showFreeAddForm($object, $neededContentColumn, $neededActionColumn);
 			$this->formDigitalSignaturePeople->showFromContactAddForm($object, $neededContentColumn, $neededActionColumn);
 			$this->formDigitalSignaturePeople->showFromUserAddForm($object, $neededContentColumn, $neededActionColumn);
+		}
+
+		print '</table>';
+		print '</div>';
+	}
+
+	/**
+	 * Function to display digital signature signatory lines lines
+	 * @param DigitalSignatureRequest $object Parent object of lines to display
+	 * @param int $currentCheckBoxEditedId current document id which is edited
+	 * @param bool $readOnlyMode - force readonly mode
+	 * @param bool $permissionToAdd - boolean indicating if user can edit document
+	 * @param bool $permissionToEdit - boolean indicating if user can edit document
+	 * @param bool $permissionToDelete - boolean indicating if user can delete document
+	 * @return void
+	 */
+	public function showCheckBoxLines($object, $currentCheckBoxEditedId, $readOnlyMode, $permissionToAdd, $permissionToEdit, $permissionToDelete)
+	{
+		global $conf, $langs;
+
+		$listOfCheckBox = $object->availableCheckBox;
+		$currentLineEdited = findObjectInArrayByProperty($listOfCheckBox, 'id', $currentCheckBoxEditedId);
+		$isALineBeingEdited = (bool) $currentLineEdited;
+
+		$userCanChangeOrder = !$readOnlyMode && !empty($permissionToEdit) && count($listOfCheckBox) > 1;
+		$userCanAskToEditLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToEdit) && count($listOfCheckBox) > 0;
+		$userCanAskToDeleteLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToDelete) && count($listOfCheckBox) > 0;
+		$userCanAddLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
+
+		$numberOfActionColumnPerComponentsDisplayed = array(
+			'show'=>count($listOfCheckBox) > 0 ? count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder))) : null,
+			'showEditForm'=> $isALineBeingEdited ? 1 : null,
+			'showAddForm' => $userCanAddLine ? 1 : null,
+		);
+		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
+
+		print '<div class="div-table-responsive-no-min">';
+		print '<div class="titre"><h3>' . $langs->trans('DigitalSignatureManagerCheckBoxList') . '</h3></div>';
+		print '<table id="' . self::DIGITALSIGNATURECHECKBOX_TABLEID . '" class="noborder noshadow tabBar" width="100%">';
+
+		//display people lines header
+
+		print '<tr class="liste_titre nodrag nodrop">';
+
+		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+			print '<td class="linecolnum" align="center"></td>';
+		}
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureRequestCheckBoxLabel')
+		);
+
+		$nbOfActionColumn = 0;
+		if($userCanAskToEditLine) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+
+		if($userCanAskToDeleteLine) {
+			print '<td class="linecoldelete" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+
+		if($userCanChangeOrder) {
+			print '<td class="linecolmove" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+
+		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
+		print '</tr>';
+
+		$nbOfContentColumn = 1;
+
+		if (!empty($conf->use_javascript_ajax) && $userCanChangeOrder) {
+			//toDo ajust param for ajaxrow.tpl.php
+			$IdOfTableDisplayingRowToBeSorted = self::DIGITALSIGNATURECHECKBOX_TABLEID;
+			$elementType = $this->formDigitalSignatureCheckBox->elementObjectStatic->element;
+			include dol_buildpath('digitalsignaturemanager/tpl/ajax/ajaxrow.tpl.php');
+		}
+
+		//we display digital signature people
+		foreach($listOfCheckBox as $checkBox) {
+			if($checkBox->id != $currentCheckBoxEditedId) {
+				$this->formDigitalSignatureCheckBox->show($checkBox, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder, $neededActionColumn);
+			}
+			else {
+				//We display the form to edit line
+				$this->formDigitalSignatureCheckBox->showEditForm($object, $checkBox, $nbOfContentColumn, $neededActionColumn);
+			}
+		}
+		//We display form to add new document
+		if ($userCanAddLine)
+		{
+			$this->formDigitalSignatureCheckBox->showAddForm($object, $nbOfContentColumn, $neededActionColumn);
 		}
 
 		print '</table>';

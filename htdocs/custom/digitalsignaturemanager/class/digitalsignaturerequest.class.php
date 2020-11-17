@@ -28,6 +28,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryfield.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturecheckbox.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
 dol_include_once('/digitalsignaturemanager/class/digitalSignatureManagerUniversign.class.php');
 
@@ -162,6 +163,11 @@ class DigitalSignatureRequest extends CommonObject
 	 * @var DigitalSignatureSignatoryField[] Array of digital signature documents
 	 */
 	public $signatoryFields = array();
+
+	/**
+	 * @var DigitalSignatureCheckBox[] Array of available digital signature checkbox for this request
+	 */
+	public $availableCheckBox = array();
 
 	/**
 	 * @var DigitalSignatureManagerUniversign Accessible service for this request
@@ -398,6 +404,9 @@ class DigitalSignatureRequest extends CommonObject
 
 		if($result >=0) {
 			$result = $this->fetchSignatoryField();
+		}
+		if($result >= 0) {
+			$result = $this->fetchAvailableCheckBox();
 		}
 		return $result;
 	}
@@ -1155,5 +1164,21 @@ class DigitalSignatureRequest extends CommonObject
 	public function getLinkedPeopleById($peopleId)
 	{
 		return findObjectInArrayByProperty($this->getLinkedPeople(), 'id', $peopleId);
+	}
+
+	/**
+	 * Load object checkbox in memory from the database
+	 *
+	 * @return int         <0 if KO, 0 if not found, >0 if OK
+	 */
+	public function fetchAvailableCheckBox()
+	{
+		$staticDigitalSignatureCheckBox = new DigitalSignatureCheckBox($this->db);
+		$fetchedDigitalSignatureCheckBoxes = $staticDigitalSignatureCheckBox->fetchCheckBoxOfDigitalSignatureRequest($this);
+		$this->errors = array_merge($this->errors, $staticDigitalSignatureCheckBox->errors);
+		if(is_array($fetchedDigitalSignatureCheckBoxes)) {
+			$this->availableCheckBox = $fetchedDigitalSignatureCheckBoxes;
+		}
+		return empty($staticDigitalSignatureCheckBox->errors) ? 1 : -1;
 	}
 }

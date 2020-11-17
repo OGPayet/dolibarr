@@ -257,7 +257,7 @@ class FormDigitalSignatureManager
 		if ($shouldInfoBoxBeingDisplayed) {
 			$out .= $this->form->textwithpicto('', $infoBoxContent, 1, 'help', '', 0, 2);
 		}
-		$out .= '<input class="flat" type="'. $inputValueType . '" name="' . $fieldName . '" value="' . $fieldValue . '" ' . $moreInputParameter . '" style="width: -webkit-fill-available;">';
+		$out .= '<input class="flat" type="'. $inputValueType . '" name="' . $fieldName . '" value="' . $fieldValue . '" ' . $moreInputParameter . ' style="width: -webkit-fill-available;">';
 		$out .= $this->getWarningInfoBox($displayWarning, $warningsContent);
 		$out .= '</div>';
 		$out .= '</td>';

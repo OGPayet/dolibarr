@@ -80,6 +80,11 @@ class DigitalSignatureDocument extends CommonObject
 	public $ecmFile;
 
 	/**
+	 * @var DigitalSignatureCheckBox[] linked checkbox of this document
+	 */
+	public $checkBoxes;
+
+	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
 	 *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
 	 *  'label' the translation key.
@@ -115,6 +120,7 @@ class DigitalSignatureDocument extends CommonObject
 		'position' => array('type' => 'integer', 'label' => 'Position of files in digital signature request', 'enabled' => '1', 'position' => 12, 'notnull' => 0, 'visible' => 1,),
 		'date_creation' => array('type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 500, 'notnull' => 1, 'visible' => -2,),
 		'tms' => array('type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 501, 'notnull' => 0, 'visible' => -2,),
+		'check_box_ids' => array('type' => 'array', 'label' => 'List of attached check box on this document', 'enabled' => 1, 'position' => 32, 'notnull' => 0, 'visible' => 0,),
 	);
 	public $rowid;
 	public $fk_digitalsignaturerequest;
@@ -122,6 +128,7 @@ class DigitalSignatureDocument extends CommonObject
 	public $position;
 	public $date_creation;
 	public $tms;
+	public $check_box_ids;
 	// END MODULEBUILDER PROPERTIES
 
 	/**
@@ -137,12 +144,6 @@ class DigitalSignatureDocument extends CommonObject
 
 		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
 		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) $this->fields['entity']['enabled'] = 0;
-
-		// Example to show how to set values of fields definition dynamically
-		/*if ($user->rights->digitalsignaturemanager->digitalsignaturedocument->read) {
-		$this->fields['myfield']['visible'] = 1;
-		$this->fields['myfield']['noteditable'] = 0;
-		}*/
 
 		// Unset fields that are disabled
 		foreach ($this->fields as $key => $val) {
@@ -182,6 +183,9 @@ class DigitalSignatureDocument extends CommonObject
 		}
 		if ($result > 0) {
 			$result = $this->fetchLinkedDigitalSignatureRequest();
+		}
+		if($result > 0) {
+			$this->fetchDigitalSignatureCheckBox();
 		}
 		return $result;
 	}
@@ -359,6 +363,7 @@ class DigitalSignatureDocument extends CommonObject
 			}
 			$linkedDocumentObject->digitalSignatureRequest = $digitalSignatureRequest;
 			$linkedDocumentObject->ecmFile = $ecm;
+			$linkedDocumentObject->fetchDigitalSignatureCheckBox();
 			$effectiveDigitalSignatureDocuments[] = $linkedDocumentObject;
 		}
 		foreach ($digitalSignatureDocuments as $digitalSignatureDocument) {
@@ -482,7 +487,6 @@ class DigitalSignatureDocument extends CommonObject
 	 * @param string $filename filename to find
 	 * @return EcmFiles|null
 	 */
-
 	public static function getEcmInstanceOfFile($db, $relativePath, $filename)
 	{
 		$ecmStatic = new EcmFiles($db);
@@ -492,14 +496,44 @@ class DigitalSignatureDocument extends CommonObject
 
 	/**
 	 * Function to rename file
-	 * @param string $newFilename
-	 * @param User $user
-	 * @return bool
+	 * @param string $newFilename wishes file name for the file
+	 * @param User $user user requesting the modification
+	 * @return bool true if sucessfully removed. False otherwise
 	 */
 	public function renameDocumentFilename($newFilename, $user)
 	{
 		$oldFileFullPath = $this->getLinkedFileAbsolutePath();
 		$newFilePath = $this->digitalSignatureRequest->getBaseUploadDir() . "/" . $this->digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $newFilename;
 		return dol_move($oldFileFullPath, $newFilePath);
+	}
+
+	/**
+	 * Fetch available CheckBoxes that could be chosen for this digital signature document and request
+	 * @return DigitalSignatureCheckBox[]
+	 */
+	public function getAvailableCheckBox()
+	{
+		if (!$this->digitalSignatureRequest) {
+			$this->fetchLinkedDigitalSignatureRequest();
+		}
+		if ($this->digitalSignatureRequest) {
+			return $this->digitalSignatureRequest->availableCheckBox;
+		}
+		return array();
+	}
+
+	/**
+	 * Fetch linked checkbox of this digital signature document
+	 * @return void
+	 */
+	public function fetchDigitalSignatureCheckBox()
+	{
+		$result = array();
+		foreach($this->getAvailableCheckBox() as $checkbox) {
+			if(in_array($checkbox->id, $this->check_box_ids)) {
+				$result[] = $checkbox;
+			}
+		}
+		$this->checkBoxes = $result;
 	}
 }
