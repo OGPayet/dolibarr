@@ -137,6 +137,11 @@ DigitalSignatureSignatoryFieldNotFoundOrAlreadyDeleted = Champ de signature intr
 DigitalSignatureManagerSignatoryFieldChosenDocumentDoesNotExistAnymore = Le document a été supprimé
 DigitalSignatureManagerSignatoryFieldChosenSignatoryDoesNotExistAnymore = Le signataire a été supprimé
 DigitalSignatureAddSignatoryField = Ajouter une zone de signature
+DigitalSignatureManagerSignatoryFieldDocumentNotChosen = Aucun document sélectionné pour la zone de signature
+DigitalSignatureManagerSignatoryFieldDSignatoryNotChosen = Aucun signataire sélectionné pour la zone de signature
+DigitalSignatureManagerSignatoryFieldYAxisValueIncorrect = Valeur incorrecte ou manquante
+DigitalSignatureManagerSignatoryFieldXAxisValueIncorrect = Valeur incorrecte ou manquante
+DigitalSignatureManagerSignatoryFieldPageValueIncorrect = Valeur incorrecte ou manquante
 
 
 #
