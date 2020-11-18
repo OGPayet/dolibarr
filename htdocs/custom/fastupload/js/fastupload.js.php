@@ -1,5 +1,6 @@
 <?php
 session_cache_limiter('public');
+header('Content-type: text/javascript; charset=UTF-8');
 // false or '' = keep cache instruction added by server
 // 'public'  = remove cache instruction added by server
 // and if no cache-control added later, a default cache delay (10800) will be added by PHP.
