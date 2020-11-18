@@ -487,19 +487,19 @@ class DigitalSignatureRequest extends CommonObject
 		$this->db->begin();
 		$errors = array();
 		foreach ($this->people as $people) {
-			$result = $people->delete($user, $notrigger);
+			$people->delete($user, $notrigger);
 			$errors = array_merge($errors, $people->errors);
 		}
 		foreach ($this->signatoryFields as $signatoryField) {
-			$result = $signatoryField->delete($user, $notrigger);
+			$signatoryField->delete($user, $notrigger);
 			$errors = array_merge($errors, $signatoryField->errors);
 		}
 		foreach ($this->availableCheckBox as $checkBox) {
-			$result = $checkBox->delete($user, $notrigger);
+			$checkBox->delete($user, $notrigger);
 			$errors = array_merge($errors, $checkBox->errors);
 		}
 		foreach ($this->documents as $document) {
-			$result = $document->delete($user, $notrigger);
+			$document->delete($user, $notrigger);
 			$errors = array_merge($errors, $document->errors);
 		}
 		$this->deleteCommon($user, $notrigger);
@@ -509,7 +509,7 @@ class DigitalSignatureRequest extends CommonObject
 		} else {
 			$this->db->rollback();
 		}
-		return $result;
+		return empty($errors) ? 1 : -1;
 	}
 
 	/**

@@ -150,8 +150,7 @@ $arrayfields = dol_sort_array($arrayfields, 'position');
 $permissiontoread = $user->rights->digitalsignaturemanager->request->read;
 $permissiontoadd = $user->rights->digitalsignaturemanager->request->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
 $permissiontodelete = $user->rights->digitalsignaturemanager->request->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
-
-
+$permtodelete = $permissiontodelete;
 // Security check
 if (empty($conf->digitalsignaturemanager->enabled)) accessforbidden('Module not enabled');
 $socid = 0;
