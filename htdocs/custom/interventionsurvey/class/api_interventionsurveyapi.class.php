@@ -386,24 +386,28 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         //Add linked equipment to the intervention and update intervention survey
-        if ($request_data->linkedObjectsIds->equipement) {
-            $this->interventionSurvey->fetchObjectLinked();
-
+        $this->interventionSurvey->fetchObjectLinked();
+        if ($request_data->linkedObjectsIds && $request_data->linkedObjectsIds->equipement)
+        {
             $alreadyLinkedEquipementsIds = [];
-            if($this->interventionSurvey->linkedObjectsIds && $this->interventionSurvey->linkedObjectsIds[equipement]) {
-                $alreadyLinkedEquipementsIds = array_values($this->interventionSurvey->linkedObjectsIds[equipement]);
+            if($this->interventionSurvey->linkedObjectsIds && $this->interventionSurvey->linkedObjectsIds['equipement']) {
+                $alreadyLinkedEquipementsIds = array_values($this->interventionSurvey->linkedObjectsIds['equipement']);
             }
 
             $newLinkedEquipementsIds = [];
             foreach($request_data->linkedObjectsIds->equipement as $requestDataLinkedEquipementId) {
                 if (!in_array($requestDataLinkedEquipementId, $alreadyLinkedEquipementsIds)) {
-                    array_push($newLinkedEquipementsIds, $requestDataLinkedEquipementId);
+                    $newLinkedEquipementsIds[] = $requestDataLinkedEquipementId;
                 }
             }
 
             foreach($newLinkedEquipementsIds as $newLinkedEquipementId) {
-                $this->interventionSurvey->add_object_linked('equipement', intval($newLinkedEquipementId));
+                if((int) $newLinkedEquipementId > 0) {
+                    $this->interventionSurvey->add_object_linked('equipement', (int) $newLinkedEquipementId);
+                }
             }
+
+            //If we want to unlinked some equipement, links should be deleted here
 
             $this->interventionSurvey->fetchObjectLinked();
             $this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
@@ -411,7 +415,6 @@ class InterventionSurveyApi extends DolibarrApi
 
         if ($result > 0) {
             $this->db->commit();
-            $this->interventionSurvey->fetchObjectLinked();
             $this->updatePdfFileIfNeeded();
             return $this->_cleanObjectData($this->interventionSurvey);
         } else {
