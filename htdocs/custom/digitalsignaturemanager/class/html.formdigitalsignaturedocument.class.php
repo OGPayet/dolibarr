@@ -29,13 +29,13 @@
 class FormDigitalSignatureDocument
 {
 	/**
-     * @var DoliDb		Database handler (result of a new DoliDB)
-     */
+	 * @var DoliDb		Database handler (result of a new DoliDB)
+	 */
 	public $db;
 
-    /**
-     * @var Form  Instance of the form
-     */
+	/**
+	 * @var Form  Instance of the form
+	 */
 	public $form;
 
 	/**
@@ -53,9 +53,9 @@ class FormDigitalSignatureDocument
 	 */
 	public $elementObjectStatic;
 
-    /**
-     * @var array
-     */
+	/**
+	 * @var array
+	 */
 	public static $errors = array();
 
 	/**
@@ -99,6 +99,11 @@ class FormDigitalSignatureDocument
 	const ELEMENT_POST_ID_FIELD_NAME = 'documentId';
 
 	/**
+	 * @var string name of the post field containing checkbox ids
+	 */
+	const ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME = 'chosenCheckBoxIds';
+
+	/**
 	 * @var string name of label document field in post request
 	 */
 	const ELEMENT_POST_LABEL_FIELD_NAME = "documentLabelName";
@@ -123,11 +128,11 @@ class FormDigitalSignatureDocument
 	 */
 	const ELEMENT_SAVE_BUTTON_NAME = "saveDocument";
 
-    /**
-     * Constructor
-     *
-     * @param   DoliDB $db Database handler
-     */
+	/**
+	 * Constructor
+	 *
+	 * @param   DoliDB $db Database handler
+	 */
 	public function __construct(DoliDb $db)
 	{
 		$this->db = $db;
@@ -145,18 +150,18 @@ class FormDigitalSignatureDocument
 	}
 
 	/**
-     *  Display form to add a new document into card lines
-     *
-     *  @param	DigitalSignatureRequest	$object			Object
+	 *  Display form to add a new document into card lines
+	 *
+	 *  @param	DigitalSignatureRequest	$object			Object
 	 *  @param int $numberOfActionColumns number of column used by actions
-     *	@return	int						<0 if KO, >=0 if OK
-     */
+	 *	@return	int						<0 if KO, >=0 if OK
+	 */
 	public function showDocumentAddForm($object, $numberOfActionColumns)
 	{
 		global $hookmanager, $action;
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_NEW_ROW . '" class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
-		print '<form action="'. $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, null, self::ELEMENT_PREFIX_NEW_ROW) . '" enctype="multipart/form-data" method="post">';
+		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, null, self::ELEMENT_PREFIX_NEW_ROW) . '" enctype="multipart/form-data" method="post">';
 		print '<input type="hidden" name="token" value="' . newToken() . '">';
 
 		$parameters = array();
@@ -165,21 +170,31 @@ class FormDigitalSignatureDocument
 		$colspan = 0; //used for extrafields
 		global $conf, $langs;
 		//We display number column
-		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
 			$colspan++;
 		}
+
+		if($action == self::ADD_ACTION_NAME) {
+			$document = self::updateFromPost($this->elementObjectStatic, true);
+		}
+
 		// We show upload file form
 		print '<td>';
-		print '<input type="hidden" name="action" value="'. self::ADD_ACTION_NAME .'">';
+		print '<input type="hidden" name="action" value="' . self::ADD_ACTION_NAME . '">';
 		print '<input type="hidden" name="max_file_size" value="' . 1024 * 1024 * 1024 . '">'; //Value must be given in B
 		print '<input class="flat minwidth400" type="file" name="' . self::ELEMENT_POST_FILE_FIELD_NAME . '" accept=".pdf">';
 		print '</td>';
 		$colspan++;
 
+		//we Show check boxes multi select array
+		print '<td>';
+		print $this->getCheckBoxInputForm($object, $document->check_box_ids, true);
+		print '</td>';
+
 		// Show add button
-		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumns .'">';
-		print '<input type="submit" class="button" value="'. $langs->trans('Add') .'">';
+		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumns . '">';
+		print '<input type="submit" class="button" value="' . $langs->trans('Add') . '">';
 		print '</td>';
 		$colspan++;
 
@@ -188,16 +203,16 @@ class FormDigitalSignatureDocument
 		print '</tr>';
 	}
 
-		/**
-     *  Display form to edit a new document into card lines
-     *
-     *  @param	DigitalSignatureRequest	$object			Object
+	/**
+	 *  Display form to edit a new document into card lines
+	 *
+	 *  @param	DigitalSignatureRequest	$object			Object
 	 *  @param  DigitalSignatureDocument $document Document being edited
-	 *  @param int $numberOfActionColumns number of column used by actions
+	 *  @param int $numberOfActionColumnsOnParentTable number of column used by actions
 	 *  @param string $userCanMoveLine
-     *	@return	int						<0 if KO, >=0 if OK
-     */
-	public function showDocumentEditForm($object, $document, $numberOfActionColumns, $userCanMoveLine)
+	 *	@return	int						<0 if KO, >=0 if OK
+	 */
+	public function showDocumentEditForm($object, $document, $numberOfActionColumnsOnParentTable, $userCanMoveLine)
 	{
 		global $hookmanager, $action;
 		$parameters = array();
@@ -207,38 +222,46 @@ class FormDigitalSignatureDocument
 		global $conf, $langs;
 
 		//We display row
-		print '<tr id="' . self::ELEMENT_PREFIX_ROW . '-' . $document->id .'" class="oddeven drag drop">';
+		print '<tr id="' . self::ELEMENT_PREFIX_ROW . '-' . $document->id . '" class="oddeven drag drop">';
 
-		print '<form action="'. $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, null, $document->id, self::ELEMENT_PREFIX_ROW) .'" enctype="multipart/form-data" method="post">';
+		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, $document->id, self::ELEMENT_PREFIX_ROW) . '" enctype="multipart/form-data" method="post">';
 		print '<input type="hidden" name="token" value="' . newToken() . '">';
 
 		//We display number column
-		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
 			$colspan++;
+		}
+		if($action == self::EDIT_ACTION_NAME) {
+			$document = self::updateFromPost($document, true);
 		}
 		// We show upload file name edit form
 		$labelToShow = GETPOST(self::ELEMENT_POST_LABEL_FIELD_NAME) ? GETPOST(self::ELEMENT_POST_LABEL_FIELD_NAME) : $document->getDocumentName();
 		print '<td>';
-		print '<input class="flat minwidth400" type="text" name="' . self::ELEMENT_POST_LABEL_FIELD_NAME . '" value="' . $labelToShow .'" style="width:100%">';
+		print '<input class="flat minwidth400" type="text" name="' . self::ELEMENT_POST_LABEL_FIELD_NAME . '" value="' . $labelToShow . '" style="width:100%">';
 		print '</td>';
 		$colspan++;
 
+		//we Show check boxes multi select array
+		print '<td>';
+		print $this->getCheckBoxInputForm($object, $document->check_box_ids);
+		print '</td>';
+
 		// Show save and cancel button
-		$colSpanForActionButton = $numberOfActionColumns - 1;
-		if($userCanMoveLine > 1) {
+		$colSpanForActionButton = $numberOfActionColumnsOnParentTable - 1;
+		if ($userCanMoveLine > 1) {
 			$colSpanForActionButton -= 1;
 		}
-		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $colSpanForActionButton .'">';
-		print '<input type="hidden" name="action" value="'. self::SAVE_ACTION_NAME .'">';
-		print '<input type="hidden" name="'. self::ELEMENT_POST_ID_FIELD_NAME .'" value="'. $document->id .'">';
-		print '<input type="submit" class="button" name="' . self::ELEMENT_SAVE_BUTTON_NAME . '" value="'. $langs->trans('Save') .'">';
-		print '<input type="submit" class="button" name="cancel" value="'. $langs->trans('Cancel') .'">';
+		print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $colSpanForActionButton . '">';
+		print '<input type="hidden" name="action" value="' . self::SAVE_ACTION_NAME . '">';
+		print '<input type="hidden" name="' . self::ELEMENT_POST_ID_FIELD_NAME . '" value="' . $document->id . '">';
+		print '<input type="submit" class="button" name="' . self::ELEMENT_SAVE_BUTTON_NAME . '" value="' . $langs->trans('Save') . '">';
+		print '<input type="submit" class="button" name="cancel" value="' . $langs->trans('Cancel') . '">';
 		print '</td>';
 		$colspan++;
 
 		//Show move button
-		if($userCanMoveLine) {
+		if ($userCanMoveLine) {
 			$this->formDigitalSignatureManager->showMoveActionButtonsForLine($object->id, $document->id, $document->position, count($object->documents), self::MOVE_UP_ACTION_NAME, self::MOVE_DOWN_ACTION_NAME, self::ELEMENT_POST_ID_FIELD_NAME);
 			$colspan++;
 		}
@@ -250,60 +273,64 @@ class FormDigitalSignatureDocument
 
 
 	/**
-     *  Display form to add a new document into card lines
-     *
+	 *  Display form to add a new document into card lines
+	 *
 	 *  @param  DigitalSignatureDocument $document Document being edited
 	 *  @param bool $userCanAskToEditLine display edit button
 	 *  @param bool $userCanAskToDeleteLine display delete button
 	 *  @param bool $userCanMoveLine display move button
-	 *  @param int  $numberOfActionColumns number of column into action
-     *	@return	int						<0 if KO, >=0 if OK
-     */
-	public function showDocument($document, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine, $numberOfActionColumns)
+	 *  @param int  $numberOfActionColumnOfTheTable number of column into action
+	 *	@return	int						<0 if KO, >=0 if OK
+	 */
+	public function showDocument($document, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine, $numberOfActionColumnOfTheTable)
 	{
-		$colspan = 0; //used for extrafields
 		$digitalSignatureRequestId = $document->digitalSignatureRequest->id;
 		global $conf;
 
-		$numberOfColumnDisplayed = count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)));
-		$colSpanForFirstCell = 1;
-		if($numberOfActionColumns > $numberOfColumnDisplayed) {
-			$colSpanForFirstCell+= $numberOfActionColumns - $numberOfColumnDisplayed;
-		}
+		$numberOfActionColumnDisplayed = count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)));
 
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_ROW . '-' . $document->id . '" class="oddeven drag drop">';
 		//We display number column
-		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
-			$colspan++;
 		}
 		// We show uploaded file
-		print '<td colspan="' . $colSpanForFirstCell . '">';
+		print '<td>';
 		print $this->getDocumentLinkAndPreview($document);
 		print '</td>';
-		$colspan++;
+
+		// We show Chosen Check Boxes
+		print '<td>';
+		$displayCheckBoxLabels = array();
+		foreach($document->checkBoxes as $checkBox) {
+			$displayCheckBoxLabels[] = $checkBox->label;
+		}
+		print implode('<br>', $displayCheckBoxLabels);
+		print '</td>';
+
+		for ($i = $numberOfActionColumnDisplayed; $i < $numberOfActionColumnOfTheTable; $i++) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$numberOfActionColumnDisplayed++;
+		}
 
 		// Show edit button
-		if($userCanAskToEditLine) {
+		if ($userCanAskToEditLine) {
 			print '<td class="linecoledit" align="center">';
 			print '<a href="' . $this->formDigitalSignatureManager->buildActionUrlForLine($digitalSignatureRequestId, self::EDIT_ACTION_NAME, self::ELEMENT_POST_ID_FIELD_NAME, $document->id, self::ELEMENT_PREFIX_ROW) . '">';
 			print img_edit();
 			print '</td>';
-			$colspan++;
 		}
 
-		if($userCanAskToDeleteLine) {
+		if ($userCanAskToDeleteLine) {
 			print '<td class="linecoldelete" align="center">';
 			print '<a href="' . $this->formDigitalSignatureManager->buildActionUrlForLine($digitalSignatureRequestId, self::DELETE_ACTION_NAME, self::ELEMENT_POST_ID_FIELD_NAME, $document->id, self::ELEMENT_PREFIX_ROW) . '">';
 			print img_delete();
 			print '</td>';
-			$colspan++;
 		}
 
-		if($userCanMoveLine) {
+		if ($userCanMoveLine) {
 			$this->formDigitalSignatureManager->showMoveActionButtonsForLine($digitalSignatureRequestId, $document->id, $document->position, count($document->digitalSignatureRequest->documents), self::MOVE_UP_ACTION_NAME, self::MOVE_DOWN_ACTION_NAME, self::ELEMENT_POST_ID_FIELD_NAME);
-			$colspan++;
 		}
 		//We end row
 		print '</tr>';
@@ -318,13 +345,13 @@ class FormDigitalSignatureDocument
 	{
 		global $conf, $langs;
 		//We prepare data to use elements from form file, as done by dolibarr core
-		$documentUrl = DOL_URL_ROOT.'/document.php';
+		$documentUrl = DOL_URL_ROOT . '/document.php';
 		$modulePart = 'digitalsignaturemanager';
 		$relativePath = $digitalSignatureDocument->getLinkedFileRelativePath();
 		$fileName = $digitalSignatureDocument->getDocumentName();
 		$entityOfThisDocument = $digitalSignatureDocument->getEntity() ? $digitalSignatureDocument->getEntity() : $conf->entity;
 		$entityParam = '&entity=' . $entityOfThisDocument;
-		$arrayWithFileInformation = array('name'=>$fileName);
+		$arrayWithFileInformation = array('name' => $fileName);
 
 
 		$out = '<a class="documentdownload paddingright" href="' . $documentUrl . '?modulepart=' . $modulePart . '&amp;file=' . urlencode($relativePath) . $entityParam;
@@ -334,9 +361,9 @@ class FormDigitalSignatureDocument
 			$out .= ' target="_blank"';
 		}
 		$out .= '>';
-		$out .= img_mime($fileName, $langs->trans("File").': '.$fileName);
+		$out .= img_mime($fileName, $langs->trans("File") . ': ' . $fileName);
 		$out .= dol_trunc($fileName, 150);
-		$out .= '</a>'."\n";
+		$out .= '</a>' . "\n";
 		$out .= $this->formFile->showPreview($arrayWithFileInformation, $modulePart, $relativePath, 0, $entityParam);
 		$out .= '</td>';
 		return $out;
@@ -351,18 +378,18 @@ class FormDigitalSignatureDocument
 	 */
 	public function manageDeleteAction($action, $confirm, $user)
 	{
-		if($action == self::CONFIRM_DELETE_ACTION_NAME && $confirm == 'yes') {
+		if ($action == self::CONFIRM_DELETE_ACTION_NAME && $confirm == 'yes') {
 			$idToDelete = $this->getFormElementId();
 			$object = $this->elementObjectStatic;
 			$result = $object->fetch($idToDelete);
 			global $langs;
-			if($result < 0) {
+			if ($result < 0) {
 				setEventMessages($langs->trans('DigitalSignatureRequestDocumentAlreadyDeleted'), array(), 'errors');
 			}
-			if($result > 0 && $object->delete($user) > 0) {
+			if ($result > 0 && $object->delete($user) > 0) {
 				setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyDeleted', $object->getDocumentName()), array());
 			}
-			if(!empty($object->errors) || !empty($object->error)) {
+			if (!empty($object->errors) || !empty($object->error)) {
 				setEventMessages($object->error, $object->errors, 'errors');
 			}
 		}
@@ -375,26 +402,21 @@ class FormDigitalSignatureDocument
 	 * @param User $user User doing actions
 	 * @return void
 	 */
-	public function manageAddAction($action, $digitalSignatureRequest, $user)
+	public function manageAddAction(&$action, $digitalSignatureRequest, $user)
 	{
-		if($action == self::ADD_ACTION_NAME) {
+		if ($action == self::ADD_ACTION_NAME) {
 			global $langs;
 			$TFile = $_FILES[self::ELEMENT_POST_FILE_FIELD_NAME];
-			if(empty($TFile['name'])) {
+			if (empty($TFile['name'])) {
 				setEventMessages($langs->trans('DigitalSignatureManagerErrorFileRequired'), array(), 'errors');
-			}
-			else
-			{
+			} else {
 				$result = dol_add_file_process($digitalSignatureRequest->getUploadDirOfFilesToSign(), 0, 1, self::ELEMENT_POST_FILE_FIELD_NAME);
-				if($result < 0) {
+				if ($result < 0) {
 					setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileSavingFile'), array(), 'errors');
-				}
-				else {
+				} else {
 					//We have to get filename of the uploaded file
-					if (!is_array($TFile['name']))
-					{
-						foreach ($TFile as $key => &$val)
-						{
+					if (!is_array($TFile['name'])) {
+						foreach ($TFile as $key => &$val) {
 							$val = array($val);
 						}
 					}
@@ -402,21 +424,22 @@ class FormDigitalSignatureDocument
 					//Now we  are able to find its ecm instance
 					$ecmFile = DigitalSignatureDocument::getEcmInstanceOfFile($this->db, $digitalSignatureRequest->getRelativePathForFilesToSign(), $filename);
 					//With ecm instance we can get ecm file id
-					if($ecmFile) {
+					if ($ecmFile) {
 						$newDigitalSignatureDocument = $this->elementObjectStatic;
 						$newDigitalSignatureDocument->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
 						$newDigitalSignatureDocument->fk_ecm = $ecmFile->id;
 						$newDigitalSignatureDocument->position = $newDigitalSignatureDocument::getLastPositionOfDocument($digitalSignatureRequest->documents) + 1;
 						//We may add here property elements from the form
+						$newDigitalSignatureDocument = self::updateFromPost($newDigitalSignatureDocument);
+						//We create document
 						$result = $newDigitalSignatureDocument->create($user);
-						if($result<0) {
+						if ($result < 0) {
 							setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileAddingFileToSignatureRequest'), $newDigitalSignatureDocument->errors, 'errors');
-						}
-						else {
+						} else {
 							setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyAddedToRequest', $newDigitalSignatureDocument->getDocumentName()), array());
+							$action = null;
 						}
-					}
-					else {
+					} else {
 						setEventMessages($langs->trans('DigitalSignatureManagerFileCantFindIntoEcmDatabase'), array(), 'errors');
 					}
 				}
@@ -427,33 +450,42 @@ class FormDigitalSignatureDocument
 	/**
 	 * Function to manage edition of a document line
 	 * @param string $action current action name on card
+	 * @param DigitalSignatureRequest $object current action name on card
 	 * @param User $user User doing actions
 	 * @return void
 	 */
-	public function manageSaveAction(&$action, $user)
+	public function manageSaveAction(&$action, $object, $user)
 	{
 		global $langs;
-		if($action == self::SAVE_ACTION_NAME && GETPOST(self::ELEMENT_SAVE_BUTTON_NAME, 'alpha') == $langs->trans("Save")) {
+		if ($action == self::SAVE_ACTION_NAME && GETPOST(self::ELEMENT_SAVE_BUTTON_NAME, 'alpha') == $langs->trans("Save")) {
 			$newFileName = GETPOST(self::ELEMENT_POST_LABEL_FIELD_NAME);
-			if(empty($newFileName)) {
+			if (empty($newFileName)) {
 				setEventMessages($langs->trans('DigitalSignatureManagerErrorDocumentNameRequired'), array(), 'errors');
 				$action = self::EDIT_ACTION_NAME;
-			}
-			else {
+			} else {
 				$documentToEdit = $this->elementObjectStatic;
-				$documentToEdit->fetch($this->getFormElementId());
-				$fileSuccessfullyRenamed = $documentToEdit->renameDocumentFilename($newFileName, $user);
-				if(!$fileSuccessfullyRenamed) {
+				$documentToEdit->digitalSignatureRequest = $object;
+				if($documentToEdit->fetch($this->getFormElementId()) < 0 ||  $documentToEdit->fk_digitalsignaturerequest != $object->id) {
+					setEventMessages($langs->trans('DigitalSignatureManagerDocumentNotFound'), $documentToEdit->errors, 'errors');
+				}
+				elseif (!$documentToEdit->renameDocumentFilename($newFileName, $user)) {
 					$action = self::EDIT_ACTION_NAME;
 					setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileSavingEditedDocument'), array(), 'errors');
-				}
-				else {
-					//We update other fields and save it
-					if($documentToEdit->update($user) > 0) {
-						setEventMessages($langs->trans('DigitalSignatureManagerDocumentSuccesfullyUpdate'), array());
+				} else {
+					//We update fk_ecm property as Dolibarr doesn't fucking keep id on file move
+					$ecmFile = DigitalSignatureDocument::getEcmInstanceOfFile($this->db, $object->getRelativePathForFilesToSign(), $newFileName);
+					if(!$ecmFile) {
+						setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileMovingFiles'), array());
 					}
 					else {
-						setEventMessages($langs->trans('DigitalSignatureManagerDocumentErrorWhileUpdating'), $documentToEdit->errors);
+						//We update other fields and save it
+						$documentToEdit = self::updateFromPost($documentToEdit);
+						$documentToEdit->fk_ecm = $ecmFile->id;
+						if ($documentToEdit->update($user) > 0) {
+							setEventMessages($langs->trans('DigitalSignatureManagerDocumentSuccesfullyUpdate'), array());
+						} else {
+							setEventMessages($langs->trans('DigitalSignatureManagerDocumentErrorWhileUpdating'), $documentToEdit->errors);
+						}
 					}
 				}
 			}
@@ -488,16 +520,51 @@ class FormDigitalSignatureDocument
 	 * @return string Content to be printed
 	 */
 	public function getDeleteFormConfirm($action, $object, $formconfirm = "")
-    {
-		if($action == self::DELETE_ACTION_NAME) {
+	{
+		if ($action == self::DELETE_ACTION_NAME) {
 			global $langs;
 			$formquestion = array(
-				array('type'=>'hidden', 'name'=>self::ELEMENT_POST_ID_FIELD_NAME, 'value'=>$this->getFormElementId())
+				array('type' => 'hidden', 'name' => self::ELEMENT_POST_ID_FIELD_NAME, 'value' => $this->getFormElementId())
 			);
 			$documentStatic = $this->elementObjectStatic;
 			$documentStatic->fetch($this->getFormElementId());
 			return $this->form->formconfirm($this->formDigitalSignatureManager->buildActionUrlForLine($object->id), $langs->trans('DigitalSignatureRequestDocumentConfirmDeleteTitle'), $langs->trans('DigitalSignatureRequestDocumentConfirmDeleteDescription', $documentStatic->getDocumentName()), self::CONFIRM_DELETE_ACTION_NAME, $formquestion, 0, 1, 220);
 		}
 		return $formconfirm;
+	}
+
+	/**
+	 * Get multi select form of checkboxes
+	 * @param DigitalSignatureRequest $digitalSignatureRequest Request on which we have to select checkbox
+	 * @param int[] $chosenCheckBoxIds array of chosen check box ids
+	 * @return string
+	 */
+	public function getCheckBoxInputForm($digitalSignatureRequest, $chosenCheckBoxIds, $hideEmptyCheckBox = false)
+	{
+		$arrayOfKeyValue = array();
+		foreach($digitalSignatureRequest->availableCheckBox as $checkBox) {
+			if(!$hideEmptyCheckBox || !empty($checkBox->label)) {
+				$arrayOfKeyValue[$checkBox->id] = $checkBox->label;
+			}
+		}
+		return $this->form->multiselectarray(self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME, $arrayOfKeyValue, $chosenCheckBoxIds, 0, 0, 'width95');
+	}
+
+	/**
+	 * Function to update digital signature people from POST
+	 * @param digitalSignatureDocument $digitalSignatureDocument object instance to be updated with data from post
+	 * @param bool $fillOnlyIfFieldIsPresentOnPost - fill field only field that are in POST
+	 * @return digitalSignatureDocument updated object
+	 */
+	public static function updateFromPost($digitalSignatureDocument, $fillOnlyIfFieldIsPresentOnPost = false)
+	{
+		if (!$fillOnlyIfFieldIsPresentOnPost || isset($_POST[self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME])) {
+			$arrayOfCheckBoxIds = array();
+			foreach(GETPOST(self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME) as $checkBoxId) {
+				$arrayOfCheckBoxIds[] = (int) $checkBoxId;
+			}
+			$digitalSignatureDocument->check_box_ids = $arrayOfCheckBoxIds;
+		}
+		return $digitalSignatureDocument;
 	}
 }

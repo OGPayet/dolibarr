@@ -76,3 +76,7 @@ else header('Cache-Control: no-cache');
 .fullwidth {
 	width:100%;
 }
+
+.width95 {
+	width:95%;
+}

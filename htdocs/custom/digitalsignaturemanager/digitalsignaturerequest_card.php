@@ -208,7 +208,7 @@ if (empty($reshook)) {
 
 	//Action to manage save of digitalsignaturedocument
 	if ($permissiontoedit) {
-		$formDigitalSignatureDocument->manageSaveAction($action, $user);
+		$formDigitalSignatureDocument->manageSaveAction($action, $object, $user);
 	}
 
 	//Action to manage edit of digitalsignaturedocument

@@ -302,9 +302,11 @@ class FormDigitalSignatureRequest
 		}
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignatureManagerDocumentColumnTitle'),
-			$langs->trans('DigitalSignatureManagerDocumentColumnTitleInfoBox'),
-			false
+			$langs->trans('DigitalSignatureManagerDocumentColumnTitle')
+		);
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureManagerDocumentCheckBoxColumnTitle')
 		);
 
 		if($userCanAskToEditDocumentLine) {
@@ -405,21 +407,15 @@ class FormDigitalSignatureRequest
 		);
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignatureSignatoryFieldPage'),
-			$langs->trans('DigitalSignatureSignatoryFieldPageInfoBox'),
-			true
+			$langs->trans('DigitalSignatureSignatoryFieldPage')
 		);
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignatureSignatoryFieldXAxis'),
-			$langs->trans('DigitalSignatureSignatoryFieldXAxisInfoBox'),
-			true
+			$langs->trans('DigitalSignatureSignatoryFieldXAxis')
 		);
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignatureSignatoryFieldYAxis'),
-			$langs->trans('DigitalSignatureSignatoryFieldYAxisInfoBox'),
-			true
+			$langs->trans('DigitalSignatureSignatoryFieldYAxis')
 		);
 
 		$nbOfActionColumn = 0;
@@ -529,34 +525,24 @@ class FormDigitalSignatureRequest
 
 		if($displayLinkedObjectColumn) {
 			print $this->formDigitalSignatureManager->getColumnTitle(
-				$langs->trans('DigitalSignatureLinkedObjectTitle'),
-				$langs->trans('DigitalSignatureLinkedObjectTitleInfoBox'),
-				false
+				$langs->trans('DigitalSignatureLinkedObjectTitle')
 			);
 		}
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignaturePeopleLastname'),
-			$langs->trans('DigitalSignatureManagerLastNameInfoBox'),
-			false
+			$langs->trans('DigitalSignaturePeopleLastname')
 		);
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignaturePeopleFirstname'),
-			$langs->trans('DigitalSignatureManagerFirstNameInfoBox'),
-			false
+			$langs->trans('DigitalSignaturePeopleFirstname')
 		);
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignaturePeopleMail'),
-			$langs->trans('DigitalSignatureManagerMailInfoBox'),
-			false
+			$langs->trans('DigitalSignaturePeopleMail')
 		);
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignaturePeopleLastname'),
-			$langs->trans('DigitalSignaturePeopleMobilePhoneNumber'),
-			false
+			$langs->trans('DigitalSignaturePeopleLastname')
 		);
 
 		$nbOfActionColumn = 0;
@@ -636,7 +622,7 @@ class FormDigitalSignatureRequest
 
 		$numberOfActionColumnPerComponentsDisplayed = array(
 			'show'=>count($listOfCheckBox) > 0 ? count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder))) : null,
-			'showEditForm'=> $isALineBeingEdited ? 1 : null,
+			'showEditForm'=> $isALineBeingEdited ? count(array_filter(array(true, $userCanChangeOrder))) : null,
 			'showAddForm' => $userCanAddLine ? 1 : null,
 		);
 		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
@@ -671,7 +657,6 @@ class FormDigitalSignatureRequest
 			print '<td class="linecolmove" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
-
 		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;

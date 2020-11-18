@@ -181,7 +181,7 @@ class FormDigitalSignatureCheckBox
 			// Show add button
 			$numberOfActionColumnOfTheTable = $numberOfActionColumnOfTheTable < 1 ? 1 : $numberOfActionColumnOfTheTable;
 			print '<td class="nobottom linecoledit" align="center" valign="middle" colspan="' . $numberOfActionColumnOfTheTable . '">';
-			print '<input type="submit" class="button" value="' . $langs->trans('DigitalSignatureAddSignatoryField') . '">';
+			print '<input type="submit" class="button" value="' . $langs->trans('DigitalSignatureAddCheckBoxField') . '">';
 			print '</td>';
 		}
 
@@ -211,7 +211,7 @@ class FormDigitalSignatureCheckBox
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_ROW . '-' . $checkBox->id . '" class="oddeven drag drop">';
 
-		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, null, $checkBox->id, self::ELEMENT_PREFIX_ROW) . '" enctype="multipart/form-data" method="post">';
+		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, $checkBox->id, self::ELEMENT_PREFIX_ROW) . '" enctype="multipart/form-data" method="post">';
 		print '<input type="hidden" name="token" value="' . newToken() . '">';
 
 		//We display number column
@@ -254,20 +254,14 @@ class FormDigitalSignatureCheckBox
 	 *  @param bool $userCanAskToEditLine display edit button
 	 *  @param bool $userCanAskToDeleteLine display delete button
 	 *  @param bool $userCanMoveLine display move button
-	 *  @param int  $numberOfActionColumns number of column into action
+	 *  @param int  $numberOfActionColumnsIntoParentTable number of column into action
 	 *	@return	int						<0 if KO, >=0 if OK
 	 */
-	public function show($checkBox, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine, $numberOfActionColumns)
+	public function show($checkBox, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine, $numberOfActionColumnsIntoParentTable)
 	{
 		$colspan = 0; //used for extrafields
 		$digitalSignatureRequestId = $checkBox->digitalSignatureRequest->id;
 		global $conf;
-
-		$numberOfColumnDisplayed = count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)));
-		$colSpanForFirstCell = 1;
-		if ($numberOfActionColumns > $numberOfColumnDisplayed) {
-			$colSpanForFirstCell += $numberOfActionColumns - $numberOfColumnDisplayed;
-		}
 
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_ROW . '-' . $checkBox->id . '" class="oddeven drag drop">';
@@ -283,6 +277,12 @@ class FormDigitalSignatureCheckBox
 		print $this->formDigitalSignatureManager->getWarningInfoBox($userCanAskToEditLine, $checkBox->checkLabelValidity());
 		print '</td>';
 
+		$nbOfActionColumn = count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)));
+
+		for ($i = $nbOfActionColumn; $i < $numberOfActionColumnsIntoParentTable; $i++) {
+			print '<td class="linecoledit" style="width: 10px"></td>';
+			$nbOfActionColumn++;
+		}
 
 		// Show edit button
 		if ($userCanAskToEditLine) {

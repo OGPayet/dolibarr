@@ -78,6 +78,9 @@ DigitalSignatureManagerDocumentErrorWhileUpdating = Erreur lors de la mise à jo
 DigitalSignatureRequestDocumentAlreadyDeleted = Ce document a déjà été supprimé
 DigitalSignatureRequestDocumentConfirmDeleteTitle = Confirmation de la suppression d'un document
 DigitalSignatureRequestDocumentConfirmDeleteDescription = Confirmez-vous la suppression du fichier %s ?
+DigitalSignatureManagerErrorWhileMovingFiles = Erreur lors du déplacement du fichier. Des données peuvent avoir été perdues.
+DigitalSignatureManagerDocumentCheckBoxColumnTitle = Phrases de Validation
+DigitalSignatureManagerDocumentCheckBoxColumnTitleInfoBox = Phrases de validations placé en bas de chaque document lors de la signature pour tout les signatures. <br> Ces cases devront être cochées par le signataire pour pouvoir apposer sa signature sur le document.
 
 DigitalSignatureManagerPeopleList = Liste des signataire, dans l'ordre chronologique de signature des documents
 DigitalSignatureLinkedObjectTitle = Contact/utilisateur lié
@@ -142,6 +145,22 @@ DigitalSignatureManagerSignatoryFieldDSignatoryNotChosen = Aucun signataire sél
 DigitalSignatureManagerSignatoryFieldYAxisValueIncorrect = Valeur incorrecte ou manquante
 DigitalSignatureManagerSignatoryFieldXAxisValueIncorrect = Valeur incorrecte ou manquante
 DigitalSignatureManagerSignatoryFieldPageValueIncorrect = Valeur incorrecte ou manquante
+
+DigitalSignatureManagerCheckBoxList=Liste de phrase de validation pour cette demande
+DigitalSignatureRequestCheckBoxLabel = Libellé
+DigitalSignatureAddCheckBoxField = Ajouter une phrase de validation
+DigitalSignatureCHeckBoxNotFoundOrAlreadyDeleted = Phrase de validation introuvable ou déjà supprimé
+DigitalSignatureManagerCheckBoxSuccessfullyDeleted = Phrase de validation supprimée avec succès
+DigitalSignatureManagerCheckBoxErrorWhileDeleting = Erreur lors de la suppression de la phrase de validation
+DigitalSignatureRequestCheckBoxSuccesfullyAdded = Phrase de validation ajouté avec succès
+DigitalSignatureRequestCheckBoxErrorWhenAdded = Erreur lors de l'ajout de la phrase de validation
+DigitalSignatureCheckBoxNotFound = Phrase de validation introuvable
+DigitalSignatureCheckBoxErrorWhileSaving = Erreur lors de la sauvegarde de la phrase de validation
+DigitalSignatureCheckBoxSuccessfullySaved = Phrase de validation sauvegardé avec succès
+DigitalSignatureRequestCheckBoxConfirmDeleteTitle = Confirmation de la suppression d'une phrase de validation
+DigitalSignatureRequestCheckBoxConfirmDeleteDescription = Confirmer-vous la validation de la phrase de validation "%s" ?
+DigitalSignatureCheckBoxLabelInfoBox = Libellé de la phrase de validation qui sera affiché lors de la signature des documents sur lesquels cette phrase a été placée
+DigitalSignatureCheckBoxMissingLabel = Le libellé d'une phrase de validation doit ne doit pas être vide
 
 #
 # Status
