@@ -388,7 +388,7 @@ class FormDigitalSignatureRequest
 		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
 
 		print '<div class="div-table-responsive-no-min">';
-		print '<div class="titre"><h3>' . $langs->trans('DigitalSignatureManagerSignatureSignatoryList') . '</h3></div>';
+		print '<div class="titre"><h3>' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerSignatureSignatoryListHelperText')) . $langs->trans('DigitalSignatureManagerSignatureSignatoryList') . '</h3></div>';
 		print '<table id="' . self::DIGITALSIGNATURESIGNATORYFIELD_TABLEID . '" class="noborder noshadow tabBar" width="100%">';
 
 		//display people lines header

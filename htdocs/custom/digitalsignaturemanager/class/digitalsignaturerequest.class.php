@@ -395,6 +395,9 @@ class DigitalSignatureRequest extends CommonObject
 		if($result > 0) {
 			$result = $this->fetch_optionals();
 		}
+		if($result >= 0) {
+			$result = $this->fetchAvailableCheckBox();
+		}
 		if ($result >= 0) {
 			$result = $this->fetchPeople();
 		}
@@ -404,9 +407,6 @@ class DigitalSignatureRequest extends CommonObject
 
 		if($result >=0) {
 			$result = $this->fetchSignatoryField();
-		}
-		if($result >= 0) {
-			$result = $this->fetchAvailableCheckBox();
 		}
 		return $result;
 	}
@@ -504,23 +504,19 @@ class DigitalSignatureRequest extends CommonObject
 		if(empty($this->documents)) {
 			$errors[] = $langs->trans('DigitalSignatureMissingFilesToSign');
 		}
-
-		foreach($this->documents as $document)
-		{
-			foreach($this->people as $people)
-			{
-				$signatureFieldForThisSignatoryOnThisDocument = getItemFromThisArray($this->signatoryFields, array(
-					'fk_chosen_digitalsignaturedocument'=>$document->id,
-					'fk_chosen_digitalsignaturepeople'=>$people->id,
-				));
-				if(!$signatureFieldForThisSignatoryOnThisDocument) {
-					$errors[] = $langs->trans('DigitalSignatureMissingSignatoryField', $people->displayName(), $document->getDocumentName());
-				}
-			}
+		//We validate documents
+		foreach($this->documents as $document) {
+			$errors = array_merge($errors, $document->checkDataValidForCreateRequestOnProvider());
 		}
 
+		//we validate people
 		foreach($this->people as $people) {
 			$errors = array_merge($errors, $people->checkDataValidForCreateRequestOnProvider());
+		}
+
+		//We validate signatory field
+		foreach($this->signatoryFields as $signatoryField) {
+			$errors = array_merge($errors, $signatoryField->checkDataValidForCreateRequestOnProvider());
 		}
 		return $errors;
 	}

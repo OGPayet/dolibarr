@@ -119,6 +119,7 @@ DigitalSignatureManagerMailInfoBox = Mail du signataire <br> Le signataire recev
 DigitalSignatureManagerPhoneInfoBox = Numéro de téléphone mobile du signataire <br> Ce numéro permettra d'identifier juridiquement le signataire en lui envoyant un sms d'authentification
 
 DigitalSignatureManagerSignatureSignatoryList = Liste des emplacement de signature de chaque signataire, pour chaque document où il dispose d'un emplacement
+DigitalSignatureManagerSignatureSignatoryListHelperText = Si un champs de signature n'est pas défini pour chaque signataire sur chaque document, le signataire signera tout de même le document mais aucune inscription graphique ne sera inscrite sur le document. Ceci n'est que visuel, la signature reste valable juridiquement.
 DigitalSignatureSignatoryFieldLinkedSignatory = Signataire
 DigitalSignatureSignatoryFieldLinkedDocument = Document
 DigitalSignatureSignatoryFieldPage = Numéro de page
@@ -142,9 +143,12 @@ DigitalSignatureManagerSignatoryFieldChosenSignatoryDoesNotExistAnymore = Le sig
 DigitalSignatureAddSignatoryField = Ajouter une zone de signature
 DigitalSignatureManagerSignatoryFieldDocumentNotChosen = Aucun document sélectionné pour la zone de signature
 DigitalSignatureManagerSignatoryFieldDSignatoryNotChosen = Aucun signataire sélectionné pour la zone de signature
-DigitalSignatureManagerSignatoryFieldYAxisValueIncorrect = Valeur incorrecte ou manquante
-DigitalSignatureManagerSignatoryFieldXAxisValueIncorrect = Valeur incorrecte ou manquante
-DigitalSignatureManagerSignatoryFieldPageValueIncorrect = Valeur incorrecte ou manquante
+DigitalSignatureManagerSignatoryFieldYAxisValueIncorrect = Le numéro de page doit être correctement renseigné sur le champs de signature
+DigitalSignatureManagerSignatoryFieldXAxisValueIncorrect = La coordonnée horizontale doit être correctement renseigné sur le champs de signature
+DigitalSignatureManagerSignatoryFieldPageValueIncorrect = La coordonnée verticale doit être correctement renseigné sur le champs de signature
+DigitalSignatureManagerDocumentSelectionInfoBox = Document où ce champs de signature est placé
+DigitalSignatureManagerSignatorySelectionInfoBox = Signataire concerné par ce champs de signature
+
 
 DigitalSignatureManagerCheckBoxList=Liste de phrase de validation pour cette demande
 DigitalSignatureRequestCheckBoxLabel = Libellé
@@ -212,7 +216,8 @@ DigitalSignaturePeopleMissingLastName = Nom de famille manquant pour le signatai
 DigitalSignaturePeopleMissingFirstName = Prénom manquant pour le signataire %s
 DigitalSignaturePeopleMissingPhoneNumber = Numéro de téléphone manquant pour le signataire %s
 DigitalSignaturePeopleMissingMail = Adresse email manquante pour le signataire %s
-DigitalSignatureMissingSignatoryField = Champs de signature pour le signataire %s manquant sur le document %s
+DigitalSignatureManagerCheckBoxEmptyValueForDocument = Une phrase de validation est renseigné pour le document %s mais cette dernière est invalide
+
 
 #
 # Propriété des champs

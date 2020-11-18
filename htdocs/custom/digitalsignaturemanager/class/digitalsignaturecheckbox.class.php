@@ -296,4 +296,18 @@ class DigitalSignatureCheckBox extends CommonObject
 		}
 		return $maximum;
 	}
+
+	/**
+	 * Function to check that data are valid for this document
+	 * @param DigitalSignatureDocument $documentInWhichWeValidateThisCheckBox content of validation of data of this checkbox
+	 * @return string[] array of errors when validating this document
+	 */
+	public function checkDataValidForCreateRequestOnProvider($documentInWhichWeValidateThisCheckBox) {
+		global $langs;
+		$errors = array();
+		if(empty($this->label)) {
+			$errors[] = $langs->trans('DigitalSignatureManagerCheckBoxEmptyValueForDocument', $documentInWhichWeValidateThisCheckBox->getDocumentName());
+		}
+		return $errors;
+	}
 }

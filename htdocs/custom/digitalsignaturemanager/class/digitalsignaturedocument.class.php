@@ -536,4 +536,19 @@ class DigitalSignatureDocument extends CommonObject
 		}
 		$this->checkBoxes = $result;
 	}
+
+	/**
+	 * Function to check that data are valid for this document
+	 * @return string[] array of errors when validating this document
+	 */
+	public function checkDataValidForCreateRequestOnProvider()
+	{
+		$errors = array();
+		//We could validate document field here
+
+		foreach($this->checkBoxes as $checkbox) {
+			$errors = array_merge($errors, $checkbox->checkDataValidForCreateRequestOnProvider($this));
+		}
+		return $errors;
+	}
 }

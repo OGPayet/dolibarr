@@ -474,4 +474,19 @@ class DigitalSignatureSignatoryField extends CommonObject
 		}
 		return $this->digitalSignatureRequest;
 	}
+
+	/**
+	 * Function to check that data are valid for this signatory field
+	 * @return string[] array of errors when validating this signatory field
+	 */
+	public function checkDataValidForCreateRequestOnProvider()
+	{
+		return array_merge(
+			$this->checkLinkedDocumentValidity(),
+			$this->checkLinkedSignatoryValidity(),
+			$this->checkPageNumberValidity(),
+			$this->checkXAxisValidity(),
+			$this->checkYAxisValidity()
+		);
+	}
 }
