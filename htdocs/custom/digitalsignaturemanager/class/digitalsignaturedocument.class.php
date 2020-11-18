@@ -184,7 +184,7 @@ class DigitalSignatureDocument extends CommonObject
 		if ($result > 0) {
 			$result = $this->fetchLinkedDigitalSignatureRequest();
 		}
-		if($result > 0) {
+		if ($result > 0) {
 			$this->fetchDigitalSignatureCheckBox();
 		}
 		return $result;
@@ -316,12 +316,13 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
-		$result = $this->deleteCommon($user, $notrigger);
-		if ($result > 0) {
-			//we delete file
-			$result = dol_delete_file($this->getLinkedFileAbsolutePath()) ? 1 : -1;
+		global $langs;
+		$errors = array();
+		if ($this->deleteCommon($user, $notrigger) > 0 && dol_delete_file($this->getLinkedFileAbsolutePath()) < 0) {
+				$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileDeletingFile');
 		}
-		return $result;
+		$this->errors = array_merge($this->errors, $errors);
+		return empty($errors) ? 1 : -1;
 	}
 
 	/**
@@ -405,12 +406,20 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getLinkedFileAbsolutePath()
 	{
+		$digitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
+		return $digitalSignatureRequest ? $digitalSignatureRequest->getBaseUploadDir() . "/" . $this->getLinkedFileRelativePath() : null;
+	}
+
+	/**
+	 * Function to get linked digital signature request instance
+	 * @return DigitalSignatureRequest
+	 */
+	public function getLinkedDigitalSignatureRequest()
+	{
 		if (!$this->digitalSignatureRequest) {
 			$this->fetchLinkedDigitalSignatureRequest();
 		}
-		if ($this->digitalSignatureRequest) {
-			return $this->digitalSignatureRequest->getBaseUploadDir() . "/" . $this->getLinkedFileRelativePath();
-		}
+		return $this->digitalSignatureRequest;
 	}
 
 	/**
@@ -419,12 +428,8 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getLinkedFileRelativePath()
 	{
-		if (!$this->digitalSignatureRequest) {
-			$this->fetchLinkedDigitalSignatureRequest();
-		}
-		if ($this->digitalSignatureRequest) {
-			return $this->digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $this->getDocumentName();
-		}
+		$digitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
+		return $digitalSignatureRequest ? $digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $this->getDocumentName() : null;
 	}
 
 	/**
@@ -433,7 +438,8 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getEntity()
 	{
-		return $this->digitalSignatureRequest->entity;
+		$digitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
+		return $digitalSignatureRequest ? $digitalSignatureRequest->entity : null;
 	}
 
 	/**
@@ -508,6 +514,25 @@ class DigitalSignatureDocument extends CommonObject
 	}
 
 	/**
+	 * Function to copy file to a new directory
+	 * @param string $newDirectoryAbsolutePath where to copy file - provide absolute path
+	 * @param User $user user requesting action
+	 * @return <0 if KO, >0 if OK, 0 if destination file already exist
+	 */
+	public function copyDocumentFile($newDirectoryAbsolutePath, $user, $destinationFileName = null)
+	{
+		$finalFileName = !empty($destinationFileName) ? $destinationFileName : $this->getDocumentName();
+		$destinationFilePath = $newDirectoryAbsolutePath . '/' . $finalFileName;
+		$sourceAbsoluteLinkedFilePath = $this->getLinkedFileAbsolutePath();
+		$result = dol_copy($sourceAbsoluteLinkedFilePath, $destinationFilePath);
+		if($result  > 0)
+		{
+			return dol_move($destinationFilePath, $destinationFilePath); //Dolibarr bullshit adaptation. Ecm files aren't managed with dol_copy
+		}
+		return $result;
+	}
+
+	/**
 	 * Fetch available CheckBoxes that could be chosen for this digital signature document and request
 	 * @return DigitalSignatureCheckBox[]
 	 */
@@ -529,8 +554,8 @@ class DigitalSignatureDocument extends CommonObject
 	public function fetchDigitalSignatureCheckBox()
 	{
 		$result = array();
-		foreach($this->getAvailableCheckBox() as $checkbox) {
-			if(in_array($checkbox->id, $this->check_box_ids)) {
+		foreach ($this->getAvailableCheckBox() as $checkbox) {
+			if (in_array($checkbox->id, $this->check_box_ids)) {
 				$result[] = $checkbox;
 			}
 		}
@@ -546,9 +571,98 @@ class DigitalSignatureDocument extends CommonObject
 		$errors = array();
 		//We could validate document field here
 
-		foreach($this->checkBoxes as $checkbox) {
+		foreach ($this->checkBoxes as $checkbox) {
 			$errors = array_merge($errors, $checkbox->checkDataValidForCreateRequestOnProvider($this));
 		}
 		return $errors;
+	}
+
+	/**
+	 * Clone an object into another one
+	 *
+	 * @param  	User 	$user      	User that creates
+	 * @param  	int 	$fromId     Id of object to clone
+	 * @param 	DigitalSignatureRequest     $newDigitalSignatureRequest Linked digital signature request instance if different from $this
+	 * @param   int[]   $arrayOfOldCheckBoxIdAndClonedCheckBoxId When digital signature request is cloned, in order to update chosen check box id
+	 * @return 	mixed 				New object created, <0 if KO
+	 */
+	public function createFromClone(User $user, $fromId, $newDigitalSignatureRequest = null, $arrayOfOldCheckBoxIdAndClonedCheckBoxId = null)
+	{
+		global $langs, $extrafields;
+		dol_syslog(__METHOD__, LOG_DEBUG);
+		$errors = array();
+		$object = new self($this->db);
+
+		$this->db->begin();
+
+		// Load source object
+		$object->fetch($fromId);
+
+		// Reset some properties
+		$object->id = null;
+		$object->fk_user_creat = null;
+		$object->import_key = null;
+
+		if (isset($arrayOfOldCheckBoxIdAndClonedCheckBoxId)) {
+			$oldChosenCheckBoxIds = $object->check_box_ids;
+			$newChosenCheckBoxIds = array();
+			foreach ($oldChosenCheckBoxIds as $id) {
+				$newChosenCheckBoxIds[] = $arrayOfOldCheckBoxIdAndClonedCheckBoxId[$id];
+			}
+			$object->check_box_ids = array_filter($newChosenCheckBoxIds);
+		}
+
+		// Clear extrafields that are unique
+		if (is_array($object->array_options) && count($object->array_options) > 0) {
+			$extrafields->fetch_name_optionals_label($this->table_element);
+			foreach ($object->array_options as $key => $option) {
+				$shortkey = preg_replace('/options_/', '', $key);
+				if (!empty($extrafields->attributes[$this->element]['unique'][$shortkey])) {
+					unset($object->array_options[$key]);
+				}
+			}
+		}
+		//we update linked digital signature request
+		if ($newDigitalSignatureRequest && $newDigitalSignatureRequest->id > 0) {
+			$linkedDigitalSignature = $newDigitalSignatureRequest;
+			$destinationFileName = $this->getDocumentName();
+		} elseif ($this->getLinkedDigitalSignatureRequest()) {
+			$linkedDigitalSignature = $this->getLinkedDigitalSignatureRequest();
+			$destinationFileName = 'copy-' . $this->getDocumentName();
+		} else {
+			$errors[] = $langs->trans('DigitalSignatureManagerCloneUnableToFindSourceRequest');
+		}
+
+		//We copy files
+		if (empty($errors)) {
+			if ($this->copyDocumentFile($linkedDigitalSignature->getBaseUploadDir() . "/" . $linkedDigitalSignature->getRelativePathForFilesToSign(), $user, $destinationFileName) < 0) {
+				$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileCopyingFile');
+			} else {
+				$ecmInstanceOfNewFile = self::getEcmInstanceOfFile($this->db, $linkedDigitalSignature->getRelativePathForFilesToSign(), $destinationFileName);
+				if (!$ecmInstanceOfNewFile) {
+					$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileCopyingFile');
+				} else {
+					//We update ecm id and digital signature request
+					$object->fk_digitalsignaturerequest = $linkedDigitalSignature->id;
+					$object->fk_ecm = $ecmInstanceOfNewFile->id;
+					// Create clone
+					$object->context['createfromclone'] = 'createfromclone';
+					$result = $object->create($user);
+					if ($result < 0) {
+						$errors = array_merge($errors, $object->errors);
+					}
+					unset($object->context['createfromclone']);
+				}
+			}
+		}
+		// End
+		if (empty($errors)) {
+			$this->db->commit();
+			return $object;
+		} else {
+			$this->errors = array_merge($this->errors, $errors);
+			$this->db->rollback();
+			return -1;
+		}
 	}
 }

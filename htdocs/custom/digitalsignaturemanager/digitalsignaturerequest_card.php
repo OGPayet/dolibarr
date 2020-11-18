@@ -259,29 +259,32 @@ if (empty($reshook)) {
 	}
 
 		//Action to manage delete of digital check box
-		if ($permissiontodelete) {
-			$formDigitalSignatureCheckBox->manageDeleteAction($object, $action, $confirm, $user);
-		}
+	if ($permissiontodelete) {
+		$formDigitalSignatureCheckBox->manageDeleteAction($object, $action, $confirm, $user);
+	}
 
 		//Action to manage addition of digital check box
-		if ($permissiontoadd) {
-			$formDigitalSignatureCheckBox->manageAddAction($action, $object, $user);
-		}
+	if ($permissiontoadd) {
+		$formDigitalSignatureCheckBox->manageAddAction($action, $object, $user);
+	}
 
 		//Action to manage save of digital check box
-		if ($permissiontoedit) {
-			$formDigitalSignatureCheckBox->manageSaveAction($action, $object, $user);
-		}
+	if ($permissiontoedit) {
+		$formDigitalSignatureCheckBox->manageSaveAction($action, $object, $user);
+	}
 
 		//Action to manage edit of digital check box
-		if ($permissiontoedit) {
-			$currentCheckBoxEditedId = $formDigitalSignatureCheckBox->getCurrentAskedEditedElementId($action);
-		}
+	if ($permissiontoedit) {
+		$currentCheckBoxEditedId = $formDigitalSignatureCheckBox->getCurrentAskedEditedElementId($action);
+	}
 }
 
 // Load object
 include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be include, not include_once.
 
+if(!empty($object->errors)) {
+	setEventMessages('', $object->errors, 'errors');
+}
 /*
  * View
  *

@@ -310,4 +310,69 @@ class DigitalSignatureCheckBox extends CommonObject
 		}
 		return $errors;
 	}
+
+	/**
+	 * Clone an object into another one
+	 *
+	 * @param  	User 	$user      	User that creates
+	 * @param  	int 	$fromid     Id of object to clone
+	 * @param 	int     $newDigitalSignatureRequestId change digital signature request id with this id
+	 * @return 	mixed 				New object created, <0 if KO
+	 */
+	public function createFromClone(User $user, $fromid, $newDigitalSignatureRequestId = 0)
+	{
+		global $langs, $extrafields;
+		$error = 0;
+
+		dol_syslog(__METHOD__, LOG_DEBUG);
+
+		$object = new self($this->db);
+
+		$this->db->begin();
+
+		// Load source object
+		$object->fetch($fromid);
+
+		// Reset some properties
+		$object->id = null;
+		$object->fk_user_creat = null;
+		$object->import_key = null;
+		if($newDigitalSignatureRequestId > 0) {
+			$object->fk_digitalsignaturerequest = $newDigitalSignatureRequestId;
+		}
+
+		// Clear extrafields that are unique
+		if (is_array($object->array_options) && count($object->array_options) > 0)
+		{
+			$extrafields->fetch_name_optionals_label($this->table_element);
+			foreach ($object->array_options as $key => $option)
+			{
+				$shortkey = preg_replace('/options_/', '', $key);
+				if (!empty($extrafields->attributes[$this->element]['unique'][$shortkey]))
+				{
+					unset($object->array_options[$key]);
+				}
+			}
+		}
+
+		// Create clone
+		$object->context['createfromclone'] = 'createfromclone';
+		$result = $object->create($user);
+		if ($result < 0) {
+			$error++;
+			$this->error = $object->error;
+			$this->errors = $object->errors;
+		}
+
+		unset($object->context['createfromclone']);
+
+		// End
+		if (!$error) {
+			$this->db->commit();
+			return $object;
+		} else {
+			$this->db->rollback();
+			return -1;
+		}
+	}
 }
