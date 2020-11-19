@@ -121,7 +121,7 @@ class DigitalSignatureRequest extends CommonObject
 		'fk_user_creat' => array('type' => 'integer:User:user/class/user.class.php', 'label' => 'UserAuthor', 'enabled' => '1', 'position' => 510, 'notnull' => 1, 'visible' => -2, 'foreignkey' => 'user.rowid',),
 		'fk_user_modif' => array('type' => 'integer:User:user/class/user.class.php', 'label' => 'UserModif', 'enabled' => '1', 'position' => 511, 'notnull' => -1, 'visible' => -2,),
 		'import_key' => array('type' => 'varchar(14)', 'label' => 'ImportId', 'enabled' => '1', 'position' => 1000, 'notnull' => -1, 'visible' => -2,),
-		'status' => array('type' => 'smallint', 'label' => 'Status', 'enabled' => '1', 'position' => 1000, 'notnull' => 1, 'visible' => 0, 'noteditable' => '1', 'default' => '0', 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Processus de signature en cours', '2' => 'Annul&eacute;', '3' => 'Signature termin&eacute;e', '9' => 'Erreur Technique'),),
+		'status' => array('type' => 'smallint', 'label' => 'Status', 'enabled' => '1', 'position' => 1000, 'notnull' => 1, 'visible' => 1, 'noteditable' => '1', 'default' => '0', 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Processus de signature en cours', '2' => 'Annul&eacute;', '3' => 'Signature termin&eacute;e', '9' => 'Erreur Technique'),),
 		'externalId' => array('type' => 'varchar(255)', 'label' => 'Id of the signature process at external provider', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'externalUrl' => array('type' => 'varchar(255)', 'label' => 'Url given by universign after request have been created', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'elementtype' => array('type' => 'varchar(128)', 'label' => 'Linked Element Type', 'enabled' => '1', 'position' => 1003, 'notnull' => 0, 'visible' => 0, 'index' => 1,),
@@ -527,6 +527,9 @@ class DigitalSignatureRequest extends CommonObject
 		if (empty($this->documents)) {
 			$errors[] = $langs->trans('DigitalSignatureMissingFilesToSign');
 		}
+		//We check that each document has a signatory field
+		$errors = array_merge($errors, $this->checkThatEachDocumentHasASignatureField());
+
 		//We validate documents
 		foreach ($this->documents as $document) {
 			$errors = array_merge($errors, $document->checkDataValidForCreateRequestOnProvider());
@@ -540,6 +543,29 @@ class DigitalSignatureRequest extends CommonObject
 		//We validate signatory field
 		foreach ($this->signatoryFields as $signatoryField) {
 			$errors = array_merge($errors, $signatoryField->checkDataValidForCreateRequestOnProvider());
+		}
+		return $errors;
+	}
+
+	/**
+	 * Validate that each document has at least on signature field
+	 * @return array arrayOfErrors
+	 */
+	public function checkThatEachDocumentHasASignatureField()
+	{
+		global $langs;
+		$errors = array();
+		foreach($this->documents as $document) {
+			$signatureFieldOnThisDocument = false;
+			foreach($this->signatoryFields as $signatoryField) {
+				if($signatoryField->fk_chosen_digitalsignaturedocument == $document->id) {
+					$signatureFieldOnThisDocument = true;
+					break;
+				}
+			}
+			if(!$signatureFieldOnThisDocument) {
+				$errors[] = $langs->trans("DigitalSignatureManagerMissingSignatoryField", $document->getDocumentName());
+			}
 		}
 		return $errors;
 	}
@@ -561,23 +587,13 @@ class DigitalSignatureRequest extends CommonObject
 			return -1;
 		}
 
-		try {
-			$returnedValues = $this->externalProviderService->create($this);
-			if ($returnedValues['id']) {
-				$this->externalId = $returnedValues['id'];
-			}
-			if ($returnedValues['url']) {
-				$this->externalId = $returnedValues['url'];
-			}
+		$returnedValues = $this->externalProviderService->create($this);
+		if($returnedValues && !empty($returnedValues['id'])) {
+			$this->externalId = $returnedValues['id'];
+			$this->externalUrl = $returnedValues['url'];
 			$signatureRequestSuccessfullyCreated = true;
-			$this->update($user);
-		} catch (Exception $e) {
-			$this->errors = array_merge($this->errors, $e);
-			$signatureRequestSuccessfullyCreated = false;
 		}
-		$result = $this->setStatus($user, self::STATUS_IN_PROGRESS, $notrigger);
-
-		if ($result > 0 && $signatureRequestSuccessfullyCreated) {
+		if ($signatureRequestSuccessfullyCreated && $this->update($user) > 0 &&	$this->setStatus($user, self::STATUS_IN_PROGRESS, $notrigger)) {
 			$this->db->commit();
 			return 1;
 		} else {
@@ -607,7 +623,7 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function cancelRequest($user, $notrigger = 0)
 	{
-		if ($this->externalId && $this->externalProviderService->cancel($this->externalId)) {
+		if ($this->externalId && $this->externalProviderService->cancel($user)) {
 			return $this->setStatus($user, self::STATUS_CANCELED_BY_OPSY, $notrigger);
 		}
 	}
@@ -765,6 +781,7 @@ class DigitalSignatureRequest extends CommonObject
 	public function LibStatut($status, $mode = 0)
 	{
 		global $langs;
+		$status = (int) $status;
 		$labelStatus = $this->labelStatus[$status];
 		$labelStatusShort = $this->labelStatusShort[$status];
 		if ($status == self::STATUS_IN_PROGRESS) {
@@ -772,7 +789,21 @@ class DigitalSignatureRequest extends CommonObject
 		} elseif ($status == self::STATUS_CANCELED_BY_SIGNERS) {
 			$labelStatus .= $langs->trans('DigitalSignatureRequestActionCanceledBy') . ' ' . $this->getCanceledStatusLabelSuffix();
 		}
-		return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
+
+		if(version_compare(DOL_VERSION, '12.0.0', '<')) {
+			$statusPicto = str_replace("status", "statut", $this->statusType[$status]);
+
+			if ($mode == 0)	return $labelStatus;
+			if ($mode == 1)	return $labelStatusShort;
+			if ($mode == 2)	return img_picto($labelStatusShort, $statusPicto).' '.$labelStatusShort;
+			if ($mode == 3)	return img_picto($labelStatus,  $statusPicto);
+			if ($mode == 4)	return img_picto($labelStatus,  $statusPicto).' '.$labelStatus;
+			if ($mode == 5)	return '<span class="hideonsmartphone">'.$labelStatusShort.' </span>'.img_picto($labelStatus,  $statusPicto);
+			if ($mode == 6)	return '<span class="hideonsmartphone">'.$labelStatus.' </span>'.img_picto($labelStatus,  $statusPicto);
+		}
+		else {
+			return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
+		}
 	}
 
 	/**
@@ -1075,7 +1106,17 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function isEditable()
 	{
-		return $this->statut == self::STATUS_DRAFT;
+		return $this->status == self::STATUS_DRAFT;
+	}
+
+	/**
+	 * Is this object in progress
+	 * return true if this object may be in progress on the external provider
+	 * @return bool
+	 */
+	public function isInProgress()
+	{
+		return $this->status == self::STATUS_IN_PROGRESS;
 	}
 
 	/**
@@ -1171,5 +1212,32 @@ class DigitalSignatureRequest extends CommonObject
 			$this->availableCheckBox = $fetchedDigitalSignatureCheckBoxes;
 		}
 		return empty($staticDigitalSignatureCheckBox->errors) ? 1 : -1;
+	}
+
+	/**
+	 * Get request public label in order to create request on universign
+	 * @return string Label of the universign request
+	 */
+	public function getUniversignPublicLabel()
+	{
+		global $langs;
+		if($this->status == self::STATUS_DRAFT) {
+			$publicRef = $this->getNextNumRef();
+		}
+		else {
+			$publicRef = $this->ref;
+		}
+		return $langs->trans('DigitalSignatureRequestUniversignProcessLabel', $publicRef);
+	}
+
+	/**
+	 * Get people linked to this request thanks to its index on the request
+	 * @param int $index signer
+	 * @return DigitalSignaturePeople|null researched signer
+	 */
+	public function getSignerByIndex($index)
+	{
+		$peopleByIndex = array_values($this->people);
+		return $peopleByIndex[$index];
 	}
 }

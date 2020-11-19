@@ -665,4 +665,11 @@ class DigitalSignatureDocument extends CommonObject
 			return -1;
 		}
 	}
+	/**
+	 * Get pdf instance of the linked document
+	 * @return TCPDF
+	 */
+	public function getInstancePdf() {
+
+	}
 }

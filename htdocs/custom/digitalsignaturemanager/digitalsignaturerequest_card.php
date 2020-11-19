@@ -110,7 +110,7 @@ include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be incl
 $permissiontoread = $user->rights->digitalsignaturemanager->request->read;
 $permissiontoadd = $user->rights->digitalsignaturemanager->request->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
 $permissiontoedit = $user->rights->digitalsignaturemanager->request->edit;
-$permissiontodelete = $user->rights->digitalsignaturemanager->request->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
+$permissiontodelete = $object->isEditable() && ($user->rights->digitalsignaturemanager->request->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT));
 $permissionnote = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_setnotes.inc.php
 $permissiondellink = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_dellink.inc.php
 $permissioncreate = $permissiontoadd && $object->status == $object::STATUS_DRAFT; //Used by actions_builddoc.inc.php to remove files
@@ -191,8 +191,31 @@ if (empty($reshook)) {
 
 	if ($action == 'confirm_validateAndCreateRequestToProvider' && $permissioncreate && $confirm == 'yes') {
 		$result = $object->validateAndCreateRequestOnTheProvider($user);
-		if ($result < 0) {
-			setEventMessages($object->error, $object->errors, 'errors');
+		if ($result <= 0) {
+			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileCreatingRequestOnProvider'), $object->errors, 'errors');
+		}
+		else {
+			setEventMessages($langs->trans('DigitalSignatureManagerSucessfullyCreatedOnProvider'), array());
+		}
+	}
+
+	if($action == 'confirm_cancelTransaction' && $permissiontoedit && $confirm == 'yes') {
+		if($object->cancelRequest($user) > 0) {
+			setEventMessages($langs->trans('DigitalSignatureManagerSuccessfullyCanceled'), $object->errors);
+		}
+		else {
+			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileCanceling'), $object->errors, 'errors');
+		}
+	}
+
+	if($action == 'refreshDataFromProvider')
+	{
+		$result = $object->updateDataFromExternalService($user);
+		if ($result <= 0) {
+			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileRefreshingData'), $object->errors, 'errors');
+		}
+		else {
+			setEventMessages($langs->trans('DigitalSignatureManagerSuccesfullyRefreshedData'), array());
 		}
 	}
 
@@ -278,7 +301,8 @@ if (empty($reshook)) {
 		$currentCheckBoxEditedId = $formDigitalSignatureCheckBox->getCurrentAskedEditedElementId($action);
 	}
 }
-
+//we remove errors from actions
+$object->errors = array();
 // Load object
 include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be include, not include_once.
 
@@ -381,19 +405,21 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	if ($action == 'delete') {
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DeleteDigitalSignatureRequest'), $langs->trans('ConfirmDeleteObject'), 'confirm_delete', '', 0, 1);
 	}
-	// Confirmation to delete line
-	if ($action == 'deleteline') {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id . '&lineid=' . $lineid, $langs->trans('DeleteLine'), $langs->trans('ConfirmDeleteLine'), 'confirm_deleteline', '', 0, 1);
-	}
 	// Clone confirmation
 	if ($action == 'clone') {
 		// Create an array for form
 		$formquestion = array();
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ToClone'), $langs->trans('ConfirmCloneAsk', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureManagerConfirmClone'), $langs->trans('DigitalSignatureManagerConfirmCloneDescription', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
 	}
 
+	// Confirmation to create request on provider side
 	if ($action == 'validateAndCreateRequestToProvider' && $permissioncreate) {
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestValidate'), $langs->trans('DigitalSignatureRequestValidateDetails'), 'confirm_validateAndCreateRequestToProvider', '', 0, 1);
+	}
+
+	//Confirmation to cancel request from opsy
+	if ($action == 'cancelTransaction' && $permissiontoedit) {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestCancelTransactionTitle'), $langs->trans('DigitalSignatureRequestCancelTransactionContent'), 'confirm_cancelTransaction', '', 0, 1);
 	}
 
 	//Form confirm for digital signature request
@@ -531,11 +557,26 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&socid=' . $object->socid . '&action=clone&object=digitalsignaturerequest">' . $langs->trans("ToClone") . '</a>' . "\n";
 			}
 
+			//Update information from the provider
+			if($object->isInProgress() || true) {
+				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=refreshDataFromProvider">' . $langs->trans("DigitalSignatureRequestRefreshData") . '</a>';
+			}
+
+			//Delete transaction
+			if($object->isInProgress()) {
+				if ($permissiontoedit) {
+					print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=cancelTransaction">' . $langs->trans('DigitalSignatureManagerCancelTransaction') . '</a>' . "\n";
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('DigitalSignatureManagerCancelTransaction') . '</a>' . "\n";
+				}
+			}
 			// Delete (need delete permission, or if draft, just need create/modify permission)
-			if ($permissiontodelete || $object->status == $object::STATUS_DRAFT) {
-				print '<a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=delete">' . $langs->trans('Delete') . '</a>' . "\n";
-			} else {
-				print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Delete') . '</a>' . "\n";
+			if($object->isEditable()) {
+				if ($permissiontodelete || $object->status == $object::STATUS_DRAFT) {
+					print '<a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=delete">' . $langs->trans('Delete') . '</a>' . "\n";
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Delete') . '</a>' . "\n";
+				}
 			}
 		}
 		print '</div>' . "\n";

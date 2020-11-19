@@ -31,7 +31,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
  * @param DigitalSignatureSignatoryField $b second element
  * @return int proper int according to usort
  */
-function sortSignatoryByDocumentAndSignatoryOrder($a, $b) {
+function sortSignatoryByDocumentAndSignatoryOrder($a, $b)
+{
 	$aDocument = $a->getChosenDigitalSignatureDocument();
 	$aDocumentOrder = $aDocument ? $aDocument->position : null;
 
@@ -135,9 +136,9 @@ class DigitalSignatureSignatoryField extends CommonObject
 		'fk_digitalsignaturerequest' => array('type'=>'integer:DigitalSignatureRequest:digitalsignaturemanager/class/digitalsignaturerequest.class.php', 'label'=>'Linked Digital Signature Request', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
 		'fk_chosen_digitalsignaturepeople' => array('type'=>'integer:DigitalSignaturePeople:digitalsignaturemanager/class/digitalsignaturepeople.class.php', 'label'=>'Chosen Digital Signature people', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
 		'fk_chosen_digitalsignaturedocument' => array('type'=>'integer:DigitalSignatureDocument:digitalsignaturemanager/class/digitalsignaturedocument.class.php', 'label'=>'Chosen Digital Signature Document', 'enabled'=>'1', 'position'=>11, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
-		'x' => array('type'=>'double(24,8)', 'label'=>'X axis coordinate', 'enabled'=>'1', 'position'=>12, 'notnull'=>0, 'visible'=>1,),
-		'y' => array('type'=>'double(24,8)', 'label'=>'Y axis coordinate', 'enabled'=>'1', 'position'=>13, 'notnull'=>0, 'visible'=>1,),
-		'page' => array('type'=>'double(24,8)', 'label'=>'page Number into documents', 'enabled'=>'1', 'position'=>14, 'notnull'=>0, 'visible'=>1,),
+		'x' => array('type'=>'integer', 'label'=>'X axis coordinate', 'enabled'=>'1', 'position'=>12, 'notnull'=>0, 'visible'=>1,),
+		'y' => array('type'=>'integer', 'label'=>'Y axis coordinate', 'enabled'=>'1', 'position'=>13, 'notnull'=>0, 'visible'=>1,),
+		'page' => array('type'=>'integer', 'label'=>'page Number into documents', 'enabled'=>'1', 'position'=>14, 'notnull'=>0, 'visible'=>1,),
 		'label' => array('type'=>'varchar(255)', 'label'=>'Signature Field Label', 'enabled'=>'1', 'position'=>15, 'notnull'=>0, 'visible'=>1,),
 		'date_creation' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>500, 'notnull'=>1, 'visible'=>-2,),
 		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>501, 'notnull'=>0, 'visible'=>-2,),
@@ -167,12 +168,6 @@ class DigitalSignatureSignatoryField extends CommonObject
 
 		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
 		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) $this->fields['entity']['enabled'] = 0;
-
-		// Example to show how to set values of fields definition dynamically
-		/*if ($user->rights->digitalsignaturemanager->digitalsignaturesignatoryfield->read) {
-			$this->fields['myfield']['visible'] = 1;
-			$this->fields['myfield']['noteditable'] = 0;
-		}*/
 
 		// Unset fields that are disabled
 		foreach ($this->fields as $key => $val)
@@ -356,7 +351,7 @@ class DigitalSignatureSignatoryField extends CommonObject
 	{
 		global $langs;
 		$errors = array();
-		if($this->page == null || $this->page == 0) {
+		if($this->page == null || $this->page == 0 || !((int) $this->page)) {
 			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldPageValueIncorrect');
 		}
 		return $errors;
@@ -500,7 +495,7 @@ class DigitalSignatureSignatoryField extends CommonObject
 	 * @param   int[]   $arrayOfOldDocumentIdAndCloneDocumentId When digital signature request is cloned, in order to update chosen document id
 	 * @return 	mixed 				New object created, <0 if KO
 	 */
-	public function createFromClone(User $user, $fromid, $newDigitalSignatureRequestId = 0, $arrayOfOldPeopleIdAndClonedPeopleId = null, $arrayOfOldDocumentIdAndCloneDocumentId=null)
+	public function createFromClone(User $user, $fromid, $newDigitalSignatureRequestId = 0, $arrayOfOldPeopleIdAndClonedPeopleId = null, $arrayOfOldDocumentIdAndCloneDocumentId = null)
 	{
 		global $extrafields;
 		$error = 0;

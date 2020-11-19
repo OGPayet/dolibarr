@@ -148,7 +148,7 @@ DigitalSignatureManagerSignatoryFieldXAxisValueIncorrect = La coordonnée horizo
 DigitalSignatureManagerSignatoryFieldPageValueIncorrect = La coordonnée verticale doit être correctement renseigné sur le champs de signature
 DigitalSignatureManagerDocumentSelectionInfoBox = Document où ce champs de signature est placé
 DigitalSignatureManagerSignatorySelectionInfoBox = Signataire concerné par ce champs de signature
-
+DigitalSignatureManagerMissingSignatoryField = Champs de signature manquant pour le document %s
 
 DigitalSignatureManagerCheckBoxList=Liste de phrase de validation pour cette demande
 DigitalSignatureRequestCheckBoxLabel = Libellé
@@ -165,6 +165,11 @@ DigitalSignatureRequestCheckBoxConfirmDeleteTitle = Confirmation de la suppressi
 DigitalSignatureRequestCheckBoxConfirmDeleteDescription = Confirmer-vous la validation de la phrase de validation "%s" ?
 DigitalSignatureCheckBoxLabelInfoBox = Libellé de la phrase de validation qui sera affiché lors de la signature des documents sur lesquels cette phrase a été placée
 DigitalSignatureCheckBoxMissingLabel = Le libellé d'une phrase de validation doit ne doit pas être vide
+
+DigitalSignatureManagerErrorWhileCreatingRequestOnProvider = Erreur lors de la création du processus de signature électronique auprès du prestataire
+DigitalSignatureManagerSucessfullyCreatedOnProvider = Processus de signature électronique créé avec succès auprès du prestataire
+DigitalSignatureManagerErrorWhileRefreshingData = Erreur lors du rafraichissement des données depuis le prestataire
+DigitalSignatureManagerSuccesfullyRefreshedData = Données rafraichies avec succès
 
 #
 # Status

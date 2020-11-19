@@ -503,9 +503,10 @@ class FormDigitalSignaturePeople
 	 *  @param bool $userCanMoveLine display move button
 	 *  @param int $numberOfActionColumnOfTheTable number of columns for action on the parent table
 	 *  @param bool $showPreviewColumn display linked object getNomUrl
+	 * 	@param bool $showStatus should we display item status
 	 *	@return	int						<0 if KO, >=0 if OK
 	 */
-	public function showPeople($digitalSignaturePeople, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine, $numberOfActionColumnOfTheTable, $showPreviewColumn)
+	public function showPeople($digitalSignaturePeople, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine, $numberOfActionColumnOfTheTable, $showPreviewColumn, $showStatus)
 	{
 		$digitalSignatureRequestId = $digitalSignaturePeople->digitalSignatureRequest->id;
 		global $conf;
@@ -547,6 +548,13 @@ class FormDigitalSignaturePeople
 		print $digitalSignaturePeople->phoneNumber;
 		print $this->formDigitalSignatureManager->getWarningInfoBox($userCanAskToEditLine, $digitalSignaturePeople->checkPhoneNumberValidity());
 		print '</td>';
+
+		//We show status if needed
+		if($showStatus) {
+			print '<td>';
+			print $digitalSignaturePeople->getLibStatut(6);
+			print '</td>';
+		}
 
 		$nbOfActionColumn = count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanMoveLine)));
 

@@ -534,23 +534,25 @@ class DigitalSignaturePeople extends CommonObject
 	 */
 	public function LibStatut($status, $mode = 0)
 	{
-		// phpcs:enable
-		if (empty($this->labelStatus) || empty($this->labelStatusShort))
-		{
-			global $langs;
-			//$langs->load("digitalsignaturemanager");
-			$this->labelStatus[self::STATUS_DRAFT] = $langs->trans('Draft');
-			//$this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			//$this->labelStatus[self::STATUS_CANCELED] = $langs->trans('Disabled');
-			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->trans('Draft');
-			//$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			//$this->labelStatusShort[self::STATUS_CANCELED] = $langs->trans('Disabled');
-		}
+		global $langs;
+		$status = (int) $status;
+		$labelStatus = $this->labelStatus[$status];
+		$labelStatusShort = $this->labelStatusShort[$status];
 
-		$statusType = 'status'.$status;
-		//if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
-		//if ($status == self::STATUS_CANCELED) $statusType = 'status6';
-		return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
+		if(version_compare(DOL_VERSION, '12.0.0', '<')) {
+			$statusPicto = str_replace("status", "statut", $this->statusType[$status]);
+
+			if ($mode == 0)	return $labelStatus;
+			if ($mode == 1)	return $labelStatusShort;
+			if ($mode == 2)	return img_picto($labelStatusShort, $statusPicto).' '.$labelStatusShort;
+			if ($mode == 3)	return img_picto($labelStatus,  $statusPicto);
+			if ($mode == 4)	return img_picto($labelStatus,  $statusPicto).' '.$labelStatus;
+			if ($mode == 5)	return '<span class="hideonsmartphone">'.$labelStatusShort.' </span>'.img_picto($labelStatus,  $statusPicto);
+			if ($mode == 6)	return '<span class="hideonsmartphone">'.$labelStatus.' </span>'.img_picto($labelStatus,  $statusPicto);
+		}
+		else {
+			return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
+		}
 	}
 
 	/**
@@ -956,5 +958,14 @@ class DigitalSignaturePeople extends CommonObject
 			$this->db->rollback();
 			return -1;
 		}
+	}
+
+	/**
+	 * Has this people be offered to do some action
+	 * @return bool
+	 */
+	public function hasThisPeopleBeenOfferedSomething() {
+		$arrayOfStatus = array(self::STATUS_DRAFT, self::STATUS_WAITING_TO_SIGN);
+		return !in_array($this->status, $arrayOfStatus);
 	}
 }

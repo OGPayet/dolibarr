@@ -49,6 +49,22 @@ Class DigitalSignatureManagerUniversign
 	public $errors = array();
 
 	/**
+	 * @var string[] Mapping between dolibarr lang code and universign lang code
+	 */
+	public $langCodeMapping = array(
+		'bg_BG' => 'bg',
+		'ca_ES' => 'ca',
+		'de_DE' => 'de',
+		'es_ES' => 'es',
+		'fr_FR' => 'fr',
+		'it_IT' => 'it',
+		'nl_NL' => 'nl',
+		'pl_PL' => 'pl',
+		'pt_PT' => 'pt',
+		'ro_RO' => 'ro'
+	);
+
+	/**
 	 * @var int[] Link between universign signer status and digitalsignaturepeople status
 	 */
 	public $universignSignersDigitalSignaturePeopleLink = array(
@@ -82,7 +98,7 @@ Class DigitalSignatureManagerUniversign
 	/**
 	 * Constructor
 	 *
-	 * @param DigitalSignatureRequest $db Database handler
+	 * @param DigitalSignatureRequest $digitalSignatureRequest Linked digital signature request
 	 */
 	public function __construct(&$digitalSignatureRequest)
 	{
@@ -138,8 +154,17 @@ Class DigitalSignatureManagerUniversign
 		$universignDocuments = array();
 		foreach($this->digitalSignatureRequest->documents as $document) {
 			$universignDocument = new \Globalis\Universign\Request\TransactionDocument();
-			$universignDocument->setPath($document->getLinkedFileAbsolutePath())
-				->setSignatureFields($documentSignatureFieldsByLinkedDocumentId[$document->id]);
+			$universignDocument->setPath($document->getLinkedFileAbsolutePath());
+			if(!empty($documentSignatureFieldsByLinkedDocumentId[$document->id])) {
+				$universignDocument->setSignatureFields($documentSignatureFieldsByLinkedDocumentId[$document->id]);
+			}
+			$checkBoxTexts = array();
+			foreach($document->checkBoxes as $checkBox) {
+				$checkBoxTexts[] = $checkBox->label;
+			}
+			if(!empty($checkBoxTexts)) {
+				$universignDocument->setCheckBoxTexts($checkBoxTexts);
+			}
 			$universignDocuments[] = $universignDocument;
 		}
 
@@ -149,16 +174,16 @@ Class DigitalSignatureManagerUniversign
 		}
 		$request->setSigners($universignSigners)
             ->setHandwrittenSignatureMode(
-        \Globalis\Universign\Request\TransactionRequest::HANDWRITTEN_SIGNATURE_MODE_DIGITAL
+        \Globalis\Universign\Request\TransactionRequest::HANDWRITTEN_SIGNATURE_MODE_BASIC
 		)
             ->setMustContactFirstSigner(false)
             ->setFinalDocRequesterSent(true)
             ->setChainingMode(
-        \Globalis\Universign\Request\TransactionRequest::CHAINING_MODE_WEB
+        \Globalis\Universign\Request\TransactionRequest::CHAINING_MODE_EMAIL
 		)
-            ->setDescription("Demonstration de la signature Universign")
-            ->setCertificateTypes('simple')
-			->setLanguage('fr')
+            ->setDescription($this->digitalSignatureRequest->getUniversignPublicLabel())
+			->setLanguage($this->getUniversignLanguageCode())
+			->setCertificateType('simple')
 			->setCustomId($this->digitalSignatureRequest->id);
 
 		$requester = $this->getUniversignRequester();
@@ -167,7 +192,7 @@ Class DigitalSignatureManagerUniversign
 			return array('id'=>$response->id, 'url'=>$response->url);
 		}
 		catch(Exception $e) {
-			$this->digitalSignatureRequest->errors[] = $e;
+			$this->digitalSignatureRequest->errors[] = $e->getMessage();
 			return null;
 		}
 	}
@@ -179,84 +204,92 @@ Class DigitalSignatureManagerUniversign
 	 */
 	public function getAndUpdateData($user)
 	{
-		$this->db->begin();
+		$db = $this->digitalSignatureRequest->db;
+		$db->begin();
 		$requester = $this->getUniversignRequester();
 		$universignRequestId = $this->digitalSignatureRequest->externalId;
 		try{
 			$transactionInfo = $requester->getTransactionInfo($universignRequestId);
 			$signerInfos = $transactionInfo->signerInfos;
-			foreach($signerInfos as $index=>$signer) {
-				$currentSigner = $this->digitalSignatureRequest->people[$index];
-				if($currentSigner->url != $signer->url) {
-					$currentSigner->url = $signer->url;
+			foreach($signerInfos as $index => $signer) {
+				$currentSigner = $this->digitalSignatureRequest->getSignerByIndex($index);
+				if($currentSigner->externalUrl != $signer->url) {
+					$currentSigner->externalUrl = $signer->url;
 					$res = $currentSigner->update($user);
 					if($res < 0) {
 						$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $currentSigner->errors);
-						$this->db->rollback();
+						$db->rollback();
 						return false;
 					}
 				}
 				//We merge people status
 				$statusToSetFromUniversign = $this->universignSignersDigitalSignaturePeopleLink[$signer->status];
-				if($statusToSetFromUniversign && $statusToSetFromUniversign != $currentSigner->statut)
+				if($statusToSetFromUniversign && $statusToSetFromUniversign != $currentSigner->status)
 				{
 					//we update status
 					$res = $currentSigner->setStatus($user, $statusToSetFromUniversign);
 					if($res < 0) {
 						$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $currentSigner->errors);
-						$this->db->rollback();
+						$db->rollback();
 						return false;
 					}
 				}
 			}
 			//we update request statut
-			$oldStatus = $this->digitalSignatureRequest->statut;
+			$oldStatus = $this->digitalSignatureRequest->status;
 			$newStatus = $this->universignSignersDigitalSignatureRequestLink[$transactionInfo->status];
 			//We manage cancel status as it may have been canceled by opsy and not only signers
-			if($transactionInfo->status == \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED && $digitalSignatureRequest->statut != $digitalSignatureRequest::STATUS_CANCELED_BY_OPSY) {
+			if($transactionInfo->status == \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED && $this->digitalSignatureRequest->status != $this->digitalSignatureRequest::STATUS_CANCELED_BY_OPSY) {
 				//request has been indeed been canceled by a signers
 				$newStatus = $this->digitalSignatureRequest::STATUS_CANCELED_BY_SIGNERS;
 			}
 			if($newStatus) {
-				$result = $this->digitalSignatureRequest->setStatus($user, $newStatus);
-				if($result < 0) {
-					$this->db->rollback();
+				if($newStatus != $oldStatus && $this->digitalSignatureRequest->setStatus($user, $newStatus) < 0 )
+				{
+					$db->rollback();
 					return false;
 				}
 			}
 			else {
 				global $langs;
 				$this->digitalSignatureRequest->errors[] = $langs->trans('DigitalSignatureManagerUnknownStatusFromProvider');
-				$this->db->rollback();
+				$db->rollback();
 				return false;
 			}
 
+			if($transactionInfo->status == \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED && $this->digitalSignatureRequest->status == $this->digitalSignatureRequest::STATUS_CANCELED_BY_OPSY) {
+				foreach($this->digitalSignatureRequest->people as $people) {
+					if($people->hasThisPeopleBeenOfferedSomething() || $people->status == $people::STATUS_SHOULD_SIGN) {
+						$people->setStatus($user, $people::STATUS_PROCESS_STOPPED_BEFORE);
+					}
+				}
+			}
+
 			//We have successfully update data
-			$this->db->commit();
+			$db->commit();
 
 			if($oldStatus != $newStatus && $newStatus == $this->digitalSignatureRequest::STATUS_SUCCESS) {
 				//request process has just been finished
 				//we download files
-				return $this->downloadSignedDocuments($digitalSignatureRequest);
+				return $this->downloadSignedDocuments($this->digitalSignatureRequest);
 			}
 			return true;
 		}
 		catch (Exception $e) {
 			$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $e);
-			$this->db->rollback();
+			$db->rollback();
 			return false;
 		}
 	}
 
 	/**
 	 * Download signed documents
-	 * @param DigitalSignatureRequest $digitalSignatureRequest current request data
 	 * @return bool true if files have succesfully been downloaded
 	 */
 	public function downloadSignedDocuments()
 	{
 		global $langs;
-		$errors = array();
+		$errorOfThisProcess = array();
 		$requester = $this->getUniversignRequester();
 		$transactionId = $this->digitalSignatureRequest->externalId;
 		$response = $requester->getTransactionInfo($transactionId);
@@ -265,23 +298,39 @@ Class DigitalSignatureManagerUniversign
 			foreach ($docs as $doc) {
 				$res = file_put_contents($this->digitalSignatureRequest->getUploadDirOfSignedFiles() . '/' . $doc->name, $doc->content);
 				if(!$res) {
-					$errors[] = $langs->trans('DigitalSignatureManagerUniversignErrorSavingFileInServer', $doc->name);
+					$errorOfThisProcess[] = $langs->trans('DigitalSignatureManagerUniversignErrorSavingFileInServer', $doc->name);
 				}
 			}
 		}
-		$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $errors);
-		return empty($errors);
+		$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $errorOfThisProcess);
+		return empty($errorOfThisProcess);
 	}
 
 	/**
 	 * Get information about a signature request on universign
 	 * @return bool return success of cancelation of request
 	 */
-	public function cancel()
+	public function cancel($user)
 	{
-		$requester = $this->getUniversignRequester();
-		$response = $requester->cancelTransaction($this->digitalSignatureRequest->externalId);
-		return $response->status === \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED;
+		try{
+			$requester = $this->getUniversignRequester();
+			//We update data
+			if($this->getAndUpdateData($user) > 0) {
+				if(!$this->digitalSignatureRequest->statut == $this->digitalSignatureRequest::STATUS_IN_PROGRESS) {
+					$requester->cancelTransaction($this->digitalSignatureRequest->externalId);
+					return $this->getAndUpdateData($user) > 0;
+				}
+				else {
+					//request is not anymore cancelable
+					global $langs;
+					$this->digitalSignatureRequest->errors[] = $langs->trans('DigitalSignatureManagerRequestNotAnymoreCancelable');
+				}
+			}
+		}
+		catch(Exception $e) {
+			$this->digitalSignatureRequest->errors[] = $e->getMessage();
+			return false;
+		}
 	}
 
 	/**
@@ -291,7 +340,7 @@ Class DigitalSignatureManagerUniversign
 	private function getUniversignRequester()
 	{
 		// Create XmlRpc Client
-		$client = new \PhpXmlRpc\Client($this->url);
+		$client = new \PhpXmlRpc\Client($this->endPoint);
 
 		$client->setCredentials(
 			$this->username,
@@ -318,5 +367,17 @@ Class DigitalSignatureManagerUniversign
 			$this->username = $conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONUSERNAME;
 			$this->password = $conf->global->DIGITALSIGNATUREMANAGER_UNIVERSIGNPRODUCTIONPASSWORD;
 		}
+	}
+
+	/**
+	 * Get universign langage code
+	 * @return string Language code to be used on request
+	 */
+	public function getUniversignLanguageCode()
+	{
+		global $langs;
+		$dolibarrLanguageCode = $langs->defaultlang;
+		$universignLanguageCode = $this->langCodeMapping[$dolibarrLanguageCode];
+		return empty($universignLanguageCode) ? 'fr' : $universignLanguageCode;
 	}
 }

@@ -388,7 +388,17 @@ class FormDigitalSignatureRequest
 		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
 
 		print '<div class="div-table-responsive-no-min">';
-		print '<div class="titre"><h3>' . $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerSignatureSignatoryListHelperText')) . $langs->trans('DigitalSignatureManagerSignatureSignatoryList') . '</h3></div>';
+		//We print title
+		print '<div class="titre">';
+		print '<h3>';
+		print $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerSignatureSignatoryListHelperText'));
+		print $langs->trans('DigitalSignatureManagerSignatureSignatoryList');
+		$validationErrorsMissingSignatoryField = $object->checkThatEachDocumentHasASignatureField();
+		if(!empty($validationErrorsMissingSignatoryField)) {
+			print $this->formDigitalSignatureManager->getWarningInfoBox(!$readOnlyMode, $validationErrorsMissingSignatoryField);
+		}
+		print '</h3>';
+		print '</div>';
 		print '<table id="' . self::DIGITALSIGNATURESIGNATORYFIELD_TABLEID . '" class="noborder noshadow tabBar" width="100%">';
 
 		//display people lines header
@@ -480,6 +490,8 @@ class FormDigitalSignatureRequest
 		$userCanAskToDeleteLine = !$isALineBeingEdited && !$readOnlyMode && !empty($permissionToDelete) && count($listOfpeople) > 0;
 		$userCanAddLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
 
+		$displayStatus = $readOnlyMode;
+
 		//$numberOfContentColumnForShowPeople
 		$displayLinkedObjectColumn = true;
 		if (count($listOfpeople) > 0 && $this->formDigitalSignaturePeople->elementObjectStatic::isThereOnlyFreePeople($listOfpeople)) {
@@ -542,8 +554,14 @@ class FormDigitalSignatureRequest
 		);
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
-			$langs->trans('DigitalSignaturePeopleLastname')
+			$langs->trans('DigitalSignaturePeopleMobilePhoneNumber')
 		);
+
+		if($displayStatus) {
+			print $this->formDigitalSignatureManager->getColumnTitle(
+				$langs->trans('DigitalSignaturePeopleStatus')
+			);
+		}
 
 		$nbOfActionColumn = 0;
 		if($userCanAskToEditLine) {
@@ -578,7 +596,7 @@ class FormDigitalSignatureRequest
 		//we display digital signature people
 		foreach($listOfpeople as $people) {
 			if($people->id != $currentPeopleIdEdited) {
-				$this->formDigitalSignaturePeople->showPeople($people, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder, $neededActionColumn, $displayLinkedObjectColumn);
+				$this->formDigitalSignaturePeople->showPeople($people, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder, $neededActionColumn, $displayLinkedObjectColumn, $displayStatus);
 			}
 			else {
 				//We display the form to edit line
