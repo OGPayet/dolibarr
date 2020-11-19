@@ -116,6 +116,10 @@ $permissiondellink = $user->rights->digitalsignaturemanager->request->edit; // U
 $permissioncreate = $permissiontoadd && $object->status == $object::STATUS_DRAFT; //Used by actions_builddoc.inc.php to remove files
 $permissionToAddAndDelFiles = $permissioncreate;
 
+$ableToCancelRequest =
+$ableToRefreshData =
+$ableToCreateRequestOnProvider =
+
 $upload_dir = $object->getBaseUploadDir();
 
 if (!$permissiontoread) accessforbidden();
@@ -169,9 +173,6 @@ if (empty($reshook)) {
 	// Actions when printing a doc from card
 	include DOL_DOCUMENT_ROOT . '/core/actions_printing.inc.php';
 
-	// Action to move up and down lines of object
-	//include DOL_DOCUMENT_ROOT.'/core/actions_lineupdown.inc.php';
-
 	// Action to build doc
 	include DOL_DOCUMENT_ROOT . '/core/actions_builddoc.inc.php';
 
@@ -189,7 +190,7 @@ if (empty($reshook)) {
 		}
 	}
 
-	if ($action == 'confirm_validateAndCreateRequestToProvider' && $permissioncreate && $confirm == 'yes') {
+	if ($action == 'confirm_validateAndCreateRequestToProvider' && $permissioncreate && $confirm == 'yes' && $object->status == $object::STATUS_DRAFT && $permissiontoadd) {
 		$result = $object->validateAndCreateRequestOnTheProvider($user);
 		if ($result <= 0) {
 			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileCreatingRequestOnProvider'), $object->errors, 'errors');
@@ -199,7 +200,7 @@ if (empty($reshook)) {
 		}
 	}
 
-	if($action == 'confirm_cancelTransaction' && $permissiontoedit && $confirm == 'yes') {
+	if($action == 'confirm_cancelTransaction' && $permissiontoedit && $confirm == 'yes' && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
 		if($object->cancelRequest($user) > 0) {
 			setEventMessages($langs->trans('DigitalSignatureManagerSuccessfullyCanceled'), $object->errors);
 		}
@@ -208,7 +209,7 @@ if (empty($reshook)) {
 		}
 	}
 
-	if($action == 'refreshDataFromProvider')
+	if($action == 'refreshDataFromProvider' && $object->isInProgress() && $permissiontoread)
 	{
 		$result = $object->updateDataFromExternalService($user);
 		if ($result <= 0) {
@@ -558,11 +559,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			//Update information from the provider
-			if($object->isInProgress() || true) {
+			if($permissiontoread && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
 				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=refreshDataFromProvider">' . $langs->trans("DigitalSignatureRequestRefreshData") . '</a>';
 			}
 
-			//Delete transaction
+			//Delete transaction on provider
 			if($object->isInProgress()) {
 				if ($permissiontoedit) {
 					print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=cancelTransaction">' . $langs->trans('DigitalSignatureManagerCancelTransaction') . '</a>' . "\n";

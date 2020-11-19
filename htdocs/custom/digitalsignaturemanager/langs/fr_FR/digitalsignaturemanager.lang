@@ -50,6 +50,9 @@ DigitalSignatureTestModeToolTip = Lorsque le mode test est activé, vous avez la
 DigitalSignatureManagerAutomaticEventManagment = Gestion des évènements automatiques
 DigitalSignatureManagerStandardNumberModuleName = Standard
 DigitalSignatureManagerAdvancedNumberModuleName = Avancé
+DigitalSignatureManagerMiscellaneous = Paramètres divers
+DigitalSignatureManagerCheckBoxAddNumberOfPage = Ajouter automatiquement une case à cocher concernant le nombre de page du document
+
 #
 # Card
 #
@@ -171,6 +174,15 @@ DigitalSignatureManagerSucessfullyCreatedOnProvider = Processus de signature él
 DigitalSignatureManagerErrorWhileRefreshingData = Erreur lors du rafraichissement des données depuis le prestataire
 DigitalSignatureManagerSuccesfullyRefreshedData = Données rafraichies avec succès
 
+
+DigitalSignatureManagerCancelTransaction = Annuler le processus de signataire
+DigitalSignatureRequestRefreshData = Actualiser l'avancement du processus
+DigitalSignatureRequestCancelTransactionTitle = Confirmer l'annulation du processus de signature électronique
+DigitalSignatureRequestCancelTransactionContent = Merci de confirmer l'annulation de ce processus de signature électronique auprès du prestataire. Cette action est IRREVERSIBLE.
+DigitalSignatureManagerSuccessfullyCanceled = Processus de signature électronique annulé avec succès
+DigitalSignaturePeopleStatus = Avancement
+DigitalSignatureRequestUniversignProcessLabel = Processus de signature %s
+DigitalSignatureManagerNotDeletable = La demande %s ne peux être supprimé, car elle a été créé chez le prestataire
 #
 # Status
 #
@@ -211,7 +223,8 @@ DigitalSignaturePeopleSuccessfullySignedShort = Signé
 DigitalSignaturePeopleRefusedToSignShort = Refusé
 DigitalSignaturePeopleDontHaveBeenAskedToSignShort = Stoppé prématurément
 DigitalSignatureManagerUnknownStatusFromProvider = Statut de la demande inconnu chez le prestataire
-
+DigitalSignatureRequestActionToDoForPeople = Action en cours par %s
+DigitalSignatureRequestActionCanceledBy = Processus annulé par %s
 #
 # Vérification des données
 #
@@ -222,12 +235,13 @@ DigitalSignaturePeopleMissingFirstName = Prénom manquant pour le signataire %s
 DigitalSignaturePeopleMissingPhoneNumber = Numéro de téléphone manquant pour le signataire %s
 DigitalSignaturePeopleMissingMail = Adresse email manquante pour le signataire %s
 DigitalSignatureManagerCheckBoxEmptyValueForDocument = Une phrase de validation est renseigné pour le document %s mais cette dernière est invalide
-
+DigitalSignatureManagerSignatoryFieldPageValueTooHigh = La page indiqué n'existe pas. Ce document ne possède que %s page
 
 #
 # Propriété des champs
 #
 DigitalSignatureManagerLinkToThirparty = Tiers
+DigitalSignatureManagerPageNumberCheckBox = J'ai lu et accepte l'intégralité du document de %s page(s) ci-dessus
 
 #
 # Evènements automatiques
@@ -329,3 +343,6 @@ DigitalSignatureManagerUniversignErrorSavingFileInServer = Une erreur est interv
 About = À propos
 DigitalSignatureManagerAbout = À propos de Digital Signature Manager
 DigitalSignatureManagerAboutPage = Page à propos de Digital Signature Manager
+
+ConfirmMassDeletion=Confirmer la suppression de masse
+ConfirmMassDeletionQuestion = Confirmez-vous la suppression en masse de ces éléments ?

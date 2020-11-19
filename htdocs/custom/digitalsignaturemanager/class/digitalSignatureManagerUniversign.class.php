@@ -112,6 +112,7 @@ Class DigitalSignatureManagerUniversign
 	 */
 	public function create()
 	{
+		global $conf, $langs;
 		//We prepare some data linked to people who will sign
 		$signersIndexAndId = array();
 		$signersIdAndDisplayName = array();
@@ -129,7 +130,7 @@ Class DigitalSignatureManagerUniversign
 			$signer = new \Globalis\Universign\Request\TransactionSigner();
 			$signer->setFirstname($people->firstName)
 				->setLastname($people->lastName)
-				->setPhoneNum('33' . substr($people->phoneNumber, -9)) // to do - use of libPhone number google library to properly format phone number
+				->setPhoneNum($people->getInternationalPhoneNumber())
 				->setEmailAddress($people->mail);
 			$universignSigners[] = $signer;
 		}
@@ -161,6 +162,9 @@ Class DigitalSignatureManagerUniversign
 			$checkBoxTexts = array();
 			foreach($document->checkBoxes as $checkBox) {
 				$checkBoxTexts[] = $checkBox->label;
+			}
+			if(!empty($conf->global->DIGITALSIGNATUREMANAGER_CHECKBOX_ADDNUMBEROFPAGE)) {
+				$checkBoxTexts[] = $langs->trans('DigitalSignatureManagerPageNumberCheckBox', $document->getNumberOfPage());
 			}
 			if(!empty($checkBoxTexts)) {
 				$universignDocument->setCheckBoxTexts($checkBoxTexts);

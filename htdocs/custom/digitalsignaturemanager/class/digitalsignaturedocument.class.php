@@ -24,8 +24,13 @@
 
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 dol_include_once('/ecm/class/ecmfiles.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
+dol_include_once('/digitalsignaturemanager/vendor/autoload.php');
+
+use setasign\Fpdi\Fpdi;
+use setasign\Fpdi\PdfReader;
 
 /**
  *
@@ -665,11 +670,15 @@ class DigitalSignatureDocument extends CommonObject
 			return -1;
 		}
 	}
-	/**
-	 * Get pdf instance of the linked document
-	 * @return TCPDF
-	 */
-	public function getInstancePdf() {
 
+	/**
+	 * Get number of page of the document
+	 * @return int|null number of page of this file
+	 */
+	public function getNumberOfPage()
+	{
+		$pdf = pdf_getInstance();
+		$pageCount = $pdf->setSourceFile($this->getLinkedFileAbsolutePath());
+		return $pageCount;
 	}
 }

@@ -964,8 +964,22 @@ class DigitalSignaturePeople extends CommonObject
 	 * Has this people be offered to do some action
 	 * @return bool
 	 */
-	public function hasThisPeopleBeenOfferedSomething() {
+	public function hasThisPeopleBeenOfferedSomething()
+	{
 		$arrayOfStatus = array(self::STATUS_DRAFT, self::STATUS_WAITING_TO_SIGN);
 		return !in_array($this->status, $arrayOfStatus);
+	}
+
+	/**
+	 * Function to get in international format phone number
+	 * @return int
+	 */
+	public function getInternationalPhoneNumber()
+	{
+		// to do - use of libPhone number google library to properly format phone number
+		if(!empty($this->phoneNumber) && strlen((string) $this->phoneNumber) > 9) {
+			return '33' . substr($this->phoneNumber, -9);
+		}
+		return "";
 	}
 }

@@ -484,8 +484,12 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
+		global $langs;
 		$this->db->begin();
 		$errors = array();
+		if($this->status != self::STATUS_DRAFT) {
+			$errors[] = $langs->trans('DigitalSignatureManagerNotDeletable', $this->ref);
+		}
 		foreach ($this->people as $people) {
 			$people->delete($user, $notrigger);
 			$errors = array_merge($errors, $people->errors);
@@ -504,12 +508,14 @@ class DigitalSignatureRequest extends CommonObject
 		}
 		$this->deleteCommon($user, $notrigger);
 		$errors = array_merge($errors, $this->errors);
+		$this->errors = $errors;
 		if (empty($errors)) {
 			$this->db->commit();
+			return 1;
 		} else {
 			$this->db->rollback();
+			return -1;
 		}
-		return empty($errors) ? 1 : -1;
 	}
 
 	/**
@@ -586,14 +592,21 @@ class DigitalSignatureRequest extends CommonObject
 			$this->db->rollback();
 			return -1;
 		}
-
+		// Define new ref
+		if ((preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref))) // empty should not happened, but when it occurs, the test save life
+		{
+			$num = $this->getNextNumRef();
+		} else {
+			$num = $this->ref;
+		}
+		$this->ref = $num;
 		$returnedValues = $this->externalProviderService->create($this);
 		if($returnedValues && !empty($returnedValues['id'])) {
 			$this->externalId = $returnedValues['id'];
 			$this->externalUrl = $returnedValues['url'];
 			$signatureRequestSuccessfullyCreated = true;
 		}
-		if ($signatureRequestSuccessfullyCreated && $this->update($user) > 0 &&	$this->setStatus($user, self::STATUS_IN_PROGRESS, $notrigger)) {
+		if ($signatureRequestSuccessfullyCreated && $this->update($user) > 0 &&	$this->setStatus($user, self::STATUS_IN_PROGRESS, $notrigger) && $this->updateDataFromExternalService($user) > 0) {
 			$this->db->commit();
 			return 1;
 		} else {
@@ -785,9 +798,9 @@ class DigitalSignatureRequest extends CommonObject
 		$labelStatus = $this->labelStatus[$status];
 		$labelStatusShort = $this->labelStatusShort[$status];
 		if ($status == self::STATUS_IN_PROGRESS) {
-			$labelStatus .= $langs->trans('DigitalSignatureRequestActionToDoForPeople') . ' ' . $this->getInProgressStatusLabelSuffix();
+			$labelStatus = $langs->trans('DigitalSignatureRequestActionToDoForPeople', $this->getNameOfPeopleThatShouldDoAnAction());
 		} elseif ($status == self::STATUS_CANCELED_BY_SIGNERS) {
-			$labelStatus .= $langs->trans('DigitalSignatureRequestActionCanceledBy') . ' ' . $this->getCanceledStatusLabelSuffix();
+			$labelStatus = $langs->trans('DigitalSignatureRequestActionCanceledBy', $this->getNameOfPeopleThatRefusedOrFailToSign());
 		}
 
 		if(version_compare(DOL_VERSION, '12.0.0', '<')) {
@@ -1029,7 +1042,7 @@ class DigitalSignatureRequest extends CommonObject
 	{
 		$result = null;
 		foreach ($this->people as &$people) {
-			if ($people->status == $people::STATUS_WAITING_TO_SIGN) {
+			if ($people->status != $people::STATUS_WAITING_TO_SIGN && $people->status != $people::STATUS_DRAFT) {
 				$result = $people;
 				break;
 			}
@@ -1071,33 +1084,28 @@ class DigitalSignatureRequest extends CommonObject
 
 	/**
 	 * Get label for in_progress status
-	 * @return string
+	 * @return string|null
 	 */
-	private function getInProgressStatusLabelSuffix()
+	private function getNameOfPeopleThatShouldDoAnAction()
 	{
-		$result = "";
 		$currentSignatory = $this->getPeopleThatShouldDoAnAction();
 		if ($currentSignatory) {
-			$result = $currentSignatory->displayName();
+			return $currentSignatory->displayName();
 		}
-		return $result;
+		return null;
 	}
 
 	/**
 	 * Get label for canceled status
-	 * @return string
+	 * @return string|null
 	 */
-	private function getCanceledStatusLabelSuffix()
+	private function getNameOfPeopleThatRefusedOrFailToSign()
 	{
-		$result = "";
 		$peopleThatCanceled = $this->getPeopleThatCanceledProcess();
 		if ($peopleThatCanceled) {
-			$result = $peopleThatCanceled->displayName();
-		} else {
-			global $langs;
-			$result = $langs->trans("DigitalSignatureRequestCanceledFromOpsy");
+			return $peopleThatCanceled->displayName();
 		}
-		return $result;
+		return null;
 	}
 
 	/**

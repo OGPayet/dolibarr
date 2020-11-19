@@ -351,8 +351,15 @@ class DigitalSignatureSignatoryField extends CommonObject
 	{
 		global $langs;
 		$errors = array();
-		if($this->page == null || $this->page == 0 || !((int) $this->page)) {
+		if($this->page == null || $this->page <= 0 || !((int) $this->page)) {
 			$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldPageValueIncorrect');
+		}
+		$linkedDocument = $this->getChosenDigitalSignatureDocument();
+		if($linkedDocument) {
+			$numberOfPage = $linkedDocument->getNumberOfPage();
+			if($this->page > $numberOfPage) {
+				$errors[] = $langs->trans('DigitalSignatureManagerSignatoryFieldPageValueTooHigh', $numberOfPage);
+			}
 		}
 		return $errors;
 	}
