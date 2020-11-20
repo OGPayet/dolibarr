@@ -123,7 +123,7 @@ class DigitalSignatureRequest extends CommonObject
 		'import_key' => array('type' => 'varchar(14)', 'label' => 'ImportId', 'enabled' => '1', 'position' => 1000, 'notnull' => -1, 'visible' => -2,),
 		'status' => array('type' => 'smallint', 'label' => 'Status', 'enabled' => '1', 'position' => 1000, 'notnull' => 1, 'visible' => 1, 'noteditable' => '1', 'default' => '0', 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Processus de signature en cours', '2' => 'Annul&eacute;', '3' => 'Signature termin&eacute;e', '9' => 'Erreur Technique'),),
 		'externalId' => array('type' => 'varchar(255)', 'label' => 'Id of the signature process at external provider', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
-		'externalUrl' => array('type' => 'varchar(255)', 'label' => 'Url given by universign after request have been created', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
+		'externalUrl' => array('type' => 'url', 'label' => 'Url given by universign after request have been created', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'elementtype' => array('type' => 'varchar(128)', 'label' => 'Linked Element Type', 'enabled' => '1', 'position' => 1003, 'notnull' => 0, 'visible' => 0, 'index' => 1,),
 		'fk_object' => array('type' => 'integer', 'label' => 'Id of the dolibarr object we sign', 'enabled' => '1', 'position' => 1004, 'notnull' => 0, 'visible' => 0, 'index' => 1,)
 	);
@@ -196,16 +196,6 @@ class DigitalSignatureRequest extends CommonObject
 			}
 		}
 
-		// Translate some data of arrayofkeyval
-		if (is_object($langs)) {
-			foreach ($this->fields as $key => $val) {
-				if (is_array($val['arrayofkeyval'])) {
-					foreach ($val['arrayofkeyval'] as $key2 => $val2) {
-						$this->fields[$key]['arrayofkeyval'][$key2] = $langs->trans($val2);
-					}
-				}
-			}
-		}
 		$this->status = self::STATUS_DRAFT;
 		$langs->load("digitalsignaturemanager@digitalsignaturemanager");
 		$this->labelStatus = array(
@@ -240,6 +230,11 @@ class DigitalSignatureRequest extends CommonObject
 			self::STATUS_EXPIRED => 'status8',
 			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => 'status8'
 		);
+
+		// Translate fields
+		$this->fields['status']['arrayofkeyval'] = $this->labelStatus;
+		$this->fields['externalId']['label'] = $langs->trans("DigitalSignatureRequestExternalId");
+		$this->fields['externalUrl']['label'] = $langs->trans("DigitalSignatureRequestExternalUrl");
 
 		$this->externalProviderService = new DigitalSignatureManagerUniversign($this);
 	}

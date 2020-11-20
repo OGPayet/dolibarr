@@ -183,6 +183,9 @@ DigitalSignatureManagerSuccessfullyCanceled = Processus de signature électroniq
 DigitalSignaturePeopleStatus = Avancement
 DigitalSignatureRequestUniversignProcessLabel = Processus de signature %s
 DigitalSignatureManagerNotDeletable = La demande %s ne peux être supprimé, car elle a été créé chez le prestataire
+
+DigitalSignatureRequestExternalId = Id de la demande chez le prestataire
+DigitalSignatureRequestExternalUrl = Lien de la page de signature
 #
 # Status
 #
@@ -199,6 +202,7 @@ DigitalSignatureSuccess = Processus de signature terminé
 DigitalSignatureSuccessShort = Processus terminé
 DigitalSignatureErrorDeletedInSignatureService = Demande de signature supprimé chez le prestataire
 DigitalSignatureErrorDeletedInSignatureServiceShort = Supprimé par le prestataire
+DigitalSignatureExpired = Signature non terminée et expirée
 DigitalSignatureFailedShort = Echec
 DigitalSignaturePeopleDraft = Processus de signature non débuté
 DigitalSignaturePeopleWaitingToSign = En attente de pouvoir signer
@@ -222,6 +226,7 @@ DigitalSignaturePeopleFailedShort = Echec
 DigitalSignaturePeopleSuccessfullySignedShort = Signé
 DigitalSignaturePeopleRefusedToSignShort = Refusé
 DigitalSignaturePeopleDontHaveBeenAskedToSignShort = Stoppé prématurément
+DigitalSignatureExpiredShort = Signature expirée
 DigitalSignatureManagerUnknownStatusFromProvider = Statut de la demande inconnu chez le prestataire
 DigitalSignatureRequestActionToDoForPeople = Action en cours par %s
 DigitalSignatureRequestActionCanceledBy = Processus annulé par %s
