@@ -222,7 +222,7 @@ Class DigitalSignatureManagerUniversign
 			$signerInfos = $transactionInfo->signerInfos;
 		}
 		catch (Exception $e) {
-			$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $e->getMessage());
+			$this->digitalSignatureRequest->errors[] = $e->getMessage();
 			$this->db->rollback();
 			return false;
 		}

@@ -355,3 +355,9 @@ DigitalSignatureManagerAboutPage = Page à propos de Digital Signature Manager
 
 ConfirmMassDeletion=Confirmer la suppression de masse
 ConfirmMassDeletionQuestion = Confirmez-vous la suppression en masse de ces éléments ?
+
+#
+# Tache planifié
+#
+DigitalSignatureManagerUpdateFromCronJob = Données mise à jour avec succès pour la demande %s
+DigitalSignatureManagerUpdateFromCronJobError = Erreur lors de la mise à jour de la demande %s auprès du prestataire
