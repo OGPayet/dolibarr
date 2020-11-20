@@ -116,10 +116,6 @@ $permissiondellink = $user->rights->digitalsignaturemanager->request->edit; // U
 $permissioncreate = $permissiontoadd && $object->status == $object::STATUS_DRAFT; //Used by actions_builddoc.inc.php to remove files
 $permissionToAddAndDelFiles = $permissioncreate;
 
-$ableToCancelRequest =
-$ableToRefreshData =
-$ableToCreateRequestOnProvider =
-
 $upload_dir = $object->getBaseUploadDir();
 
 if (!$permissiontoread) accessforbidden();

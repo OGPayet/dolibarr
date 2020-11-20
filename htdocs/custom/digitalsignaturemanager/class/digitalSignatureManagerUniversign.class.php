@@ -29,6 +29,11 @@ dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.ph
 Class DigitalSignatureManagerUniversign
 {
 	/**
+	 * @var DoliDB Database connector instance
+	*/
+	public $db;
+
+	/**
 	 * @var string username to connect to the api
 	 */
 	public $username;
@@ -67,7 +72,7 @@ Class DigitalSignatureManagerUniversign
 	/**
 	 * @var int[] Link between universign signer status and digitalsignaturepeople status
 	 */
-	public $universignSignersDigitalSignaturePeopleLink = array(
+	const UNIVERSIGN_STATUS_SIGNERS_DICTIONNARY = array(
 		\Globalis\Universign\Response\SignerInfo::STATUS_WAITING => DigitalSignaturePeople::STATUS_WAITING_TO_SIGN,
 		\Globalis\Universign\Response\SignerInfo::STATUS_READY => DigitalSignaturePeople::STATUS_SHOULD_SIGN,
 		\Globalis\Universign\Response\SignerInfo::STATUS_ACCESSED => DigitalSignaturePeople::STATUS_ACCESSED,
@@ -82,12 +87,12 @@ Class DigitalSignatureManagerUniversign
 	/**
 	 * @var int[] Link between universign request status and digitalsignaturerequest status
 	 */
-	public $universignSignersDigitalSignatureRequestLink = array(
+	const UNIVERSIGN_STATUS_REQUEST_DICTIONNARY = array(
 		\Globalis\Universign\Response\TransactionInfo::STATUS_COMPLETED => DigitalSignatureRequest::STATUS_SUCCESS,
 		\Globalis\Universign\Response\TransactionInfo::STATUS_EXPIRED => DigitalSignatureRequest::STATUS_EXPIRED,
 		\Globalis\Universign\Response\TransactionInfo::STATUS_FAILED => DigitalSignatureRequest::STATUS_FAILED,
 		\Globalis\Universign\Response\TransactionInfo::STATUS_READY => DigitalSignatureRequest::STATUS_IN_PROGRESS,
-		\Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED => DigitalSignatureRequest::STATUS_CANCELED_BY_OPSY,
+		\Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED => DigitalSignatureRequest::STATUS_CANCELED_BY_SIGNERS,
 	);
 
 	/**
@@ -103,6 +108,7 @@ Class DigitalSignatureManagerUniversign
 	public function __construct(&$digitalSignatureRequest)
 	{
 		$this->digitalSignatureRequest = $digitalSignatureRequest;
+		$this->db = $this->digitalSignatureRequest->db;
 		$this->loadConnectionSettings();
 	}
 
@@ -208,82 +214,71 @@ Class DigitalSignatureManagerUniversign
 	 */
 	public function getAndUpdateData($user)
 	{
-		$db = $this->digitalSignatureRequest->db;
-		$db->begin();
+		$this->db->begin();
 		$requester = $this->getUniversignRequester();
 		$universignRequestId = $this->digitalSignatureRequest->externalId;
 		try{
 			$transactionInfo = $requester->getTransactionInfo($universignRequestId);
 			$signerInfos = $transactionInfo->signerInfos;
-			foreach($signerInfos as $index => $signer) {
-				$currentSigner = $this->digitalSignatureRequest->getSignerByIndex($index);
-				if($currentSigner->externalUrl != $signer->url) {
-					$currentSigner->externalUrl = $signer->url;
-					$res = $currentSigner->update($user);
-					if($res < 0) {
-						$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $currentSigner->errors);
-						$db->rollback();
-						return false;
-					}
-				}
-				//We merge people status
-				$statusToSetFromUniversign = $this->universignSignersDigitalSignaturePeopleLink[$signer->status];
-				if($statusToSetFromUniversign && $statusToSetFromUniversign != $currentSigner->status)
-				{
-					//we update status
-					$res = $currentSigner->setStatus($user, $statusToSetFromUniversign);
-					if($res < 0) {
-						$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $currentSigner->errors);
-						$db->rollback();
-						return false;
-					}
-				}
-			}
-			//we update request statut
-			$oldStatus = $this->digitalSignatureRequest->status;
-			$newStatus = $this->universignSignersDigitalSignatureRequestLink[$transactionInfo->status];
-			//We manage cancel status as it may have been canceled by opsy and not only signers
-			if($transactionInfo->status == \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED && $this->digitalSignatureRequest->status != $this->digitalSignatureRequest::STATUS_CANCELED_BY_OPSY) {
-				//request has been indeed been canceled by a signers
-				$newStatus = $this->digitalSignatureRequest::STATUS_CANCELED_BY_SIGNERS;
-			}
-			if($newStatus) {
-				if($newStatus != $oldStatus && $this->digitalSignatureRequest->setStatus($user, $newStatus) < 0 )
-				{
-					$db->rollback();
-					return false;
-				}
-			}
-			else {
-				global $langs;
-				$this->digitalSignatureRequest->errors[] = $langs->trans('DigitalSignatureManagerUnknownStatusFromProvider');
-				$db->rollback();
-				return false;
-			}
-
-			if($transactionInfo->status == \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED && $this->digitalSignatureRequest->status == $this->digitalSignatureRequest::STATUS_CANCELED_BY_OPSY) {
-				foreach($this->digitalSignatureRequest->people as $people) {
-					if($people->hasThisPeopleBeenOfferedSomething() || $people->status == $people::STATUS_SHOULD_SIGN) {
-						$people->setStatus($user, $people::STATUS_PROCESS_STOPPED_BEFORE);
-					}
-				}
-			}
-
-			//We have successfully update data
-			$db->commit();
-
-			if($oldStatus != $newStatus && $newStatus == $this->digitalSignatureRequest::STATUS_SUCCESS) {
-				//request process has just been finished
-				//we download files
-				return $this->downloadSignedDocuments($this->digitalSignatureRequest);
-			}
-			return true;
 		}
 		catch (Exception $e) {
-			$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $e);
-			$db->rollback();
+			$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $e->getMessage());
+			$this->db->rollback();
 			return false;
 		}
+
+		//we update request information
+		$resultOfRequestInformationUpdate = self::updateRequestInformation($this->db, $this->digitalSignatureRequest, $transactionInfo, $user);
+		//We save request status
+		$oldRequestStatus = $this->digitalSignatureRequest->status;
+		//we update request status
+		$resultOfRequestStatusUpdate = true;
+		if($this->digitalSignatureRequest->status != $this->digitalSignatureRequest::STATUS_CANCELED_BY_OPSY || $transactionInfo->status != \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED) {
+			//request is not canceled on opsy or not canceled on universign
+			$resultOfRequestStatusUpdate = self::updateRequestStatus($this->db, $this->digitalSignatureRequest, $transactionInfo, $user);
+		}
+		//We update signers information
+		$resultOfSignerInformationUpdates = array();
+		foreach($signerInfos as $index => $signerInfo) {
+			$people = $this->digitalSignatureRequest->getSignerByIndex($index);
+			$resultOfSignerInformationUpdates[$people->id] = self::updateSignerInformation($this->db, $this->digitalSignatureRequest, $people, $signerInfo, $user);
+		}
+		//We update signer status
+		if($this->digitalSignatureRequest->status == DigitalSignatureRequest::STATUS_CANCELED_BY_OPSY) {
+			$resultOfSignerStatusUpdate = self::updateDigitalSignaturePeopleStatusWhenRequestCanceledFromOpsy($this->db, $this->digitalSignatureRequest, $signerInfos, $user);
+		}
+		elseif($this->digitalSignatureRequest->status == DigitalSignatureRequest::STATUS_CANCELED_BY_SIGNERS || $this->digitalSignatureRequest->status == DigitalSignatureRequest::STATUS_FAILED) {
+			$resultOfSignerStatusUpdate = self::updateDigitalSignaturePeopleStatusWhenRequestCanceledBySignersOrFailed($this->db, $this->digitalSignatureRequest, $signerInfos, $user);
+		}
+		else {
+			$resultOfSignerStatusUpdate = self::updateDigitalSignaturePeopleStatusWhenRequestNotCanceledOrFailed($this->db, $this->digitalSignatureRequest, $signerInfos, $user);
+		}
+
+		$areAllOperationBeenASuccess = self::areAllValuesOfThisReturnArrayOnlySuccess(array(
+			$resultOfRequestInformationUpdate,
+			$resultOfRequestStatusUpdate,
+			self::areAllValuesOfThisReturnArrayOnlySuccess($resultOfSignerInformationUpdates),
+			$resultOfSignerStatusUpdate
+		));
+
+		if($areAllOperationBeenASuccess) {
+			$this->db->commit();
+			//we download documents if request has just been successfully finished
+			if($oldRequestStatus != $this->digitalSignatureRequest->status && $this->digitalSignatureRequest->status == $this->digitalSignatureRequest::STATUS_SUCCESS) {
+				//we download files
+				$result = $this->downloadSignedDocuments($this->digitalSignatureRequest);
+			}
+			else {
+				$result = true;
+			}
+		}
+		else {
+			$this->db->rollback();
+			return $result = false;
+		}
+
+
+		return $result;
 	}
 
 	/**
@@ -316,25 +311,33 @@ Class DigitalSignatureManagerUniversign
 	 */
 	public function cancel($user)
 	{
-		try{
-			$requester = $this->getUniversignRequester();
-			//We update data
-			if($this->getAndUpdateData($user) > 0) {
-				if(!$this->digitalSignatureRequest->statut == $this->digitalSignatureRequest::STATUS_IN_PROGRESS) {
+		global $langs;
+		$errorsOfThisProcess = array();
+		//to begin we update data from universign
+		if($this->getAndUpdateData($user)) {
+			//We cancel request if it still be possible
+			if($this->digitalSignatureRequest->status != $this->digitalSignatureRequest::STATUS_IN_PROGRESS)
+			{
+				$errorsOfThisProcess = $langs->trans('DigitalSignatureManagerRequestNotAnymoreCancelable');
+			}
+			else {
+				try {
+					$requester = $this->getUniversignRequester();
 					$requester->cancelTransaction($this->digitalSignatureRequest->externalId);
-					return $this->getAndUpdateData($user) > 0;
+					if($this->digitalSignatureRequest->setStatus($user, $this->digitalSignatureRequest::STATUS_CANCELED_BY_OPSY) > 0 && !$this->getAndUpdateData($user)) {
+						$errorsOfThisProcess = $langs->trans('DigitalSignatureManagerErrorWhileRefreshingData');
+					}
 				}
-				else {
-					//request is not anymore cancelable
-					global $langs;
-					$this->digitalSignatureRequest->errors[] = $langs->trans('DigitalSignatureManagerRequestNotAnymoreCancelable');
+				catch(Exception $e) {
+					$errorsOfThisProcess[] = $e->getMessage();
 				}
 			}
 		}
-		catch(Exception $e) {
-			$this->digitalSignatureRequest->errors[] = $e->getMessage();
-			return false;
+		else {
+			$errorsOfThisProcess = $langs->trans('DigitalSignatureManagerErrorWhileRefreshingData');
 		}
+		$this->digitalSignatureRequest->errors = array_merge($this->digitalSignatureRequest->errors, $errorsOfThisProcess);
+		return empty($errorsOfThisProcess);
 	}
 
 	/**
@@ -383,5 +386,220 @@ Class DigitalSignatureManagerUniversign
 		$dolibarrLanguageCode = $langs->defaultlang;
 		$universignLanguageCode = $this->langCodeMapping[$dolibarrLanguageCode];
 		return empty($universignLanguageCode) ? 'fr' : $universignLanguageCode;
+	}
+
+	/**
+	 * Update digital signature people status when request is running or have succeed
+	 * @param DoliDb $db Database instance
+	 * @param DigitalSignatureRequest $digitalSignatureRequest local instance to be updated
+	 * @param Globalis\Universign\Response\SignerInfo[] $signerInfos signer information from universign
+	 * @param User $user user performing the update
+	 * @return bool true if successfully done
+	 */
+	public static function updateDigitalSignaturePeopleStatusWhenRequestNotCanceledOrFailed(&$db, &$digitalSignatureRequest, &$signerInfos, &$user)
+	{
+		$db->begin();
+		$errors = array();
+		foreach($signerInfos as $index => $signerInfo) {
+			$people = $digitalSignatureRequest->getSignerByIndex($index);
+			$newStatus = self::UNIVERSIGN_STATUS_SIGNERS_DICTIONNARY[$signerInfo->status];
+			if($people->status != $newStatus && $people->setStatus($user, $newStatus) < 0) {
+				$errors = array_merge($errors, $people->errors);
+			}
+		}
+		$digitalSignatureRequest->errors = array_merge($digitalSignatureRequest->errors, $errors);
+		if(empty($errors)) {
+			$db->commit();
+			return true;
+		}
+		else {
+			$db->rollback();
+			return false;
+		}
+	}
+
+
+	/**
+	 * Update digital signature people status when request has been canceled from Opsy
+	 * @param DoliDb $db Database instance
+	 * @param DigitalSignatureRequest $digitalSignatureRequest local instance to be updated
+	 * @param Globalis\Universign\Response\SignerInfo[] $signerInfos signer information from universign
+     * @param User $user user performing the update
+	 * @return bool true if successfully done
+	 */
+	public static function updateDigitalSignaturePeopleStatusWhenRequestCanceledFromOpsy(&$db, &$digitalSignatureRequest, &$signerInfos, &$user)
+	{
+		$db->begin();
+		$errors = array();
+		foreach($signerInfos as $index => $signerInfo) {
+			$people = $digitalSignatureRequest->getSignerByIndex($index);
+			//We have only to set process stopped before on people who didn't succeed in signing and have a fail status for universign
+			if($people->status != $people::STATUS_SUCCESS
+			&& $signerInfo->status == Globalis\Universign\Response\SignerInfo::STATUS_CANCELED
+			&& $people->setStatus($user, $people::STATUS_PROCESS_STOPPED_BEFORE) < 0)
+			{
+				$errors = array_merge($errors, $people->errors);
+			}
+		}
+		$digitalSignatureRequest->errors = array_merge($digitalSignatureRequest->errors, $errors);
+		if(empty($errors)) {
+			$db->commit();
+			return true;
+		}
+		else {
+			$db->rollback();
+			return false;
+		}
+	}
+
+	/**
+	 * Update digital signature people status when request has been canceled by a signers
+	* @param DoliDb $db Database instance
+	 * @param DigitalSignatureRequest $digitalSignatureRequest local instance to be updated
+	 * @param Globalis\Universign\Response\SignerInfo[] $signerInfos signer information from universign
+	 * @param User $user user performing the update
+	 * @return bool true if successfully done
+	 */
+	public static function updateDigitalSignaturePeopleStatusWhenRequestCanceledBySignersOrFailed(&$db, &$digitalSignatureRequest, &$signerInfos, &$user)
+	{
+		$db->begin();
+		$errors = array();
+		//we update status of user that have signed before request has been canceled or failed
+		//We update status of signer which refused to sign to refused to sign or failed
+		//We update status of signer who can't sign to DigitalSignaturePeople::PROCESS_STOPPED_BEFORE
+		$cancelerFound = false;
+		foreach($signerInfos as $index => $signerInfo) {
+			$people = $digitalSignatureRequest->getSignerByIndex($index);
+			if($signerInfo->status == Globalis\Universign\Response\SignerInfo::STATUS_SIGNED) {
+				//This people have sucessfully signed
+				$newPeopleStatus = DigitalSignaturePeople::STATUS_SUCCESS;
+			}
+			elseif(!$cancelerFound && ($signerInfo->status == Globalis\Universign\Response\SignerInfo::STATUS_CANCELED || $signerInfo->status == Globalis\Universign\Response\SignerInfo::STATUS_FAILED)) {
+				//it is the first people with canceled or failed status - it is the request cancelation cause
+				$newPeopleStatus = self::UNIVERSIGN_STATUS_SIGNERS_DICTIONNARY[$signerInfo->status];
+				$cancelerFound = true;
+			}
+			elseif ($signerInfo->status == Globalis\Universign\Response\SignerInfo::STATUS_CANCELED || $signerInfo->status == Globalis\Universign\Response\SignerInfo::STATUS_FAILED){
+				//Universign set a cancel status to him as previous requester canceled request
+				$newPeopleStatus = DigitalSignaturePeople::STATUS_PROCESS_STOPPED_BEFORE;
+			}
+			else {
+				//We are in a non standard case. We manage status thanks to universign information
+				$newPeopleStatus = self::UNIVERSIGN_STATUS_SIGNERS_DICTIONNARY[$signerInfo->status];
+			}
+			if($people->status != $newPeopleStatus && $people->setStatus($user, $newPeopleStatus)) {
+				$errors = array_merge($people->errors, $errors);
+			}
+		}
+		$digitalSignatureRequest->errors = array_merge($digitalSignatureRequest->errors, $errors);
+		if(empty($errors)) {
+			$db->commit();
+			return true;
+		}
+		else {
+			$db->rollback();
+			return false;
+		}
+	}
+
+	/**
+	 * Update signer information
+	 * @param DoliDb $db Database instance
+	 * @param DigitalSignatureRequest $digitalSignatureRequest local instance to be updated
+	 * @param DigitalSignaturePeople $peopleToBeUpdated local instance to be update
+	 * @param Globalis\Universign\Response\SignerInfo $signerInfo data send by universign
+	 * @param User $user user performing the update
+	 * @return bool
+	 */
+	public static function updateSignerInformation(&$db, &$digitalSignatureRequest, &$peopleToBeUpdated, &$signerInfo, &$user)
+	{
+		$db->begin();
+		$isThereAFieldToUpdate = false;
+		if($peopleToBeUpdated->externalUrl != $signerInfo->url) {
+			$peopleToBeUpdated->externalUrl = $signerInfo->url;
+			$isThereAFieldToUpdate = true;
+		}
+		if(! $isThereAFieldToUpdate || $peopleToBeUpdated->update($user) > 0) {
+			$db->commit();
+			return true;
+		}
+		else {
+			$digitalSignatureRequest->errors = array_merge($digitalSignatureRequest->errors, $peopleToBeUpdated->errors);
+			$db->rollback();
+			return false;
+		}
+	}
+
+	/**
+	 * Update request information
+	 * @param DoliDb $db Database instance
+	 * @param DigitalSignatureRequest $digitalSignatureRequest local instance to be updated
+	 * @param Globalis\Universign\Response\TransactionInfo $requestInfo data send by universign
+	 * @param User $user user performing the update
+	 * @return bool
+	 */
+	public static function updateRequestInformation(&$db, &$digitalSignatureRequest, &$requestInfo, &$user)
+	{
+		$db->begin();
+		$arrayOfFieldToUpdate = array('externalId'=>$requestInfo->transactionId);
+		$isThereSomeThingToUpdate = false;
+		foreach($arrayOfFieldToUpdate as $propertyName => $universignValue) {
+			$propertyValue = $digitalSignatureRequest->$propertyName;
+			$newValue = $universignValue;
+			//if($digitalSignatureRequest->$propertyName != $requestInfo->$universignPropertyName)
+			if($propertyValue != $newValue)
+			{
+				$digitalSignatureRequest->$propertyName = $universignValue;
+				$isThereSomeThingToUpdate = true;
+			}
+		}
+		if(! $isThereSomeThingToUpdate || $digitalSignatureRequest->update($user) > 0) {
+			$db->commit();
+			return true;
+		}
+		else {
+			$digitalSignatureRequest->errors = array_merge($digitalSignatureRequest->errors, $digitalSignatureRequest->errors);
+			$db->rollback();
+			return false;
+		}
+	}
+
+	/**
+	 * Update request status
+	 * @param DoliDb $db Database instance
+	 * @param DigitalSignatureRequest $digitalSignatureRequest local instance to be updated
+	 * @param Globalis\Universign\Response\TransactionInfo $requestInfo data send by universign
+	 * @param User $user user performing the update
+	 * @return bool
+	 */
+	public static function updateRequestStatus(&$db, &$digitalSignatureRequest, &$requestInfo, &$user)
+	{
+		$db->begin();
+		$newStatus = self::UNIVERSIGN_STATUS_REQUEST_DICTIONNARY[$requestInfo->status];
+		if(  $digitalSignatureRequest->status != $newStatus &&
+		  $digitalSignatureRequest->setStatus($user, $newStatus) < 0) {
+			$digitalSignatureRequest->errors = array_merge($digitalSignatureRequest->errors, $digitalSignatureRequest->errors);
+			$db->rollback();
+			return false;
+		}
+		else {
+			$db->commit();
+			return true;
+		}
+	}
+
+	/**
+	 * Function to check that all values of an array could be considered as true
+	 * @param array $valuesToCheck array containing values to check
+	 * @return bool
+	 */
+	private static function areAllValuesOfThisReturnArrayOnlySuccess($valuesToCheck)
+	{
+		foreach($valuesToCheck as $value) {
+			if(!$value || $value < 0 ) {
+				return false;
+			}
+			return true;
+		}
 	}
 }

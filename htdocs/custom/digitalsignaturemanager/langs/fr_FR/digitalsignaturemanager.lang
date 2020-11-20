@@ -186,6 +186,10 @@ DigitalSignatureManagerNotDeletable = La demande %s ne peux être supprimé, car
 
 DigitalSignatureRequestExternalId = Id de la demande chez le prestataire
 DigitalSignatureRequestExternalUrl = Lien de la page de signature
+DigitalSignatureManagerConfirmClone = Confirmation de l'opération de clonage
+DigitalSignatureManagerConfirmCloneDescription = Confirmez-vous l'opération de clonage de cette demande de signature ?
+DigitalSignatureManagerErrorWhileCanceling = Une erreur a eu lieu lors de l'annulation de la requete de signature
+
 #
 # Status
 #

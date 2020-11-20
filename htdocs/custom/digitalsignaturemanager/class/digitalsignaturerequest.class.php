@@ -655,7 +655,7 @@ class DigitalSignatureRequest extends CommonObject
 			self::STATUS_EXPIRED => 'DIGITALSIGNATUREREQUEST_EXPIRED',
 			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER'
 		);
-		if ($statusValue != $this->statut) {
+		if ($statusValue != $this->status) {
 			return $this->setStatusCommon($user, $statusValue, $notrigger, $statusAndTriggerCode[$statusValue]);
 		} else {
 			return 0;

@@ -640,7 +640,7 @@ class DigitalSignaturePeople extends CommonObject
 		self::STATUS_FAILED => 'DIGITALSIGNATUREPEOPLE_FAILED',
 		self::STATUS_PROCESS_STOPPED_BEFORE => 'DIGITALSIGNATUREPEOPLE_PROCESSSTOPPEDBEFORE',
 		);
-		if($statusValue != $this->statut) {
+		if($statusValue != $this->status) {
 			return $this->setStatusCommon($user, $statusValue, $notrigger, $statusAndTriggerCode[$statusValue]);
 		}
 		else {
