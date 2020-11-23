@@ -409,8 +409,10 @@ class InterventionSurveyApi extends DolibarrApi
 
             //If we want to unlinked some equipement, links should be deleted here
 
-            $this->interventionSurvey->fetchObjectLinked();
-            $this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
+            if((int) $newLinkedEquipementId > 0) {
+                $this->interventionSurvey->fetchObjectLinked();
+                $this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
+            }
         }
 
         if ($result > 0) {
