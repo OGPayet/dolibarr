@@ -988,21 +988,22 @@ class InterventionSurvey extends Fichinter
 
         //Now we have a copy of items to delete into $partToDelete and blocToDelete and these items have been unset from oldData
         //Now we add new surveyPart to oldData
-        foreach ($dataFromDictionary as $newSurveyPart) {
+        foreach ($dataFromDictionary as $position => $newSurveyPart) {
             $itemInOldData = getItemFromThisArray($oldData, array('fk_identifier_type' => $newSurveyPart->fk_identifier_type, 'fk_identifier_value' => $newSurveyPart->fk_identifier_value));
             if (!$itemInOldData) {
                 //it is a new part
                 if ($addMissingPart) {
+                    $newSurveyPart->position = $position;
                     $partToAdd[] = $newSurveyPart;
                 }
             } else {
-
                 //we look for new blocs
-                foreach ($newSurveyPart->blocs as $newBloc) {
+                foreach ($newSurveyPart->blocs as $position => $newBloc) {
                     $oldBloc = getItemFromThisArray($itemInOldData->blocs, array('fk_c_survey_bloc_question' => $newBloc->fk_c_survey_bloc_question));
                     if (!$oldBloc) {
                         //It is a new bloc
                         $newBloc->fk_surveypart = $itemInOldData->id;
+                        $newBloc->position = $position;
                         $isCurrentPartGeneralPart = $newSurveyPart->fk_identifier_type == null && $newSurveyPart->fk_identifier_value == null;
                         if (($addMissingBlocInOtherPart && !$isCurrentPartGeneralPart) || ($isCurrentPartGeneralPart && $addMissingBlocIntoGeneralPart)) {
                             $blocToAdd[] = $newBloc;
@@ -1037,14 +1038,12 @@ class InterventionSurvey extends Fichinter
     }
 
     /**
-     *
      * Soft update of the survey with data from dictionary
      * We add missing survey part
      * We add missing bloc only in General part
      * We delete only empty staled bloc. Thus linked survey part are only deleted if there is no more part inside
      *
      */
-
     public function softUpdateOfSurveyFromDictionary($user)
     {
         return $this->mergeCurrentSurveyWithDictionaryData($user, true, false, true, true, true);

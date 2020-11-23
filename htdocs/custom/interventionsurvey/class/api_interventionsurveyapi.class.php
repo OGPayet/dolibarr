@@ -172,7 +172,7 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
 
-        $result = $this->interventionSurvey->fetch($id);
+        $result = $this->interventionSurvey->fetch($id, '', true, true);
         if (!($result > 0)) {
             throw new RestException(404, 'Intervention not found');
         }
@@ -336,7 +336,7 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
 
-        $result = $this->interventionSurvey->fetch($id);
+        $result = $this->interventionSurvey->fetch($id, '', true, true);
         if (!($result > 0)) {
             throw new RestException(404, 'Intervention not found');
         }
@@ -349,7 +349,7 @@ class InterventionSurveyApi extends DolibarrApi
 
 
         if ($this->interventionSurvey->is_survey_read_only()) {
-            throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
+            throw new RestException(401, 'Intervention survey with id = ' . $this->interventionSurvey->id . ' is in readonly mode');
         }
 
         $request = clone $this->interventionSurvey;
@@ -408,8 +408,8 @@ class InterventionSurveyApi extends DolibarrApi
             }
 
             //If we want to unlinked some equipement, links should be deleted here
-
-            if((int) $newLinkedEquipementId > 0) {
+            //We update survey with data from dictionnary as some equipment may have been removed/deleted
+            if(!empty($newLinkedEquipementsIds)) {
                 $this->interventionSurvey->fetchObjectLinked();
                 $this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
             }
@@ -465,7 +465,7 @@ class InterventionSurveyApi extends DolibarrApi
 
         $this->interventionLine->fk_fichinter = $fichInterId;
 
-        if ($this->interventionSurvey->fetch($fichInterId) < 0) {
+        if ($this->interventionSurvey->fetch($fichInterId, '', true, true) < 0) {
             throw new RestException(422, "Error when fetching the intervention", ['id_intervention' => $request_data->fk_fichinter, 'details' => $this->_getErrors($this->interventionSurvey)]);
         }
 
@@ -474,7 +474,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if ($this->interventionSurvey->is_survey_read_only()) {
-            throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
+            throw new RestException(401, 'Intervention survey with id = ' . $this->interventionSurvey->id . ' is in readonly mode');
         }
 
 
@@ -525,7 +525,7 @@ class InterventionSurveyApi extends DolibarrApi
             return true;
         }
 
-        if ($this->interventionLine->fk_fichinter > 0 && $this->interventionSurvey->fetch($this->interventionLine->fk_fichinter) < 0) {
+        if ($this->interventionLine->fk_fichinter > 0 && $this->interventionSurvey->fetch($this->interventionLine->fk_fichinter, '', true, true) < 0) {
             //Intervention has already been deleted
             return true;
         }
@@ -536,7 +536,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         if ($this->interventionSurvey->is_survey_read_only()) {
-            throw new RestException(403, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode');
+            throw new RestException(403, 'Intervention survey with id = ' . $this->interventionSurvey->id . ' is in readonly mode');
         }
 
         if ($this->interventionLine->deleteline(DolibarrApiAccess::$user) >= 0) {
@@ -568,17 +568,17 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
 
-        $result = $this->interventionSurvey->fetch($id);
+        $result = $this->interventionSurvey->fetch($id, '', true, true);
         if (!($result > 0)) {
             throw new RestException(404, 'Intervention not found');
         }
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
-            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
+            throw new RestException(401, 'Access to instance id = ' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         if ($this->interventionSurvey->is_survey_read_only() && $this->interventionSurvey->statut != $this->interventionSurvey::STATUS_DONE) {
-            throw new RestException(401, 'Intervention survey with id=' . $this->interventionSurvey->id . 'is in readonly mode but not closed');
+            throw new RestException(401, 'Intervention survey with id = ' . $this->interventionSurvey->id . ' is in readonly mode but not closed');
         }
         if($this->interventionSurvey->statut != $this->interventionSurvey::STATUS_DONE){
             $this->interventionSurvey->context['closedFromApi'] = true;
@@ -626,13 +626,13 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
 
-        $result = $this->interventionSurvey->fetch($id);
+        $result = $this->interventionSurvey->fetch($id, '', true, true);
         if (!($result > 0)) {
             throw new RestException(404, 'Intervention not found');
         }
 
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
-            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
+            throw new RestException(401, 'Access to instance id = ' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
 
         dol_include_once('/synergiestech/lib/synergiestech.lib.php');
