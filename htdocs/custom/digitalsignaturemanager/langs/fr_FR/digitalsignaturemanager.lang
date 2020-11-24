@@ -245,7 +245,7 @@ DigitalSignaturePeopleMissingPhoneNumber = Numéro de téléphone manquant pour 
 DigitalSignaturePeopleMissingMail = Adresse email manquante pour le signataire %s
 DigitalSignatureManagerCheckBoxEmptyValueForDocument = Une phrase de validation est renseigné pour le document %s mais cette dernière est invalide
 DigitalSignatureManagerSignatoryFieldPageValueTooHigh = La page indiqué n'existe pas. Ce document ne possède que %s page
-
+DigitalSignatureManagerCantOpenPdf = Le fichier pdf joint ne peux pas être lu
 #
 # Propriété des champs
 #

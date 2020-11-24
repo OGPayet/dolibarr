@@ -186,7 +186,7 @@ Class DigitalSignatureManagerUniversign
             ->setHandwrittenSignatureMode(
         \Globalis\Universign\Request\TransactionRequest::HANDWRITTEN_SIGNATURE_MODE_BASIC
 		)
-            ->setMustContactFirstSigner(false)
+            ->setMustContactFirstSigner(true)
             ->setFinalDocRequesterSent(true)
             ->setChainingMode(
         \Globalis\Universign\Request\TransactionRequest::CHAINING_MODE_EMAIL

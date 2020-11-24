@@ -678,7 +678,13 @@ class DigitalSignatureDocument extends CommonObject
 	public function getNumberOfPage()
 	{
 		$pdf = pdf_getInstance();
-		$pageCount = $pdf->setSourceFile($this->getLinkedFileAbsolutePath());
+		try {
+			$pageCount = $pdf->setSourceFile($this->getLinkedFileAbsolutePath());
+		}
+		catch(Exception $e) {
+			global $langs;
+			$this->errors[] = $langs->trans("DigitalSignatureManagerCantOpenPdf");
+		}
 		return $pageCount;
 	}
 }
