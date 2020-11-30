@@ -153,7 +153,7 @@ class FormDigitalSignatureRequest
     {
 		global $langs,$conf;
 
-		$listofactions = $this->helper->getActions($object, $socid,  null, null, null, ($max?($max+1):0));
+		$listofactions = $this->helper->getActions($object, $socid,  null, 'datep, id', 'ASC', ($max?($max+1):0));
 		if (! is_array($listofactions)) {
 			dol_print_error($this->db, 'FailedToGetActions');
 		}

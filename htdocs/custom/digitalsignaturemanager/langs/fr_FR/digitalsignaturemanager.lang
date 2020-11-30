@@ -193,6 +193,12 @@ DigitalSignatureManagerConfirmClone = Confirmation de l'opération de clonage
 DigitalSignatureManagerConfirmCloneDescription = Confirmez-vous l'opération de clonage de cette demande de signature ?
 DigitalSignatureManagerErrorWhileCanceling = Une erreur a eu lieu lors de l'annulation de la requete de signature
 
+
+DigitalSignatureRequestResetSignatureProcess = Relancer le processus de signature
+DigitalSignatureManagerErrorWhileResetingProcess = Erreur lors de la réinitialisation du processus de signature
+DigitalSignatureManagerSuccesfullyResetProcess = Le processus de signature a été relancé avec succès
+DigitalSignatureRequestCanceResetSignatureProcessTitle = Confirmation de la relance du processus de signature
+DigitalSignatureRequestConfirmResetSignatureProcessContent = Le processus de signature va être relancé. La demande courante va être clôturée et une nouvelle demande va être créé. L'ensemble des signatures déjà réalisées seront perdues et une invitation sera renvoyée au premier signataire après la confirmation.
 #
 # Status
 #

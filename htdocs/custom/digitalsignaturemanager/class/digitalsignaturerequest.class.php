@@ -300,7 +300,7 @@ class DigitalSignatureRequest extends CommonObject
 	 *
 	 * @param  	User 	$user      	User that creates
 	 * @param  	int 	$fromid     Id of object to clone
-	 * @return 	mixed 				New object created, <0 if KO
+	 * @return 	DigitalSignatureRequest|int 				New object created, <0 if KO
 	 */
 	public function createFromClone(User $user, $fromid)
 	{
@@ -314,24 +314,24 @@ class DigitalSignatureRequest extends CommonObject
 
 		// Load source object
 		$object->fetch($fromid);
-		$newDigitalSignatureRequest = clone $object;
+		$newDigitalSignatureRequest = new self($this->db);
 
-		// Reset some properties
-		$newDigitalSignatureRequest->id = null;
-		$newDigitalSignatureRequest->fk_user_creat = null;
-		$newDigitalSignatureRequest->import_key = null;
-		$newDigitalSignatureRequest->ref = null;
-		// Clear fields
-		$newDigitalSignatureRequest->status = self::STATUS_DRAFT;
-		$newDigitalSignatureRequest->externalUrl = null;
-		$newDigitalSignatureRequest->externalId = null;
-		// Clear extrafields that are unique
-		if (is_array($newDigitalSignatureRequest->array_options) && count($newDigitalSignatureRequest->array_options) > 0) {
+		//We merge object data property
+		$newDigitalSignatureRequest->fk_soc = $object->fk_soc;
+		$newDigitalSignatureRequest->note_private = $object->note_private;
+		$newDigitalSignatureRequest->note_public = $object->note_public;
+		$newDigitalSignatureRequest->ref_client = $object->ref_client;
+		$newDigitalSignatureRequest->fk_project = $object->fk_project;
+		$newDigitalSignatureRequest->elementtype = $object->elementtype;
+		$newDigitalSignatureRequest->fk_object = $object->fk_object;
+
+		//We merge extrafield values, except those which are unique
+		if (is_array($object->array_options) && count($object->array_options) > 0) {
 			$extrafields->fetch_name_optionals_label($this->table_element);
-			foreach ($newDigitalSignatureRequest->array_options as $key => $option) {
+			foreach ($object->array_options as $key => $option) {
 				$shortkey = preg_replace('/options_/', '', $key);
-				if (!empty($extrafields->attributes[$this->element]['unique'][$shortkey])) {
-					unset($newDigitalSignatureRequest->array_options[$key]);
+				if (empty($extrafields->attributes[$this->element]['unique'][$shortkey])) {
+					$newDigitalSignatureRequest->array_options[$key] = $object->array_options[$key];
 				}
 			}
 		}
@@ -381,6 +381,7 @@ class DigitalSignatureRequest extends CommonObject
 		// End
 		if (empty($errors)) {
 			$this->db->commit();
+			$newDigitalSignatureRequest->fetch($newDigitalSignatureRequest->id);
 			return $newDigitalSignatureRequest;
 		} else {
 			$this->errors = array_merge($this->errors, $errors);
@@ -1319,6 +1320,37 @@ class DigitalSignatureRequest extends CommonObject
 			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
 
 			return -1;
+		}
+	}
+
+	/**
+	 * Function to close current signature process, recreate one and start it
+	 * @param User $user User requesting reset of the signature process
+	 * @return DigitalSignatureRequest|false
+	*/
+	public function resetSignatureProcess($user)
+	{
+		//first we check if we have to update data of current process
+		if($this->isInProgress() || $this->status == $this::STATUS_FAILED) {
+			$this->updateDataFromExternalService($user);
+		}
+
+		//we try to cancel request if it still be active
+		if($this->isInProgress() && !$this->cancelRequest($user)) {
+			return false;
+		}
+		//Current process has been canceled. We clone it
+		$this->db->begin();
+		$cloneRequest = $this->createFromClone($user, $this->id);
+		if(is_object($cloneRequest) && $cloneRequest->validateAndCreateRequestOnTheProvider($user) > 0) {
+			$this->db->commit();
+			return $cloneRequest;
+		}
+		else {
+			$errorsFromCloneObject = $cloneRequest ? $cloneRequest->errors : array();
+			$this->errors = array_merge($this->errors, $errorsFromCloneObject);
+			$this->db->rollback();
+			return false;
 		}
 	}
 }

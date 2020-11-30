@@ -216,6 +216,18 @@ if (empty($reshook)) {
 		}
 	}
 
+	if($action == 'confirmResetSignatureProcess' && $permissiontoedit && $confirm == 'yes' && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
+		$result = $object->resetSignatureProcess($user);
+		if (!$result) {
+			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileResetingProcess'), $object->errors, 'errors');
+		}
+		else {
+			header("Location: ".$_SERVER['PHP_SELF'].'?id=' . $result->id); // Open record of new object
+			setEventMessages($langs->trans('DigitalSignatureManagerSuccesfullyResetProcess'), array());
+			exit;
+		}
+	}
+
 	//Action to manage delete of digitalsignaturedocument
 	if ($permissiontodelete) {
 		$formDigitalSignatureDocument->manageDeleteAction($action, $confirm, $user);
@@ -419,6 +431,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestCancelTransactionTitle'), $langs->trans('DigitalSignatureRequestCancelTransactionContent'), 'confirm_cancelTransaction', '', 0, 1);
 	}
 
+	//Confirmation to reset process
+	if($action == 'resetSignatureProcess' && $permissiontoedit) {
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestCanceResetSignatureProcessTitle'), $langs->trans('DigitalSignatureRequestConfirmResetSignatureProcessContent'), 'confirmResetSignatureProcess', '', 0, 1);
+	}
+
 	//Form confirm for digital signature request
 	$formconfirm = $formDigitalSignatureDocument->getDeleteFormConfirm($action, $object, $formconfirm);
 
@@ -558,6 +575,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			if($permissiontoread && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
 				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=refreshDataFromProvider">' . $langs->trans("DigitalSignatureRequestRefreshData") . '</a>';
 			}
+
+			//Reset signature process
+			if($permissiontoread && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
+				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=resetSignatureProcess">' . $langs->trans("DigitalSignatureRequestResetSignatureProcess") . '</a>';
+			}
+
 
 			//Delete transaction on provider
 			if($object->isInProgress()) {

@@ -194,7 +194,7 @@ Class DigitalSignatureManagerUniversign
             ->setDescription($this->digitalSignatureRequest->getUniversignPublicLabel())
 			->setLanguage($this->getUniversignLanguageCode())
 			->setCertificateType('simple')
-			->setCustomId($this->digitalSignatureRequest->id);
+			->setCustomId((string) $this->digitalSignatureRequest->id);
 
 		$requester = $this->getUniversignRequester();
 		try{
@@ -203,6 +203,7 @@ Class DigitalSignatureManagerUniversign
 		}
 		catch(Exception $e) {
 			$this->digitalSignatureRequest->errors[] = $e->getMessage();
+			$errors = $this->digitalSignatureRequest->errors;
 			return null;
 		}
 	}
