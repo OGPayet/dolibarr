@@ -83,7 +83,7 @@ class FormHelperDigitalSignatureManager
 		}
 
 		if(!empty($arrayOfPeopleSignatureIds)) {
-			$filterForDigitalSignatureRequest[] = "( a.fk_element IN (" . implode($arrayOfPeopleSignatureIds) .") AND a.elementtype = 'digitalsignaturemanager_digitalsignaturepeople' )";
+			$filterForDigitalSignatureRequest[] = "( a.fk_element IN (" . implode(",", $arrayOfPeopleSignatureIds) .") AND a.elementtype = 'digitalsignaturemanager_digitalsignaturepeople' )";
 		}
 
 		if(!empty($filterForDigitalSignatureRequest)) {
