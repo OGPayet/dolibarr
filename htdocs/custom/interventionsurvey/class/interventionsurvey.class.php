@@ -416,6 +416,7 @@ class InterventionSurvey extends Fichinter
     function generateGeneralSurveyPart($listOfGeneralBlocs)
     {
         global $langs;
+        $langs->load("interventionsurvey@interventionsurvey");
         $part = array(
             'label' => dol_htmlentitiesbr_decode($langs->trans('InterventionSurveyGeneralPartsLabel')),
             'position' => null,
