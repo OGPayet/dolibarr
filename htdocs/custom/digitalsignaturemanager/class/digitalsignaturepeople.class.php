@@ -280,6 +280,33 @@ class DigitalSignaturePeople extends CommonObject
 	}
 
 	/**
+	 * Function to get linked digital signature request instance
+	 * @return DigitalSignatureRequest
+	 */
+	public function getLinkedDigitalSignatureRequest()
+	{
+		if (!$this->digitalSignatureRequest) {
+			$this->fetchLinkedDigitalSignatureRequest();
+		}
+		return $this->digitalSignatureRequest;
+	}
+
+		/**
+	 * Function to fetch linked digital signature request
+	 * @return int         <0 if KO, 0 if not found, >0 if OK
+	 */
+	public function fetchLinkedDigitalSignatureRequest()
+	{
+		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
+		$digitalSignatureRequestStatic = new DigitalSignatureRequest($this->db);
+		$result = $digitalSignatureRequestStatic->fetch($this->fk_digitalsignaturerequest);
+		if ($result > 0) {
+			$this->digitalSignatureRequest = $digitalSignatureRequestStatic;
+		}
+		return $result;
+	}
+
+	/**
 	 * Function to fetch all people linked to a digital signature request
 	 * @param DigitalSignatureRequest $digitalSignatureRequest digital signature request to check
 	 * @return array|int array of digital signature people
@@ -422,16 +449,22 @@ class DigitalSignaturePeople extends CommonObject
 
 		if (!empty($conf->dol_no_mouse_hover)) $notooltip = 1; // Force disable tooltips
 
+		$linkedDigitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
+
 		$result = '';
 
 		$label = '<u>'.$langs->trans("DigitalSignaturePeople").'</u>';
 		$label .= '<br>';
-		$label .= '<b>'.$langs->trans('Ref').':</b> '.$this->ref;
+		$label .= '<b>'.$langs->trans('DigitalSignaturePeopleDisplayName').':</b> '.$this->displayName();
 		if (isset($this->status)) {
-			$label .= '<br><b>'.$langs->trans("Status").":</b> ".$this->getLibStatut(5);
+			$label .= '<br><b>'.$langs->trans("DigitalSignatureRequestPeopleStatus").":</b> ".$this->getLibStatut(5);
 		}
 
-		$url = dol_buildpath('/digitalsignaturemanager/digitalsignaturepeople_card.php', 1).'?id='.$this->id;
+		if (isset($linkedDigitalSignatureRequest->status)) {
+			$label .= '<br><b>'.$langs->trans("DigitalSignatureRequestStatus").":</b> ".$linkedDigitalSignatureRequest->getLibStatut(5);
+		}
+
+		$url = dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_card.php', 1).'?id='.$linkedDigitalSignatureRequest->id;
 
 		if ($option != 'nolink')
 		{
@@ -489,10 +522,9 @@ class DigitalSignaturePeople extends CommonObject
 			}
 		}
 
-		if ($withpicto != 2) $result .= $this->ref;
+		if ($withpicto != 2) $result .= $linkedDigitalSignatureRequest->ref;
 
 		$result .= $linkend;
-		//if ($withpicto != 2) $result.=(($addlabel && $this->label) ? $sep . dol_trunc($this->label, ($addlabel > 1 ? $addlabel : 0)) : '');
 
 		global $action, $hookmanager;
 		$hookmanager->initHooks(array('digitalsignaturepeopledao'));

@@ -52,7 +52,10 @@ DigitalSignatureManagerStandardNumberModuleName = Standard
 DigitalSignatureManagerAdvancedNumberModuleName = Avancé
 DigitalSignatureManagerMiscellaneous = Paramètres divers
 DigitalSignatureManagerCheckBoxAddNumberOfPage = Ajouter automatiquement une case à cocher concernant le nombre de page du document
-
+DigitalSignaturePeople = Signataire d'un processus de signature électronique
+DigitalSignaturePeopleDisplayName = Signataire concerné
+DigitalSignatureRequestPeopleStatus = Status du signataire
+DigitalSignatureRequestStatus = Status de la signature électronique
 #
 # Card
 #
