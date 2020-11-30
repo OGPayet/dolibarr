@@ -60,6 +60,8 @@ class InterfaceDigitalSignatureManagerAutomaticEventCreationTriggers extends Dol
 		// 'development', 'experimental', 'dolibarr' or version
 		$this->version = 'development';
 		$this->picto = 'digitalsignaturemanager@digitalsignaturemanager';
+		global $langs;
+		$langs->load("digitalsignaturemanager@digitalsignaturemanager");
 	}
 
 	/**
