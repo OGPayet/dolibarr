@@ -53,29 +53,53 @@ class FormHelperDigitalSignatureManager
 
 	/**
      *   Load all objects with filters
-     *
-     *   @param		DoliDb	$db				Database handler
-     *   @param		int		$socid			Filter by thirdparty
-     * 	 @param		int		$fk_element		Id of element action is linked to
-     *   @param		string	$elementtype	Type of element action is linked to
+     * 	 @param		DigitalSignatureRequest	$digitalSignatureRequest Object on which we must return actioncomm
+	 *   @param		int		$socid			Filter by thirdparty
      *   @param		string	$filter			Other filter
      *   @param		string	$sortfield		Sort on this field
      *   @param		string	$sortorder		ASC or DESC
      *   @param		string	$limit			Limit number of answers
-     *   @return	array or string			Error string if KO, array with actions if OK
+     *   @return	ActionComm[]|int		Error string if KO, array with actions if OK
      */
-	public function getActions($socid = 0, $fk_element = 0, $filter = '', $sortfield = 'datep', $sortorder = 'DESC', $limit = 0)
+	public function getActions($digitalSignatureRequest, $socid = 0, $filter = '', $sortfield = 'datep', $sortorder = 'DESC', $limit = 0)
 	{
-        $resarray=array();
+
+		$arrayOfPeopleSignatureIds = array();
+		foreach($digitalSignatureRequest->people as $people){
+			$arrayOfPeopleSignatureIds[] = $people->id;
+		}
+
+		$filterForDigitalSignatureRequest = array();
+
 
         $sql = "SELECT a.id";
         $sql.= " FROM ".MAIN_DB_PREFIX."actioncomm as a";
         $sql.= " WHERE a.entity IN (".getEntity('agenda').")";
-        if (! empty($socid)) $sql.= " AND a.fk_soc = ".$socid;
-		$sql.= " AND a.fk_element = ".(int) $fk_element." AND a.elementtype IN ('digitalsignaturemanager_digitalsignaturerequest', 'digitalsignaturemanager_digitalsignaturepeople') ";
-        if (! empty($filter)) $sql.= $filter;
-		if ($sortorder && $sortfield) $sql.=$this->db->order($sortfield, $sortorder);
-		if ($limit) $sql.=$this->db->plimit($limit);
+        if (!empty($socid)) {
+			$sql.= " AND a.fk_soc = " . $socid;
+		}
+		if($digitalSignatureRequest->id) {
+			$filterForDigitalSignatureRequest[] = "( a.fk_element = " . (int) $digitalSignatureRequest->id . " AND a.elementtype = 'digitalsignaturemanager_digitalsignaturerequest' )";
+		}
+
+		if(!empty($arrayOfPeopleSignatureIds)) {
+			$filterForDigitalSignatureRequest[] = "( a.fk_element IN (" . implode($arrayOfPeopleSignatureIds) .") AND a.elementtype = 'digitalsignaturemanager_digitalsignaturepeople' )";
+		}
+
+		if(!empty($filterForDigitalSignatureRequest)) {
+			$sql .= " AND (" . implode(' OR ', $filterForDigitalSignatureRequest) . ") ";
+		}
+
+		if (!empty($filter))
+		{
+			$sql.= $filter;
+		}
+		if ($sortorder && $sortfield) {
+			$sql.=$this->db->order($sortfield, $sortorder);
+		}
+		if ($limit) {
+			$sql.=$this->db->plimit($limit);
+		}
 
         dol_syslog(get_class()."::getActions", LOG_DEBUG);
         $resql=$this->db->query($sql);

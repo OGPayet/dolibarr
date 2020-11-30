@@ -596,7 +596,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	$MAXEVENT = 30;
 
 	// List of actions on element
-	$somethingshown = $formdigitalsignaturerequest->showActions($object, (is_object($object->thirdparty) ? $object->thirdparty->id : 0), 1, '', $MAXEVENT, '', $morehtmlright);
+	$somethingshown = $formdigitalsignaturerequest->showActions($object, $user->socid, 1, '', $MAXEVENT, '', $morehtmlright);
 
 	print '</div></div></div>';
 }
