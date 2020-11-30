@@ -774,7 +774,8 @@ class DigitalSignaturePeople extends CommonObject
 	 */
 	public function getLinkedThirdpartyId()
 	{
-		return $this->digitalSignatureRequest ?  $this->digitalSignatureRequest->getLinkedThirdpartyId() : null;
+		$linkedDigitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
+		return $linkedDigitalSignatureRequest ?  $linkedDigitalSignatureRequest->getLinkedThirdpartyId() : null;
 	}
 
 	/**
