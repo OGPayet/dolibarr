@@ -283,7 +283,7 @@ Class DigitalSignatureManagerUniversign
 
 	/**
 	 * Download signed documents
-	 * @return bool true if files have succesfully been downloaded
+	 * @return bool true if files have successfully been downloaded
 	 */
 	public function downloadSignedDocuments()
 	{
