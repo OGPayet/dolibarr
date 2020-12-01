@@ -159,6 +159,9 @@ class FormDigitalSignatureDocument
 	public function showDocumentAddForm($object, $numberOfActionColumns)
 	{
 		global $hookmanager, $action;
+		$this->elementObjectStatic->fk_digitalsignaturerequest = $object->id;
+		$this->elementObjectStatic->digitalSignatureRequest = $object;
+
 		//We display row
 		print '<tr id="' . self::ELEMENT_PREFIX_NEW_ROW . '" class="nodrag nodrop nohoverpair liste_titre_create oddeven">';
 		print '<form action="' . $this->formDigitalSignatureManager->buildActionUrlForLine($object->id, null, null, null, self::ELEMENT_PREFIX_NEW_ROW) . '" enctype="multipart/form-data" method="post">';
@@ -189,7 +192,7 @@ class FormDigitalSignatureDocument
 
 		//we Show check boxes multi select array
 		print '<td>';
-		print $this->getCheckBoxInputForm($object, $document->check_box_ids, true);
+		print $this->getCheckBoxInputForm($this->elementObjectStatic, $document->check_box_ids, true);
 		print '</td>';
 
 		// Show add button
@@ -244,7 +247,7 @@ class FormDigitalSignatureDocument
 
 		//we Show check boxes multi select array
 		print '<td>';
-		print $this->getCheckBoxInputForm($object, $document->check_box_ids);
+		print $this->getCheckBoxInputForm($document, $document->check_box_ids);
 		print '</td>';
 
 		// Show save and cancel button
@@ -304,7 +307,7 @@ class FormDigitalSignatureDocument
 		print '<td>';
 		$displayCheckBoxLabels = array();
 		foreach($document->checkBoxes as $checkBox) {
-			$displayCheckBoxLabels[] = $checkBox->label;
+			$displayCheckBoxLabels[] = $checkBox->getDisplayNameAccordingToDocument($document);
 		}
 		print implode('<br>', $displayCheckBoxLabels);
 		print '</td>';
@@ -475,7 +478,7 @@ class FormDigitalSignatureDocument
 					//We update fk_ecm property as Dolibarr doesn't fucking keep id on file move
 					$ecmFile = DigitalSignatureDocument::getEcmInstanceOfFile($this->db, $object->getRelativePathForFilesToSign(), $newFileName);
 					if(!$ecmFile) {
-						setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileMovingFiles'), array());
+						setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileMovingFiles'), array(), 'errors');
 					}
 					else {
 						//We update other fields and save it
@@ -484,7 +487,8 @@ class FormDigitalSignatureDocument
 						if ($documentToEdit->update($user) > 0) {
 							setEventMessages($langs->trans('DigitalSignatureManagerDocumentSuccesfullyUpdate'), array());
 						} else {
-							setEventMessages($langs->trans('DigitalSignatureManagerDocumentErrorWhileUpdating'), $documentToEdit->errors);
+							$action = self::EDIT_ACTION_NAME;
+							setEventMessages($langs->trans('DigitalSignatureManagerDocumentErrorWhileUpdating'), $documentToEdit->errors, 'errors');
 						}
 					}
 				}
@@ -535,16 +539,16 @@ class FormDigitalSignatureDocument
 
 	/**
 	 * Get multi select form of checkboxes
-	 * @param DigitalSignatureRequest $digitalSignatureRequest Request on which we have to select checkbox
+	 * @param DigitalSignatureDocument $digitalSignatureRequest Request on which we have to select checkbox
 	 * @param int[] $chosenCheckBoxIds array of chosen check box ids
 	 * @return string
 	 */
-	public function getCheckBoxInputForm($digitalSignatureRequest, $chosenCheckBoxIds, $hideEmptyCheckBox = false)
+	public function getCheckBoxInputForm($digitalSignatureDocument, $chosenCheckBoxIds, $hideEmptyCheckBox = false)
 	{
 		$arrayOfKeyValue = array();
-		foreach($digitalSignatureRequest->availableCheckBox as $checkBox) {
+		foreach($digitalSignatureDocument->getAvailableCheckBox() as $id=>$checkBox) {
 			if(!$hideEmptyCheckBox || !empty($checkBox->label)) {
-				$arrayOfKeyValue[$checkBox->id] = $checkBox->label;
+				$arrayOfKeyValue[$id] = $checkBox->getDisplayNameAccordingToDocument($digitalSignatureDocument);
 			}
 		}
 		return $this->form->multiselectarray(self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME, $arrayOfKeyValue, $chosenCheckBoxIds, 0, 0, 'width95');
@@ -561,7 +565,7 @@ class FormDigitalSignatureDocument
 		if (!$fillOnlyIfFieldIsPresentOnPost || isset($_POST[self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME])) {
 			$arrayOfCheckBoxIds = array();
 			foreach(GETPOST(self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME) as $checkBoxId) {
-				$arrayOfCheckBoxIds[] = (int) $checkBoxId;
+				$arrayOfCheckBoxIds[] = $checkBoxId;
 			}
 			$digitalSignatureDocument->check_box_ids = $arrayOfCheckBoxIds;
 		}

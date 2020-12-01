@@ -56,6 +56,17 @@ DigitalSignaturePeople = Signataire d'un processus de signature électronique
 DigitalSignaturePeopleDisplayName = Signataire concerné
 DigitalSignatureRequestPeopleStatus = Status du signataire
 DigitalSignatureRequestStatus = Status de la signature électronique
+
+#
+# Dictionnaires
+#
+DigitalSignatureManagerCheckboxDictionaryTabTitle = Dictionnaire des checkbox pré-paramétrés
+DigitalSignatureManagerCheckboxDictionaryName = Dictionnaire des checkbox pré-paramétrés
+DigitalSignatureManagerCheckboxDictionaryPositionName = Position
+DigitalSignatureManagerCheckboxDictionaryLabelName = Libellé
+DigitalSignatureManagerCheckboxDictionaryAvailableOnlyForMasks = Disponible uniquement pour documents issues des masques suivants
+DigitalSignatureManagerCheckboxDictionaryAvailableOnlyForMasksHelpText = Ne proposer cette checkbox que pour les documents issues des masques suivants. <br> Ne rien sélectionner rend cette checkbox sélectionnable pour tout type de document. <br> <b>Variable de substitution disponibles :</b> <br> __TOTALPAGENUMBER__ : Nombre de page du document
+
 #
 # Card
 #
@@ -354,7 +365,6 @@ DigitalSignatureManagerPeopleDeleteEventDescription = Signataire %s supprimé
 # Erreurs
 #
 DigitalSignatureManagerUniversignErrorSavingFileInServer = Une erreur est intervenue lors de la sauvegarde du document signé %s dans le serveur
-
 #
 # Page À propos
 #

@@ -64,7 +64,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		$this->editor_name = 'Alexis LAURIER';
 		$this->editor_url = 'https://www.alexislaurier.fr';
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.0';
+		$this->version = '1.0.1';
 		// Url to the file with your last numberversion of this module
 		//$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
@@ -102,10 +102,7 @@ class modDigitalSignatureManager extends DolibarrModules
 			),
 			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
 			'hooks' => array(
-				'data' => array(
-					'digitalsignaturerequestdocument',
-					'digitalsignaturerequestcard',
-				)
+				'all'
 			),
 			// Set this to 1 if features of module are opened to external users
 			'moduleforexternal' => 0,
@@ -119,7 +116,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		// A condition to hide module
 		$this->hidden = false;
 		// List of module class names as string that must be enabled if this module is enabled. Example: array('always1'=>'modModuleToEnable1','always2'=>'modModuleToEnable2', 'FR1'=>'modModuleToEnableFR'...)
-		$this->depends = array();
+		$this->depends = array('modAdvanceDictionaries');
 		$this->requiredby = array(); // List of module class names as string to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
 		$this->conflictwith = array(); // List of module class names as string this module is in conflict with. Example: array('modModuleToDisable1', ...)
 		$this->langfiles = array("digitalsignaturemanager@digitalsignaturemanager");
@@ -149,7 +146,9 @@ class modDigitalSignatureManager extends DolibarrModules
 		}
 
 		// Array to add new pages in new tabs
-		$this->tabs = array();
+		$this->tabs = array(
+			'digitalsignaturemanager:+dictionary_digitalsignaturecheckbox:DigitalSignatureManagerCheckboxDictionaryTabTitle:digitalsignaturemanager@digitalsignaturemanager:$user->admin:/digitalsignaturemanager/admin/dictionaries.php?name=digitalsignaturecheckbox',
+		);
 		// Example:
 		// $this->tabs[] = array('data'=>'objecttype:+tabname1:Title1:mylangfile@digitalsignaturemanager:$user->rights->digitalsignaturemanager->read:/digitalsignaturemanager/mynewtab1.php?id=__ID__');  					// To add a new tab identified by code tabname1
 		// $this->tabs[] = array('data'=>'objecttype:+tabname2:SUBSTITUTION_Title2:mylangfile@digitalsignaturemanager:$user->rights->othermodule->read:/digitalsignaturemanager/mynewtab2.php?id=__ID__',  	// To add another new tab identified by code tabname2. Label will be result of calling all substitution functions on 'Title2' key.
@@ -455,6 +454,14 @@ class modDigitalSignatureManager extends DolibarrModules
 	public function init($options = '')
 	{
 		global $conf, $langs;
+
+        include_once DOL_DOCUMENT_ROOT.'/custom/advancedictionaries/class/dictionary.class.php';
+        $dictionaries = Dictionary::fetchAllDictionaries($this->db, 'digitalsignaturemanager');
+        foreach ($dictionaries as $dictionary) {
+            if ($dictionary->createTables() < 0) {
+                setEventMessage('Error create dictionary table: ' . $dictionary->errorsToString(), 'errors');
+            }
+        }
 
 		$result = $this->_load_tables('/digitalsignaturemanager/sql/');
 		if ($result < 0) return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')

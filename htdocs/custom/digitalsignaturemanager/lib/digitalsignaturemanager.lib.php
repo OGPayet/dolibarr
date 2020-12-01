@@ -40,27 +40,28 @@ function digitalsignaturemanagerAdminPrepareHead()
 	$head[$h][2] = 'settings';
 	$h++;
 
-	/*
-	$head[$h][0] = dol_buildpath("/digitalsignaturemanager/admin/myobject_extrafields.php", 1);
-	$head[$h][1] = $langs->trans("ExtraFields");
-	$head[$h][2] = 'myobject_extrafields';
-	$h++;
-	*/
+	complete_head_from_modules($conf, $langs, null, $head, $h, 'digitalsignaturemanager');
 
 	$head[$h][0] = dol_buildpath("/digitalsignaturemanager/admin/about.php", 1);
 	$head[$h][1] = $langs->trans("About");
 	$head[$h][2] = 'about';
 	$h++;
 
-	// Show more tabs from modules
-	// Entries must be declared in modules descriptor with line
-	//$this->tabs = array(
-	//	'entity:+tabname:Title:@digitalsignaturemanager:/digitalsignaturemanager/mypage.php?id=__ID__'
-	//); // to add new tab
-	//$this->tabs = array(
-	//	'entity:-tabname:Title:@digitalsignaturemanager:/digitalsignaturemanager/mypage.php?id=__ID__'
-	//); // to remove a tab
-	complete_head_from_modules($conf, $langs, null, $head, $h, 'digitalsignaturemanager');
+    complete_head_from_modules($conf, $langs, null, $head, $h, 'digitalsignaturemanager', 'remove');
 
 	return $head;
+}
+
+/**
+ * Check Permission to Admin pages for intervention survey module
+ *
+ * @return array
+ */
+function checkPermissionForAdminPages()
+{
+	global $conf, $user;
+
+	$result = $user->admin;
+
+	return $result;
 }

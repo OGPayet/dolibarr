@@ -46,7 +46,7 @@ require_once '../lib/digitalsignaturemanager.lib.php';
 $langs->loadLangs(array("admin", "digitalsignaturemanager@digitalsignaturemanager"));
 
 // Access control
-if (!$user->admin) accessforbidden();
+if (!checkPermissionForAdminPages()) accessforbidden();
 
 // Parameters
 $action = GETPOST('action', 'alpha');

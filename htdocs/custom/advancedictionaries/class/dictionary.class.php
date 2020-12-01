@@ -1881,6 +1881,9 @@ class Dictionary extends CommonObject
 			$dictionaryLine = $this->getNewDictionaryLine();
 
 			switch ($type) {
+                case 'int':
+					return '<input type="number" class="flat' . $moreClasses . ' maxwidthonsmartphone" name="' . $fieldHtmlName . '"' . $size .
+						' value="' . dol_escape_htmltag($search_filters[$fieldName]) . '"' . $moreAttributes . '>';
 				case 'varchar':
 				case 'text':
 				case 'phone':
@@ -1888,7 +1891,6 @@ class Dictionary extends CommonObject
 				case 'url':
 				case 'password':
 				case 'link':
-				case 'int':
 				case 'float':
 				case 'double':
 				case 'price':
@@ -4391,7 +4393,7 @@ class DictionaryLine extends CommonObjectLine
 					case 'int':
 						$tmp = explode(',', $size);
 						$newsize = $tmp[0] + $tmp[1] + 1;
-						$out = '<input type="text" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $newsize . '" value="' . $value . '"' . $moreAttributes . '>';
+						$out = '<input type="number" class="flat' . $moreClasses . ' maxwidthonsmartphone" id="' . $fieldHtmlName . '" name="' . $fieldHtmlName . '" maxlength="' . $newsize . '" value="' . $value . '"' . $moreAttributes . '>';
 						break;
 					case 'float':
 					case 'double':

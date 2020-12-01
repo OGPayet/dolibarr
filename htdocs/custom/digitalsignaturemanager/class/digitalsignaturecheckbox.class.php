@@ -91,6 +91,7 @@ class DigitalSignatureCheckBox extends CommonObject
 	 */
 	public $fields=array(
 		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>'1', 'position'=>1, 'notnull'=>1, 'visible'=>0, 'noteditable'=>'1', 'index'=>1, 'comment'=>"Id"),
+		'c_rowid' => array('type'=>'integer', 'label'=>'Id of the dictionary item from which we create this checkbox', 'enabled'=>'1', 'position'=>2, 'notnull'=>0, 'visible'=>0, 'noteditable'=>'1', 'index'=>1),
 		'date_creation' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>500, 'notnull'=>1, 'visible'=>-2,),
 		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>501, 'notnull'=>0, 'visible'=>-2,),
 		'fk_user_creat' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserAuthor', 'enabled'=>'1', 'position'=>510, 'notnull'=>1, 'visible'=>-2, 'foreignkey'=>'user.rowid',),
@@ -100,6 +101,7 @@ class DigitalSignatureCheckBox extends CommonObject
 		'position' => array('type'=>'integer', 'label'=>'Ordered Position of the check box', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0)
 	);
 	public $rowid;
+	public $c_rowid;
 	public $date_creation;
 	public $tms;
 	public $fk_user_creat;
@@ -302,7 +304,8 @@ class DigitalSignatureCheckBox extends CommonObject
 	 * @param DigitalSignatureDocument $documentInWhichWeValidateThisCheckBox content of validation of data of this checkbox
 	 * @return string[] array of errors when validating this document
 	 */
-	public function checkDataValidForCreateRequestOnProvider($documentInWhichWeValidateThisCheckBox) {
+	public function checkDataValidForCreateRequestOnProvider($documentInWhichWeValidateThisCheckBox)
+	{
 		global $langs;
 		$errors = array();
 		if(empty($this->label)) {
@@ -374,5 +377,17 @@ class DigitalSignatureCheckBox extends CommonObject
 			$this->db->rollback();
 			return -1;
 		}
+	}
+
+	public function getDisplayNameAccordingToDocument($document = null)
+	{
+		$displayedLabel = $this->label;
+		if($document) {
+			$substitutionArray = $document->getSubstitutionArray();
+			foreach($substitutionArray as $key=>$value) {
+				$displayedLabel = str_replace($key, $value, $displayedLabel);
+			}
+		}
+		return $displayedLabel;
 	}
 }
