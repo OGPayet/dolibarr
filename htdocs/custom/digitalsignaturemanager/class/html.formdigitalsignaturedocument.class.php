@@ -212,7 +212,7 @@ class FormDigitalSignatureDocument
 	 *  @param	DigitalSignatureRequest	$object			Object
 	 *  @param  DigitalSignatureDocument $document Document being edited
 	 *  @param int $numberOfActionColumnsOnParentTable number of column used by actions
-	 *  @param string $userCanMoveLine
+	 *  @param string $userCanMoveLine is user able to move lines
 	 *	@return	int						<0 if KO, >=0 if OK
 	 */
 	public function showDocumentEditForm($object, $document, $numberOfActionColumnsOnParentTable, $userCanMoveLine)
@@ -357,9 +357,9 @@ class FormDigitalSignatureDocument
 		$arrayWithFileInformation = array('name' => $fileName);
 
 
-		$out = '<a class="documentdownload paddingright" href="' . $documentUrl . '?modulepart=' . $modulePart . '&amp;file=' . urlencode($relativePath) . $entityParam;
+		$out = '<a class="documentdownload paddingright" href="' . $documentUrl . '?modulepart=' . $modulePart . '&amp;file=' . urlencode($relativePathInThisModule) . $entityParam;
 
-		$mime = dol_mimetype($relativePath, '', 0);
+		$mime = dol_mimetype($relativePathInThisModule, '', 0);
 		if (preg_match('/text/', $mime)) {
 			$out .= ' target="_blank"';
 		}
@@ -367,7 +367,7 @@ class FormDigitalSignatureDocument
 		$out .= img_mime($fileName, $langs->trans("File") . ': ' . $fileName);
 		$out .= dol_trunc($fileName, 150);
 		$out .= '</a>' . "\n";
-		$out .= $this->formFile->showPreview($arrayWithFileInformation, $modulePart, $relativePath, 0, $entityParam);
+		$out .= $this->formFile->showPreview($arrayWithFileInformation, $modulePart, $relativePathInThisModule, 0, $entityParam);
 		$out .= '</td>';
 		return $out;
 	}
@@ -410,7 +410,7 @@ class FormDigitalSignatureDocument
 		if ($action == self::ADD_ACTION_NAME) {
 			global $langs;
 			$TFile = $_FILES[self::ELEMENT_POST_FILE_FIELD_NAME];
-			$arrayOfUploadedInstance = ExtendedEcm::manageUploadOfFiles($this->db, $user, $digitalSignatureRequest->getRelativePathForFilesToSign(), self::ELEMENT_POST_FILE_FIELD_NAME);
+			$arrayOfUploadedInstance = ExtendedEcm::manageUploadOfFiles($this->db, $digitalSignatureRequest->getRelativeModuleDirectoryToDocumentRootDirectory(), $digitalSignatureRequest->getRelativePathForFilesToSignToModuleDirectory(), self::ELEMENT_POST_FILE_FIELD_NAME);
 			if (empty($TFile['name'])) {
 				setEventMessages($langs->trans('DigitalSignatureManagerErrorFileRequired'), array(), 'errors');
 			} elseif (!$arrayOfUploadedInstance) {
@@ -506,8 +506,9 @@ class FormDigitalSignatureDocument
 
 	/**
 	 * Get multi select form of checkboxes
-	 * @param DigitalSignatureDocument $digitalSignatureRequest Request on which we have to select checkbox
+	 * @param DigitalSignatureDocument $digitalSignatureDocument Request on which we have to select checkbox
 	 * @param int[] $chosenCheckBoxIds array of chosen check box ids
+	 * @param boolean $hideEmptyCheckBox should we hide checkbox with empty label
 	 * @return string
 	 */
 	public function getCheckBoxInputForm($digitalSignatureDocument, $chosenCheckBoxIds, $hideEmptyCheckBox = false)

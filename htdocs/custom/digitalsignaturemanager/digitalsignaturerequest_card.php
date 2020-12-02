@@ -64,7 +64,6 @@ if (!$res && file_exists("../../../main.inc.php")) $res = @include "../../../mai
 if (!$res) die("Include of main fails");
 
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formcompany.class.php';
-require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formprojet.class.php';
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturemanager_digitalsignaturerequest.lib.php');
@@ -115,8 +114,6 @@ $permissionnote = $user->rights->digitalsignaturemanager->request->edit; // Used
 $permissiondellink = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_dellink.inc.php
 $permissioncreate = $permissiontoadd && $object->status == $object::STATUS_DRAFT; //Used by actions_builddoc.inc.php to remove files
 $permissionToAddAndDelFiles = $permissioncreate;
-
-$upload_dir = $object->getBaseUploadDir();
 
 if (!$permissiontoread) accessforbidden();
 
@@ -326,7 +323,6 @@ if(!empty($object->errors)) {
 
 $form = new Form($db);
 $formdigitalsignaturerequest = new FormDigitalSignatureRequest($db);
-$formfile = new FormFile($db);
 $formproject = new FormProjets($db);
 
 $title = $langs->trans("DigitalSignatureRequest");
@@ -608,7 +604,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
 	// signed files
-	print $formfile->showdocuments('digitalsignaturemanager', $object->getRelativePathForSignedFiles(), $object->getUploadDirOfSignedFiles(), $urlsource, 0, 0, $object->model_pdf, 1, 0, 0, 28, 0, '', $langs->trans('DigitalSignatureRequestListOfSignedFiles'), '', $langs->defaultlang, null, $object, 0);
+	print $formdigitalsignaturerequest->displayListOfSignedFiles($object, $urlsource);
 
 	// Show links to link elements
 	$somethingshown = $form->showLinkedObjectBlock($object, $form->showLinkToObjectBlock($object, null, array('digitalsignaturerequest')));

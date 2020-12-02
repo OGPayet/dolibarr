@@ -75,6 +75,11 @@ class FormDigitalSignatureRequest
 	public $formDigitalSignatureCheckBox;
 
 	/**
+	 * @var Formfile Instance of the form
+	 */
+	public $formFile;
+
+	/**
 	 * @var DigitalSignatureRequest static element
 	 */
 	public $elementStatic;
@@ -135,6 +140,9 @@ class FormDigitalSignatureRequest
 
 		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 		$this->elementStatic = new DigitalSignatureRequest($db);
+
+		require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
+		$this->formFile = new FormFile($db);
     }
 
 
@@ -708,5 +716,36 @@ class FormDigitalSignatureRequest
 
 		print '</table>';
 		print '</div>';
+	}
+
+	/**
+	 * Function to display signed files of a digital signature request
+	 * @param DigitalSignatureRequest $digitalSignatureRequest Digital signature request on which we should show signed files
+	 * @param String $urlSource Url of the page displaying files
+	 * @return string
+	 */
+	public function displayListOfSignedFiles($digitalSignatureRequest, $urlSource)
+	{
+		global $langs;
+		return $this->formFile->showdocuments(
+			'digitalsignaturemanager',
+			$digitalSignatureRequest->getRelativePathForSignedFilesToModuleDirectory(),
+			$digitalSignatureRequest->getAbsoluteDirectoryOfSignedFiles(),
+			$urlSource,
+			0,
+			0,
+			null,
+			1,
+			0,
+			0,
+			28,
+			0,
+			'',
+			$langs->trans('DigitalSignatureRequestListOfSignedFiles'),
+			'',
+			$langs->defaultlang,
+			null,
+			$digitalSignatureRequest,
+			0);
 	}
 }

@@ -250,8 +250,8 @@ class DigitalSignatureRequest extends CommonObject
 	{
 		$result = $this->createCommon($user, $notrigger);
 		//In order to avoid issue, we create directly directory for this item
-		dol_mkdir($this->getUploadDirOfFilesToSign());
-		dol_mkdir($this->getUploadDirOfSignedFiles());
+		dol_mkdir($this->getAbsoluteDirectoryOfFilesToSign());
+		dol_mkdir($this->getAbsoluteDirectoryOfSignedFiles());
 		return $result;
 	}
 
@@ -944,51 +944,104 @@ class DigitalSignatureRequest extends CommonObject
 	}
 
 	/**
-	 * Get base upload dir for object of this module, according to the entity
-	 * @return string local path
+	 * Get module relative directory to document root directory
+	 * @return string
 	 */
-	public function getBaseUploadDir()
+	public function getRelativeModuleDirectoryToDocumentRootDirectory()
+	{
+		$absoluteModuleDirectory = $this->getAbsoluteModuleDirectory();
+		return preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $absoluteModuleDirectory);
+	}
+
+	/**
+	 * Get absolute directory of document of module
+	 * @return string
+	 */
+	public function getAbsoluteModuleDirectory()
 	{
 		global $conf;
 		return $conf->digitalsignaturemanager->multidir_output[$this->entity ? $this->entity : $conf->entity];
 	}
 
 	/**
-	 * Get relative upload dir for files to sign
-	 * @return string relative path
+	 * Get relative directory of current request according to module directory
+	 * @return string
 	 */
-	public function getRelativePathForFilesToSign()
+	public function getRequestRelativeDirectoryToModuleDirectory()
 	{
-		return "digitalsignaturerequest/" . dol_sanitizeFileName($this->id) . "/filesToSign";
+		return "digitalsignaturerequest/" . dol_sanitizeFileName($this->id);
 	}
 
 	/**
-	 * Get relative upload dir for signed files
-	 * @return string relative path
+	 * Get relative directory of files to sign according to request directory
+	 * @return string
 	 */
-	public function getRelativePathForSignedFiles()
+	public function getRelativePathToRequestDirectoryForFileToSign()
 	{
-		return "digitalsignaturerequest/" . dol_sanitizeFileName($this->id) . "/signedFiles";
+		return 'filesToSign';
 	}
 
 	/**
-	 * Get upload dir of files to be signed
-	 * @return string local path
+	 * Get relative directory of signed files according to request directory
+	 * @return string
 	 */
-	public function getUploadDirOfFilesToSign()
+	public function getRelativePathToRequestDirectoryForSignedFiles()
 	{
-		return $this->getBaseUploadDir() . "/" . $this->getRelativePathForFilesToSign();
+		return 'signedFiles';
 	}
 
 	/**
-	 * Get upload dir of signed files
-	 * @return string local path
+	 * Function to get absolute directory of files to sign
+	 * @return string
 	 */
-	public function getUploadDirOfSignedFiles()
+	public function getAbsoluteDirectoryOfFilesToSign()
 	{
-		return $this->getBaseUploadDir() . "/" . $this->getRelativePathForSignedFiles();
+		return $this->getAbsoluteModuleDirectory() . '/' . $this->getRequestRelativeDirectoryToModuleDirectory() . '/' . $this->getRelativePathToRequestDirectoryForFileToSign();
 	}
 
+	/**
+	 * Function to get absolute directory of files to sign
+	 * @return string
+	 */
+	public function getAbsoluteDirectoryOfSignedFiles()
+	{
+		return $this->getAbsoluteModuleDirectory() . '/' . $this->getRequestRelativeDirectoryToModuleDirectory() . '/' . $this->getRelativePathToRequestDirectoryForSignedFiles();
+	}
+
+	/**
+	 * Function to relative directory of files to sign into module directory
+	 * @return string
+	 */
+	public function getRelativePathForFilesToSignToModuleDirectory()
+	{
+		return $this->getRequestRelativeDirectoryToModuleDirectory() . '/' . $this->getRelativePathToRequestDirectoryForFileToSign();
+	}
+
+	/**
+	 * Function to relative directory of signed files into module directory
+	 * @return string
+	 */
+	public function getRelativePathForSignedFilesToModuleDirectory()
+	{
+		return $this->getRequestRelativeDirectoryToModuleDirectory() . '/' . $this->getRelativePathToRequestDirectoryForSignedFiles();
+	}
+
+	/**
+	 * Function to get relative directory of files to sign to dol_data_root
+	 * @return string
+	 */
+	public function getRelativePathToDolDataRootForFilesToSign()
+	{
+		return $this->getRelativeModuleDirectoryToDocumentRootDirectory() . '/' . $this->getRelativePathForFilesToSignToModuleDirectory();
+	}
+
+	/**
+	 * Function to get relative directory of files to sign to dol_data_root
+	 * @return string
+	 */
+	public function getRelativePathToDolDataRootForSignedFiles() {
+		return $this->getRelativeModuleDirectoryToDocumentRootDirectory() . '/' . $this->getRelativePathForSignedFilesToModuleDirectory();
+	}
 
 	/**
 	 * Get List Of Files To Sign
@@ -1007,7 +1060,7 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function getListOfFilesToSign($types = "all", $recursive = 0, $filter = "", $excludefilter = "", $sortcriteria = "name", $sortorder = SORT_ASC, $mode = 1, $nohook = 0, $relativename = "")
 	{
-		return dol_dir_list($this->getUploadDirOfFilesToSign(), $types, $recursive, $filter, $excludefilter, $sortcriteria, $sortorder, $mode, $nohook, $relativename);
+		return dol_dir_list($this->getAbsoluteDirectoryOfFilesToSign(), $types, $recursive, $filter, $excludefilter, $sortcriteria, $sortorder, $mode, $nohook, $relativename);
 	}
 
 	/**
@@ -1027,7 +1080,7 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function getListOfSignedFiles($types = "all", $recursive = 0, $filter = "", $excludefilter = "", $sortcriteria = "name", $sortorder = SORT_ASC, $mode = 1, $nohook = 0, $relativename = "")
 	{
-		return dol_dir_list($this->getUploadDirOfSignedFiles(), $types, $recursive, $filter, $excludefilter, $sortcriteria, $sortorder, $mode, $nohook, $relativename);
+		return dol_dir_list($this->getAbsoluteDirectoryOfSignedFiles(), $types, $recursive, $filter, $excludefilter, $sortcriteria, $sortorder, $mode, $nohook, $relativename);
 	}
 
 	/**

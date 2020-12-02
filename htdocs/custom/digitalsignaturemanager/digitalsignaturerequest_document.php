@@ -76,7 +76,7 @@ include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be includ
 
 $permissiontoadd = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
 $permissiontoread = $user->rights->digitalsignaturemanager->request->read;
-$upload_dir = $object->getUploadDirOfFilesToSign();
+
 // Security check - Protection if external user
 if (!$permissiontoread) accessforbidden();
 
@@ -190,6 +190,7 @@ if ($object->id)
 
 	dol_fiche_end();
 
+	$modulepart = 'digitalsignaturemanager';
 	//Display of files to sign
 
 	$formfile=new FormFile($db);
@@ -199,19 +200,19 @@ if ($object->id)
     $modulepart,
     $param,
     0,
-    $object->getRelativePathForFilesToSign() . "/",		// relative path with no file. For example "0/1"
+    $object->getRelativePathForFilesToSignToModuleDirectory() . "/",		// relative path with no file. For example "0/1"
     0,
     0,
     '',
     0,
-    $langs->trans('DigitalSignatureRequestListOfFilesToSign'),
+    $langs->trans('DigitalSignatureRequestListOfFileToSign'),
     '',
     0,
     0,
-    $object->getUploadDirOfFilesToSign(),
+    $object->getRelativePathToDolDataRootForFilesToSign(),
     $sortfield,
     $sortorder,
-    $disablemove
+    true
 	);
 
 
@@ -223,7 +224,7 @@ if ($object->id)
     $modulepart,
     $param,
     0,
-    $object->getRelativePathForSignedFiles() . "/",		// relative path with no file. For example "0/1"
+    $object->getRelativePathForSignedFilesToModuleDirectory() . "/",		// relative path with no file. For example "0/1"
     0,
     0,
     '',
@@ -232,10 +233,10 @@ if ($object->id)
     '',
     0,
     0,
-    $object->getUploadDirOfSignedFiles(),
+    $object->getRelativePathToDolDataRootForSignedFiles(),
     $sortfield,
     $sortorder,
-    $disablemove
+    true
 	);
 }
 else

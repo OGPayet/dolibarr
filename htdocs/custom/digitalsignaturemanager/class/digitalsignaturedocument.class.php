@@ -402,8 +402,8 @@ class DigitalSignatureDocument extends CommonObject
 		$errors = array();
 		$staticEcm = new ExtendedEcm($this->db);
 		//We have to clean ecm database table as some file must be present into it and not on disk
-		ExtendedEcm::cleanEcmFileDatabase($this->db, $digitalSignatureRequest->getRelativePathForFilesToSign(), $user);
-		$ecmFiles = $staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $digitalSignatureRequest->getRelativePathForFilesToSign()));
+		ExtendedEcm::cleanEcmFileDatabase($this->db, $digitalSignatureRequest->getRelativePathToDolDataRootForFilesToSign(), $user);
+		$ecmFiles = $staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $digitalSignatureRequest->getRelativePathToDolDataRootForFilesToSign()));
 		$errors = array_merge($errors, $staticEcm->errors);
 		if (!$ecmFiles) {
 			$ecmFiles = array();
@@ -487,7 +487,9 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getLinkedFileRelativePath()
 	{
-		return $this->ecmFile ? $this->ecmFile->getFullRelativePath() : null;
+		$relativePathOfFileToDocumentDataRoot = $this->ecmFile ? $this->ecmFile->getFullRelativePath() : null;
+		return preg_replace('/^' . preg_quote($this->digitalSignatureRequest->getRelativeModuleDirectoryToDocumentRootDirectory(), '/') . '/', '', $relativePathOfFileToDocumentDataRoot);
+		//return $this->ecmFile ? $this->ecmFile->getFullRelativePath() : null;
 	}
 
 	/**
@@ -690,7 +692,7 @@ class DigitalSignatureDocument extends CommonObject
 		}
 
 		//We copy files
-		$newEcmFile = $this->ecmFile->copyFileTo($linkedDigitalSignatureRequest->getRelativePathForFilesToSign(), $newDocumentName);
+		$newEcmFile = $this->ecmFile->copyFileTo($linkedDigitalSignatureRequest->getRelativePathToDolDataRootForFilesToSign(), $newDocumentName);
 		if (!$newEcmFile) {
 			$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileCopyingFile');
 		} else {

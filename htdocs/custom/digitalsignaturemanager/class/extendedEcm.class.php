@@ -415,8 +415,7 @@ class ExtendedEcm extends EcmFiles
 	{
 		$listOfFileOnDisk = dol_dir_list(DOL_DATA_ROOT . '/' . $relativePathAccordingToDocumentFolder, 'files');
 		$staticEcm = new self($db);
-		$staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $relativePathAccordingToDocumentFolder));
-		$listOfFilesIntoDatabase = $staticEcm->lines;
+		$listOfFilesIntoDatabase = $staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $relativePathAccordingToDocumentFolder));
 		$errors = array();
 		foreach ($listOfFilesIntoDatabase as $ecm) {
 			$fileInDisk = findObjectInArrayByProperty($listOfFileOnDisk, 'name', $ecm->filename);
@@ -433,18 +432,19 @@ class ExtendedEcm extends EcmFiles
 	/**
 	 * Function to manage proper upload of file and return linked ecm instance
 	 * @param DoliDB $db database instance to use
-	 * @param User $user User uploading files
-	 * @param string $relativePathWhereStoreFile Relative path to DOL_DATA_ROOT where to save files
+     * @param string $moduleRelativePathToDocument Relative path to DOL_DATA_ROOT of the module base directory
+	 * @param string $relativePathInModuleWhereStoreFile Relative path to module where store file
 	 * @param string $postFieldContainingFilesName Post field containing files to be saved
 	 * @return self[]|null
 	 */
-	public static function manageUploadOfFiles($db, $user, $relativePathWhereStoreFile, $postFieldContainingFilesName) {
+	public static function manageUploadOfFiles($db, $moduleRelativePathToDocument, $relativePathInModuleWhereStoreFile, $postFieldContainingFilesName)
+	{
 		//First we call core function
-		$res = dol_add_file_process(DOL_DATA_ROOT . '/' . $relativePathWhereStoreFile, 0, 1, $postFieldContainingFilesName);
+		$res = dol_add_file_process(DOL_DATA_ROOT . '/' . $moduleRelativePathToDocument . '/' . $relativePathInModuleWhereStoreFile, 0, 1, $postFieldContainingFilesName);
 
 		//Now we will find these uploaded files ecm instance
 		$staticEcm = new self($db);
-		$arrayOfEcmInstance = $staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $relativePathWhereStoreFile));
+		$arrayOfEcmInstance = $staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $moduleRelativePathToDocument . '/' . $relativePathInModuleWhereStoreFile));
 		$arrayOfEcmInstance = $arrayOfEcmInstance ?? array();
 		$listOfUploadedFileNames = array();
 		$TFile = $_FILES[$postFieldContainingFilesName];
