@@ -190,17 +190,32 @@ if ($object->id)
 
 	dol_fiche_end();
 
-	//Display files to sign
-	$param = '&id='.$object->id;
-	$modulepart = 'digitalsignaturemanager';
-	$permission = $user->rights->digitalsignaturemanager->request->edit;
-	$permtoedit = $user->rights->digitalsignaturemanager->request->edit && $object->status == $object::STATUS_DRAFT;
-	$relativepathwithnofile = $object->getRelativePathForFilesToSign() . "/";
-	$filearray = $object->getListOfFilesToSign('files');
-	include DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_post_headers.tpl.php';
-	//Display signed files
+	//Display of files to sign
 
-	// List of document
+	$formfile=new FormFile($db);
+	$formfile->list_of_documents(
+    $object->getListOfFilesToSign('files'),
+    $object,
+    $modulepart,
+    $param,
+    0,
+    $object->getRelativePathForFilesToSign() . "/",		// relative path with no file. For example "0/1"
+    0,
+    0,
+    '',
+    0,
+    $langs->trans('DigitalSignatureRequestListOfFilesToSign'),
+    '',
+    0,
+    0,
+    $object->getUploadDirOfFilesToSign(),
+    $sortfield,
+    $sortorder,
+    $disablemove
+	);
+
+
+	// List of signed document
 	$formfile=new FormFile($db);
 	$formfile->list_of_documents(
     $object->getListOfSignedFiles('files'),

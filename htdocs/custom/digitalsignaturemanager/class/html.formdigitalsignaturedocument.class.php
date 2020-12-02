@@ -178,7 +178,7 @@ class FormDigitalSignatureDocument
 			$colspan++;
 		}
 
-		if($action == self::ADD_ACTION_NAME) {
+		if ($action == self::ADD_ACTION_NAME) {
 			$document = self::updateFromPost($this->elementObjectStatic, true);
 		}
 
@@ -235,7 +235,7 @@ class FormDigitalSignatureDocument
 			print '<td class="linecolnum" align="center"></td>';
 			$colspan++;
 		}
-		if($action == self::EDIT_ACTION_NAME) {
+		if ($action == self::EDIT_ACTION_NAME) {
 			$document = self::updateFromPost($document, true);
 		}
 		// We show upload file name edit form
@@ -306,7 +306,7 @@ class FormDigitalSignatureDocument
 		// We show Chosen Check Boxes
 		print '<td>';
 		$displayCheckBoxLabels = array();
-		foreach($document->checkBoxes as $checkBox) {
+		foreach ($document->checkBoxes as $checkBox) {
 			$displayCheckBoxLabels[] = $checkBox->getDisplayNameAccordingToDocument($document);
 		}
 		print implode('<br>', $displayCheckBoxLabels);
@@ -350,7 +350,7 @@ class FormDigitalSignatureDocument
 		//We prepare data to use elements from form file, as done by dolibarr core
 		$documentUrl = DOL_URL_ROOT . '/document.php';
 		$modulePart = 'digitalsignaturemanager';
-		$relativePath = $digitalSignatureDocument->getLinkedFileRelativePath();
+		$relativePathInThisModule = $digitalSignatureDocument->getLinkedFileRelativePath();
 		$fileName = $digitalSignatureDocument->getDocumentName();
 		$entityOfThisDocument = $digitalSignatureDocument->getEntity() ? $digitalSignatureDocument->getEntity() : $conf->entity;
 		$entityParam = '&entity=' . $entityOfThisDocument;
@@ -410,41 +410,24 @@ class FormDigitalSignatureDocument
 		if ($action == self::ADD_ACTION_NAME) {
 			global $langs;
 			$TFile = $_FILES[self::ELEMENT_POST_FILE_FIELD_NAME];
+			$arrayOfUploadedInstance = ExtendedEcm::manageUploadOfFiles($this->db, $user, $digitalSignatureRequest->getRelativePathForFilesToSign(), self::ELEMENT_POST_FILE_FIELD_NAME);
 			if (empty($TFile['name'])) {
 				setEventMessages($langs->trans('DigitalSignatureManagerErrorFileRequired'), array(), 'errors');
+			} elseif (!$arrayOfUploadedInstance) {
+				setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileSavingFile'), array(), 'errors');
 			} else {
-				$result = dol_add_file_process($digitalSignatureRequest->getUploadDirOfFilesToSign(), 0, 1, self::ELEMENT_POST_FILE_FIELD_NAME);
-				if ($result < 0) {
-					setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileSavingFile'), array(), 'errors');
-				} else {
-					//We have to get filename of the uploaded file
-					if (!is_array($TFile['name'])) {
-						foreach ($TFile as $key => &$val) {
-							$val = array($val);
-						}
+				$this->elementObjectStatic = self::updateFromPost($this->elementObjectStatic);
+				$documentsCreated = $this->elementObjectStatic->addTheseFilesToADigitalSignatureRequest($digitalSignatureRequest, $user, $arrayOfUploadedInstance);
+				if(empty($this->elementObjectStatic->errors)) {
+					$documentLabels = array();
+					foreach($documentsCreated as $document) {
+						$documentLabels[] = $document->getDocumentName();
 					}
-					$filename = $TFile['name'][0];
-					//Now we  are able to find its ecm instance
-					$ecmFile = DigitalSignatureDocument::getEcmInstanceOfFile($this->db, $digitalSignatureRequest->getRelativePathForFilesToSign(), $filename);
-					//With ecm instance we can get ecm file id
-					if ($ecmFile) {
-						$newDigitalSignatureDocument = $this->elementObjectStatic;
-						$newDigitalSignatureDocument->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
-						$newDigitalSignatureDocument->fk_ecm = $ecmFile->id;
-						$newDigitalSignatureDocument->position = $newDigitalSignatureDocument::getLastPositionOfDocument($digitalSignatureRequest->documents) + 1;
-						//We may add here property elements from the form
-						$newDigitalSignatureDocument = self::updateFromPost($newDigitalSignatureDocument);
-						//We create document
-						$result = $newDigitalSignatureDocument->create($user);
-						if ($result < 0) {
-							setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileAddingFileToSignatureRequest'), $newDigitalSignatureDocument->errors, 'errors');
-						} else {
-							setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyAddedToRequest', $newDigitalSignatureDocument->getDocumentName()), array());
-							$action = null;
-						}
-					} else {
-						setEventMessages($langs->trans('DigitalSignatureManagerFileCantFindIntoEcmDatabase'), array(), 'errors');
-					}
+					setEventMessages($langs->trans('DigitalSignatureManagerFileSuccessfullyAddedToRequest', implode(',', $documentLabels)), array());
+					$action = null;
+				}
+				else {
+					setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileAddingFileToSignatureRequest'), $this->elementObjectStatic->errors, 'errors');
 				}
 			}
 		}
@@ -461,37 +444,21 @@ class FormDigitalSignatureDocument
 	{
 		global $langs;
 		if ($action == self::SAVE_ACTION_NAME && GETPOST(self::ELEMENT_SAVE_BUTTON_NAME, 'alpha') == $langs->trans("Save")) {
+			$documentToEdit = $this->elementObjectStatic;
 			$newFileName = GETPOST(self::ELEMENT_POST_LABEL_FIELD_NAME);
-			if (empty($newFileName)) {
-				setEventMessages($langs->trans('DigitalSignatureManagerErrorDocumentNameRequired'), array(), 'errors');
+			if ($documentToEdit->fetch($this->getFormElementId()) < 0 ||  $documentToEdit->fk_digitalsignaturerequest != $object->id) {
+				setEventMessages($langs->trans('DigitalSignatureManagerDocumentNotFound'), $documentToEdit->errors, 'errors');
+			} elseif (empty($newFileName)) {
 				$action = self::EDIT_ACTION_NAME;
+				setEventMessages($langs->trans('DigitalSignatureManagerErrorDocumentNameRequired'), array(), 'errors');
+			} elseif ($documentToEdit->getDocumentName() != $newFileName && !$documentToEdit->renameDocument($newFileName, $user)) {
+				$action = self::EDIT_ACTION_NAME;
+				setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileSavingEditedDocument'), $documentToEdit->errors, 'errors');
+			} elseif ($documentToEdit = self::updateFromPost($documentToEdit) && $documentToEdit->update($user) < 0) {
+				$action = self::EDIT_ACTION_NAME;
+				setEventMessages($langs->trans('DigitalSignatureManagerDocumentErrorWhileUpdating'), $documentToEdit->errors, 'errors');
 			} else {
-				$documentToEdit = $this->elementObjectStatic;
-				$documentToEdit->digitalSignatureRequest = $object;
-				if($documentToEdit->fetch($this->getFormElementId()) < 0 ||  $documentToEdit->fk_digitalsignaturerequest != $object->id) {
-					setEventMessages($langs->trans('DigitalSignatureManagerDocumentNotFound'), $documentToEdit->errors, 'errors');
-				}
-				elseif (!$documentToEdit->renameDocumentFilename($newFileName, $user)) {
-					$action = self::EDIT_ACTION_NAME;
-					setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileSavingEditedDocument'), array(), 'errors');
-				} else {
-					//We update fk_ecm property as Dolibarr doesn't fucking keep id on file move
-					$ecmFile = DigitalSignatureDocument::getEcmInstanceOfFile($this->db, $object->getRelativePathForFilesToSign(), $newFileName);
-					if(!$ecmFile) {
-						setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileMovingFiles'), array(), 'errors');
-					}
-					else {
-						//We update other fields and save it
-						$documentToEdit = self::updateFromPost($documentToEdit);
-						$documentToEdit->fk_ecm = $ecmFile->id;
-						if ($documentToEdit->update($user) > 0) {
-							setEventMessages($langs->trans('DigitalSignatureManagerDocumentSuccesfullyUpdate'), array());
-						} else {
-							$action = self::EDIT_ACTION_NAME;
-							setEventMessages($langs->trans('DigitalSignatureManagerDocumentErrorWhileUpdating'), $documentToEdit->errors, 'errors');
-						}
-					}
-				}
+				setEventMessages($langs->trans('DigitalSignatureManagerDocumentSuccesfullyUpdate'), array());
 			}
 		}
 	}
@@ -546,8 +513,8 @@ class FormDigitalSignatureDocument
 	public function getCheckBoxInputForm($digitalSignatureDocument, $chosenCheckBoxIds, $hideEmptyCheckBox = false)
 	{
 		$arrayOfKeyValue = array();
-		foreach($digitalSignatureDocument->getAvailableCheckBox() as $id=>$checkBox) {
-			if(!$hideEmptyCheckBox || !empty($checkBox->label)) {
+		foreach ($digitalSignatureDocument->getAvailableCheckBox() as $id => $checkBox) {
+			if (!$hideEmptyCheckBox || !empty($checkBox->label)) {
 				$arrayOfKeyValue[$id] = $checkBox->getDisplayNameAccordingToDocument($digitalSignatureDocument);
 			}
 		}
@@ -564,7 +531,7 @@ class FormDigitalSignatureDocument
 	{
 		if (!$fillOnlyIfFieldIsPresentOnPost || isset($_POST[self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME])) {
 			$arrayOfCheckBoxIds = array();
-			foreach(GETPOST(self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME) as $checkBoxId) {
+			foreach (GETPOST(self::ELEMENT_POST_CHECKBOX_IDS_FIELD_NAME) as $checkBoxId) {
 				$arrayOfCheckBoxIds[] = $checkBoxId;
 			}
 			$digitalSignatureDocument->check_box_ids = $arrayOfCheckBoxIds;

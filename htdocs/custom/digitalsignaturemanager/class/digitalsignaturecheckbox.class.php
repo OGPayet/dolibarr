@@ -379,6 +379,12 @@ class DigitalSignatureCheckBox extends CommonObject
 		}
 	}
 
+	/**
+	 * Function to get value of this checkbox when linked to a document
+	 * We use substitution array available on document
+	 * @param DigitalSignatureDocument $document Document where this checkbox will be displayed
+	 * @return string
+	 */
 	public function getDisplayNameAccordingToDocument($document = null)
 	{
 		$displayedLabel = $this->label;

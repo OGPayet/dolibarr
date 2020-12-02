@@ -24,7 +24,7 @@
 
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 dol_include_once('/digitalsignaturemanager/class/extendedEcm.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
 dol_include_once('/digitalsignaturemanager/vendor/autoload.php');
@@ -176,9 +176,9 @@ class DigitalSignatureDocument extends CommonObject
 		if (!$this->position) {
 			$this->position = 0;
 		}
-		$result = $this->saveCheckBoxes($user, $notrigger) ? 1 : -1;
+		$result = $this->createMissingCheckBoxes($user, $notrigger) ? 1 : -1;
 
-		if($result > 0) {
+		if ($result > 0) {
 			$result = $this->createCommon($user, $notrigger);
 		}
 
@@ -192,37 +192,37 @@ class DigitalSignatureDocument extends CommonObject
 	 * @param  bool $notrigger false=launch triggers after, true=disable triggers
 	 * @return int             <0 if KO, Id of created object if OK
 	 */
-	public function saveCheckBoxes($user, $notrigger)
+	public function createMissingCheckBoxes($user, $notrigger)
 	{
 		$this->db->begin();
 		$errors = array();
 		$oldIds = $this->check_box_ids;
+		if (!empty($this->check_box_ids)) {
+			$availableCheckBoxes = $this->getAvailableCheckBox();
+			foreach ($availableCheckBoxes as $id => $checkBox) {
+				foreach ($this->check_box_ids as $index => $chosenId) {
+					if ($id == $chosenId) {
+						if (!$checkBox->id > 0) {
+							$checkBox->position = $checkBox::getLastPosition($this->digitalSignatureRequest->availableCheckBox);
 
-		$availableCheckBoxes = $this->getAvailableCheckBox();
-		foreach($availableCheckBoxes as $id => $checkBox) {
-			foreach($this->check_box_ids as $index => $chosenId) {
-				if($id == $chosenId) {
-					if(!$checkBox->id > 0) {
-						$checkBox->position = $checkBox::getLastPosition($this->digitalSignatureRequest->availableCheckBox);
-
-						$checkBox->create($user, $notrigger);
-						$errors = array_merge($errors, $checkBox->errors);
-						if($checkBox->id > 0) {
-							$id = $checkBox->id;
-							$this->check_box_ids[$index] = (int) $id;
+							$checkBox->create($user, $notrigger);
+							$errors = array_merge($errors, $checkBox->errors);
+							if ($checkBox->id > 0) {
+								$id = $checkBox->id;
+								$this->check_box_ids[$index] = (int) $id;
+							}
 						}
+						break;
 					}
-					break;
 				}
 			}
-
 		}
+
 		$this->errors = array_merge($this->errors, $errors);
-		if(empty($errors)) {
+		if (empty($errors)) {
 			$this->db->commit();
 			return 1;
-		}
-		else {
+		} else {
 			$this->check_box_ids = $oldIds;
 			$this->db->rollback();
 			return -1;
@@ -365,8 +365,8 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function update(User $user, $notrigger = false)
 	{
-		$result = $this->saveCheckBoxes($user, $notrigger) ? 1 : -1;
-		if($result > 0) {
+		$result = $this->createMissingCheckBoxes($user, $notrigger) ? 1 : -1;
+		if ($result > 0) {
 			$result = $this->updateCommon($user, $notrigger);
 		}
 		return $result;
@@ -383,8 +383,8 @@ class DigitalSignatureDocument extends CommonObject
 	{
 		global $langs;
 		$errors = array();
-		if ($this->deleteCommon($user, $notrigger) > 0 && dol_delete_file($this->getLinkedFileAbsolutePath()) < 0) {
-				$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileDeletingFile');
+		if ($this->deleteCommon($user, $notrigger) > 0 && $this->ecmFile && !$this->ecmFile->deleteFile()) {
+			$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileDeletingFile');
 		}
 		$this->errors = array_merge($this->errors, $errors);
 		return empty($errors) ? 1 : -1;
@@ -402,18 +402,18 @@ class DigitalSignatureDocument extends CommonObject
 		$errors = array();
 		$staticEcm = new ExtendedEcm($this->db);
 		//We have to clean ecm database table as some file must be present into it and not on disk
-		self::cleanEcmFileDatabase($this->db, $digitalSignatureRequest->getUploadDirOfFilesToSign(), $digitalSignatureRequest->getRelativePathForFilesToSign(), $user);
-		$staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $digitalSignatureRequest->getRelativePathForFilesToSign()));
-		if (!empty($staticEcm->errors)) {
-			$errors = array_merge($errors, $staticEcm->errors);
-		} elseif (!empty($staticEcm->error)) {
-			$errors[] = $staticEcm->error;
+		ExtendedEcm::cleanEcmFileDatabase($this->db, $digitalSignatureRequest->getRelativePathForFilesToSign(), $user);
+		$ecmFiles = $staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $digitalSignatureRequest->getRelativePathForFilesToSign()));
+		$errors = array_merge($errors, $staticEcm->errors);
+		if (!$ecmFiles) {
+			$ecmFiles = array();
 		}
-		$ecmFiles = $staticEcm->lines;
+
 		$digitalSignatureDocuments = $this->fetchAll('ASC', 'position', null, null, array('fk_digitalsignaturerequest' => $digitalSignatureRequest->id));
 		$maxPositionOfDigitalSignatureDocumentsAlreadyFetched = self::getLastPositionOfDocument($digitalSignatureDocuments);
 		$errors = array_merge($errors, $this->errors);
 		$effectiveDigitalSignatureDocuments = array();
+
 		foreach ($ecmFiles as $ecm) {
 			$linkedDocumentObject = findObjectInArrayByProperty($digitalSignatureDocuments, 'fk_ecm', $ecm->id);
 			if (!$linkedDocumentObject) {
@@ -458,12 +458,7 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getDocumentName()
 	{
-		if (!$this->ecmFile) {
-			$this->fetchLinkedEcmFile();
-		}
-		if ($this->ecmFile) {
-			return $this->ecmFile->filename;
-		}
+		return $this->ecmFile ? $this->ecmFile->filename : null;
 	}
 	/**
 	 * Function to get full path of the file linked to this document
@@ -471,8 +466,7 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getLinkedFileAbsolutePath()
 	{
-		$digitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
-		return $digitalSignatureRequest ? $digitalSignatureRequest->getBaseUploadDir() . "/" . $this->getLinkedFileRelativePath() : null;
+		return $this->ecmFile ? $this->ecmFile->getFileFullPath() : null;
 	}
 
 	/**
@@ -493,8 +487,7 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getLinkedFileRelativePath()
 	{
-		$digitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
-		return $digitalSignatureRequest ? $digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $this->getDocumentName() : null;
+		return $this->ecmFile ? $this->ecmFile->getFullRelativePath() : null;
 	}
 
 	/**
@@ -503,13 +496,12 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getEntity()
 	{
-		$digitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
-		return $digitalSignatureRequest ? $digitalSignatureRequest->entity : null;
+		return $this->getLinkedDigitalSignatureRequest() ? $this->getLinkedDigitalSignatureRequest()->entity : null;
 	}
 
 	/**
 	 * Function to get the max position of the list of given document
-	 * @param array $listOfDocuments
+	 * @param self[] $listOfDocuments Documents to analyze
 	 * @return int
 	 */
 	public static function getLastPositionOfDocument($listOfDocuments)
@@ -524,76 +516,15 @@ class DigitalSignatureDocument extends CommonObject
 	}
 
 	/**
-	 * Function to clean the ecm file database
-	 * @param DoliDB $db database instance
-	 * @param string $absoluteDirectoryOnDisk Absolute directory into system where check files
-	 * @param string $relativeDirectoryInDatabase relative directory into database
-	 * @param User $user calling clean of database
-	 * @return array $array of errors
-	 */
-	public static function cleanEcmFileDatabase($db, $absoluteDirectoryOnDisk, $relativeDirectoryInDatabase, $user)
-	{
-		$listOfFileOnDisk = dol_dir_list($absoluteDirectoryOnDisk, 'files');
-		$staticEcm = new ExtendedEcm($db);
-		$staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $relativeDirectoryInDatabase));
-		$listOfFilesIntoDatabase = $staticEcm->lines;
-		$errors = array();
-		foreach ($listOfFilesIntoDatabase as $ecm) {
-			$fileInDisk = findObjectInArrayByProperty($listOfFileOnDisk, 'name', $ecm->filename);
-			if (!$fileInDisk) {
-				//Dolibarr bullshit adaptation
-				$properEcmObject = new ExtendedEcm($db);
-				$properEcmObject->fetch($ecm->id);
-				$properEcmObject->delete($user);
-				$errors = array_merge($errors, $properEcmObject->errors);
-			}
-		}
-		return $errors;
-	}
-
-	/**
-	 * Function to get ecm instance of a file based thanks to its directory
-	 * @param DoliDB $db database instance to use
-	 * @param string $relativePath relative directory path to use
-	 * @param string $filename filename to find
-	 * @return ExtendedEcm|null
-	 */
-	public static function getEcmInstanceOfFile($db, $relativePath, $filename)
-	{
-		$ecmStatic = new ExtendedEcm($db);
-		$isThisFileIntoDatabase = $ecmStatic->fetch(null, null, 'digitalsignaturemanager/' . $relativePath . '/' . $filename);
-		return $isThisFileIntoDatabase ? $ecmStatic : null;
-	}
-
-	/**
 	 * Function to rename file
 	 * @param string $newFilename wishes file name for the file
 	 * @param User $user user requesting the modification
 	 * @return bool true if sucessfully removed. False otherwise
 	 */
-	public function renameDocumentFilename($newFilename, $user)
+	public function renameDocument($newFilename, $user)
 	{
-		$oldFileFullPath = $this->getLinkedFileAbsolutePath();
-		$newFilePath = $this->digitalSignatureRequest->getBaseUploadDir() . "/" . $this->digitalSignatureRequest->getRelativePathForFilesToSign() . "/" . $newFilename;
-		return dol_move($oldFileFullPath, $newFilePath);
-	}
-
-	/**
-	 * Function to copy file to a new directory
-	 * @param string $newDirectoryAbsolutePath where to copy file - provide absolute path
-	 * @param User $user user requesting action
-	 * @return <0 if KO, >0 if OK, 0 if destination file already exist
-	 */
-	public function copyDocumentFile($newDirectoryAbsolutePath, $user, $destinationFileName = null)
-	{
-		$finalFileName = !empty($destinationFileName) ? $destinationFileName : $this->getDocumentName();
-		$destinationFilePath = $newDirectoryAbsolutePath . '/' . $finalFileName;
-		$sourceAbsoluteLinkedFilePath = $this->getLinkedFileAbsolutePath();
-		$result = dol_copy($sourceAbsoluteLinkedFilePath, $destinationFilePath);
-		if($result  > 0)
-		{
-			return dol_move($destinationFilePath, $destinationFilePath); //Dolibarr bullshit adaptation. Ecm files aren't managed with dol_copy
-		}
+		$result = $this->ecmFile->renameFile($newFilename, $user);
+		$this->errors = array_merge($this->errors, $this->ecmFile->errors);
 		return $result;
 	}
 
@@ -603,14 +534,12 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getAvailableCheckBox()
 	{
-		if (!$this->digitalSignatureRequest) {
-			$this->fetchLinkedDigitalSignatureRequest();
-		}
+		$linkedDigitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
 		$availableCheckBoxes = array();
 		$alreadyCheckboxTakenFromDictionary = array();
-		if ($this->digitalSignatureRequest) {
-			$checkboxFromRequest = $this->digitalSignatureRequest->availableCheckBox;
-			foreach($checkboxFromRequest as $index => $checkbox) {
+		if ($linkedDigitalSignatureRequest) {
+			$checkboxFromRequest = $linkedDigitalSignatureRequest->availableCheckBox;
+			foreach ($checkboxFromRequest as $index => $checkbox) {
 				$alreadyCheckboxTakenFromDictionary[] = $checkbox->c_rowid;
 				$availableCheckBoxes[(string) $index] = $checkbox;
 			}
@@ -618,12 +547,12 @@ class DigitalSignatureDocument extends CommonObject
 
 		//We use checkbox from dictionary
 		$notFilteredCheckboxFromDictionary = self::getAvailableCheckboxFromDictionary($this->db);
-		foreach($notFilteredCheckboxFromDictionary as $dictionaryCheckbox) {
-			if(!in_array($dictionaryCheckbox->c_rowid, $alreadyCheckboxTakenFromDictionary) && (empty($dictionaryCheckbox->availableOnlyForMasks) || $this->doesThisDocumentComeFromOneOfTheSource($dictionaryCheckbox->availableOnlyForMasks))) {
+		foreach ($notFilteredCheckboxFromDictionary as $dictionaryCheckbox) {
+			if (!in_array($dictionaryCheckbox->c_rowid, $alreadyCheckboxTakenFromDictionary) && (empty($dictionaryCheckbox->availableOnlyForMasks) || $this->doesThisDocumentComeFromOneOfTheSource($dictionaryCheckbox->availableOnlyForMasks))) {
 				//This checkbox can be used for this document
 				$checkbox = new DigitalSignatureCheckBox($this->db);
 				$checkbox->setVarsFromFetchObj($dictionaryCheckbox);
-				$checkbox->digitalSignatureRequest = $this->digitalSignatureRequest;
+				$checkbox->digitalSignatureRequest = $linkedDigitalSignatureRequest;
 				$checkbox->fk_digitalsignaturerequest = $this->fk_digitalsignaturerequest;
 				$availableCheckBoxes["dictionary_" . $checkbox->c_rowid] = $checkbox;
 			}
@@ -648,10 +577,7 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getSourceMaskNameOfThisFile()
 	{
-		if (!$this->ecmFile) {
-			$this->fetchLinkedEcmFile();
-		}
-		if($this->ecmFile) {
+		if ($this->ecmFile) {
 			return $this->ecmFile->mask;
 		}
 		return null;
@@ -665,10 +591,10 @@ class DigitalSignatureDocument extends CommonObject
 	public function doesThisDocumentComeFromOneOfTheSource($arrayOfAllowedSource)
 	{
 		$result = false;
-		if(in_array($this->getSourceMaskNameOfThisFile(), $arrayOfAllowedSource)) {
+		if (in_array($this->getSourceMaskNameOfThisFile(), $arrayOfAllowedSource)) {
 			$result = true;
 		}
-		if($this->ecmFile->gen_or_uploaded == 'uploaded' && in_array(DigitalSignatureCheckboxDictionary::FREE_DOCUMENT_SELECTED, $arrayOfAllowedSource)) {
+		if ($this->ecmFile->gen_or_uploaded == 'uploaded' && in_array(DigitalSignatureCheckboxDictionary::FREE_DOCUMENT_SELECTED, $arrayOfAllowedSource)) {
 			$result = true;
 		}
 		return $result;
@@ -682,8 +608,8 @@ class DigitalSignatureDocument extends CommonObject
 	{
 		$result = array();
 		foreach ($this->getAvailableCheckBox() as $id => $checkbox) {
-			foreach($this->check_box_ids as $chosenId) {
-				if($id == $chosenId) {
+			foreach ($this->check_box_ids as $chosenId) {
+				if ($id == $chosenId) {
 					$result[] = $checkbox;
 					break;
 				}
@@ -712,11 +638,11 @@ class DigitalSignatureDocument extends CommonObject
 	 *
 	 * @param  	User 	$user      	User that creates
 	 * @param  	int 	$fromId     Id of object to clone
-	 * @param 	DigitalSignatureRequest     $newDigitalSignatureRequest Linked digital signature request instance if different from $this
+	 * @param 	DigitalSignatureRequest     $linkedDigitalSignatureRequest Linked digital signature request instance if different from $this
 	 * @param   int[]   $arrayOfOldCheckBoxIdAndClonedCheckBoxId When digital signature request is cloned, in order to update chosen check box id
 	 * @return 	mixed 				New object created, <0 if KO
 	 */
-	public function createFromClone(User $user, $fromId, $newDigitalSignatureRequest = null, $arrayOfOldCheckBoxIdAndClonedCheckBoxId = null)
+	public function createFromClone(User $user, $fromId, $linkedDigitalSignatureRequest = null, $arrayOfOldCheckBoxIdAndClonedCheckBoxId = null)
 	{
 		global $langs, $extrafields;
 		dol_syslog(__METHOD__, LOG_DEBUG);
@@ -752,42 +678,35 @@ class DigitalSignatureDocument extends CommonObject
 				}
 			}
 		}
-		//we update linked digital signature request
-		if ($newDigitalSignatureRequest && $newDigitalSignatureRequest->id > 0) {
-			$linkedDigitalSignature = $newDigitalSignatureRequest;
-			$destinationFileName = $this->getDocumentName();
-		} elseif ($this->getLinkedDigitalSignatureRequest()) {
-			$linkedDigitalSignature = $this->getLinkedDigitalSignatureRequest();
-			$destinationFileName = 'copy-' . $this->getDocumentName();
-		} else {
-			$errors[] = $langs->trans('DigitalSignatureManagerCloneUnableToFindSourceRequest');
+
+		//we update linked digital signature request object as it is a mandatory field
+		if (!$linkedDigitalSignatureRequest) {
+			$linkedDigitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
+		}
+		if ($linkedDigitalSignatureRequest->id == $this->fk_digitalsignaturerequest) {
+			//we are cloning document into the same request
+			//We have to rename file in order to have two documents
+			$newDocumentName = 'copy-' . $this->getDocumentName();
 		}
 
 		//We copy files
-		if (empty($errors)) {
-			if ($this->copyDocumentFile($linkedDigitalSignature->getBaseUploadDir() . "/" . $linkedDigitalSignature->getRelativePathForFilesToSign(), $user, $destinationFileName) < 0) {
-				$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileCopyingFile');
-			} else {
-				$ecmInstanceOfNewFile = self::getEcmInstanceOfFile($this->db, $linkedDigitalSignature->getRelativePathForFilesToSign(), $destinationFileName);
-				if (!$ecmInstanceOfNewFile) {
-					$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileCopyingFile');
-				} else {
-
-					//We update metadata of ecm files
-					ExtendedEcm::cloneAdditionalProperty($this->db, $object->fk_ecm, $ecmInstanceOfNewFile->id);
-					//We update ecm id and digital signature request
-					$object->fk_digitalsignaturerequest = $linkedDigitalSignature->id;
-					$object->fk_ecm = $ecmInstanceOfNewFile->id;
-					// Create clone
-					$object->context['createfromclone'] = 'createfromclone';
-					$result = $object->create($user);
-					if ($result < 0) {
-						$errors = array_merge($errors, $object->errors);
-					}
-					unset($object->context['createfromclone']);
-				}
+		$newEcmFile = $this->ecmFile->copyFileTo($linkedDigitalSignatureRequest->getRelativePathForFilesToSign(), $newDocumentName);
+		if (!$newEcmFile) {
+			$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileCopyingFile');
+		} else {
+			//We update ecm id and digital signature request
+			$object->fk_digitalsignaturerequest = $linkedDigitalSignatureRequest->id;
+			$object->fk_ecm = $newEcmFile->id;
+			$object->ecmFile = $newEcmFile;
+			// Create clone
+			$object->context['createfromclone'] = 'createfromclone';
+			$result = $object->create($user);
+			if ($result < 0) {
+				$errors = array_merge($errors, $object->errors);
 			}
+			unset($object->context['createfromclone']);
 		}
+
 		// End
 		if (empty($errors)) {
 			$this->db->commit();
@@ -806,12 +725,11 @@ class DigitalSignatureDocument extends CommonObject
 	public function getNumberOfPage()
 	{
 		$fullpath = $this->getLinkedFileAbsolutePath();
-		if(dol_is_file($fullpath)) {
+		if (dol_is_file($fullpath)) {
 			try {
 				$pdf = pdf_getInstance();
 				$pageCount = $pdf->setSourceFile($fullpath);
-			}
-			catch(Exception $e) {
+			} catch (Exception $e) {
 				global $langs;
 				$this->errors[] = $langs->trans("DigitalSignatureManagerCantOpenPdf");
 			}
@@ -820,34 +738,34 @@ class DigitalSignatureDocument extends CommonObject
 	}
 
 	/**
-     * Prepare data fetched from dictionary in order to have simple and proper array of data
+	 * Prepare data fetched from dictionary in order to have simple and proper array of data
 	 * @param DoliDB $db Database instance to use
-     * @param string $dictionaryName Dictionary name of data to fetch
+	 * @param string $dictionaryName Dictionary name of data to fetch
 	 * @param string[] $fieldToKeep array of field which should be kept
 	 * @param string[] $fieldsToTransformInArray array of fields which should be transformed into array
 	 * @return stdClass[]
-     */
-    public static function fetchProperDataFromDictionary($db, $dictionaryName, $fieldToKeep = array(), $fieldsToTransformInArray = array())
-    {
-        dol_include_once('/advancedictionaries/class/dictionary.class.php');
+	 */
+	public static function fetchProperDataFromDictionary($db, $dictionaryName, $fieldToKeep = array(), $fieldsToTransformInArray = array())
+	{
+		dol_include_once('/advancedictionaries/class/dictionary.class.php');
 		$data = Dictionary::getJSONDictionary($db, 'digitalsignaturemanager', $dictionaryName);
-		foreach($data as $index=>$value) {
+		foreach ($data as $index => $value) {
 			$data[$index] = json_decode(json_encode($value));
 		}
 		uasort($data, 'digitalsignaturedocument_cmp');
-        $result = array();
-        foreach ($data as $value) {
-            $temp = new StdClass();
-            $temp->c_rowid = $value->rowid;
-            foreach ($fieldsToTransformInArray as $field) {
-                $value->$field = array_filter(explode(",", $value->$field));
-            }
-            foreach ($fieldToKeep as $field) {
-                $temp->$field = $value->$field;
-            }
-            $result[$temp->c_rowid] = json_decode(json_encode($temp));
-        }
-        return $result;
+		$result = array();
+		foreach ($data as $value) {
+			$temp = new StdClass();
+			$temp->c_rowid = $value->rowid;
+			foreach ($fieldsToTransformInArray as $field) {
+				$value->$field = array_filter(explode(",", $value->$field));
+			}
+			foreach ($fieldToKeep as $field) {
+				$temp->$field = $value->$field;
+			}
+			$result[$temp->c_rowid] = json_decode(json_encode($temp));
+		}
+		return $result;
 	}
 
 	/**
@@ -857,7 +775,7 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public static function getAvailableCheckboxFromDictionary($db)
 	{
-		if(!self::$cache_checkbox_dictionary) {
+		if (!self::$cache_checkbox_dictionary) {
 			self::fetchCheckboxDictionary($db);
 		}
 		return self::$cache_checkbox_dictionary;
@@ -876,5 +794,40 @@ class DigitalSignatureDocument extends CommonObject
 			array("position", "label", "availableOnlyForMasks"),
 			array("availableOnlyForMasks")
 		);
+	}
+
+	/**
+	 * Function to add documents to a given request thanks to ecmFiles instance
+	 * @param DoliDB $db Database instance to use
+	 * @param User $user User adding files to this request
+	 * @param DigitalSignatureRequest $digitalSignatureRequest Digital signature request on which add documents
+	 * @param ExtendedEcm[] $filesToAdd Ecm instance of files to add
+	 * @param self $digitalSignatureDocument Instance of document to get some meta data on the document
+	 * @return self[] array of instance
+	 */
+	public function addTheseFilesToADigitalSignatureRequest(&$digitalSignatureRequest, &$user, &$filesToAdd)
+	{
+		global $langs;
+		$result = array();
+
+		foreach ($filesToAdd as $ecmFile) {
+			$digitalSignatureDocument = clone $this;
+			$digitalSignatureDocument->id = null;
+			$digitalSignatureDocument->errors = array();
+			$digitalSignatureDocument->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
+			$digitalSignatureDocument->digitalSignatureRequest = $digitalSignatureRequest;
+			$digitalSignatureDocument->fk_ecm = $ecmFile->id;
+			$digitalSignatureDocument->ecmFile = $ecmFile;
+			$digitalSignatureDocument->position = self::getLastPositionOfDocument($digitalSignatureRequest->documents) + 1;
+			//We create document
+			$result = $digitalSignatureDocument->create($user);
+			if ($result < 0) {
+				$this->errors[] = $digitalSignatureDocument->errors;
+			} else {
+				$digitalSignatureRequest->documents[] = $digitalSignatureDocument;
+				$result[] = $digitalSignatureDocument;
+			}
+		}
+		return $result;
 	}
 }
