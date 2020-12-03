@@ -86,6 +86,11 @@ class DigitalSignaturePeople extends CommonObject
 	const LINKED_OBJECT_USER_TYPE = 'user';
 
 	/**
+	 * @var string Linked Object for free people
+	 */
+	const LINKED_OBJECT_FREE_TYPE = 'freePeople';
+
+	/**
 	 * @var Contact|User Linked source object
 	 */
 	public $linkedSourceObject;
@@ -234,8 +239,8 @@ class DigitalSignaturePeople extends CommonObject
 			self::STATUS_SUCCESS => 'status4',
 			self::STATUS_FAILED => 'status3',
 			self::STATUS_PROCESS_STOPPED_BEFORE => 'status5',
-
 		);
+		$this->fk_people_type = self::LINKED_OBJECT_FREE_TYPE;
 	}
 
 	/**

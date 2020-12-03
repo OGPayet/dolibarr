@@ -28,6 +28,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 dol_include_once('/digitalsignaturemanager/class/extendedEcm.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
 dol_include_once('/digitalsignaturemanager/vendor/autoload.php');
+dol_include_once('/digitalsignaturemanager/core/dictionaries/digitalsignaturedocumenttypemanager.class.php');
 
 
 use setasign\Fpdi\Fpdi;
@@ -176,6 +177,7 @@ class DigitalSignatureDocument extends CommonObject
 		if (!$this->position) {
 			$this->position = 0;
 		}
+		$this->addDefaultCheckbox();
 		$result = $this->createMissingCheckBoxes($user, $notrigger) ? 1 : -1;
 
 		if ($result > 0) {
@@ -183,6 +185,20 @@ class DigitalSignatureDocument extends CommonObject
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Add to chosen checkbox ids checkbox that should be added by default according to document type
+	 * @return void
+	 */
+	public function addDefaultCheckbox()
+	{
+		foreach($this->getAvailableCheckBox() as $id => $checkBox) {
+			$documentType = $this->getSourceOfThisFile();
+			if($documentType && in_array($documentType, $checkBox->added_by_default) && !in_array($id, $this->check_box_ids)) {
+				$this->check_box_ids[] = $id;
+			}
+		}
 	}
 
 	/**
@@ -544,6 +560,7 @@ class DigitalSignatureDocument extends CommonObject
 				//This checkbox can be used for this document
 				$checkbox = new DigitalSignatureCheckBox($this->db);
 				$checkbox->setVarsFromFetchObj($dictionaryCheckbox);
+				$checkbox->added_by_default = $dictionaryCheckbox->added_by_default; //Dolibarr does not manage array into setVarsFromFetchObj
 				$checkbox->digitalSignatureRequest = $linkedDigitalSignatureRequest;
 				$checkbox->fk_digitalsignaturerequest = $this->fk_digitalsignaturerequest;
 				$availableCheckBoxes["dictionary_" . $checkbox->c_rowid] = $checkbox;
@@ -567,12 +584,17 @@ class DigitalSignatureDocument extends CommonObject
 	 * Get source mask of this document
 	 * @return string Name of the mask which generate this document
 	 */
-	public function getSourceMaskNameOfThisFile()
+	public function getSourceOfThisFile()
 	{
+		$result = null;
 		if ($this->getLinkedEcmFile()) {
-			return $this->getLinkedEcmFile()->mask;
+			if($this->getLinkedEcmFile()->gen_or_uploaded == "uploaded") {
+				$result = DigitalSignatureDocumentTypeManager::FREE_DOCUMENT_TYPE;
+			} else {
+				$result = $this->getLinkedEcmFile()->mask;
+			}
 		}
-		return null;
+		return $result;
 	}
 
 	/**
@@ -582,14 +604,7 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function doesThisDocumentComeFromOneOfTheSource($arrayOfAllowedSource)
 	{
-		$result = false;
-		if (in_array($this->getSourceMaskNameOfThisFile(), $arrayOfAllowedSource)) {
-			$result = true;
-		}
-		if ($this->getLinkedEcmFile()->gen_or_uploaded == 'uploaded' && in_array(DigitalSignatureCheckboxDictionary::FREE_DOCUMENT_SELECTED, $arrayOfAllowedSource)) {
-			$result = true;
-		}
-		return $result;
+		return in_array($this->getSourceOfThisFile(), $arrayOfAllowedSource);
 	}
 
 	/**
@@ -611,6 +626,18 @@ class DigitalSignatureDocument extends CommonObject
 	}
 
 	/**
+	 * Function to get digital signature checkboxes
+	 * @return DigitalSignatureCheckbox[]
+	 */
+	public function getCheckBoxes()
+	{
+		if(!$this->checkBoxes) {
+			$this->fetchDigitalSignatureCheckBox();
+		}
+		return $this->checkBoxes ?? array();
+	}
+
+	/**
 	 * Function to check that data are valid for this document
 	 * @return string[] array of errors when validating this document
 	 */
@@ -619,7 +646,7 @@ class DigitalSignatureDocument extends CommonObject
 		$errors = array();
 		//We could validate document field here
 
-		foreach ($this->checkBoxes as $checkbox) {
+		foreach ($this->getCheckBoxes() as $checkbox) {
 			$errors = array_merge($errors, $checkbox->checkDataValidForCreateRequestOnProvider($this));
 		}
 		return $errors;
@@ -783,8 +810,8 @@ class DigitalSignatureDocument extends CommonObject
 		self::$cache_checkbox_dictionary = self::fetchProperDataFromDictionary(
 			$db,
 			'digitalsignaturecheckbox',
-			array("position", "label", "availableOnlyForMasks"),
-			array("availableOnlyForMasks")
+			array("position", "label", "availableOnlyForMasks", "added_by_default"),
+			array("availableOnlyForMasks", "added_by_default")
 		);
 	}
 

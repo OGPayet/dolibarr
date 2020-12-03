@@ -166,7 +166,7 @@ Class DigitalSignatureManagerUniversign
 				$universignDocument->setSignatureFields($documentSignatureFieldsByLinkedDocumentId[$document->id]);
 			}
 			$checkBoxTexts = array();
-			foreach($document->checkBoxes as $checkBox) {
+			foreach($document->getCheckBoxes() as $checkBox) {
 				$checkBoxTexts[] = $checkBox->label;
 			}
 			if(!empty($conf->global->DIGITALSIGNATUREMANAGER_CHECKBOX_ADDNUMBEROFPAGE)) {

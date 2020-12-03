@@ -306,7 +306,7 @@ class FormDigitalSignatureDocument
 		// We show Chosen Check Boxes
 		print '<td>';
 		$displayCheckBoxLabels = array();
-		foreach ($document->checkBoxes as $checkBox) {
+		foreach ($document->getCheckBoxes() as $checkBox) {
 			$displayCheckBoxLabels[] = $checkBox->getDisplayNameAccordingToDocument($document);
 		}
 		print implode('<br>', $displayCheckBoxLabels);

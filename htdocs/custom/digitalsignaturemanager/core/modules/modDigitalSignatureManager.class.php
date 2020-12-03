@@ -148,6 +148,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		// Array to add new pages in new tabs
 		$this->tabs = array(
 			'digitalsignaturemanager:+dictionary_digitalsignaturecheckbox:DigitalSignatureManagerCheckboxDictionaryTabTitle:digitalsignaturemanager@digitalsignaturemanager:$user->admin:/digitalsignaturemanager/admin/dictionaries.php?name=digitalsignaturecheckbox',
+			'digitalsignaturemanager:+dictionary_digitalsignaturesignatoryfields:DigitalSignatureManagerSignatoryFieldsDictionaryTabTitle:digitalsignaturemanager@digitalsignaturemanager:$user->admin:/digitalsignaturemanager/admin/dictionaries.php?name=digitalsignaturesignatoryfields',
 		);
 		// Example:
 		// $this->tabs[] = array('data'=>'objecttype:+tabname1:Title1:mylangfile@digitalsignaturemanager:$user->rights->digitalsignaturemanager->read:/digitalsignaturemanager/mynewtab1.php?id=__ID__');  					// To add a new tab identified by code tabname1

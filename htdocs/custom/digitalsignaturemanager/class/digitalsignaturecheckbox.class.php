@@ -98,7 +98,8 @@ class DigitalSignatureCheckBox extends CommonObject
 		'fk_user_modif' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'UserModif', 'enabled'=>'1', 'position'=>511, 'notnull'=>-1, 'visible'=>-2,),
 		'label' => array('type'=>'text', 'label'=>'Label of the ckecbox', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>1,),
 		'fk_digitalsignaturerequest' => array('type'=>'integer:DigitalSignatureRequest:digitalsignaturemanager/class/digitalsignaturerequest.class.php', 'label'=>'Linked Digital Signature Request', 'enabled'=>'1', 'position'=>5, 'notnull'=>1, 'visible'=>0, 'index'=>1,),
-		'position' => array('type'=>'integer', 'label'=>'Ordered Position of the check box', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0)
+		'position' => array('type'=>'integer', 'label'=>'Ordered Position of the check box', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0),
+		'added_by_default' => array('type' => 'array', 'label' => 'Type Of Document on which add this checkbox by default', 'enabled' => 1, 'position' => 32, 'notnull' => 0, 'visible' => 0,),
 	);
 	public $rowid;
 	public $c_rowid;
@@ -109,6 +110,7 @@ class DigitalSignatureCheckBox extends CommonObject
 	public $label;
 	public $fk_digitalsignaturerequest;
 	public $position;
+	public $added_by_default;
 	// END MODULEBUILDER PROPERTIES
 
 	/**

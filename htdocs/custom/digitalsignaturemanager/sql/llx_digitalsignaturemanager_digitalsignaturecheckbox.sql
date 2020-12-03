@@ -23,6 +23,7 @@ CREATE TABLE llx_digitalsignaturemanager_digitalsignaturecheckbox(
 	fk_user_modif integer,
 	label text,
 	fk_digitalsignaturerequest integer NOT NULL,
-	position integer
+	position integer,
+	added_by_default TEXT
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

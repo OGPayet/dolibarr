@@ -23,16 +23,21 @@
  */
 
 dol_include_once('/advancedictionaries/class/dictionary.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.php');
 dol_include_once('/digitalsignaturemanager/core/dictionaries/digitalsignaturedocumenttypemanager.class.php');
+
+
 /**
  * Class for SurveyQuestionDictionary
  */
-class DigitalSignatureCheckboxDictionary extends Dictionary
+class DigitalSignatureSignatoryFieldsDictionary extends Dictionary
 {
+
+
 	/**
 	 * @var int         Version of this dictionary
 	 */
-	public $version = 2;
+	public $version = 1;
 	/**
 	 * @var array       List of languages to load
 	 */
@@ -46,7 +51,7 @@ class DigitalSignatureCheckboxDictionary extends Dictionary
 	/**
 	 * @var string      Family label for show in the list, translated if key found
 	 */
-	public $familyLabel = 'DigitalSignatureManagerCheckboxName';
+	public $familyLabel = 'DigitalSignatureManagerSignatoryFieldsName';
 
 	/**
 	 * @var int         Position of the dictionary into the family
@@ -61,17 +66,17 @@ class DigitalSignatureCheckboxDictionary extends Dictionary
 	/**
 	 * @var string      Module name for show in the list, translated if key found
 	 */
-	public $moduleLabel = 'DigitalSignatureManagerCheckboxName';
+	public $moduleLabel = 'DigitalSignatureManagerSignatoryFieldsName';
 
 	/**
 	 * @var string      Name of this dictionary for show in the list, translated if key found
 	 */
-	public $nameLabel = 'DigitalSignatureManagerCheckboxDictionaryName';
+	public $nameLabel = 'DigitalSignatureManagerSignatoryFieldsDictionaryName';
 
 	/**
 	 * @var string      Name of the dictionary table without prefix (ex: c_country)
 	 */
-	public $table_name = 'c_digitalsignaturerequest_checkbox';
+	public $table_name = 'c_digitalsignaturerequest_signatoryfields';
 
 	/**
 	 * @var bool    Edit in the add form
@@ -137,9 +142,17 @@ class DigitalSignatureCheckboxDictionary extends Dictionary
 	 * )
 	 */
 	public $fields = array(
+		'concernedMask' => array(
+			'name' => 'concernedMask',
+			'label' => 'DigitalSignatureManagerSignatoryFieldsDictionaryconcernedMask',
+			'type' => 'checkbox',
+			'options' => array(),
+			'is_require' => true
+		),
 		'position' => array(
 			'name'       => 'position',
-			'label'      => 'DigitalSignatureManagerCheckboxDictionaryPositionName',
+			'label'      => 'DigitalSignatureManagerSignatoryFieldsDictionaryPositionName',
+			'help'		 => 'DigitalSignatureManagerSignatoryFieldsDictionaryPositionNameHelp',
 			'type'       => 'int',
 			'database'   => array(
 				'length'   => 10,
@@ -159,28 +172,52 @@ class DigitalSignatureCheckboxDictionary extends Dictionary
 		),
 		'label' => array(
 			'name'       => 'label',
-			'label'      => 'DigitalSignatureManagerCheckboxDictionaryLabelName',
-			'help'		 => 'DigitalSignatureManagerCheckboxDictionaryLabelNameHelp',
+			'label'      => 'DigitalSignatureManagerSignatoryFieldsDictionaryLabelName',
 			'type'       => 'varchar',
 			'database'   => array(
 				'length'   => 255,
 			),
 			'is_require' => true,
 			'show_input' => array('moreClasses' => 'fullwidth'),
+			'is_require' => true
 		),
-		'availableOnlyForMasks' => array(
-			'name' => 'availableOnlyForMasks',
-			'label' => 'DigitalSignatureManagerCheckboxDictionaryAvailableOnlyForMasks',
-			'help' => 'DigitalSignatureManagerCheckboxDictionaryAvailableOnlyForMasksHelpText',
-			'type' => 'checkbox',
-			'options' => array()
+		'pageNumber' => array(
+			'name'       => 'pageNumber',
+			'label'      => 'DigitalSignatureManagerSignatoryFieldsDictionaryPageNumberName',
+			'help'	     => 'DigitalSignatureManagerSignatoryFieldsDictionaryPageNumberNameHelp',
+			'type'       => 'int',
+			'database'   => array(
+				'length'   => 10,
+			),
+			'is_require' => true
 		),
-		'added_by_default' => array(
-			'name' => 'added_by_default',
-			'label' => 'DigitalSignatureManagerCheckboxDictionaryAddedByDefault',
+		'x' => array(
+			'name'       => 'x',
+			'label'      => 'DigitalSignatureManagerSignatoryFieldsDictionaryXName',
+			'type'       => 'int',
+			'database'   => array(
+				'length'   => 10,
+			),
+			'min' => 0,
+			'is_require' => true
+		),
+		'y' => array(
+			'name'       => 'y',
+			'label'      => 'DigitalSignatureManagerSignatoryFieldsDictionaryYName',
+			'type'       => 'int',
+			'database'   => array(
+				'length'   => 10,
+			),
+			'min' => 0,
+			'is_require' => true
+		),
+		'linkedContactType' => array(
+			'name' => 'linkedContactType',
+			'label' => 'DigitalSignatureManagerSignatoryFieldsDictionaryLinkedContactType',
 			'type' => 'checkbox',
-			'options' => array()
-		)
+			'options' => array(),
+			'is_require' => true
+		),
 	);
 
 	/**
@@ -215,8 +252,12 @@ class DigitalSignatureCheckboxDictionary extends Dictionary
 	 */
 	protected function initialize()
 	{
-		$listOfManagedDocumentType = DigitalSignatureDocumentTypeManager::getManagedDocumentSourceType($this->db);
-		$this->fields['availableOnlyForMasks']['options'] = $listOfManagedDocumentType;
-		$this->fields['added_by_default']['options'] = $listOfManagedDocumentType;
+		global $langs;
+		$this->fields['concernedMask']['options'] = DigitalSignatureDocumentTypeManager::getManagedDocumentSourceType($this->db);
+		$this->fields['linkedContactType']['options'] = array(
+			DigitalSignaturePeople::LINKED_OBJECT_CONTACT_TYPE => $langs->trans('DigitalSignatureManagerLinkedContactType'),
+			DigitalSignaturePeople::LINKED_OBJECT_USER_TYPE => $langs->trans('DigitalSignatureManagerLinkedUserType'),
+			DigitalSignaturePeople::LINKED_OBJECT_FREE_TYPE => $langs->trans('DigitalSignatureManagerLinkedFreeType')
+		);
 	}
 }

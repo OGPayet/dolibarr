@@ -56,7 +56,10 @@ DigitalSignaturePeople = Signataire d'un processus de signature électronique
 DigitalSignaturePeopleDisplayName = Signataire concerné
 DigitalSignatureRequestPeopleStatus = Status du signataire
 DigitalSignatureRequestStatus = Status de la signature électronique
-
+DigitalSignatureManagerUploadedDocumentType = Document uploadé
+DigitalSignatureManagerLinkedContactType = Contact
+DigitalSignatureManagerLinkedUserType = Utilisateur
+DigitalSignatureManagerLinkedFreeType = Signataire libre
 #
 # Dictionnaires
 #
@@ -64,8 +67,21 @@ DigitalSignatureManagerCheckboxDictionaryTabTitle = Dictionnaire des checkbox pr
 DigitalSignatureManagerCheckboxDictionaryName = Dictionnaire des checkbox pré-paramétrés
 DigitalSignatureManagerCheckboxDictionaryPositionName = Position
 DigitalSignatureManagerCheckboxDictionaryLabelName = Libellé
+DigitalSignatureManagerCheckboxDictionaryLabelNameHelp = <b>Variable de substitution disponibles :</b> <br> __TOTALPAGENUMBER__ : Nombre de page du document
 DigitalSignatureManagerCheckboxDictionaryAvailableOnlyForMasks = Disponible uniquement pour documents issues des masques suivants
-DigitalSignatureManagerCheckboxDictionaryAvailableOnlyForMasksHelpText = Ne proposer cette checkbox que pour les documents issues des masques suivants. <br> Ne rien sélectionner rend cette checkbox sélectionnable pour tout type de document. <br> <b>Variable de substitution disponibles :</b> <br> __TOTALPAGENUMBER__ : Nombre de page du document
+DigitalSignatureManagerCheckboxDictionaryAvailableOnlyForMasksHelpText = Ne proposer cette checkbox que pour les documents issues des masques suivants. <br> Ne rien sélectionner rend cette checkbox sélectionnable pour tout type de document.
+DigitalSignatureManagerSignatoryFieldsDictionaryTabTitle = Dictionnaires des signatures pré-paramétrées
+DigitalSignatureManagerSignatoryFieldsDictionaryName = Dictionnaires référencant pour chaque type de document les champs de signature et checkbox à y associer
+DigitalSignatureManagerSignatoryFieldsDictionaryconcernedMask = Masques de document
+DigitalSignatureManagerSignatoryFieldsDictionaryPositionName = Position du signataire
+DigitalSignatureManagerSignatoryFieldsDictionaryPositionNameHelp = Lors de la création de la demande de signature électronique, les signataires seront ordonnés selon les champs de signature ayant la plus petite valeur
+DigitalSignatureManagerSignatoryFieldsDictionaryLabelName = Titre du champs de signature
+DigitalSignatureManagerSignatoryFieldsDictionaryPageNumberName = Numéro de page
+DigitalSignatureManagerSignatoryFieldsDictionaryPageNumberNameHelp = Utilisez des valeurs positive pour compter les pages depuis le début du document. <br> Utilisez des valeur négatives pour compter les pages depuis la fin du document. <br> La première page est donc la page avec la valeur 1 et la dernière page la page avec la valeur -1
+DigitalSignatureManagerSignatoryFieldsDictionaryXName = Coordonnée horizontale
+DigitalSignatureManagerSignatoryFieldsDictionaryYName = Coordonnée verticale
+DigitalSignatureManagerSignatoryFieldsDictionaryLinkedContactType = Type de signataire pouvant être affecté à ce champs de signature
+DigitalSignatureManagerCheckboxDictionaryAddedByDefault = Ajouté par défaut à ces types de documents
 
 #
 # Card
