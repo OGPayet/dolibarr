@@ -28,7 +28,7 @@
   * @param any $propertyValue value of property to find
   * @return null|any
   */
-function findObjectInArrayByProperty($arrayOfObject, $propertyName, $propertyValue)
+function findObjectInArrayByProperty(&$arrayOfObject, $propertyName, $propertyValue)
 {
 	return getItemFromThisArray($arrayOfObject, array($propertyName=>$propertyValue));
 }

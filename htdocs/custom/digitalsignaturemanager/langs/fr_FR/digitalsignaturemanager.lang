@@ -90,6 +90,7 @@ DigitalSignatureManagerFileCantFindIntoEcmDatabase = Fichier introuvable dans la
 DigitalSignatureManagerFileSuccessfullyDeleted = Fichier %s supprimé et retiré avec succès de la demande de signature électronique
 DigitalSignatureManagerErrorDocumentNameRequired = Un nom de fichier doit nécessairement être fourni
 DigitalSignatureManagerErrorWhileSavingEditedDocument = Erreur lors du renommage du fichier
+DigitalSignatureManagerErrorWhileCopyingFile = Erreur lors de la copie du fichier %s
 DigitalSignatureManagerDocumentSuccesfullyUpdate = Informations du document %s mis à jour avec succès
 DigitalSignatureManagerDocumentErrorWhileUpdating = Erreur lors de la mise à jour des informations du document
 DigitalSignatureRequestDocumentAlreadyDeleted = Ce document a déjà été supprimé

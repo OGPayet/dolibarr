@@ -291,7 +291,7 @@ class ExtendedEcm extends EcmFiles
 		global $user;
 		$copiedInstanceResult = null;
 		if (!$destinationFileName) {
-			$destinationFileName = $this->fileName;
+			$destinationFileName = $this->filename;
 		}
 		$absoluteDestinationDirectory = DOL_DATA_ROOT . '/' . $relativePath;
 		$destinationFilePath = $absoluteDestinationDirectory . '/' . $destinationFileName;
@@ -312,7 +312,7 @@ class ExtendedEcm extends EcmFiles
 			} else {
 				$result = $newEcm->create($user);
 			}
-			$copiedInstanceResult = $result > 0 ? $copiedInstanceResult : null;
+			$copiedInstanceResult = $result > 0 ? $newEcm : null;
 		}
 		return $copiedInstanceResult;
 	}
