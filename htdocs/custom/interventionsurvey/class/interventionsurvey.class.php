@@ -25,7 +25,7 @@ require_once DOL_DOCUMENT_ROOT . '/fichinter/class/fichinter.class.php';
 dol_include_once('/interventionsurvey/class/surveypart.class.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.helper.php');
 dol_include_once('/interventionsurvey/lib/interventionsurvey.cache.lib.php');
-
+dol_include_once('/interventionsurvey/class/interventionsurveyline.class.php');
 
 
 /**
@@ -661,6 +661,7 @@ class InterventionSurvey extends Fichinter
         global $db;
         $object = new self($db);
         commonLoadExtrafieldCacheForItemWithIds($object, $db, self::$DB_CACHE_EXTRAFIELDS, $arrayOfFichInterIds);
+        InterventionSurveyLine::fillCacheFromParentObjectIds($arrayOfFichInterIds);
         SurveyPart::fillCacheFromParentObjectIds($arrayOfFichInterIds);
     }
 
@@ -761,6 +762,69 @@ class InterventionSurvey extends Fichinter
         }
         return $result;
     }
+
+    /**
+	 *	Load array lines ->lines
+	 *
+	 *	@return		int		<0 if KO, >0 if OK
+	 */
+	public function fetch_lines($useCachedData = true, $loadCacheData = false)
+	{
+        if($loadCacheData) {
+            InterventionSurveyLine::fillCacheFromParentObjectIds(array($this->id));
+        }
+        $this->lines = array();
+        $cachedLines = getCachedObjectFromLinkedPropertyValue($this->id, InterventionSurveyLine::$DB_CACHE_FROM_FICHINTER, InterventionSurveyLine::$DB_CACHE);
+        if($useCachedData && !empty($cachedLines)) {
+            foreach($cachedLines as $obj) {
+                $newline = new InterventionSurveyLine($this->db);
+                    $newline->setVarsFromFetchObj($obj);
+                    $this->lines[] = $newline;
+                    $this->errors = array_merge($this->errors, $newline->errors);
+            }
+            return empty($this->errors) ? 1 : -1;
+        }
+        else {
+            $sql = 'SELECT rowid, description, duree, date, rang';
+            $sql.= ' FROM '.MAIN_DB_PREFIX.'fichinterdet';
+            $sql.=' WHERE fk_fichinter = '.$this->id .' ORDER BY rang ASC, date ASC' ;
+
+            dol_syslog(get_class($this)."::fetch_lines", LOG_DEBUG);
+            $resql=$this->db->query($sql);
+            if ($resql)
+            {
+                $num = $this->db->num_rows($resql);
+                $i = 0;
+                while ($i < $num)
+                {
+                    $objp = $this->db->fetch_object($resql);
+
+                    $line = new InterventionSurveyLine($this->db);
+                    $line->id = $objp->rowid;
+                    $line->desc = $objp->description;
+                    $line->duration = $objp->duree;
+                    //For invoicing we calculing hours
+                    $line->qty = round($objp->duree/3600, 2);
+                    $line->date	= $this->db->jdate($objp->date);
+                    $line->datei = $this->db->jdate($objp->date);
+                    $line->rang	= $objp->rang;
+                    $line->product_type = 1;
+
+                    $this->lines[$i] = $line;
+
+                    $i++;
+                }
+                $this->db->free($resql);
+
+                return 1;
+            }
+            else
+            {
+                $this->error=$this->db->error();
+                return -1;
+            }
+        }
+	}
 
     /**
      *  Get all attached files of the intervention

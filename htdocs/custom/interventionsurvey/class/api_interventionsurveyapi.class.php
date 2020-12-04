@@ -104,7 +104,7 @@ class InterventionSurveyApi extends DolibarrApi
     public $interventionSurvey;
 
     /**
-     * @var FichinterLigne $interventionLine {@type FichinterLigne}
+     * @var InterventionSurveyLine $interventionLine {@type FichinterLigne}
      */
     public $interventionLine;
 
@@ -120,7 +120,7 @@ class InterventionSurveyApi extends DolibarrApi
         $this->db = $db;
         $langs->load("interventionsurvey@interventionsurvey");
         $this->interventionSurvey = new InterventionSurvey($this->db);
-        $this->interventionLine = new FichinterLigne($this->db);
+        $this->interventionLine = new InterventionSurveyLine($this->db);
     }
     /**
      * Get dictionary of a intervention type
