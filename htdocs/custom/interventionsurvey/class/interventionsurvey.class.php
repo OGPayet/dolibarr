@@ -914,60 +914,6 @@ class InterventionSurvey extends Fichinter
     }
 
     /**
-     *  Update attached filename of all question bloc of the survey
-     *
-     * @param   string  $old_filename   Old filename
-     * @param   string  $new_filename   New filename
-     *
-     * @return  int                     <0 if KO, >0 if OK
-     */
-    public function update_attached_filename_in_survey($old_filename, $new_filename)
-    {
-        $sql = "SELECT eiqb.rowid, eiqb.attached_files";
-        $sql .= " FROM " . MAIN_DB_PREFIX . "extendedintervention_question_bloc AS eiqb";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "extendedintervention_survey_bloc AS eisb ON eisb.rowid = eiqb.fk_survey_bloc";
-        $sql .= " WHERE eiqb.entity IN (" . getEntity('ei_question_bloc') . ")";
-        $sql .= " AND eisb.fk_fichinter = " . $this->id;
-
-        $this->db->begin();
-
-        dol_syslog(__METHOD__, LOG_DEBUG);
-        $resql = $this->db->query($sql);
-        if ($resql) {
-            while ($obj = $this->db->fetch_object($resql)) {
-                $attached_files = !empty($obj->attached_files) ? unserialize($obj->attached_files) : array();
-
-                if (in_array($old_filename, $attached_files)) {
-                    $attached_files = array_diff($attached_files, array($old_filename));
-                    $attached_files[] = $new_filename;
-                    $attached_files = array_flip(array_flip($attached_files));
-
-                    // Update into database
-                    $sql2 = "UPDATE " . MAIN_DB_PREFIX . "extendedintervention_question_bloc";
-                    $sql2 .= " SET attached_files = " . (!empty($attached_files) ? "'" . $this->db->escape(serialize($attached_files)) . "'" : "NULL");
-                    $sql2 .= " WHERE rowid = " . $obj->rowid;
-
-                    $resql2 = $this->db->query($sql2);
-                    if (!$resql2) {
-                        $this->errors[] = $this->db->error();
-                        $this->db->rollback();
-                        dol_syslog(__METHOD__ . " SQL: " . $sql . '; Errors: ' . $this->errorsToString(), LOG_ERR);
-                        return -1;
-                    }
-                }
-            }
-        } else {
-            $this->errors[] = $this->db->error();
-            $this->db->rollback();
-            dol_syslog(__METHOD__ . " SQL: " . $sql . '; Errors: ' . $this->errorsToString(), LOG_ERR);
-            return -1;
-        }
-
-        $this->db->commit();
-        return 1;
-    }
-
-    /**
      *
      * Load survey in memory from the given array of survey parts
      *

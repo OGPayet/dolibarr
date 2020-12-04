@@ -56,7 +56,7 @@ class InterventionSurveyLine extends FichinterLigne
         return implode(',', $fieldList);
     }
 
-    public static function fillCacheFromParentObjectIds($arrayOfFichInterIds)
+    public static function fillCacheFromParentObjectIds(&$arrayOfFichInterIds)
     {
         global $db;
         $object = new self($db);
@@ -70,7 +70,7 @@ class InterventionSurveyLine extends FichinterLigne
     /**
      *	{@inheritdoc}
      */
-    public function setVarsFromFetchObj($objp)
+    public function setVarsFromFetchObj(&$objp)
     {
             $this->rowid          	= $objp->rowid;
 			$this->id = $objp->rowid;
