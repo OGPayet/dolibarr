@@ -1039,7 +1039,8 @@ class DigitalSignatureRequest extends CommonObject
 	 * Function to get relative directory of files to sign to dol_data_root
 	 * @return string
 	 */
-	public function getRelativePathToDolDataRootForSignedFiles() {
+	public function getRelativePathToDolDataRootForSignedFiles()
+	{
 		return $this->getRelativeModuleDirectoryToDocumentRootDirectory() . '/' . $this->getRelativePathForSignedFilesToModuleDirectory();
 	}
 
