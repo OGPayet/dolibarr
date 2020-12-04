@@ -619,6 +619,6 @@ class SurveyBlocStatusPredefinedText extends CommonObject
         global $db;
         $object = new self($db);
         commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveyblocstatus IN ( ' . implode(",", $arrayOfBlocStatusId) . ')');
-        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYBLOCSTATUS, 'fk_surveyblocstatus', self::$DB_CACHE);
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYBLOCSTATUS, 'fk_surveyblocstatus', self::$DB_CACHE, $arrayOfBlocStatusId);
     }
 }

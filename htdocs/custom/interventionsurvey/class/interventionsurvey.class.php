@@ -822,7 +822,7 @@ class InterventionSurvey extends Fichinter
      *
      *	@return		int		<0 if KO, >0 if OK
      */
-    public function fetch_lines($useCachedData = true, $loadCacheData = false)
+    public function fetch_lines($useCachedData = false, $loadCacheData = false)
     {
         if ($loadCacheData) {
             InterventionSurveyLine::fillCacheFromParentObjectIds(array($this->id));

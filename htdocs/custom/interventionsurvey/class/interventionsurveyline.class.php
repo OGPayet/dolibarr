@@ -63,7 +63,7 @@ class InterventionSurveyLine extends FichinterLigne
         commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_fichinter IN ( ' . implode(",", $arrayOfFichInterIds) . ')');
         $interventionSurveyLineIds = getCachedElementIds(self::$DB_CACHE);
         commonLoadExtrafieldCacheForItemWithIds($object, $db, self::$DB_CACHE_EXTRAFIELDS, $interventionSurveyLineIds);
-        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_FICHINTER, 'fk_fichinter', self::$DB_CACHE);
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_FICHINTER, 'fk_fichinter', self::$DB_CACHE, $arrayOfFichInterIds);
     }
 
 

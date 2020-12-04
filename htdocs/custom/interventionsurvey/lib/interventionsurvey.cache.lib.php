@@ -157,9 +157,10 @@ function commonLoadExtrafieldCacheForItemWithIds($object, $db, &$cache, $arrayOf
  * @param array $cacheOfLinkedObjectIds array of linked property ids and object ids
  * @param string $fieldNameOfElementToBeGrouped property key
  * @param array $cacheOfObject array of sql result object
+ * @param array $idOfParentElementsFetched array of ids of the parent element fetched in order to mark that cache has been loaded event if no items have been found
  * @return array $cacheOfLinkedObjectIds
  */
-function commonLoadCacheIdForLinkedObject(&$cacheOfLinkedObjectIds, $fieldNameOfElementToBeGrouped, &$cacheOfObject)
+function commonLoadCacheIdForLinkedObject(&$cacheOfLinkedObjectIds, $fieldNameOfElementToBeGrouped, &$cacheOfObject, $idOfParentElementsFetched = array())
 {
 	foreach($cacheOfObject as $id=>$object) {
         $linkedId = $object->$fieldNameOfElementToBeGrouped;
@@ -167,6 +168,11 @@ function commonLoadCacheIdForLinkedObject(&$cacheOfLinkedObjectIds, $fieldNameOf
             $cacheOfLinkedObjectIds[$linkedId] = array();
         }
         $cacheOfLinkedObjectIds[$linkedId][$id] = true;
+    }
+    foreach($idOfParentElementsFetched as $id) {
+        if(!$cacheOfLinkedObjectIds[$id]) {
+            $cacheOfLinkedObjectIds[$id] = array();
+        }
     }
     return $cacheOfLinkedObjectIds;
 }
@@ -229,8 +235,8 @@ function getCacheObject($objectId, &$cacheOfObject)
  */
 function getCachedObjectFromLinkedPropertyValue($linkedObjectPropertyValue, &$cacheOfLinkedObjectIds, &$cacheOfObject)
 {
-    $result = array();
     if($cacheOfLinkedObjectIds && is_array($cacheOfLinkedObjectIds[$linkedObjectPropertyValue])) {
+        $result = array();
         foreach($cacheOfLinkedObjectIds[$linkedObjectPropertyValue] as $id=>$notUsed) {
             $result[] = getCacheObject($id, $cacheOfObject);
         }

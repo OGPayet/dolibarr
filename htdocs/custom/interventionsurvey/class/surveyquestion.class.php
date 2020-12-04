@@ -961,7 +961,7 @@ class SurveyQuestion extends CommonObject
         global $db;
         $object = new self($db);
         commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE fk_surveyblocquestion IN ( ' . implode(",", $arrayOfSurveyBlocQuestionIds) . ')');
-        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYBLOCQUESTION, 'fk_surveyblocquestion', self::$DB_CACHE);
+        commonLoadCacheIdForLinkedObject(self::$DB_CACHE_FROM_SURVEYBLOCQUESTION, 'fk_surveyblocquestion', self::$DB_CACHE, $arrayOfSurveyBlocQuestionIds);
         $surveyQuestionIds = getCachedElementIds(self::$DB_CACHE);
         commonLoadExtrafieldCacheForItemWithIds($object, $db, self::$DB_CACHE_EXTRAFIELDS, $surveyQuestionIds);
         SurveyAnswer::fillCacheFromParentObjectIds($surveyQuestionIds);
