@@ -56,7 +56,7 @@ class InterventionSurveyLine extends FichinterLigne
         return implode(',', $fieldList);
     }
 
-    public static function fillCacheFromParentObjectIds(&$arrayOfFichInterIds)
+    public static function fillCacheFromParentObjectIds($arrayOfFichInterIds)
     {
         global $db;
         $object = new self($db);
