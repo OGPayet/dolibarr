@@ -378,7 +378,7 @@ class InterventionSurvey extends Fichinter
             return -1;
         }
         if (empty($this->array_options)) {
-            $this->fetch_optionals();
+            $this->fetch_optionals(null, null, true);
         }
         $this->survey_taken_from_dictionary = $this->generateInterventionSurveyPartsWithFollowingSettings($this->array_options['options_ei_type'], $this->linkedObjectsIds);
         return 1;
@@ -676,7 +676,8 @@ class InterventionSurvey extends Fichinter
 
     public function fetchSurvey($forceDataFromCache = false, $forceReload = false)
     {
-        if($forceReload || !SurveyPart::$DB_CACHE_FROM_FICHINTER[$this->id]) {
+        $cache_data = SurveyPart::$DB_CACHE_FROM_FICHINTER[$this->id];
+        if($forceReload || !is_array($cache_data)) {
             SurveyPart::fillCacheFromParentObjectIds(array($this->id));
         }
         $this->survey = array();
@@ -1234,7 +1235,7 @@ class InterventionSurvey extends Fichinter
     {
         if (!$this->benefactor->id || $forceRefreshFromBdd) {
             if (!$this->array_options) {
-                $this->fetch_optionals();
+                $this->fetch_optionals(null, null, true);
             }
             $this->benefactor = fetchACompanyObjectById($this->array_options['options_companyrelationships_fk_soc_benefactor'], $this->db);
         }
@@ -1246,7 +1247,7 @@ class InterventionSurvey extends Fichinter
     {
         if (!$this->watcher->id || $forceRefreshFromBdd) {
             if (!$this->array_options) {
-                $this->fetch_optionals();
+                $this->fetch_optionals(null, null, true);
             }
             $this->watcher = fetchACompanyObjectById($this->array_options['options_companyrelationships_fk_soc_watcher'], $this->db);
         }

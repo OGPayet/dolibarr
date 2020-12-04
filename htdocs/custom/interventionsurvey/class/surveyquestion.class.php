@@ -883,7 +883,7 @@ class SurveyQuestion extends CommonObject
      */
     public function fetch_optionals($rowid = null, $optionsArray = null, $getDataFromCache = false)
     {
-        if($getDataFromCache) {
+        if($getDataFromCache && is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id])) {
             $this->array_options = is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id]) ? self::$DB_CACHE_EXTRAFIELDS[$this->id] : array();
             $result = 1;
         }

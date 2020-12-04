@@ -278,6 +278,7 @@ class InterventionSurveyApi extends DolibarrApi
 
             $sql .= $this->db->plimit($limit + 1, $offset);
         }
+        global $nbOfQuery;
 
         dol_syslog("API Rest request");
         $result = $this->db->query($sql);

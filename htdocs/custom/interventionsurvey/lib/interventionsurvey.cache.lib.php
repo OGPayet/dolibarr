@@ -85,6 +85,9 @@ function commonLoadExtrafieldCacheForItemWithIds($object, $db, &$cache, $arrayOf
     }
     $optionsArray = (!empty($extrafields->attributes[$elementType]['label']) ? $extrafields->attributes[$elementType]['label'] : null);
 
+    foreach($arrayOfIds as $id) {
+        $cache[$id] = array();
+    }
 
     if (is_array($optionsArray) && count($optionsArray) > 0)
     {

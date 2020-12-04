@@ -338,7 +338,7 @@ class SurveyBlocQuestion extends CommonObject
             $this->surveyPart = $parent;
         }
         if ($result > 0) {
-            $this->fetch_optionals();
+            $this->fetch_optionals(null, null, true);
             $this->fetchLines();
         }
         return $result;
@@ -773,7 +773,7 @@ class SurveyBlocQuestion extends CommonObject
      */
     public function fetch_optionals($rowid = null, $optionsArray = null, $getDataFromCache = false)
     {
-        if($getDataFromCache) {
+        if($getDataFromCache && is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id])) {
             $this->array_options = is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id]) ? self::$DB_CACHE_EXTRAFIELDS[$this->id] : array();
             $result = 1;
         }
