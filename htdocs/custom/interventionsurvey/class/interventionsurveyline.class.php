@@ -80,4 +80,20 @@ class InterventionSurveyLine extends FichinterLigne
 			$this->duration       	= $objp->duree;
 			$this->rang           	= $objp->rang;
     }
+        /**
+     *	{@inheritdoc}
+     */
+    public function fetch_optionals($rowid = null, $optionsArray = null, $getDataFromCache = false)
+    {
+        $cachedData = getCacheObject($this->id, self::$DB_CACHE_EXTRAFIELDS);
+        if($getDataFromCache && is_array($cachedData))
+        {
+            $this->array_options = $cachedData;
+            $result = 1;
+        }
+        else {
+            $result = parent::fetch_optionals($rowid, $optionsArray);
+        }
+        return $result;
+    }
 }

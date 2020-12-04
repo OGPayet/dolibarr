@@ -189,6 +189,20 @@ class InterventionSurvey extends Fichinter
     static public $DB_CACHE_LINKED_OBJECT_IDS = array();
 
     /**
+     * Array of cache data for massive api call
+     * @var array
+     * array('interventionId'=>objectOfSqlResult))
+     */
+
+    static public $DB_CACHE = array();
+
+    /**
+     * Fichinter lines
+     * @var InterventionSurveyLine[]
+     */
+    public $lines = array();
+
+    /**
      * Constructor
      *
      * @param DoliDb $db Database handler
@@ -207,7 +221,12 @@ class InterventionSurvey extends Fichinter
      */
     public function getFieldList()
     {
-        return parent::getFieldList();
+        $arrayOfFields = array(
+            'rowid', 'entity', 'ref', 'description', 'fk_soc',
+            'fk_statut', 'datec', 'dateo', 'datee', 'datet',
+            'fk_user_author', 'date_valid', 'tms',
+            'duree', 'fk_projet', 'note_public', 'note_private', 'model_pdf', 'extraparams', 'fk_contrat');
+        return implode(',', $arrayOfFields);
     }
 
     /**
@@ -665,6 +684,7 @@ class InterventionSurvey extends Fichinter
     {
         global $db;
         $object = new self($db);
+        commonLoadCacheForItemWithFollowingSqlFilter($object, $db, self::$DB_CACHE, ' WHERE rowid IN ( ' . implode(",", $arrayOfFichInterIds) . ')');
         commonLoadExtrafieldCacheForItemWithIds($object, $db, self::$DB_CACHE_EXTRAFIELDS, $arrayOfFichInterIds);
         self::loadLinkedObjectIdsCache($db, $arrayOfFichInterIds);
         InterventionSurveyLine::fillCacheFromParentObjectIds($arrayOfFichInterIds);
@@ -750,8 +770,37 @@ class InterventionSurvey extends Fichinter
         if ($loadCacheData) {
             InterventionSurvey::fillSurveyCacheForParentObjectIds(array($rowid));
         }
-        $result = parent::fetch($rowid, $ref);
+        $cachedData = getCacheObject($rowid, self::$DB_CACHE);
 
+        if($useCachedData && $cachedData) {
+            $obj = $cachedData;
+            $this->id           = $obj->rowid;
+            $this->entity 		= $obj->entity;
+            $this->ref          = $obj->ref;
+            $this->description  = $obj->description;
+            $this->socid        = $obj->fk_soc;
+            $this->statut       = $obj->fk_statut;
+            $this->duration     = $obj->duree;
+            $this->datec        = $this->db->jdate($obj->datec);
+            $this->datee        = $this->db->jdate($obj->dateo);
+            $this->dateo        = $this->db->jdate($obj->datee);
+            $this->datet        = $this->db->jdate($obj->datet);
+            $this->datev        = $this->db->jdate($obj->date_valid);
+            $this->datem        = $this->db->jdate($obj->tms);
+            $this->fk_project   = $obj->fk_projet;
+            $this->note_public  = $obj->note_public;
+            $this->note_private = $obj->note_private;
+            $this->modelpdf     = $obj->model_pdf;
+            $this->fk_contrat	= $obj->fk_contrat;
+
+            $this->user_creation= $obj->fk_user_author;
+
+            $this->extraparams	= (array) json_decode($obj->extraparams, true);
+            $result = $this->fetch_lines($useCachedData, $loadCacheData);
+        }
+        else {
+            $result = parent::fetch($rowid, $ref);
+        }
         if ($result > 0) {
             $result = $this->fetch_optionals(null, null, $useCachedData);
         }
@@ -761,7 +810,7 @@ class InterventionSurvey extends Fichinter
         }
         if ($result > 0 && $this->lines) {
             foreach ($this->lines as $line) {
-                $result = $line->fetch_optionals();
+                $result = $line->fetch_optionals(null, null, $useCachedData);
                 $this->errors = array_merge($this->errors, $line->errors);
             }
         }
@@ -780,7 +829,7 @@ class InterventionSurvey extends Fichinter
         }
         $this->lines = array();
         $cachedLines = getCachedObjectFromLinkedPropertyValue($this->id, InterventionSurveyLine::$DB_CACHE_FROM_FICHINTER, InterventionSurveyLine::$DB_CACHE);
-        if ($useCachedData && !empty($cachedLines)) {
+        if ($useCachedData && is_array($cachedLines)) {
             foreach ($cachedLines as $obj) {
                 $newline = new InterventionSurveyLine($this->db);
                 $newline->setVarsFromFetchObj($obj);
@@ -1299,11 +1348,13 @@ class InterventionSurvey extends Fichinter
      */
     public function fetchObjectLinkedIdsWithCache($useCachedData = true, $loadCachedData = false)
     {
-        if($loadCachedData || empty(getCacheObject($this->id, self::$DB_CACHE_LINKED_OBJECT_IDS))) {
+        $cachedData = getCacheObject($this->id, self::$DB_CACHE_LINKED_OBJECT_IDS);
+        if($loadCachedData) {
             self::loadLinkedObjectIdsCache($this->db, array($this->id));
+            $cachedData = getCacheObject($this->id, self::$DB_CACHE_LINKED_OBJECT_IDS);
         }
 
-        if($useCachedData && !empty(getCacheObject($this->id, self::$DB_CACHE_LINKED_OBJECT_IDS)))
+        if($useCachedData && is_array($cachedData))
         {
             $this->linkedObjectsIds = getCacheObject($this->id, self::$DB_CACHE_LINKED_OBJECT_IDS);
             return 1;

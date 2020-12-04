@@ -210,7 +210,14 @@ function getCachedElementIds(&$cacheOfObject)
  */
 function getCacheObject($objectId, &$cacheOfObject)
 {
-    return $cacheOfObject && $cacheOfObject[$objectId] ? $cacheOfObject[$objectId] : null;
+    $result = null;
+    if($cacheOfObject) {
+        $result = $cacheOfObject[$objectId] ?? null;
+        if(!$result && (int) $objectId != 0) {
+            $result = $cacheOfObject[(int) $objectId] ?? null;
+        }
+    }
+    return $result;
 }
 
 /**

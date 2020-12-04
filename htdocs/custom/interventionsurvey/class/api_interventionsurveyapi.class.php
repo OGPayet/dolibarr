@@ -303,9 +303,6 @@ class InterventionSurveyApi extends DolibarrApi
         } else {
             throw new RestException(503, 'Error when retrieve fichinter list : ' . $this->db->lasterror());
         }
-        if (!count($obj_ret)) {
-            return $obj_ret;
-        }
 
         return $obj_ret;
     }
