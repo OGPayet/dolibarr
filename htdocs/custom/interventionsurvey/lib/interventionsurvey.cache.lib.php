@@ -29,7 +29,6 @@
  * @param string $sqlFilter sql filter in order to limit number of object fetch
  * @return array value sql result fetch by this request
  */
-
 function commonLoadCacheForItemWithFollowingSqlFilter($object, $db, &$cache, $sqlFilter)
 {
     $sql = 'SELECT ' . $object->getFieldList();

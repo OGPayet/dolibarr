@@ -184,6 +184,11 @@ class InterventionSurvey extends Fichinter
     static public $DB_CACHE_EXTRAFIELDS = array();
 
     /**
+     * Extrafields cache - cache of linked object ids
+     */
+    static public $DB_CACHE_LINKED_OBJECT_IDS = array();
+
+    /**
      * Constructor
      *
      * @param DoliDb $db Database handler
@@ -350,7 +355,7 @@ class InterventionSurvey extends Fichinter
 
     public function generateSurveyFromDictionary()
     {
-        if ($this->fetchObjectLinked() < 0) {
+        if ($this->fetchObjectLinkedIdsWithCache(true) < 0) {
             return -1;
         }
         if (empty($this->array_options)) {
@@ -661,6 +666,7 @@ class InterventionSurvey extends Fichinter
         global $db;
         $object = new self($db);
         commonLoadExtrafieldCacheForItemWithIds($object, $db, self::$DB_CACHE_EXTRAFIELDS, $arrayOfFichInterIds);
+        self::loadLinkedObjectIdsCache($db, $arrayOfFichInterIds);
         InterventionSurveyLine::fillCacheFromParentObjectIds($arrayOfFichInterIds);
         SurveyPart::fillCacheFromParentObjectIds($arrayOfFichInterIds);
     }
@@ -670,11 +676,10 @@ class InterventionSurvey extends Fichinter
      */
     public function fetch_optionals($rowid = null, $optionsArray = null, $getDataFromCache = true)
     {
-        if($getDataFromCache && is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id])) {
+        if ($getDataFromCache && is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id])) {
             $this->array_options = self::$DB_CACHE_EXTRAFIELDS[$this->id];
             $result = 1;
-        }
-        else {
+        } else {
             $result = parent::fetch_optionals($rowid, $optionsArray);
         }
         return $result;
@@ -747,7 +752,7 @@ class InterventionSurvey extends Fichinter
         }
         $result = parent::fetch($rowid, $ref);
 
-        if($result > 0) {
+        if ($result > 0) {
             $result = $this->fetch_optionals(null, null, $useCachedData);
         }
 
@@ -755,48 +760,45 @@ class InterventionSurvey extends Fichinter
             $result = $this->fetchSurvey($useCachedData);
         }
         if ($result > 0 && $this->lines) {
-			foreach ($this->lines as $line) {
-				$result = $line->fetch_optionals();
-				$this->errors = array_merge($this->errors, $line->errors);
-			}
+            foreach ($this->lines as $line) {
+                $result = $line->fetch_optionals();
+                $this->errors = array_merge($this->errors, $line->errors);
+            }
         }
         return $result;
     }
 
     /**
-	 *	Load array lines ->lines
-	 *
-	 *	@return		int		<0 if KO, >0 if OK
-	 */
-	public function fetch_lines($useCachedData = true, $loadCacheData = false)
-	{
-        if($loadCacheData) {
+     *	Load array lines ->lines
+     *
+     *	@return		int		<0 if KO, >0 if OK
+     */
+    public function fetch_lines($useCachedData = true, $loadCacheData = false)
+    {
+        if ($loadCacheData) {
             InterventionSurveyLine::fillCacheFromParentObjectIds(array($this->id));
         }
         $this->lines = array();
         $cachedLines = getCachedObjectFromLinkedPropertyValue($this->id, InterventionSurveyLine::$DB_CACHE_FROM_FICHINTER, InterventionSurveyLine::$DB_CACHE);
-        if($useCachedData && !empty($cachedLines)) {
-            foreach($cachedLines as $obj) {
+        if ($useCachedData && !empty($cachedLines)) {
+            foreach ($cachedLines as $obj) {
                 $newline = new InterventionSurveyLine($this->db);
-                    $newline->setVarsFromFetchObj($obj);
-                    $this->lines[] = $newline;
-                    $this->errors = array_merge($this->errors, $newline->errors);
+                $newline->setVarsFromFetchObj($obj);
+                $this->lines[] = $newline;
+                $this->errors = array_merge($this->errors, $newline->errors);
             }
             return empty($this->errors) ? 1 : -1;
-        }
-        else {
+        } else {
             $sql = 'SELECT rowid, description, duree, date, rang';
-            $sql.= ' FROM '.MAIN_DB_PREFIX.'fichinterdet';
-            $sql.=' WHERE fk_fichinter = '.$this->id .' ORDER BY rang ASC, date ASC' ;
+            $sql .= ' FROM ' . MAIN_DB_PREFIX . 'fichinterdet';
+            $sql .= ' WHERE fk_fichinter = ' . $this->id . ' ORDER BY rang ASC, date ASC';
 
-            dol_syslog(get_class($this)."::fetch_lines", LOG_DEBUG);
-            $resql=$this->db->query($sql);
-            if ($resql)
-            {
+            dol_syslog(get_class($this) . "::fetch_lines", LOG_DEBUG);
+            $resql = $this->db->query($sql);
+            if ($resql) {
                 $num = $this->db->num_rows($resql);
                 $i = 0;
-                while ($i < $num)
-                {
+                while ($i < $num) {
                     $objp = $this->db->fetch_object($resql);
 
                     $line = new InterventionSurveyLine($this->db);
@@ -804,10 +806,10 @@ class InterventionSurvey extends Fichinter
                     $line->desc = $objp->description;
                     $line->duration = $objp->duree;
                     //For invoicing we calculing hours
-                    $line->qty = round($objp->duree/3600, 2);
-                    $line->date	= $this->db->jdate($objp->date);
+                    $line->qty = round($objp->duree / 3600, 2);
+                    $line->date    = $this->db->jdate($objp->date);
                     $line->datei = $this->db->jdate($objp->date);
-                    $line->rang	= $objp->rang;
+                    $line->rang    = $objp->rang;
                     $line->product_type = 1;
 
                     $this->lines[$i] = $line;
@@ -817,14 +819,12 @@ class InterventionSurvey extends Fichinter
                 $this->db->free($resql);
 
                 return 1;
-            }
-            else
-            {
-                $this->error=$this->db->error();
+            } else {
+                $this->error = $this->db->error();
                 return -1;
             }
         }
-	}
+    }
 
     /**
      *  Get all attached files of the intervention
@@ -1255,6 +1255,66 @@ class InterventionSurvey extends Fichinter
     }
 
     /**
+     * Function to load cache of linked object ids of an array of intervention ids
+     * @param DoliDB $db Database instance to use
+     * @param int[] $arrayOfInterventionIds list of intervention id on which load cache
+     * @return void
+     */
+    public static function loadLinkedObjectIdsCache($db, $arrayOfInterventionIds)
+    {
+        $object = new self($db);
+        //We clean cache of each interventions ids we will update
+        foreach($arrayOfInterventionIds as $id) {
+            self::$DB_CACHE_LINKED_OBJECT_IDS[$id] = array();
+        }
+        // Links between objects are stored in table element_element
+        $sql = 'SELECT rowid, fk_source, sourcetype, fk_target, targettype';
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . 'element_element';
+        $sql .= " WHERE ";
+        $sql .= "(fk_source IN (" . implode(',', $arrayOfInterventionIds) . ") AND sourcetype = '" . $object->element . "')";
+        $sql .= " OR (fk_target IN(" .  implode(',', $arrayOfInterventionIds) . ") AND targettype = '" . $object->element . "')";
+        $sql .= ' ORDER BY sourcetype';
+        $resql = $db->query($sql);
+        if ($resql) {
+            $num = $db->num_rows($resql);
+            $i = 0;
+            while ($i < $num) {
+                $obj = $db->fetch_object($resql);
+                if ($obj->sourcetype == $object->element) {
+                    self::$DB_CACHE_LINKED_OBJECT_IDS[$obj->fk_source][$obj->targettype][$obj->rowid] = $obj->fk_target;
+                }
+                if ($obj->targettype == $object->element) {
+                    self::$DB_CACHE_LINKED_OBJECT_IDS[$obj->fk_target][$obj->sourcetype][$obj->rowid] = $obj->fk_source;
+                }
+                $i++;
+            }
+        }
+    }
+
+    /**
+     * Function to load linked object ids with cache data
+     * @param bool $useCachedData are we allowed to use cache data
+     * @param bool $loadCachedData should we update cached data
+     *	@return	int
+     */
+    public function fetchObjectLinkedIdsWithCache($useCachedData = true, $loadCachedData = false)
+    {
+        if($loadCachedData || empty(getCacheObject($this->id, self::$DB_CACHE_LINKED_OBJECT_IDS))) {
+            self::loadLinkedObjectIdsCache($this->db, array($this->id));
+        }
+
+        if($useCachedData && !empty(getCacheObject($this->id, self::$DB_CACHE_LINKED_OBJECT_IDS)))
+        {
+            $this->linkedObjectsIds = getCacheObject($this->id, self::$DB_CACHE_LINKED_OBJECT_IDS);
+            return 1;
+        }
+        else {
+            return $this->fetchObjectLinkedIds();
+        }
+    }
+
+
+    /**
      *	Fetch array of objects linked to current object. Links are loaded into this->linkedObjects array and this->linkedObjectsIds
      *  Possible usage for parameters:
      *  - all parameters empty -> we look all link to current object (current object can be source or target)
@@ -1268,7 +1328,7 @@ class InterventionSurvey extends Fichinter
      *	@param  string	$targettype		Object target type (if not defined, elemennt name of object)
      *	@param  string	$clause			'OR' or 'AND' clause used when both source id and target id are provided
      *  @param	int		$alsosametype	0=Return only links to object that differs from source. 1=Include also link to objects of same type.
-     *	@return	void
+     *	@return	int
      *  @see	add_object_linked, updateObjectLinked, deleteObjectLinked
      */
     function fetchObjectLinkedIds($sourceid = null, $sourcetype = '', $targetid = null, $targettype = '', $clause = 'OR', $alsosametype = 1)
@@ -1344,8 +1404,10 @@ class InterventionSurvey extends Fichinter
                 }
                 $i++;
             }
+            return 1;
         } else {
             dol_print_error($this->db);
+            return -1;
         }
     }
 }
