@@ -1393,15 +1393,15 @@ class InvoicesContractTools
         $revaluation_date = $contract->array_options['options_' . self::EF_REVALUATION_DATE];
         switch (intval($revaluation_date)) {
             // Anniversary date
-            case 1: return Carbon::create(0, $effective_date->month, $effective_date->day); break;
+            case 1: return Carbon::create(0, $effective_date->month, $effective_date->day, 0, 0, 0); break;
             // 1st of January
-            case 2: return Carbon::create(0, 1, 1);
+            case 2: return Carbon::create(0, 1, 1, 0, 0, 0);
             // 1st of April
-            case 3: return Carbon::create(0, 4, 1);
+            case 3: return Carbon::create(0, 4, 1, 0, 0, 0);
             // 1st of July
-            case 4: return Carbon::create(0, 7, 1);
+            case 4: return Carbon::create(0, 7, 1, 0, 0, 0);
             // 1st of October
-            case 5: return Carbon::create(0, 10, 1);
+            case 5: return Carbon::create(0, 10, 1, 0, 0, 0);
             default:
                 $this->errors[] = $langs->trans('STCErrorBadFieldValue', $langs->transnoentitiesnoconv('STCContractRevaluationDate'), $revaluation_date);
                 return -1;
