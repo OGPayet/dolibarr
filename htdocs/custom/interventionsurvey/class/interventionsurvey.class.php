@@ -67,7 +67,7 @@ class InterventionSurvey extends Fichinter
         "id" => '', "ref" => '', "description" => '', "socid" => '', "statut" => '', "duration" => '', "datec" => '',
         "datee" => '', "dateo" => '', "datet" => '', "datev" => '', "datem" => '', "fk_project" => '', "note_public" => '',
         "fk_contrat" => '', "thirdparty" => '', "array_options" => '', "survey" => '',
-        'lines'=>'','thirdparty'=>'','benefactor'=>'','watcher'=>'', 'linkedObjectsIds'=>''
+        'lines' => '', 'thirdparty' => '', 'benefactor' => '', 'watcher' => '', 'linkedObjectsIds' => ''
     );
 
     /**
@@ -80,8 +80,7 @@ class InterventionSurvey extends Fichinter
      *      if property is a array and this properties_name value is not a array then get all values
      *      if property is a array and this properties_name value is a array then get whitelist set in the array
      */
-    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array(
-    );
+    static public $API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT = array();
 
     /**
      * Array of blacklist of properties keys for this object used for the API
@@ -180,6 +179,11 @@ class InterventionSurvey extends Fichinter
     public $survey_taken_from_dictionary;
 
     /**
+     * Extrafields cache - cache of extrafields data
+     */
+    static public $DB_CACHE_EXTRAFIELDS = array();
+
+    /**
      * Constructor
      *
      * @param DoliDb $db Database handler
@@ -196,7 +200,8 @@ class InterventionSurvey extends Fichinter
      * Override getFieldList to change method accessibility
      *
      */
-    public function getFieldList(){
+    public function getFieldList()
+    {
         return parent::getFieldList();
     }
 
@@ -515,7 +520,7 @@ class InterventionSurvey extends Fichinter
         $data = self::fillDataFromJSONDictionary($question, "answers", self::$cache_survey_answer_dictionary);
         $answerList = array();
         foreach ($data["answers"] as $index => $answer) {
-            if(self::shouldThisAnswerBeIntoThisBlocOfQuestion($answer,$blocDictionaryId)){
+            if (self::shouldThisAnswerBeIntoThisBlocOfQuestion($answer, $blocDictionaryId)) {
                 $answerList[$index] = $this->fillAnswerPredefinedTextInAnswer($answer, $blocDictionaryId, $productCategory, $question["c_rowid"]);
             }
         }
@@ -635,7 +640,7 @@ class InterventionSurvey extends Fichinter
 
     public static function shouldThisAnswerPredefinedTextBeIntoThisAnswer($answerPredefinedText, $blocDictionaryId, $productCategory, $questionId)
     {
-        return self::shouldThisItemBeIntoThisSurvey($answerPredefinedText, array("cat_filter" => $productCategory, "bloc_filter" => $blocDictionaryId, "quest_filt"=>$questionId));
+        return self::shouldThisItemBeIntoThisSurvey($answerPredefinedText, array("cat_filter" => $productCategory, "bloc_filter" => $blocDictionaryId, "quest_filt" => $questionId));
     }
 
     /**
@@ -651,10 +656,28 @@ class InterventionSurvey extends Fichinter
         return interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyPart", $this->survey, $this, SurveyPart::$DB_CACHE_FROM_FICHINTER, SurveyPart::$DB_CACHE, $forceDataFromCache);
     }
 
-    public static function fillSurveyCacheForParentObjectIds($arrayOfFichInterIds) {
+    public static function fillSurveyCacheForParentObjectIds($arrayOfFichInterIds)
+    {
+        global $db;
+        $object = new self($db);
+        commonLoadExtrafieldCacheForItemWithIds($object, $db, self::$DB_CACHE_EXTRAFIELDS, $arrayOfFichInterIds);
         SurveyPart::fillCacheFromParentObjectIds($arrayOfFichInterIds);
     }
 
+    /**
+     *	{@inheritdoc}
+     */
+    public function fetch_optionals($rowid = null, $optionsArray = null, $getDataFromCache = true)
+    {
+        if($getDataFromCache && is_array(self::$DB_CACHE_EXTRAFIELDS[$this->id])) {
+            $this->array_options = self::$DB_CACHE_EXTRAFIELDS[$this->id];
+            $result = 1;
+        }
+        else {
+            $result = parent::fetch_optionals($rowid, $optionsArray);
+        }
+        return $result;
+    }
     /**
      *
      * Save Survey
@@ -716,21 +739,25 @@ class InterventionSurvey extends Fichinter
     /**
      * Override fichinter fetch in order to fetch survey in the same time
      */
-    public function fetch($rowid, $ref='', $useCachedData = false, $loadCacheData = false){
-        if($loadCacheData) {
+    public function fetch($rowid, $ref = '', $useCachedData = false, $loadCacheData = false)
+    {
+        if ($loadCacheData) {
             InterventionSurvey::fillSurveyCacheForParentObjectIds(array($rowid));
         }
         $result = parent::fetch($rowid, $ref);
-        if($result > 0 ) {
-           $result = $this->fetchSurvey($useCachedData);
+
+        if($result > 0) {
+            $result = $this->fetch_optionals(null, null, $useCachedData);
         }
-        if($result > 0 ) {
-            if($this->lines){
-                foreach($this->lines as $line){
-                    $result = $line->fetch_optionals();
-                    $this->errors = array_merge($this->errors, $line->errors);
-                }
-            }
+
+        if ($result > 0) {
+            $result = $this->fetchSurvey($useCachedData);
+        }
+        if ($result > 0 && $this->lines) {
+			foreach ($this->lines as $line) {
+				$result = $line->fetch_optionals();
+				$this->errors = array_merge($this->errors, $line->errors);
+			}
         }
         return $result;
     }
@@ -864,15 +891,15 @@ class InterventionSurvey extends Fichinter
     {
         $errors = array();
         $this->db->begin();
-        if($forceUpdateFromBdd){
+        if ($forceUpdateFromBdd) {
             $this->fetchSurvey();
         }
-            foreach ($this->survey as $surveyPart) {
-                if (empty($surveyPart->blocs)) {
-                    $surveyPart->delete($user,true,true);
-                    $errors = array_merge($errors, $surveyPart->errors);
-                }
+        foreach ($this->survey as $surveyPart) {
+            if (empty($surveyPart->blocs)) {
+                $surveyPart->delete($user, true, true);
+                $errors = array_merge($errors, $surveyPart->errors);
             }
+        }
         $this->fetchSurvey();
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
@@ -891,14 +918,14 @@ class InterventionSurvey extends Fichinter
     {
         $this->errors = array();
         global $user;
-        if(!$user->rights->interventionsurvey->survey->autocomplete){
+        if (!$user->rights->interventionsurvey->survey->autocomplete) {
             return 0;
         }
         $this->db->begin();
-            foreach ($this->survey as $surveyPart) {
-                    $surveyPart->autocomplete();
-                    $this->errors = array_merge($this->errors, $surveyPart->errors);
-            }
+        foreach ($this->survey as $surveyPart) {
+            $surveyPart->autocomplete();
+            $this->errors = array_merge($this->errors, $surveyPart->errors);
+        }
         $this->saveSurvey($user);
         if (empty($this->errors)) {
             $this->db->commit();
@@ -915,7 +942,8 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-     public function mergeWithFollowingData(User &$user, self &$newInterventionSurvey, bool $saveWholeObjectToBdd = false, $noTrigger = false){
+    public function mergeWithFollowingData(User &$user, self &$newInterventionSurvey, bool $saveWholeObjectToBdd = false, $noTrigger = false)
+    {
 
         $this->db->begin();
         //We update property for this object
@@ -924,22 +952,23 @@ class InterventionSurvey extends Fichinter
 
         //We begin property update for subobject
         $parameters = array(
-            "survey"=>array(
+            "survey" => array(
                 "identifierPropertiesName" => array("id"),
-                "mergeSubItemNameMethod" => "mergeWithFollowingData"),//We may add here fichinter lines
+                "mergeSubItemNameMethod" => "mergeWithFollowingData"
+            ), //We may add here fichinter lines
         );
 
         $errors = mergeSubItemFromObject($user, $this, $newInterventionSurvey, $parameters, false, $noTrigger);
         $this->errors = array_merge($this->errors, $errors);
 
-        if($saveWholeObjectToBdd === true) {
+        if ($saveWholeObjectToBdd === true) {
             //$this->save($user); //We may add here fichinter lines saving
             $this->saveSurvey($user);
         }
-         //finally we clean the survey
-         $this->cleanSurvey($user);
+        //finally we clean the survey
+        $this->cleanSurvey($user);
 
-         if (empty($this->errors)) {
+        if (empty($this->errors)) {
             $this->db->commit();
             return 1;
         } else {
@@ -1079,59 +1108,58 @@ class InterventionSurvey extends Fichinter
         global $conf;
         //First we check entity of this object is the same than the current entity
         $sql = "SELECT COUNT(fichinter.rowid) as nb";
-        $sql.= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as fichinter";
-        $sql.= " WHERE fichinter.rowid = " . $this->id;
-        $sql.= " AND fichinter.entity IN (". getEntity($this->table_element, 1) . ")";
+        $sql .= " FROM " . MAIN_DB_PREFIX . $this->table_element . " as fichinter";
+        $sql .= " WHERE fichinter.rowid = " . $this->id;
+        $sql .= " AND fichinter.entity IN (" . getEntity($this->table_element, 1) . ")";
 
         $resql = $this->db->query($sql);
         if ($resql) {
             $nbResult = $this->db->fetch_object($resql);
-            if(!$nbResult){
+            if (!$nbResult) {
                 //Item does not exist or is not accessible from this entity
                 return false;
             }
         }
 
 
-        if($user->rights->societe->client->voir){
-           return true;
-        }
-        else {
+        if ($user->rights->societe->client->voir) {
+            return true;
+        } else {
             // we have to check if $user->socid is the id of the thirdparty of a sales representative of this company
-                $listOfSalesRepresentative = array();
-                if(!$this->thirdparty && !$this->fk_soc == $user->socid){
-                    $this->fetch_thirdparty();
-                    $listOfSalesRepresentative = $this->thirdparty->getSalesRepresentatives($user);
-                }
-                $userLinkedToCompany = $this->fk_soc == $user->socid || in_array($user->id, $listOfSalesRepresentative);
-                if (!$conf->companyrelationships->enabled) {
-                    return $userLinkedToCompany;
-                } else {
-                    //Company relationships is activated, we have more check to do
-                    $principalAvailability = !!$this->array_options['options_companyrelationships_availability_principal'];
-                    $benefactorId = $this->array_options['options_companyrelationships_fk_soc_benefactor'];
-                    $benefactorAvailability = !!$this->array_options['options_companyrelationships_availability_principal'];
-                    $watcherId = $this->array_options['options_companyrelationships_fk_soc_watcher'];
-                    $watcherAvailability = !!$this->array_options['options_companyrelationships_availability_watcher'];
+            $listOfSalesRepresentative = array();
+            if (!$this->thirdparty && !$this->fk_soc == $user->socid) {
+                $this->fetch_thirdparty();
+                $listOfSalesRepresentative = $this->thirdparty->getSalesRepresentatives($user);
+            }
+            $userLinkedToCompany = $this->fk_soc == $user->socid || in_array($user->id, $listOfSalesRepresentative);
+            if (!$conf->companyrelationships->enabled) {
+                return $userLinkedToCompany;
+            } else {
+                //Company relationships is activated, we have more check to do
+                $principalAvailability = !!$this->array_options['options_companyrelationships_availability_principal'];
+                $benefactorId = $this->array_options['options_companyrelationships_fk_soc_benefactor'];
+                $benefactorAvailability = !!$this->array_options['options_companyrelationships_availability_principal'];
+                $watcherId = $this->array_options['options_companyrelationships_fk_soc_watcher'];
+                $watcherAvailability = !!$this->array_options['options_companyrelationships_availability_watcher'];
 
-                    if($userLinkedToCompany && $principalAvailability){
-                        return true;
-                    }
-                    //We may check for benefactor now
-                    if($benefactorAvailability) {
-                        $result = isUserLinkedToThisCompanyDirectlyOrBySalesRepresentative($user, $this->benefactor, $benefactorId);
-                        if($result){
-                            return $result;
-                        }
-                    }
-                    //We may check for watcher now
-                    if($watcherAvailability) {
-                        $result = isUserLinkedToThisCompanyDirectlyOrBySalesRepresentative($user, $this->watcher, $watcherId);
-                        if($result){
-                            return $result;
-                        }
+                if ($userLinkedToCompany && $principalAvailability) {
+                    return true;
+                }
+                //We may check for benefactor now
+                if ($benefactorAvailability) {
+                    $result = isUserLinkedToThisCompanyDirectlyOrBySalesRepresentative($user, $this->benefactor, $benefactorId);
+                    if ($result) {
+                        return $result;
                     }
                 }
+                //We may check for watcher now
+                if ($watcherAvailability) {
+                    $result = isUserLinkedToThisCompanyDirectlyOrBySalesRepresentative($user, $this->watcher, $watcherId);
+                    if ($result) {
+                        return $result;
+                    }
+                }
+            }
         }
         return false;
     }
@@ -1140,9 +1168,10 @@ class InterventionSurvey extends Fichinter
      * Fill the benefactor field with a Society object
      */
 
-    public function fetch_benefactor(bool $forceRefreshFromBdd = null){
-        if(!$this->benefactor->id || $forceRefreshFromBdd){
-            if(!$this->array_options) {
+    public function fetch_benefactor(bool $forceRefreshFromBdd = null)
+    {
+        if (!$this->benefactor->id || $forceRefreshFromBdd) {
+            if (!$this->array_options) {
                 $this->fetch_optionals();
             }
             $this->benefactor = fetchACompanyObjectById($this->array_options['options_companyrelationships_fk_soc_benefactor'], $this->db);
@@ -1151,16 +1180,17 @@ class InterventionSurvey extends Fichinter
     /**
      * Fill the watcher field with a Society object
      */
-    public function fetch_watcher(bool $forceRefreshFromBdd = null){
-        if(!$this->watcher->id || $forceRefreshFromBdd){
-            if(!$this->array_options){
+    public function fetch_watcher(bool $forceRefreshFromBdd = null)
+    {
+        if (!$this->watcher->id || $forceRefreshFromBdd) {
+            if (!$this->array_options) {
                 $this->fetch_optionals();
             }
             $this->watcher = fetchACompanyObjectById($this->array_options['options_companyrelationships_fk_soc_watcher'], $this->db);
         }
     }
 
-        /**
+    /**
      *	Fetch array of objects linked to current object. Links are loaded into this->linkedObjects array and this->linkedObjectsIds
      *  Possible usage for parameters:
      *  - all parameters empty -> we look all link to current object (current object can be source or target)
@@ -1177,32 +1207,30 @@ class InterventionSurvey extends Fichinter
      *	@return	void
      *  @see	add_object_linked, updateObjectLinked, deleteObjectLinked
      */
-	function fetchObjectLinkedIds($sourceid=null,$sourcetype='',$targetid=null,$targettype='',$clause='OR',$alsosametype=1)
+    function fetchObjectLinkedIds($sourceid = null, $sourcetype = '', $targetid = null, $targettype = '', $clause = 'OR', $alsosametype = 1)
     {
         global $conf;
 
-        $this->linkedObjectsIds=array();
+        $this->linkedObjectsIds = array();
 
-        $justsource=false;
-        $justtarget=false;
-        $withtargettype=false;
-        $withsourcetype=false;
+        $justsource = false;
+        $justtarget = false;
+        $withtargettype = false;
+        $withsourcetype = false;
 
-        if (! empty($sourceid) && ! empty($sourcetype) && empty($targetid))
-        {
-		$justsource=true;  // the source (id and type) is a search criteria
-		if (! empty($targettype)) $withtargettype=true;
+        if (!empty($sourceid) && !empty($sourcetype) && empty($targetid)) {
+            $justsource = true;  // the source (id and type) is a search criteria
+            if (!empty($targettype)) $withtargettype = true;
         }
-        if (! empty($targetid) && ! empty($targettype) && empty($sourceid))
-        {
-		$justtarget=true;  // the target (id and type) is a search criteria
-		if (! empty($sourcetype)) $withsourcetype=true;
+        if (!empty($targetid) && !empty($targettype) && empty($sourceid)) {
+            $justtarget = true;  // the target (id and type) is a search criteria
+            if (!empty($sourcetype)) $withsourcetype = true;
         }
 
-        $sourceid = (! empty($sourceid) ? $sourceid : $this->id);
-        $targetid = (! empty($targetid) ? $targetid : $this->id);
-        $sourcetype = (! empty($sourcetype) ? $sourcetype : $this->element);
-        $targettype = (! empty($targettype) ? $targettype : $this->element);
+        $sourceid = (!empty($sourceid) ? $sourceid : $this->id);
+        $targetid = (!empty($targetid) ? $targetid : $this->id);
+        $sourcetype = (!empty($sourcetype) ? $sourcetype : $this->element);
+        $targettype = (!empty($targettype) ? $targettype : $this->element);
 
         /*if (empty($sourceid) && empty($targetid))
         {
@@ -1212,65 +1240,47 @@ class InterventionSurvey extends Fichinter
 
         // Links between objects are stored in table element_element
         $sql = 'SELECT rowid, fk_source, sourcetype, fk_target, targettype';
-        $sql.= ' FROM '.MAIN_DB_PREFIX.'element_element';
-        $sql.= " WHERE ";
-        if ($justsource || $justtarget)
-        {
-            if ($justsource)
-            {
-		$sql.= "fk_source = '".$sourceid."' AND sourcetype = '".$sourcetype."'";
-		if ($withtargettype) $sql.= " AND targettype = '".$targettype."'";
+        $sql .= ' FROM ' . MAIN_DB_PREFIX . 'element_element';
+        $sql .= " WHERE ";
+        if ($justsource || $justtarget) {
+            if ($justsource) {
+                $sql .= "fk_source = '" . $sourceid . "' AND sourcetype = '" . $sourcetype . "'";
+                if ($withtargettype) $sql .= " AND targettype = '" . $targettype . "'";
+            } elseif ($justtarget) {
+                $sql .= "fk_target = '" . $targetid . "' AND targettype = '" . $targettype . "'";
+                if ($withsourcetype) $sql .= " AND sourcetype = '" . $sourcetype . "'";
             }
-            else if ($justtarget)
-            {
-		$sql.= "fk_target = '".$targetid."' AND targettype = '".$targettype."'";
-		if ($withsourcetype) $sql.= " AND sourcetype = '".$sourcetype."'";
-            }
-        }
-        else
-		{
-            $sql.= "(fk_source = '".$sourceid."' AND sourcetype = '".$sourcetype."')";
-            $sql.= " ".$clause." (fk_target = '".$targetid."' AND targettype = '".$targettype."')";
+        } else {
+            $sql .= "(fk_source = '" . $sourceid . "' AND sourcetype = '" . $sourcetype . "')";
+            $sql .= " " . $clause . " (fk_target = '" . $targetid . "' AND targettype = '" . $targettype . "')";
         }
         $sql .= ' ORDER BY sourcetype';
         //print $sql;
 
-        dol_syslog(get_class($this)."::fetchObjectLink", LOG_DEBUG);
+        dol_syslog(get_class($this) . "::fetchObjectLink", LOG_DEBUG);
         $resql = $this->db->query($sql);
-        if ($resql)
-        {
+        if ($resql) {
             $num = $this->db->num_rows($resql);
             $i = 0;
-            while ($i < $num)
-            {
+            while ($i < $num) {
                 $obj = $this->db->fetch_object($resql);
-                if ($justsource || $justtarget)
-                {
-                    if ($justsource)
-                    {
-                        $this->linkedObjectsIds[$obj->targettype][$obj->rowid]=$obj->fk_target;
+                if ($justsource || $justtarget) {
+                    if ($justsource) {
+                        $this->linkedObjectsIds[$obj->targettype][$obj->rowid] = $obj->fk_target;
+                    } elseif ($justtarget) {
+                        $this->linkedObjectsIds[$obj->sourcetype][$obj->rowid] = $obj->fk_source;
                     }
-                    else if ($justtarget)
-                    {
-                        $this->linkedObjectsIds[$obj->sourcetype][$obj->rowid]=$obj->fk_source;
+                } else {
+                    if ($obj->fk_source == $sourceid && $obj->sourcetype == $sourcetype) {
+                        $this->linkedObjectsIds[$obj->targettype][$obj->rowid] = $obj->fk_target;
                     }
-                }
-                else
-                {
-                    if ($obj->fk_source == $sourceid && $obj->sourcetype == $sourcetype)
-                    {
-                        $this->linkedObjectsIds[$obj->targettype][$obj->rowid]=$obj->fk_target;
-                    }
-                    if ($obj->fk_target == $targetid && $obj->targettype == $targettype)
-                    {
-                        $this->linkedObjectsIds[$obj->sourcetype][$obj->rowid]=$obj->fk_source;
+                    if ($obj->fk_target == $targetid && $obj->targettype == $targettype) {
+                        $this->linkedObjectsIds[$obj->sourcetype][$obj->rowid] = $obj->fk_source;
                     }
                 }
                 $i++;
             }
-        }
-        else
-        {
+        } else {
             dol_print_error($this->db);
         }
     }

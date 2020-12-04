@@ -160,7 +160,6 @@ function commonLoadExtrafieldCacheForItemWithIds($object, $db, &$cache, $arrayOf
  * @param array $cacheOfObject array of sql result object
  * @return array $cacheOfLinkedObjectIds
  */
-
 function commonLoadCacheIdForLinkedObject(&$cacheOfLinkedObjectIds, $fieldNameOfElementToBeGrouped, &$cacheOfObject)
 {
 	foreach($cacheOfObject as $id=>$object) {
