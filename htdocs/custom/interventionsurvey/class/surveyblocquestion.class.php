@@ -540,6 +540,9 @@ class SurveyBlocQuestion extends CommonObject
             unset($this->fields[$field]);
         }
         $result = $this->updateCommon($user, $notrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
         $this->fields = $saveFields;
         return $result;
     }
@@ -561,6 +564,8 @@ class SurveyBlocQuestion extends CommonObject
             $errors = array_merge($errors, $this->errors);
 
             if (empty($errors)) {
+                removeStaledDataCache($this->id, self::$DB_CACHE, self::$DB_CACHE_FROM_SURVEYPART);
+                removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
                 foreach ($this->questions as $question) {
                     $question->delete($user, $notrigger);
                     $errors = array_merge($errors, $question->errors ?? array());
@@ -583,33 +588,13 @@ class SurveyBlocQuestion extends CommonObject
         }
     }
 
-    /**
-     *  Delete a line of object in database
-     *
-     *	@param  User	$user       User that delete
-     *  @param	int		$idline		Id of line to delete
-     *  @param 	bool 	$notrigger  false=launch triggers after, true=disable triggers
-     *  @return int         		>0 if OK, <0 if KO
-     */
-    public function deleteLine(User $user, $idline, $notrigger = false)
+    public function deleteExtraFields()
     {
-        if ($this->status < 0) {
-            $this->error = 'ErrorDeleteLineNotAllowedByObjectStatus';
-            return -2;
+        $result = parent::deleteExtraFields();
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
         }
-
-        return $this->deleteLineCommon($user, $idline, $notrigger);
-    }
-
-    /**
-     * Initialise object with example values
-     * Id must be 0 if object instance is a specimen
-     *
-     * @return void
-     */
-    public function initAsSpecimen()
-    {
-        $this->initAsSpecimenCommon();
+        return $result;
     }
 
     /**
@@ -671,6 +656,7 @@ class SurveyBlocQuestion extends CommonObject
             $this->insertExtraFields();
         }
         if (empty($this->errors)) {
+            removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
             $this->db->commit();
             return 1;
         } else {

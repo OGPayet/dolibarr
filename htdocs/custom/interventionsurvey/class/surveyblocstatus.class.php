@@ -439,6 +439,9 @@ class SurveyBlocStatus extends CommonObject
             unset($this->fields[$field]);
         }
         $result = $this->updateCommon($user, $notrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
         $this->fields = $saveFields;
         return $result;
     }
@@ -457,6 +460,7 @@ class SurveyBlocStatus extends CommonObject
         $errors = array();
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
+            removeStaledDataCache($this->id, self::$DB_CACHE, self::$DB_CACHE_FROM_SURVEYBLOCQUESTION);
             foreach ($this->predefined_texts as $predefined_text) {
                 $predefined_text->delete($user, $notrigger);
                 $errors = array_merge($errors, $predefined_text->errors ?? array());
@@ -470,24 +474,6 @@ class SurveyBlocStatus extends CommonObject
             $this->errors = $errors;
             return -1;
         }
-    }
-
-    /**
-     *  Delete a line of object in database
-     *
-     *	@param  User	$user       User that delete
-     *  @param	int		$idline		Id of line to delete
-     *  @param 	bool 	$notrigger  false=launch triggers after, true=disable triggers
-     *  @return int         		>0 if OK, <0 if KO
-     */
-    public function deleteLine(User $user, $idline, $notrigger = false)
-    {
-        if ($this->status < 0) {
-            $this->error = 'ErrorDeleteLineNotAllowedByObjectStatus';
-            return -2;
-        }
-
-        return $this->deleteLineCommon($user, $idline, $notrigger);
     }
 
     /**

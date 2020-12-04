@@ -475,6 +475,9 @@ class SurveyQuestion extends CommonObject
             unset($this->fields[$field]);
         }
         $result = $this->updateCommon($user, $notrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
         $this->fields = $saveFields;
         return $result;
     }
@@ -494,6 +497,7 @@ class SurveyQuestion extends CommonObject
         $errors = array();
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
+            removeStaledDataCache($this->id, self::$DB_CACHE, self::$DB_CACHE_FROM_SURVEYBLOCQUESTION);
             foreach ($this->answers as $answer) {
                 $answer->delete($user, $notrigger);
                 $errors = array_merge($errors, $answer->errors ?? array());
@@ -507,6 +511,15 @@ class SurveyQuestion extends CommonObject
             $this->errors = $errors;
             return -1;
         }
+    }
+
+    public function deleteExtraFields()
+    {
+        $result = parent::deleteExtraFields();
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
+        }
+        return $result;
     }
 
     /**
@@ -750,7 +763,9 @@ class SurveyQuestion extends CommonObject
                     }
 
         $result = parent::insertExtraFields($trigger, $userused);
-
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
+        }
         return $result;
     }
 

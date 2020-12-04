@@ -261,8 +261,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                 $interventionSurvey = new InterventionSurvey($this->db);
                 if (
-                    $interventionSurvey->fetch($object->id) > 0
-                    && $interventionSurvey->fetchSurvey() > 0
+                    $interventionSurvey->fetch($object->id, '', true, true) > 0
                 ) {
                     $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
                     $object->errors = array_merge($object->errors, $interventionSurvey->errors);
@@ -275,8 +274,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                 $interventionSurvey = new InterventionSurvey($this->db);
                 if (
-                    $interventionSurvey->fetch($object->id) > 0
-                    && $interventionSurvey->fetchSurvey() > 0
+                    $interventionSurvey->fetch($object->id, '', true, true) > 0
                 ) {
                     $interventionSurvey->deleteSurvey($user);
                     $object->errors = array_merge($object->errors, $interventionSurvey->errors);
@@ -290,8 +288,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                     dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                     $interventionSurvey = new InterventionSurvey($this->db);
                     if (
-                        $interventionSurvey->fetch($object->id) > 0
-                        && $interventionSurvey->fetchSurvey() > 0
+                        $interventionSurvey->fetch($object->id, '', true, true) > 0
                         && !$interventionSurvey->areDataValid()
                     ) {
                         $object->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');

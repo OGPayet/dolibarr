@@ -96,4 +96,37 @@ class InterventionSurveyLine extends FichinterLigne
         }
         return $result;
     }
+
+    public function update($user, $noTrigger = 0) {
+        $result = parent::update($user, $noTrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
+        return $result;
+    }
+
+    public function delete($user, $noTrigger = 0) {
+        $result = parent::delete($user, $noTrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE, self::$DB_CACHE_FROM_FICHINTER);
+        }
+        return $result;
+    }
+
+    public function insertExtraFields()
+    {
+        $result = parent::insertExtraFields();
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
+        }
+    }
+
+    public function deleteExtraFields()
+    {
+        $result = parent::deleteExtraFields();
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
+        }
+        return $result;
+    }
 }

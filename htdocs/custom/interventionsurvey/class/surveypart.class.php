@@ -395,6 +395,9 @@ class SurveyPart extends CommonObject
             unset($this->fields[$field]);
         }
         $result = $this->updateCommon($user, $notrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
         $this->fields = $saveFields;
         return $result;
     }
@@ -420,8 +423,8 @@ class SurveyPart extends CommonObject
                 $errors = array_merge($errors, $bloc->errors ?? array());
             }
         }
-        if (!$atLeastOneBlocHasNotBeenDeleted) {
-            $this->deleteCommon($user, $notrigger);
+        if (!$atLeastOneBlocHasNotBeenDeleted && $this->deleteCommon($user, $notrigger) > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE, self::$DB_CACHE_FROM_FICHINTER);
         }
         if (empty($errors)) {
             $this->db->commit();

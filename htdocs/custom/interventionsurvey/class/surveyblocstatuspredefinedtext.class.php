@@ -455,6 +455,9 @@ class SurveyBlocStatusPredefinedText extends CommonObject
             unset($this->fields[$field]);
         }
         $result = $this->updateCommon($user, $notrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
         $this->fields = $saveFields;
         return $result;
     }
@@ -468,7 +471,11 @@ class SurveyBlocStatusPredefinedText extends CommonObject
      */
     public function delete(User &$user, $notrigger = true)
     {
-        return $this->deleteCommon($user, $notrigger);
+        $result = $this->deleteCommon($user, $notrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE, self::$DB_CACHE_FROM_SURVEYBLOCSTATUS);
+        }
+        return $result;
         //return $this->deleteCommon($user, $notrigger, 1);
     }
 

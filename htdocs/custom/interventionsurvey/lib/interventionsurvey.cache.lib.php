@@ -184,16 +184,14 @@ function commonLoadCacheIdForLinkedObject(&$cacheOfLinkedObjectIds, $fieldNameOf
  * @param array $arrayOfCacheLinkedObjectIdsAndPropertyValue array of linkedObject ids and property value  array(array('propertyValue'=>linkedObjectIdsOfDeletedObject, 'cacheLinkedIds'=>cache of linked ids))
  * @return void
  */
-function removeStaledDataCache($objectId, &$cacheOfObject, &$arrayOfCacheLinkedObjectIdsAndPropertyValue)
+function removeStaledDataCache($objectId, &$cacheOfObject, &$arrayOfCacheLinkedObjectIds = array())
 {
     if(is_array($cacheOfObject) && $cacheOfObject[$objectId]){
         unset($cacheOfObject[$objectId]);
     }
-    foreach($arrayOfCacheLinkedObjectIdsAndPropertyValue as &$cacheLinkedObjectIdsAndPropertyValue) {
-        $propertyValue = $cacheLinkedObjectIdsAndPropertyValue['propertyValue'];
-        $arrayOfCacheLinkedIds = $cacheLinkedObjectIdsAndPropertyValue['cacheLinkedIds'];
-        if(is_array($arrayOfCacheLinkedIds) && $arrayOfCacheLinkedIds[$propertyValue]) {
-            unset($arrayOfCacheLinkedIds[$propertyValue][$propertyValue]);
+    foreach($arrayOfCacheLinkedObjectIds as $parentObjectId => $listOfObjectIds) {
+        if($arrayOfCacheLinkedObjectIds[$parentObjectId][$objectId]) {
+            unset($arrayOfCacheLinkedObjectIds[$parentObjectId][$objectId]);
         }
     }
 }

@@ -281,7 +281,6 @@ class InterventionSurveyApi extends DolibarrApi
 
         dol_syslog("API Rest request");
         $result = $this->db->query($sql);
-
         if ($result) {
             $arrayOfInterventionIds = array();
             $num = $this->db->num_rows($result);
@@ -332,7 +331,6 @@ class InterventionSurveyApi extends DolibarrApi
         if (!($id > 0)) {
             throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
         }
-
         $result = $this->interventionSurvey->fetch($id, '', true, true);
         if (!($result > 0)) {
             throw new RestException(404, 'Intervention not found');
@@ -382,7 +380,7 @@ class InterventionSurveyApi extends DolibarrApi
             $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user, $request, true);
         }
 
-//Add linked equipment to the intervention and update intervention survey
+        //Add linked equipment to the intervention and update intervention survey
         $this->interventionSurvey->fetchObjectLinked();
         if ($request_data->linkedObjectsIds && $request_data->linkedObjectsIds->equipement)
         {
@@ -407,7 +405,7 @@ class InterventionSurveyApi extends DolibarrApi
             //If we want to unlinked some equipement, links should be deleted here
             //We update survey with data from dictionnary as some equipment may have been removed/deleted
             if(!empty($newLinkedEquipementsIds)) {
-                $this->interventionSurvey->fetchObjectLinked();
+                $this->interventionSurvey->fetchObjectLinkedIdsWithCache(true, true);
                 $this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
             }
         }

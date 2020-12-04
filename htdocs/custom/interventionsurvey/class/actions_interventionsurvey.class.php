@@ -155,8 +155,7 @@ class ActionsInterventionSurvey
                     dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                     $interventionSurvey = new InterventionSurvey($this->db);
                     if (
-                        $interventionSurvey->fetch($interId) > 0
-                        && $interventionSurvey->fetchSurvey() > 0
+                        $interventionSurvey->fetch($interId, null, true, true) > 0
                         && (!$interventionSurvey->is_survey_read_only() || $interventionSurvey->statut == InterventionSurvey::STATUS_DRAFT)
                     ) {
                         $interventionSurvey->softUpdateOfSurveyFromDictionary($user);

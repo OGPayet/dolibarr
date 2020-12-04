@@ -311,7 +311,7 @@ if ($object->id > 0) {
 
     //Prepare needed data for following form
     $object->fetch_attached_files();
-    $object->fetch($id, $ref, true, true);
+    $object->fetch($id, $ref, true);
 
     if (!empty($object->errors)) {
         setEventMessages("", $object->errors, 'errors');

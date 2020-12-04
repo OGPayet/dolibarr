@@ -674,8 +674,11 @@ class InterventionSurvey extends Fichinter
      *
      */
 
-    public function fetchSurvey($forceDataFromCache = false)
+    public function fetchSurvey($forceDataFromCache = false, $forceReload = false)
     {
+        if($forceReload || !SurveyPart::$DB_CACHE_FROM_FICHINTER[$this->id]) {
+            SurveyPart::fillCacheFromParentObjectIds(array($this->id));
+        }
         $this->survey = array();
         return interventionSurveyFetchCommonLineWithCache(" ORDER BY position ASC", "SurveyPart", $this->survey, $this, SurveyPart::$DB_CACHE_FROM_FICHINTER, SurveyPart::$DB_CACHE, $forceDataFromCache);
     }
@@ -951,7 +954,7 @@ class InterventionSurvey extends Fichinter
         $errors = array();
         $this->db->begin();
         if ($forceUpdateFromBdd) {
-            $this->fetchSurvey();
+            $this->fetchSurvey(true, true);
         }
         foreach ($this->survey as $surveyPart) {
             if (empty($surveyPart->blocs)) {
@@ -959,7 +962,7 @@ class InterventionSurvey extends Fichinter
                 $errors = array_merge($errors, $surveyPart->errors);
             }
         }
-        $this->fetchSurvey();
+        $this->fetchSurvey(true, true);
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
             $this->db->commit();
@@ -1406,5 +1409,38 @@ class InterventionSurvey extends Fichinter
             dol_print_error($this->db);
             return -1;
         }
+    }
+
+    public function update($user, $noTrigger = 0) {
+        $result = parent::update($user, $noTrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
+        return $result;
+    }
+
+    public function delete($user, $noTrigger = 0) {
+        $result = parent::delete($user, $noTrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
+        return $result;
+    }
+
+    public function insertExtraFields()
+    {
+        $result = parent::insertExtraFields();
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
+        }
+    }
+
+    public function deleteExtraFields()
+    {
+        $result = parent::deleteExtraFields();
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
+        }
+        return $result;
     }
 }

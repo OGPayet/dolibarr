@@ -440,6 +440,9 @@ class SurveyAnswer extends CommonObject
             unset($this->fields[$field]);
         }
         $result = $this->updateCommon($user, $notrigger);
+        if($result > 0) {
+            removeStaledDataCache($this->id, self::$DB_CACHE);
+        }
         $this->fields = $saveFields;
         return $result;
     }
@@ -458,6 +461,7 @@ class SurveyAnswer extends CommonObject
         $errors = array();
         $errors = array_merge($errors, $this->errors);
         if (empty($errors)) {
+            removeStaledDataCache($this->id, self::$DB_CACHE, self::$DB_CACHE_FROM_SURVEYQUESTION);
             foreach ($this->predefined_texts as $predefined_text) {
                 $predefined_text->delete($user, $notrigger);
                 $errors = array_merge($errors, $predefined_text->errors ?? array());

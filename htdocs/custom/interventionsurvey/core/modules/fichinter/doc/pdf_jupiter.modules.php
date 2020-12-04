@@ -191,12 +191,9 @@ class pdf_jupiter extends ModelePDFFicheinter
 
             if (file_exists($dir) && file_exists($temp_dir_signature)) {
                 $new_object = new InterventionSurvey($this->db);
-                $new_object->fetch($object->id);
+                $new_object->fetch($object->id, '', true, true);
                 $object = $new_object;
-
-                $object->fetchSurvey();
                 $object->fetch_thirdparty();
-                $object->fetch_optionals();
                 $effective_working_time = $this->_fetch_effective_working_time($object, $outputlangs);
 
                 // Add pdfgeneration hook
@@ -922,7 +919,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         $width_question_extrafield = $width_question - ($circle_offset * 2 + $padding);
 
         // Print extrafields of the question bloc
-        $question_bloc->fetch_optionals();
+        $question_bloc->fetch_optionals(null, null, true);
         foreach ($question_bloc->extrafields as $key) {
             // Save for the calculation of the position Y origin
             $page_origin = $pdf->getPage();
@@ -999,7 +996,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                 // Print extrafields of the question
                 $question->fetchExtraFieldsInfo();
-                $question->fetch_optionals();
+                $question->fetch_optionals(null, null, true);
                 foreach ($question->extrafields as $key) {
                     // Save for the calculation of the position Y origin
                     $page_origin = $pdf->getPage();
@@ -1055,7 +1052,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         if (is_array($object->lines) && count($object->lines)) {
             foreach ($object->lines as $line) {
                 // Get involved user id
-                $line->fetch_optionals();
+                $line->fetch_optionals(null, null, true);
                 $user_ids = !empty($line->array_options['options_involved_users']) ? explode(',', $line->array_options['options_involved_users']) : array('');
 
                 foreach ($user_ids as $user_id) {
