@@ -192,17 +192,8 @@ class FormDigitalSignaturePeople
 	 */
 	public function getAvailableContactSelectForm($object, $selectedContactId)
 	{
-		global $hookmanager, $action;
 		$listOfContactIdAlreadyLinked = $this->elementObjectStatic->getIdOfContactIntoThesePeople($object->people);
-		$hookmanager->initHooks(array('digitalsignaturemanager'));
-		$parameters = array('listOfContactIdAlreadyLinked' => $listOfContactIdAlreadyLinked);
-		$reshook = $hookmanager->executeHooks('availableContactListId', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
-		if ($reshook > 0 && is_array($hookmanager->resPrint)) {
-			$listOfContactId = $hookmanager->resPrint;
-		} else {
-			$listOfContactId = '';
-		}
-		return $this->formDigitalSignatureManager->selectcontacts(is_array($listOfContactId) ? 0 : $object->getLinkedThirdpartyId(), $selectedContactId, self::ELEMENT_POST_FOREIGN_KEY_LINKED_CONTACT, 0, $listOfContactIdAlreadyLinked, $listOfContactId, 0, 'fullwidth', null, null, null, null, true);
+		return $this->formDigitalSignatureManager->selectContact($object, $selectedContactId, self::ELEMENT_POST_FOREIGN_KEY_LINKED_CONTACT, $object->getLinkedThirdpartyId(), array(), $listOfContactIdAlreadyLinked);
 	}
 
 	/**
@@ -213,17 +204,8 @@ class FormDigitalSignaturePeople
 	 */
 	public function getAvailableUserSelectForm($object, $selectedUserId)
 	{
-		global $hookmanager, $action;
 		$listOfUserIdAlreadyLinked = $this->elementObjectStatic->getIdOfUserIntoThesePeople($object->people);
-		$hookmanager->initHooks(array('digitalsignaturemanager'));
-		$parameters = array('listOfUserIdAlreadyLinked' => $listOfUserIdAlreadyLinked);
-		$reshook = $hookmanager->executeHooks('availableUserListId', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
-		if ($reshook > 0 && is_array($hookmanager->resPrint)) {
-			$listOfUserId = $hookmanager->resPrint;
-		} else {
-			$listOfUserId = '';
-		}
-		return $this->form->select_dolusers($selectedUserId, self::ELEMENT_POST_FOREIGN_KEY_LINKED_USER, 0, $listOfUserIdAlreadyLinked, 0, $listOfUserId, '', null, null, null, null, null, null, 'fullwidth', 1);
+		return $this->formDigitalSignatureManager->selectUser($object, $selectedUserId, self::ELEMENT_POST_FOREIGN_KEY_LINKED_USER, $listOfUserIdAlreadyLinked);
 	}
 
 	/**

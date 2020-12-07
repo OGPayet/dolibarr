@@ -47,7 +47,7 @@ class DigitalSignatureDocumentTypeManager
 			$maskOfThisModulePart = DigitalSignatureManagerMaskGeneratorEnumerator::getAvailableModelsForCoreModulePart($db, $modulePart);
 			$displayedMaskOfThisModulePart = array();
 			foreach ($maskOfThisModulePart as $key => $displayName) {
-				$displayedMaskOfThisModulePart[$modulePart . ' - ' . $key] = $modulePart . ' - ' . $displayName;
+				$displayedMaskOfThisModulePart[$key] = $modulePart . ' - ' . $displayName;
 			}
 			$arrayOfMask = array_merge($arrayOfMask, $displayedMaskOfThisModulePart);
 		}

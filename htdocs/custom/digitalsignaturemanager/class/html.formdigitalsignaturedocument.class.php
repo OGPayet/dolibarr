@@ -454,7 +454,7 @@ class FormDigitalSignatureDocument
 			} elseif ($documentToEdit->getDocumentName() != $newFileName && !$documentToEdit->renameDocument($newFileName, $user)) {
 				$action = self::EDIT_ACTION_NAME;
 				setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileSavingEditedDocument'), $documentToEdit->errors, 'errors');
-			} elseif ($documentToEdit = self::updateFromPost($documentToEdit) && $documentToEdit->update($user) < 0) {
+			} elseif (($documentToEdit = self::updateFromPost($documentToEdit)) && $documentToEdit->update($user) < 0) {
 				$action = self::EDIT_ACTION_NAME;
 				setEventMessages($langs->trans('DigitalSignatureManagerDocumentErrorWhileUpdating'), $documentToEdit->errors, 'errors');
 			} else {

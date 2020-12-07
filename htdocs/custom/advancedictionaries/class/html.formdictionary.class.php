@@ -411,7 +411,7 @@ class FormDictionary
      *     @param  	int			$height          	Force height of box
      *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
      *     @param	int			$post				Send by form POST.
-     *     @param	int			$post				Resizable box (0=no, 1=yes).
+     *     @param	int			$resizable			Resizable box (0=no, 1=yes).
      *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
      */
 	public function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0, $resizable=0)

@@ -97,6 +97,11 @@ class DigitalSignatureDocument extends CommonObject
 	public static $cache_checkbox_dictionary = null;
 
 	/**
+	 * @var Array[] Dictionary signatory fields cache
+	 */
+	public static $cache_signatoryfields_dictionary = null;
+
+	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
 	 *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
 	 *  'label' the translation key.
@@ -801,6 +806,34 @@ class DigitalSignatureDocument extends CommonObject
 	}
 
 	/**
+	 * Get Dictionary checkbox data
+	 * @param DoliDB $db Database instance to use
+	 * @return stdClass[]
+	 */
+	public static function getSignatoryFieldsFromDictionary($db)
+	{
+		if (!self::$cache_checkbox_dictionary) {
+			self::fetchSignatoryFieldsDictionary($db);
+		}
+		return self::$cache_signatoryfields_dictionary;
+	}
+
+	/**
+	 * Get signatory fields from dictionary of this document
+	 * @return DigitalSignatureSignatoryFieldsDictionary[]
+	 */
+	public function getDictionarySignatoryFieldsOfThisDocument()
+	{
+		$result = array();
+		foreach(self::getSignatoryFieldsFromDictionary($this->db) as $signatoryField) {
+			if(in_array($this->getSourceOfThisFile(), $signatoryField->concernedMask)) {
+				$result[$signatoryField->c_rowid] = $signatoryField;
+			}
+		}
+		return $result;
+	}
+
+	/**
 	 * Load checkbox dictionary into cache
 	 * @param DoliDB $db Database instance to use
 	 * @return void
@@ -812,6 +845,21 @@ class DigitalSignatureDocument extends CommonObject
 			'digitalsignaturecheckbox',
 			array("position", "label", "availableOnlyForMasks", "added_by_default"),
 			array("availableOnlyForMasks", "added_by_default")
+		);
+	}
+
+		/**
+	 * Load checkbox dictionary into cache
+	 * @param DoliDB $db Database instance to use
+	 * @return void
+	 */
+	public static function fetchSignatoryFieldsDictionary($db)
+	{
+		self::$cache_signatoryfields_dictionary = self::fetchProperDataFromDictionary(
+			$db,
+			'digitalsignaturesignatoryfields',
+			array("concernedMask", "position", "label", "pageNumber", "x", "y", "linkedContactType"),
+			array("concernedMask", "linkedContactType")
 		);
 	}
 

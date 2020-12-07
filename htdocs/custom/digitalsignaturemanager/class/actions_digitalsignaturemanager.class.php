@@ -23,6 +23,7 @@
  * Put detailed description here.
  */
 
+ dol_include_once('/digitalsignaturemanager/class/extendedEcm.class.php');
 /**
  * Class ActionsDigitalSignatureManager
  */
@@ -54,6 +55,11 @@ class ActionsDigitalSignatureManager
 	 */
 	public $resprints;
 
+	/**
+	 * @var FormDigitalSignatureRequestTemplate;
+	 */
+	public $formDigitalSignatureRequestTemplate;
+
 
 	/**
 	 * Constructor
@@ -63,6 +69,8 @@ class ActionsDigitalSignatureManager
 	public function __construct($db)
 	{
 		$this->db = $db;
+		dol_include_once("/digitalsignaturemanager/class/html.formdigitalsignaturerequesttemplate.class.php");
+		$this->formDigitalSignatureRequestTemplate = new FormDigitalSignatureRequestTemplate($this->db);
 	}
 
 	/**
@@ -150,7 +158,7 @@ class ActionsDigitalSignatureManager
 	 */
 	public function updateMaskNameInEcm($fileFullPath, $maskName)
 	{
-		global $user;
+		global $user, $conf;
 
 		if (!empty($fileFullPath))
 		{
@@ -165,7 +173,6 @@ class ActionsDigitalSignatureManager
 				$rel_dir = preg_replace('/[\\/]$/', '', $rel_dir);
 				$rel_dir = preg_replace('/^[\\/]/', '', $rel_dir);
 
-				include_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmfiles.class.php';
 				$ecmfile = new ExtendedEcm($this->db);
 				$result = $ecmfile->fetch(0, '', ($rel_dir ? $rel_dir.'/' : '').$filename);
 
@@ -202,5 +209,51 @@ class ActionsDigitalSignatureManager
 				}
 			}
 		}
+	}
+
+    /**
+     * Overloading the addMoreActionsButtons function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	public function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
+	{
+		$contexts = explode(':', $parameters['context']);
+		if(in_array('propalcard', $contexts) && $object->statut == $object::STATUS_VALIDATED) {
+			print $this->formDigitalSignatureRequestTemplate->getCreateFromObjectButton($object->id);
+		}
+		return 0;
+	}
+
+	/**
+	 * Overloading the formConfirm function : replacing the parent's function with the one below
+	 *
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function formConfirm($parameters, &$object, &$action, $hookmanager)
+	{
+		$contexts = explode(':', $parameters['context']);
+		if(in_array('propalcard', $contexts)) {
+			$selectFiles = $this->formDigitalSignatureRequestTemplate->manageCreateFromAction($action, $object);
+			$selectSigners = $this->formDigitalSignatureRequestTemplate->manageCreateFromSelectedFiles($action, $object);
+			if($selectFiles) {
+				$result = $selectFiles;
+			} elseif($selectSigners) {
+				$result = $selectSigners;
+			}
+			if($result) {
+				$this->resprints = $result;
+				return 1;
+			}
+		}
+		return 0;
 	}
 }

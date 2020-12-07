@@ -110,7 +110,7 @@ class ExtendedEcm extends EcmFiles
 			$sql .= ' AND ' . implode(' ' . $filtermode . ' ', $sqlwhere);
 		}
 		if (!empty($sortfield)) {
-			$sql .= $this->db->order($sortfield, $sortorder);
+			$sql .= " ORDER BY " . $sortfield . " " . $sortorder;
 		}
 		if (!empty($limit)) {
 			$sql .=  ' ' . $this->db->plimit($limit, $offset);
@@ -239,9 +239,9 @@ class ExtendedEcm extends EcmFiles
 	{
 		self::deleteAdditionalProperty($db, $instance->id);
 		$sql = "INSERT INTO " . MAIN_DB_PREFIX . self::$extended_table_element . " (fk_ecm, mask) VALUES ";
-		$sqlId = $instance->id ? $db->escape($instance->id) : "NULL";
-		$maskSql = $instance->mask ?  $db->escape($instance->mask) : "NULL";
-		$sql .= "(" . $sqlId . ',' . $maskSql . ')';
+		$sqlId = $instance->id ? $db->escape($instance->id) : NULL;
+		$maskSql = $instance->mask ?  $db->escape($instance->mask) : NULL;
+		$sql .= "(" . $sqlId . ',"' . $maskSql . '")';
 		$resql = $instance->db->query($sql);
 		if ($resql) {
 			$result = 1;
@@ -365,6 +365,19 @@ class ExtendedEcm extends EcmFiles
 			return false;
 		}
 		return $this->moveFileTo($this->filepath, $newFileName, $user);
+	}
+
+	/**
+	 * Function to get relative directory according to document folder of a file, given its absolute path on system
+	 * @param string $absolutePathOfFile Absolute path on system of the file
+	 * @return string
+	 */
+	public static function getRelativeDirectoryOfADirectory($absolutePathOfFile)
+	{
+		$rel_dir = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $absolutePathOfFile);
+		$rel_dir = preg_replace('/[\\/]$/', '', $rel_dir);
+		$rel_dir = preg_replace('/^[\\/]/', '', $rel_dir);
+		return $rel_dir;
 	}
 
 	/**
