@@ -871,7 +871,7 @@ class DigitalSignaturePeople extends CommonObject
 	 * @param bool $overrideData Override data even if destination field is not empty and source field empty
 	 * @return int         <0 if KO, >0 if OK
 	 * */
-	public function fillDataFromContactId($contactId, $overrideData)
+	public function fillDataFromContactId($contactId, $overrideData = true)
 	{
 		$contact = self::fetchObjectWithItsIdAndType($contactId, self::LINKED_OBJECT_CONTACT_TYPE, $this->db);
 		if(!$contact) {
@@ -896,7 +896,7 @@ class DigitalSignaturePeople extends CommonObject
 	 * @param bool $overrideData Override data even if destination field is not empty and source field empty
 	 * @return int         <0 if KO, >0 if OK
 	 * */
-	public function fillDataFromUserId($userId, $overrideData)
+	public function fillDataFromUserId($userId, $overrideData = true)
 	{
 		$user = self::fetchObjectWithItsIdAndType($userId, self::LINKED_OBJECT_USER_TYPE, $this->db);
 		if(!$user) {
@@ -1019,5 +1019,21 @@ class DigitalSignaturePeople extends CommonObject
 			return '33' . substr($this->phoneNumber, -9);
 		}
 		return "";
+	}
+
+	/**
+	 * Function to generate an unique identifier of this signatory people based on its data
+	 * @return string
+	 */
+	public function generateUniqueIdentifier()
+	{
+		$arrayOfValuesUsed = array(
+			$this->fk_people_object,
+			$this->fk_people_type ?? 'freeSignatory',
+			$this->firstName,
+			$this->lastName
+		);
+		$arrayOfValuesUsed = array_filter($arrayOfValuesUsed);
+		return implode('-', $arrayOfValuesUsed);
 	}
 }

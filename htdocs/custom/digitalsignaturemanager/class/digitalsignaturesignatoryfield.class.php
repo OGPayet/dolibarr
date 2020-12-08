@@ -133,6 +133,7 @@ class DigitalSignatureSignatoryField extends CommonObject
 	 */
 	public $fields=array(
 		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>'1', 'position'=>1, 'notnull'=>1, 'visible'=>0, 'noteditable'=>'1', 'index'=>1, 'comment'=>"Id"),
+		'c_rowid' => array('type'=>'integer', 'label'=>'Id from dictionary which generate this request', 'enabled'=>'1', 'position'=>1, 'notnull'=>1, 'visible'=>0, 'noteditable'=>'1', 'index'=>1, 'comment'=>"Id"),
 		'fk_digitalsignaturerequest' => array('type'=>'integer:DigitalSignatureRequest:digitalsignaturemanager/class/digitalsignaturerequest.class.php', 'label'=>'Linked Digital Signature Request', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
 		'fk_chosen_digitalsignaturepeople' => array('type'=>'integer:DigitalSignaturePeople:digitalsignaturemanager/class/digitalsignaturepeople.class.php', 'label'=>'Chosen Digital Signature people', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
 		'fk_chosen_digitalsignaturedocument' => array('type'=>'integer:DigitalSignatureDocument:digitalsignaturemanager/class/digitalsignaturedocument.class.php', 'label'=>'Chosen Digital Signature Document', 'enabled'=>'1', 'position'=>11, 'notnull'=>1, 'visible'=>1, 'index'=>1,),
@@ -144,6 +145,7 @@ class DigitalSignatureSignatoryField extends CommonObject
 		'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>501, 'notnull'=>0, 'visible'=>-2,),
 	);
 	public $rowid;
+	public $c_rowid;
 	public $fk_digitalsignaturerequest;
 	public $fk_chosen_digitalsignaturepeople;
 	public $fk_chosen_digitalsignaturedocument;

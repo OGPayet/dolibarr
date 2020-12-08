@@ -596,7 +596,7 @@ class DigitalSignatureRequest extends CommonObject
 			$num = $this->ref;
 		}
 		$this->ref = $num;
-		$returnedValues = $this->externalProviderService->create($this);
+		$returnedValues = $this->externalProviderService->create();
 		if($returnedValues && !empty($returnedValues['id'])) {
 			$this->externalId = $returnedValues['id'];
 			$this->externalUrl = $returnedValues['url'];
@@ -1308,7 +1308,7 @@ class DigitalSignatureRequest extends CommonObject
 	 * @param  int         $offset       Offset
 	 * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
 	 * @param  string      $filtermode   Filter mode (AND or OR)
-	 * @return array|int                 int <0 if KO, array of pages if OK
+	 * @return DigitalSignatureRequest[]|null
 	 */
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND')
 	{
@@ -1373,7 +1373,7 @@ class DigitalSignatureRequest extends CommonObject
 			$this->errors[] = 'Error '.$this->db->lasterror();
 			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
 
-			return -1;
+			return null;
 		}
 	}
 
@@ -1406,5 +1406,22 @@ class DigitalSignatureRequest extends CommonObject
 			$this->db->rollback();
 			return false;
 		}
+	}
+
+	/**
+	 * Function to delete files to sign on disk
+	 * @return bool
+	 */
+	public function deleteFilesToSign()
+	{
+		$result = true;
+		//We remove files
+		foreach($this->documents as $document) {
+			$ecmFile = $document->getLinkedEcmFile();
+			if($ecmFile && !$ecmFile->deleteFile()) {
+				$result = false;
+			}
+		}
+		return $result;
 	}
 }

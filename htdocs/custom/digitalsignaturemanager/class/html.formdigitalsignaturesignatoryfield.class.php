@@ -111,6 +111,11 @@ class FormDigitalSignatureSignatoryField
 	/**
 	 * @var string name of the post field containing Element id
 	 */
+	const ELEMENT_POST_LABEL_FIELD_NAME = 'signatoryFieldLabel';
+
+	/**
+	 * @var string name of the post field containing Element id
+	 */
 	const ELEMENT_POST_X_AXIS_FIELD_NAME = 'signatoryFieldXAxis';
 
 	/**
@@ -345,6 +350,16 @@ class FormDigitalSignatureSignatoryField
 			$displayWarnings
 		);
 
+		//We show label field
+		$out .= $this->formDigitalSignatureManager->getInputFieldColumn(
+			self::ELEMENT_POST_LABEL_FIELD_NAME,
+			$digitalSignatureSignatoryField->label,
+			$displayInformation,
+			'',
+			$displayWarnings,
+			''
+		);
+
 		//We show page number field
 		$out .= $this->formDigitalSignatureManager->getInputFieldColumn(
 			self::ELEMENT_POST_PAGE_FIELD_NAME,
@@ -424,6 +439,12 @@ class FormDigitalSignatureSignatoryField
 		else {
 			print $langs->trans('DigitalSignatureManagerSignatoryFieldChosenDocumentDoesNotExistAnymore');
 		}
+		print '</td>';
+
+
+		//We label Page field
+		print '<td>';
+		print $digitalSignatureSignatoryField->label;
 		print '</td>';
 
 		//We show Page field
@@ -597,6 +618,7 @@ class FormDigitalSignatureSignatoryField
 		$arrayOfPostParameterAndDigitalSignaturePropertyName = array(
 			self::ELEMENT_POST_DOCUMENT_ID_FIELD_NAME => 'fk_chosen_digitalsignaturedocument',
 			self::ELEMENT_POST_SIGNATORY_ID_FIELD_NAME => 'fk_chosen_digitalsignaturepeople',
+			self::ELEMENT_POST_LABEL_FIELD_NAME => 'label',
 			self::ELEMENT_POST_PAGE_FIELD_NAME => 'page',
 			self::ELEMENT_POST_X_AXIS_FIELD_NAME => 'x',
 			self::ELEMENT_POST_Y_AXIS_FIELD_NAME => 'y'

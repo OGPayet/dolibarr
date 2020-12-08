@@ -203,7 +203,6 @@ Class DigitalSignatureManagerUniversign
 		}
 		catch(Exception $e) {
 			$this->digitalSignatureRequest->errors[] = $e->getMessage();
-			$errors = $this->digitalSignatureRequest->errors;
 			return null;
 		}
 	}

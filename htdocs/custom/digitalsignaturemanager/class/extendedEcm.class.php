@@ -286,7 +286,7 @@ class ExtendedEcm extends EcmFiles
 	 * @param string $destinationFileName change filename if needed
 	 * @return self|null
 	 */
-	public function copyFileTo($relativePath, $destinationFileName)
+	public function copyFileTo($relativePath, $destinationFileName = null)
 	{
 		global $user;
 		$copiedInstanceResult = null;

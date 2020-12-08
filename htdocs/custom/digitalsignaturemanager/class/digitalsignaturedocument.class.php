@@ -417,7 +417,7 @@ class DigitalSignatureDocument extends CommonObject
 		global $langs;
 		$errors = array();
 		if ($this->deleteCommon($user, $notrigger) > 0 && $this->getLinkedEcmFile() && !$this->getLinkedEcmFile()->deleteFile()) {
-			$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileDeletingFile');
+			$errors[] = $langs->trans('DigitalSignatureManagerErrorWhileDeletingFile', $this->getLinkedEcmFile()->filename, $this->getLinkedDigitalSignatureRequest()->ref);
 		}
 		$this->errors = array_merge($this->errors, $errors);
 		return empty($errors) ? 1 : -1;
@@ -891,6 +891,30 @@ class DigitalSignatureDocument extends CommonObject
 				$digitalSignatureRequest->documents[] = $digitalSignatureDocument;
 				$result[] = $digitalSignatureDocument;
 			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Function to get a corrected page number on this document according to a requested page (can be negative)
+	 * @param int $requestedPageNumber wishes page number (can be null or negative)
+	 * @return int positive integer between 1 and $this->getNumberOfPage()
+	 */
+	public function correctPageNumber($requestedPageNumber)
+	{
+		$totalNumberOfPage = $this->getNumberOfPage();
+		$requestedPageNumber = (int) $requestedPageNumber;
+		if($requestedPageNumber == 0) {
+			$requestedPageNumber = 1;
+		}
+		elseif($requestedPageNumber < 0) {
+			$requestedPageNumber = $totalNumberOfPage + $requestedPageNumber + 1;
+		}
+		if($requestedPageNumber <=0 || $requestedPageNumber > $totalNumberOfPage) {
+			$result = 1;
+		}
+		else {
+			$result = $requestedPageNumber;
 		}
 		return $result;
 	}

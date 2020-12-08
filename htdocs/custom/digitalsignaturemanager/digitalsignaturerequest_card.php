@@ -510,6 +510,19 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	include DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_view.tpl.php';
 
+	//We display linked object
+	if(!empty($object->fk_object) && !empty($object->elementtype)) {
+		dol_include_once("/core/lib/functions2.lib.php");
+		print "<tr>";
+		print "<td>";
+		print $langs->trans("DigitalSignatureManagerLinkedObject");
+		print "</td>";
+		print "<td>";
+		print dolGetElementUrl($object->fk_object, $object->elementtype, 1);
+		print "</td>";
+		print "</tr>";
+	}
+
 	// Other attributes. Fields from hook formObjectOptions and Extrafields.
 	include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_view.tpl.php';
 

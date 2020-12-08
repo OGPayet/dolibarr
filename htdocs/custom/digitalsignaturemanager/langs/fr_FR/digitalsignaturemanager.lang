@@ -217,6 +217,7 @@ DigitalSignatureManagerNotDeletable = La demande %s ne peux être supprimé, car
 
 DigitalSignatureRequestExternalId = Id de la demande chez le prestataire
 DigitalSignatureRequestExternalUrl = Lien de la page de signature
+DigitalSignatureManagerLinkedObject = Signature électronique de la pièce commerciale
 DigitalSignatureManagerConfirmClone = Confirmation de l'opération de clonage
 DigitalSignatureManagerConfirmCloneDescription = Confirmez-vous l'opération de clonage de cette demande de signature ?
 DigitalSignatureManagerErrorWhileCanceling = Une erreur a eu lieu lors de l'annulation de la requete de signature
@@ -232,7 +233,11 @@ DigitalSignatureManagerSelectFilesToSignTitle = Signature électronique d'une pi
 DigitalSignatureManagerSelectFilesToSign = Selectionner le ou les documents à envoyer aux signataires pour effectuer la signature électronique de cette pièce commerciale
 DigitalSignatureManagerRequestSign = Signature électronique
 DigitalSignatureManagerSignersForDocument = Signataires à définir pour les champs de signature du document %s
-
+DigitalSignatureManagerNoSettingForDocument = Aucun champs de signature paramétré pour le type de document de %s. Vous devrez manuellement ajouter les champs de signature de ce document ou alors le retirer du processus de signature électronique
+DigitalSignatureManagerSignatoryFieldTitle = Selection du signataire pour le champs de signature : %s
+DigitalSignatureManagerNoSignatorySelected = Pas de signataire sélectionné pour le champs de signature "%s" du document "%s"
+DigitalSignatureManagerFreeSignatoryIncomplete = Information incorrectes pour le champs de signature "%s" du document "%s"
+DigitalSignatureManagerLinkedRequestBlock = Demande de signature électronique pour cette pièce
 #
 # Status
 #
@@ -388,6 +393,7 @@ DigitalSignatureManagerPeopleDeleteEventDescription = Signataire %s supprimé
 # Erreurs
 #
 DigitalSignatureManagerUniversignErrorSavingFileInServer = Une erreur est intervenue lors de la sauvegarde du document signé %s dans le serveur
+DigitalSignatureManagerErrorWhileDeletingFile = Erreur lors de la suppression du fichier %s de la demande %s
 #
 # Page À propos
 #

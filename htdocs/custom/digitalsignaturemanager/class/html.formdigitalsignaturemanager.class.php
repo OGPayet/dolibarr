@@ -28,36 +28,36 @@
 class FormDigitalSignatureManager
 {
 	/**
-     * @var DoliDb		Database handler (result of a new DoliDB)
-     */
+	 * @var DoliDb		Database handler (result of a new DoliDB)
+	 */
 	public $db;
 
-    /**
-     * @var Form  Instance of the form
-     */
-    public $form;
-
-    /**
-     * @var array
-     */
-	public static $errors = array();
-
-    /**
-     * Constructor
-     *
-     * @param   DoliDB $db Database handler
-     */
-    public function __construct(DoliDb $db)
-    {
-        $this->db = $db;
-
-        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-		$this->form = new Form($db);
-    }
+	/**
+	 * @var Form  Instance of the form
+	 */
+	public $form;
 
 	/**
-     *  Show list of actions for element
-     *
+	 * @var array
+	 */
+	public static $errors = array();
+
+	/**
+	 * Constructor
+	 *
+	 * @param   DoliDB $db Database handler
+	 */
+	public function __construct(DoliDb $db)
+	{
+		$this->db = $db;
+
+		require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+		$this->form = new Form($db);
+	}
+
+	/**
+	 *  Show list of actions for element
+	 *
 	 *  @param	int		$digitalSignatureRequestId id of the digital request manager on which we are moving elements
 	 *  @param	int		$lineId id of the element on which we display the action button
 	 *  @param	int		$currentLineIndex	Current index for the line
@@ -65,157 +65,140 @@ class FormDigitalSignatureManager
 	 *  @param 	string 	$upActionName name of the action allowing up move action
 	 *  @param	string  $downActionName name of the action allowing down move action
 	 * 	@param	string  $paramLineIdName name of the field where is stored moved line id
-     *	@return	void
-     */
-    public function showMoveActionButtonsForLine($digitalSignatureRequestId, $lineId, $currentLineIndex, $numberOfDocumentLines, $upActionName, $downActionName, $paramLineIdName)
-    {
+	 *	@return	void
+	 */
+	public function showMoveActionButtonsForLine($digitalSignatureRequestId, $lineId, $currentLineIndex, $numberOfDocumentLines, $upActionName, $downActionName, $paramLineIdName)
+	{
 		global $conf;
 		if (!empty($conf->browser->phone)) {
 			print '<td align="center" class="linecolmove tdlineupdown">';
-			if($currentLineIndex > 0) {
-				print '<a class="lineupdown" href="' . $_SERVER["PHP_SELF"] . '?id=' . $digitalSignatureRequestId . '&amp;action=' . $upActionName . '&amp;' . $paramLineIdName . '='.$lineId . '">';
+			if ($currentLineIndex > 0) {
+				print '<a class="lineupdown" href="' . $_SERVER["PHP_SELF"] . '?id=' . $digitalSignatureRequestId . '&amp;action=' . $upActionName . '&amp;' . $paramLineIdName . '=' . $lineId . '">';
 				print img_up('default', 0, 'imgupforline');
 				print '</a>';
 			}
 
-			if($currentLineIndex != $numberOfDocumentLines - 1) {
-				print '<a class="lineupdown" href="' . $_SERVER["PHP_SELF"] . '?id=' . $digitalSignatureRequestId . '&amp;action=' . $downActionName . '&amp;' . $paramLineIdName . '='.$lineId . '">';
+			if ($currentLineIndex != $numberOfDocumentLines - 1) {
+				print '<a class="lineupdown" href="' . $_SERVER["PHP_SELF"] . '?id=' . $digitalSignatureRequestId . '&amp;action=' . $downActionName . '&amp;' . $paramLineIdName . '=' . $lineId . '">';
 				print img_down('default', 0, 'imgdownforline');
 				print '</a>';
 			}
 			print '</td>';
-		}
-		elseif ($numberOfDocumentLines > 1) {
+		} elseif ($numberOfDocumentLines > 1) {
 			print '<td align="center" class="linecolmove tdlineupdown"></td>';
 		}
 	}
 
 	/**
-     *	Return list of all contacts (for a third party or all)
-     *
-     *	@param	int		$socid      	Id ot third party or 0 for all
-     *	@param  string	$selected   	Id contact pre-selectionne
-     *	@param  string	$htmlname  	    Name of HTML field ('none' for a not editable field)
-     *	@param  int		$showempty     	0=no empty value, 1=add an empty value, 2=add line 'Internal' (used by user edit)
-     *	@param  string	$exclude        List of contacts id to exclude
-     *	@param	string	$limitto		Disable answers that are not id in this array list
-     *	@param	integer	$showfunction   Add function into label
-     *	@param	string	$moreclass		Add more class to class style
-     *	@param	bool	$options_only	Return options only (for ajax treatment)
-     *	@param	integer	$showsoc	    Add company into label
-     * 	@param	int		$forcecombo		Force to use combo box
-     *  @param	array	$events			Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
+	 *	Return list of all contacts (for a third party or all)
+	 *
+	 *	@param	int		$socid      	Id ot third party or 0 for all
+	 *	@param  string	$selected   	Id contact pre-selectionne
+	 *	@param  string	$htmlname  	    Name of HTML field ('none' for a not editable field)
+	 *	@param  int		$showempty     	0=no empty value, 1=add an empty value, 2=add line 'Internal' (used by user edit)
+	 *	@param  string	$exclude        List of contacts id to exclude
+	 *	@param	string	$limitto		Disable answers that are not id in this array list
+	 *	@param	integer	$showfunction   Add function into label
+	 *	@param	string	$moreclass		Add more class to class style
+	 *	@param	bool	$options_only	Return options only (for ajax treatment)
+	 *	@param	integer	$showsoc	    Add company into label
+	 * 	@param	int		$forcecombo		Force to use combo box
+	 *  @param	array	$events			Event options. Example: array(array('method'=>'getContacts', 'url'=>dol_buildpath('/core/ajax/contacts.php',1), 'htmlname'=>'contactid', 'params'=>array('add-customer-contact'=>'disabled')))
 	 *  @param bool 	$hideDisabledItem should we hide disabled choice
 	 *	@return	 int					<0 if KO, Nb of contact in list if OK
-     */
-    public function selectcontacts($socid, $selected = '', $htmlname = 'contactid', $showempty = 0, $exclude = '', $limitto = '', $showfunction = 0, $moreclass = '', $options_only = false, $showsoc = 0, $forcecombo = 0, $events = array(), $hideDisabledItem = false)
-    {
-        global $conf,$langs;
+	 */
+	public function selectcontacts($socid, $selected = '', $htmlname = 'contactid', $showempty = 0, $exclude = '', $limitto = '', $showfunction = 0, $moreclass = '', $options_only = false, $showsoc = 0, $forcecombo = 0, $events = array(), $hideDisabledItem = false)
+	{
+		global $conf, $langs;
 
-        $langs->load('companies');
+		$langs->load('companies');
 
-        $out='';
+		$out = '';
 
-        // On recherche les societes
-        $sql = "SELECT sp.rowid, sp.lastname, sp.statut, sp.firstname, sp.poste";
-        if ($showsoc > 0) $sql.= " , s.nom as company";
-        $sql.= " FROM ".MAIN_DB_PREFIX ."socpeople as sp";
-        if ($showsoc > 0) $sql.= " LEFT OUTER JOIN  ".MAIN_DB_PREFIX ."societe as s ON s.rowid=sp.fk_soc";
-        $sql.= " WHERE sp.entity IN (".getEntity('societe').")";
-        if ($socid > 0) $sql.= " AND sp.fk_soc=".$socid;
-        if (! empty($conf->global->CONTACT_HIDE_INACTIVE_IN_COMBOBOX)) $sql.= " AND sp.statut <> 0";
-        $sql.= " ORDER BY sp.lastname ASC";
+		// On recherche les societes
+		$sql = "SELECT sp.rowid, sp.lastname, sp.statut, sp.firstname, sp.poste";
+		if ($showsoc > 0) $sql .= " , s.nom as company";
+		$sql .= " FROM " . MAIN_DB_PREFIX . "socpeople as sp";
+		if ($showsoc > 0) $sql .= " LEFT OUTER JOIN  " . MAIN_DB_PREFIX . "societe as s ON s.rowid=sp.fk_soc";
+		$sql .= " WHERE sp.entity IN (" . getEntity('societe') . ")";
+		if ($socid > 0) $sql .= " AND sp.fk_soc=" . $socid;
+		if (!empty($conf->global->CONTACT_HIDE_INACTIVE_IN_COMBOBOX)) $sql .= " AND sp.statut <> 0";
+		$sql .= " ORDER BY sp.lastname ASC";
 
-        dol_syslog(get_class($this)."::select_contacts", LOG_DEBUG);
-        $resql=$this->db->query($sql);
-        if ($resql)
-        {
-            $this->db->num_rows($resql);
+		dol_syslog(get_class($this) . "::select_contacts", LOG_DEBUG);
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			$this->db->num_rows($resql);
 
-            if ($conf->use_javascript_ajax && ! $forcecombo && ! $options_only)
-            {
+			if ($conf->use_javascript_ajax && !$forcecombo && !$options_only) {
 				include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-		$comboenhancement = ajax_combobox($htmlname, $events, $conf->global->CONTACT_USE_SEARCH_TO_SELECT);
-		$out.= $comboenhancement;
-            }
+				$comboenhancement = ajax_combobox($htmlname, $events, $conf->global->CONTACT_USE_SEARCH_TO_SELECT);
+				$out .= $comboenhancement;
+			}
 
-            if ($htmlname != 'none' || $options_only) $out.= '<select class="flat'.($moreclass?' '.$moreclass:'').'" id="'.$htmlname.'" name="'.$htmlname.'">';
-            if ($showempty == 1) $out.= '<option value="0"'.($selected=='0'?' selected':'').'></option>';
-            if ($showempty == 2) $out.= '<option value="0"'.($selected=='0'?' selected':'').'>'.$langs->trans("Internal").'</option>';
-            $num = $this->db->num_rows($resql);
-            $i = 0;
-            if ($num)
-            {
-                include_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
-                $contactstatic=new Contact($this->db);
+			if ($htmlname != 'none' || $options_only) $out .= '<select class="flat' . ($moreclass ? ' ' . $moreclass : '') . '" id="' . $htmlname . '" name="' . $htmlname . '">';
+			if ($showempty == 1) $out .= '<option value="0"' . ($selected == '0' ? ' selected' : '') . '></option>';
+			if ($showempty == 2) $out .= '<option value="0"' . ($selected == '0' ? ' selected' : '') . '>' . $langs->trans("Internal") . '</option>';
+			$num = $this->db->num_rows($resql);
+			$i = 0;
+			if ($num) {
+				include_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+				$contactstatic = new Contact($this->db);
 
-                while ($i < $num)
-                {
-                    $obj = $this->db->fetch_object($resql);
+				while ($i < $num) {
+					$obj = $this->db->fetch_object($resql);
 
-                    $contactstatic->id=$obj->rowid;
-                    $contactstatic->lastname=$obj->lastname;
-                    $contactstatic->firstname=$obj->firstname;
-					if ($obj->statut == 1){
-						if ($htmlname != 'none')
-						{
-							$disabled=0;
-							if (is_array($exclude) && count($exclude) && in_array($obj->rowid, $exclude)) $disabled=1;
-							if (is_array($limitto) && count($limitto) && ! in_array($obj->rowid, $limitto)) $disabled=1;
-							if($disabled == 1 && $hideDisabledItem) {
+					$contactstatic->id = $obj->rowid;
+					$contactstatic->lastname = $obj->lastname;
+					$contactstatic->firstname = $obj->firstname;
+					if ($obj->statut == 1) {
+						if ($htmlname != 'none') {
+							$disabled = 0;
+							if (is_array($exclude) && count($exclude) && in_array($obj->rowid, $exclude)) $disabled = 1;
+							if (is_array($limitto) && count($limitto) && !in_array($obj->rowid, $limitto)) $disabled = 1;
+							if ($disabled == 1 && $hideDisabledItem) {
 								continue;
 							}
-							if ($selected && $selected == $obj->rowid)
-							{
-								$out.= '<option value="'.$obj->rowid.'"';
-								if ($disabled) $out.= ' disabled';
-								$out.= ' selected>';
-								$out.= $contactstatic->getFullName($langs);
-								if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
-								if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
-								$out.= '</option>';
+							if ($selected && $selected == $obj->rowid) {
+								$out .= '<option value="' . $obj->rowid . '"';
+								if ($disabled) $out .= ' disabled';
+								$out .= ' selected>';
+								$out .= $contactstatic->getFullName($langs);
+								if ($showfunction && $obj->poste) $out .= ' (' . $obj->poste . ')';
+								if (($showsoc > 0) && $obj->company) $out .= ' - (' . $obj->company . ')';
+								$out .= '</option>';
+							} else {
+								$out .= '<option value="' . $obj->rowid . '"';
+								if ($disabled) $out .= ' disabled';
+								$out .= '>';
+								$out .= $contactstatic->getFullName($langs);
+								if ($showfunction && $obj->poste) $out .= ' (' . $obj->poste . ')';
+								if (($showsoc > 0) && $obj->company) $out .= ' - (' . $obj->company . ')';
+								$out .= '</option>';
 							}
-							else
-							{
-								$out.= '<option value="'.$obj->rowid.'"';
-								if ($disabled) $out.= ' disabled';
-								$out.= '>';
-								$out.= $contactstatic->getFullName($langs);
-								if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
-								if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
-								$out.= '</option>';
-							}
-						}
-						else
-						{
-							if ($selected == $obj->rowid)
-							{
-								$out.= $contactstatic->getFullName($langs);
-								if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
-								if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
+						} else {
+							if ($selected == $obj->rowid) {
+								$out .= $contactstatic->getFullName($langs);
+								if ($showfunction && $obj->poste) $out .= ' (' . $obj->poste . ')';
+								if (($showsoc > 0) && $obj->company) $out .= ' - (' . $obj->company . ')';
 							}
 						}
 					}
-                    $i++;
-                }
-            }
-            else
-			{
-		$out.= '<option value="-1"'.($showempty==2?'':' selected').' disabled>'.$langs->trans($socid?"NoContactDefinedForThirdParty":"NoContactDefined").'</option>';
-            }
-            if ($htmlname != 'none' || $options_only)
-            {
-                $out.= '</select>';
-            }
+					$i++;
+				}
+			} else {
+				$out .= '<option value="-1"' . ($showempty == 2 ? '' : ' selected') . ' disabled>' . $langs->trans($socid ? "NoContactDefinedForThirdParty" : "NoContactDefined") . '</option>';
+			}
+			if ($htmlname != 'none' || $options_only) {
+				$out .= '</select>';
+			}
 
-            $this->num = $num;
-            return $out;
-        }
-        else
-        {
-            dol_print_error($this->db);
-            return -1;
-        }
+			$this->num = $num;
+			return $out;
+		} else {
+			dol_print_error($this->db);
+			return -1;
+		}
 	}
 
 
@@ -228,8 +211,8 @@ class FormDigitalSignatureManager
 	 */
 	public function getColumnTitle($columnTitle, $infoBoxContent = "", $displayInfoBox = false)
 	{
-		$out ='<td class="linecoldescription"><div style="display: flex;">';
-		if($displayInfoBox && !empty($infoBoxContent)) {
+		$out = '<td class="linecoldescription"><div style="display: flex;">';
+		if ($displayInfoBox && !empty($infoBoxContent)) {
 			$out .= $this->getInfoBox(true, $infoBoxContent);
 		}
 		$out .= $columnTitle;
@@ -257,14 +240,14 @@ class FormDigitalSignatureManager
 		if ($shouldInfoBoxBeingDisplayed) {
 			$out .= $this->form->textwithpicto('', $infoBoxContent, 1, 'help', '', 0, 2);
 		}
-		$out .= '<input class="flat" type="'. $inputValueType . '" name="' . $fieldName . '" value="' . $fieldValue . '" ' . $moreInputParameter . ' style="width: -webkit-fill-available;">';
+		$out .= '<input class="flat" type="' . $inputValueType . '" name="' . $fieldName . '" value="' . $fieldValue . '" ' . $moreInputParameter . ' style="width: -webkit-fill-available;">';
 		$out .= $this->getWarningInfoBox($displayWarning, $warningsContent);
 		$out .= '</div>';
 		$out .= '</td>';
 		return $out;
 	}
 
-		/**
+	/**
 	 * Function to display select field into column
 	 * @param string $fieldName Input post field name
 	 * @param string $fieldValue value to be displayed
@@ -301,7 +284,7 @@ class FormDigitalSignatureManager
 	public function getTooltipBox($displayToolTip, $content, $toolTipPictoName = 'info')
 	{
 		$out = "";
-		if(!empty($content) && !is_array($content)) {
+		if (!empty($content) && !is_array($content)) {
 			$content = array($content);
 		}
 		$shouldWarningBoxBeingDisplayed = $displayToolTip && !empty($content);
@@ -342,7 +325,7 @@ class FormDigitalSignatureManager
 	public function getFormElementId($postFieldName)
 	{
 		$result = null;
-		if(!empty($postFieldName)) {
+		if (!empty($postFieldName)) {
 			$result = GETPOST($postFieldName);
 		}
 		return !empty($result) ? $result : null;
@@ -372,25 +355,25 @@ class FormDigitalSignatureManager
 	{
 		$out = $_SERVER["PHP_SELF"];
 		$parameters = array('action' => $actionName, 'id' => $objectId);
-		if($subObjectIdFieldName && $subObjectId) {
+		if ($subObjectIdFieldName && $subObjectId) {
 			$parameters[$subObjectIdFieldName] = $subObjectId;
 		}
 		$parameters = array_filter($parameters);
 
 		$stringValues = array();
-		foreach($parameters as $key=>$value) {
+		foreach ($parameters as $key => $value) {
 			$stringValues[] = $key . '=' . $value;
 		}
 
-		if(!empty($stringValues)) {
+		if (!empty($stringValues)) {
 			$out .= '?';
 		}
 
 		$out .= implode('&amp;', $stringValues);
 
-		if($htmlRowPrefix) {
+		if ($htmlRowPrefix) {
 			$out .= '#' . $htmlRowPrefix;
-			if($subObjectId) {
+			if ($subObjectId) {
 				$out .= '-' . $subObjectId;
 			}
 		}
@@ -403,9 +386,10 @@ class FormDigitalSignatureManager
 	 * @param int $selectedUserId Already selected user id
 	 * @param string $htmlName html name of the form
 	 * @param int[] $excludeFollowingUserIds user ids to exclude from user selection
+	 * @param bool $purposeEmptyChoice Should we allow empty choice (none selected)
 	 * @return string
 	 */
-	public function selectUser($object, $selectedUserId, $htmlName, $excludeFollowingUserIds = array())
+	public function selectUser($object, $selectedUserId, $htmlName, $excludeFollowingUserIds = array(), $purposeEmptyChoice = false)
 	{
 		global $hookmanager;
 		$hookmanager->initHooks(array('digitalsignaturemanager'));
@@ -416,7 +400,7 @@ class FormDigitalSignatureManager
 		} else {
 			$listOfUserId = '';
 		}
-		return $this->form->select_dolusers($selectedUserId, $htmlName, 0, $excludeFollowingUserIds, 0, $listOfUserId, '', null, null, null, null, null, null, 'fullwidth', 1);
+		return $this->form->select_dolusers($selectedUserId, $htmlName, (int) $purposeEmptyChoice, $excludeFollowingUserIds, 0, $listOfUserId, '', null, null, null, null, null, null, 'fullwidth', 1);
 	}
 
 	/**
@@ -429,193 +413,208 @@ class FormDigitalSignatureManager
 	 * @param int[] $excludeFollowingContactIds Remove these contact ids
 	 * @return string
 	 */
-	public function selectContact($object, $selectedContactId, $htmlName, $filterToFollowingSocId, $filterToFollowingContactIds = null, $excludeFollowingContactIds = array()) {
+	public function selectContact($object, $selectedContactId, $htmlName, $filterToFollowingSocId, $filterToFollowingContactIds = null, $excludeFollowingContactIds = array(), $purposeEmptyChoice = false)
+	{
 		global $hookmanager;
 		$hookmanager->initHooks(array('digitalsignaturemanager'));
-		$parameters = array('filterToFollowingSocId' => &$filterToFollowingSocId, 'filterToFollowingContactIds'=>&$filterToFollowingContactIds, 'excludeFollowingContactIds' => &$excludeFollowingContactIds);
+		$parameters = array('filterToFollowingSocId' => &$filterToFollowingSocId, 'filterToFollowingContactIds' => &$filterToFollowingContactIds, 'excludeFollowingContactIds' => &$excludeFollowingContactIds);
 		$reshook = $hookmanager->executeHooks('availableContactListId', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
-		return $this->selectcontacts(is_array($filterToFollowingContactIds) ? 0 : $filterToFollowingSocId, $selectedContactId, $htmlName, 0, $excludeFollowingContactIds, $filterToFollowingContactIds, 0, 'fullwidth', null, null, null, null, true);
+		return $this->selectcontacts(
+			is_array($filterToFollowingContactIds) ? 0 : $filterToFollowingSocId,
+			$selectedContactId,
+			$htmlName,
+			(int) $purposeEmptyChoice,
+			$excludeFollowingContactIds,
+			$filterToFollowingContactIds,
+			0,
+			'fullwidth',
+			null,
+			null,
+			null,
+			null,
+			true
+		);
 	}
 
 	/**
-     *     Show a confirmation HTML form or AJAX popup.
-     *     Easiest way to use this is with useajax=1.
-     *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
-     *     just after calling this method. For example:
-     *       print '<script type="text/javascript">'."\n";
-     *       print 'jQuery(document).ready(function() {'."\n";
-     *       print 'jQuery(".xxxlink").click(function(e) { jQuery("#aparamid").val(jQuery(this).attr("rel")); jQuery("#dialog-confirm-xxx").dialog("open"); return false; });'."\n";
-     *       print '});'."\n";
-     *       print '</script>'."\n";
-     *
-     *     @param  	string		$page        	   	Url of page to call if confirmation is OK
-     *     @param	string		$title       	   	Title
-     *     @param	string		$question    	   	Question
-     *     @param 	string		$action      	   	Action
-     *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
-     * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
-     * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
-     *     @param  	int			$height          	Force height of box
-     *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
-     *     @param	int			$post				Send by form POST.
-     *     @param	int			$resizable			Resizable box (0=no, 1=yes).
-     *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
-     */
-	public function formconfirm($page, $title, $question, $action, $formquestion=array(), $selectedchoice="", $useajax=0, $height=200, $width=500, $post=0, $resizable=0)
-    {
-        global $langs, $conf, $form;
-        global $useglobalvars;
+	 *     Show a confirmation HTML form or AJAX popup.
+	 *     Easiest way to use this is with useajax=1.
+	 *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
+	 *     just after calling this method. For example:
+	 *       print '<script type="text/javascript">'."\n";
+	 *       print 'jQuery(document).ready(function() {'."\n";
+	 *       print 'jQuery(".xxxlink").click(function(e) { jQuery("#aparamid").val(jQuery(this).attr("rel")); jQuery("#dialog-confirm-xxx").dialog("open"); return false; });'."\n";
+	 *       print '});'."\n";
+	 *       print '</script>'."\n";
+	 *
+	 *     @param  	string		$page        	   	Url of page to call if confirmation is OK
+	 *     @param	string		$title       	   	Title
+	 *     @param	string		$question    	   	Question
+	 *     @param 	string		$action      	   	Action
+	 *	   @param  	array		$formquestion	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
+	 * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
+	 * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
+	 *     @param  	int			$height          	Force height of box
+	 *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
+	 *     @param	int			$post				Send by form POST.
+	 *     @param	int			$resizable			Resizable box (0=no, 1=yes).
+	 *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
+	 */
+	public function formconfirm($page, $title, $question, $action, $formquestion = array(), $selectedchoice = "", $useajax = 0, $height = 200, $width = 500, $post = 0, $resizable = 0)
+	{
+		global $langs, $conf, $form;
+		global $useglobalvars;
 
-        if (!is_object($form)) {
-            require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-            $form = new Form($this->db);
-        }
+		if (!is_object($form)) {
+			require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+			$form = new Form($this->db);
+		}
 
-        $more = '';
-        $formconfirm = '';
-        $inputok = array();
-        $inputko = array();
+		$more = '';
+		$formconfirm = '';
+		$inputok = array();
+		$inputko = array();
 
-        // Clean parameters
-        $newselectedchoice = empty($selectedchoice) ? "no" : $selectedchoice;
-        if ($conf->browser->layout == 'phone') $width = '95%';
+		// Clean parameters
+		$newselectedchoice = empty($selectedchoice) ? "no" : $selectedchoice;
+		if ($conf->browser->layout == 'phone') $width = '95%';
 
-        if (is_array($formquestion) && !empty($formquestion)) {
-            if ($post) {
-                $more .= '<form id="form_dialog_confirm" name="form_dialog_confirm" action="'.$page.'" method="POST" enctype="multipart/form-data">';
-                $more .= '<input type="hidden" id="confirm" name="confirm" value="yes">' . "\n";
-                $more .= '<input type="hidden" id="action" name="action" value="'.$action.'">' . "\n";
-            }
-            // First add hidden fields and value
-            foreach ($formquestion as $key => $input) {
-                if (is_array($input) && !empty($input)) {
-                    if ($post && ($input['name'] == "confirm" || $input['name'] == "action")) continue;
-                    if ($input['type'] == 'hidden') {
-                        $more .= '<input type="hidden" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . dol_escape_htmltag($input['value'], 1, 1) . '">' . "\n";
-                    }
-                }
-            }
+		if (is_array($formquestion) && !empty($formquestion)) {
+			if ($post) {
+				$more .= '<form id="form_dialog_confirm" name="form_dialog_confirm" action="' . $page . '" method="POST" enctype="multipart/form-data">';
+				$more .= '<input type="hidden" id="confirm" name="confirm" value="yes">' . "\n";
+				$more .= '<input type="hidden" id="action" name="action" value="' . $action . '">' . "\n";
+			}
+			// First add hidden fields and value
+			foreach ($formquestion as $key => $input) {
+				if (is_array($input) && !empty($input)) {
+					if ($post && ($input['name'] == "confirm" || $input['name'] == "action")) continue;
+					if ($input['type'] == 'hidden') {
+						$more .= '<input type="hidden" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . dol_escape_htmltag($input['value'], 1, 1) . '">' . "\n";
+					}
+				}
+			}
 
-            // Now add questions
-            $more .= '<table class="paddingtopbottomonly" width="100%">' . "\n";
-            $more .= '<tr><td colspan="3">' . (!empty($formquestion['text']) ? $formquestion['text'] : '') . '</td></tr>' . "\n";
-            foreach ($formquestion as $key => $input) {
-                if (is_array($input) && !empty($input)) {
-                    $size = (!empty($input['size']) ? ' size="' . $input['size'] . '"' : '');
+			// Now add questions
+			$more .= '<table class="paddingtopbottomonly" width="100%">' . "\n";
+			$more .= '<tr><td colspan="3">' . (!empty($formquestion['text']) ? $formquestion['text'] : '') . '</td></tr>' . "\n";
+			foreach ($formquestion as $key => $input) {
+				if (is_array($input) && !empty($input)) {
+					$size = (!empty($input['size']) ? ' size="' . $input['size'] . '"' : '');
 
-                    if ($input['type'] == 'text') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="text" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
-                    } else if ($input['type'] == 'password') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="password" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
-                    } else if ($input['type'] == 'select') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">';
-                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td valign="top" colspan="2" align="left">';
-                        $more .= $form->selectarray($input['name'], $input['values'], $input['default'], 1);
-                        $more .= '</td></tr>' . "\n";
-                    } else if ($input['type'] == 'checkbox') {
-                        $more .= '<tr class="oddeven">';
-                        $more .= '<td class="titlefield">' . $input['label'] . ' </td><td align="left">';
-                        $more .= '<input type="checkbox" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"';
-                        if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
-                        if (is_bool($input['value']) && $input['value']) $more .= ' checked';
-                        if (isset($input['disabled'])) $more .= ' disabled';
-                        $more .= ' /></td>';
-                        $more .= '<td align="left">&nbsp;</td>';
-                        $more .= '</tr>' . "\n";
-                    } else if ($input['type'] == 'radio') {
-                        $i = 0;
-                        foreach ($input['values'] as $selkey => $selval) {
-                            $more .= '<tr class="oddeven">';
-                            if ($i == 0) $more .= '<td class="tdtop titlefield">' . $input['label'] . '</td>';
-                            else $more .= '<td>&nbsp;</td>';
-                            $more .= '<td width="20"><input type="radio" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . $selkey . '"';
-                            if ($input['disabled']) $more .= ' disabled';
-                            $more .= ' /></td>';
-                            $more .= '<td align="left">';
-                            $more .= $selval;
-                            $more .= '</td></tr>' . "\n";
-                            $i++;
-                        }
-                    } else if ($input['type'] == 'date') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td>';
-                        $more .= '<td colspan="2" align="left">';
-                        $more .= $form->select_date($input['value'], $input['name'], $input['hour'] ? 1 : 0, $input['minute'] ? 1 : 0, 0, '', 1, $input['addnowlink'] ? 1 : 0, 1);
-                        $more .= '</td></tr>' . "\n";
-                        $formquestion[] = array('name' => $input['name'] . 'day');
-                        $formquestion[] = array('name' => $input['name'] . 'month');
-                        $formquestion[] = array('name' => $input['name'] . 'year');
-                        $formquestion[] = array('name' => $input['name'] . 'hour');
-                        $formquestion[] = array('name' => $input['name'] . 'min');
-                    } else if ($input['type'] == 'other') {
-                        $more .= '<tr class="oddeven"><td class="titlefield">';
-                        if (!empty($input['label'])) $more .= $input['label'] . '</td><td colspan="2" align="left">';
-                        $more .= $input['value'];
-                        $more .= '</td></tr>' . "\n";
-                    } else if ($input['type'] == 'onecolumn') {
-                        $more .= '<tr class="oddeven"><td class="titlefield" colspan="3" align="left">';
-                        $more .= $input['value'];
-                        $more .= '</td></tr>' . "\n";
-                    }
-                }
-            }
-            $more .= '</table>' . "\n";
-            if ($post) $more .= '</form>';
-        }
+					if ($input['type'] == 'text') {
+						$more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="text" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+					} else if ($input['type'] == 'password') {
+						$more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td><td colspan="2" align="left"><input type="password" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"' . $size . ' value="' . $input['value'] . '" /></td></tr>' . "\n";
+					} else if ($input['type'] == 'select') {
+						$more .= '<tr class="oddeven"><td class="titlefield">';
+						if (!empty($input['label'])) $more .= $input['label'] . '</td><td valign="top" colspan="2" align="left">';
+						$more .= $form->selectarray($input['name'], $input['values'], $input['default'], 1);
+						$more .= '</td></tr>' . "\n";
+					} else if ($input['type'] == 'checkbox') {
+						$more .= '<tr class="oddeven">';
+						$more .= '<td class="titlefield">' . $input['label'] . ' </td><td align="left">';
+						$more .= '<input type="checkbox" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"';
+						if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
+						if (is_bool($input['value']) && $input['value']) $more .= ' checked';
+						if (isset($input['disabled'])) $more .= ' disabled';
+						$more .= ' /></td>';
+						$more .= '<td align="left">&nbsp;</td>';
+						$more .= '</tr>' . "\n";
+					} else if ($input['type'] == 'radio') {
+						$i = 0;
+						foreach ($input['values'] as $selkey => $selval) {
+							$more .= '<tr class="oddeven">';
+							if ($i == 0) $more .= '<td class="tdtop titlefield">' . $input['label'] . '</td>';
+							else $more .= '<td>&nbsp;</td>';
+							$more .= '<td width="20"><input type="radio" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '" value="' . $selkey . '"';
+							if ($input['disabled']) $more .= ' disabled';
+							$more .= ' /></td>';
+							$more .= '<td align="left">';
+							$more .= $selval;
+							$more .= '</td></tr>' . "\n";
+							$i++;
+						}
+					} else if ($input['type'] == 'date') {
+						$more .= '<tr class="oddeven"><td class="titlefield">' . $input['label'] . '</td>';
+						$more .= '<td colspan="2" align="left">';
+						$more .= $form->select_date($input['value'], $input['name'], $input['hour'] ? 1 : 0, $input['minute'] ? 1 : 0, 0, '', 1, $input['addnowlink'] ? 1 : 0, 1);
+						$more .= '</td></tr>' . "\n";
+						$formquestion[] = array('name' => $input['name'] . 'day');
+						$formquestion[] = array('name' => $input['name'] . 'month');
+						$formquestion[] = array('name' => $input['name'] . 'year');
+						$formquestion[] = array('name' => $input['name'] . 'hour');
+						$formquestion[] = array('name' => $input['name'] . 'min');
+					} else if ($input['type'] == 'other') {
+						$more .= '<tr class="oddeven"><td class="titlefield">';
+						if (!empty($input['label'])) $more .= $input['label'] . '</td><td colspan="2" align="left">';
+						$more .= $input['value'];
+						$more .= '</td></tr>' . "\n";
+					} else if ($input['type'] == 'onecolumn') {
+						$more .= '<tr class="oddeven"><td class="titlefield" colspan="3" align="left">';
+						$more .= $input['value'];
+						$more .= '</td></tr>' . "\n";
+					}
+				}
+			}
+			$more .= '</table>' . "\n";
+			if ($post) $more .= '</form>';
+		}
 
-        // JQUI method dialog is broken with jmobile, we use standard HTML.
-        // Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
-        // See page product/card.php for example
-        if (!empty($conf->dol_use_jmobile)) $useajax = 0;
-        if (empty($conf->use_javascript_ajax)) $useajax = 0;
+		// JQUI method dialog is broken with jmobile, we use standard HTML.
+		// Note: When using dol_use_jmobile or no js, you must also check code for button use a GET url with action=xxx and check that you also output the confirm code when action=xxx
+		// See page product/card.php for example
+		if (!empty($conf->dol_use_jmobile)) $useajax = 0;
+		if (empty($conf->use_javascript_ajax)) $useajax = 0;
 
-        if ($useajax) {
-            $autoOpen = true;
-            $dialogconfirm = 'dialog-confirm';
-            $button = '';
-            if (!is_numeric($useajax)) {
-                $button = $useajax;
-                $useajax = 1;
-                $autoOpen = false;
-                $dialogconfirm .= '-' . $button;
-            }
-            $pageyes = $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=yes';
-            $pageno = ($useajax == 2 ? $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=no' : '');
-            // Add input fields into list of fields to read during submit (inputok and inputko)
-            if (is_array($formquestion)) {
-                foreach ($formquestion as $key => $input) {
-                    //print "xx ".$key." rr ".is_array($input)."<br>\n";
-                    if (is_array($input) && isset($input['name'])) {
-                        // Modification Open-DSI - Begin
-                        if (is_array($input['name'])) $inputok = array_merge($inputok, $input['name']);
-                        else array_push($inputok, $input['name']);
-                        // Modification Open-DSI - End
-                    }
-                    if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko, $input['name']);
-                }
-            }
-            // Show JQuery confirm box. Note that global var $useglobalvars is used inside this template
-            $formconfirm .= '<div id="' . $dialogconfirm . '" title="' . dol_escape_htmltag($title) . '" style="display: none;">';
-            if (!empty($more)) {
-                $formconfirm .= '<div class="confirmquestions">' . $more . '</div>';
-            }
-            $formconfirm .= ($question ? '<div class="confirmmessage">' . img_help('', '') . ' ' . $question . '</div>' : '');
-            $formconfirm .= '</div>' . "\n";
+		if ($useajax) {
+			$autoOpen = true;
+			$dialogconfirm = 'dialog-confirm';
+			$button = '';
+			if (!is_numeric($useajax)) {
+				$button = $useajax;
+				$useajax = 1;
+				$autoOpen = false;
+				$dialogconfirm .= '-' . $button;
+			}
+			$pageyes = $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=yes';
+			$pageno = ($useajax == 2 ? $page . (preg_match('/\?/', $page) ? '&' : '?') . 'action=' . $action . '&confirm=no' : '');
+			// Add input fields into list of fields to read during submit (inputok and inputko)
+			if (is_array($formquestion)) {
+				foreach ($formquestion as $key => $input) {
+					//print "xx ".$key." rr ".is_array($input)."<br>\n";
+					if (is_array($input) && isset($input['name'])) {
+						// Modification Open-DSI - Begin
+						if (is_array($input['name'])) $inputok = array_merge($inputok, $input['name']);
+						else array_push($inputok, $input['name']);
+						// Modification Open-DSI - End
+					}
+					if (isset($input['inputko']) && $input['inputko'] == 1) array_push($inputko, $input['name']);
+				}
+			}
+			// Show JQuery confirm box. Note that global var $useglobalvars is used inside this template
+			$formconfirm .= '<div id="' . $dialogconfirm . '" title="' . dol_escape_htmltag($title) . '" style="display: none;">';
+			if (!empty($more)) {
+				$formconfirm .= '<div class="confirmquestions">' . $more . '</div>';
+			}
+			$formconfirm .= ($question ? '<div class="confirmmessage">' . img_help('', '') . ' ' . $question . '</div>' : '');
+			$formconfirm .= '</div>' . "\n";
 
-            $formconfirm .= "\n<!-- begin ajax form_confirm page=" . $page . " -->\n";
-            $formconfirm .= '<script type="text/javascript">' . "\n";
-            $formconfirm .= 'jQuery(document).ready(function() {
+			$formconfirm .= "\n<!-- begin ajax form_confirm page=" . $page . " -->\n";
+			$formconfirm .= '<script type="text/javascript">' . "\n";
+			$formconfirm .= 'jQuery(document).ready(function() {
             $(function() {
 		$( "#' . $dialogconfirm . '" ).dialog(
 		{
                     autoOpen: ' . ($autoOpen ? "true" : "false") . ',';
-            if ($newselectedchoice == 'no') {
-                $formconfirm .= '
+			if ($newselectedchoice == 'no') {
+				$formconfirm .= '
 						open: function() {
 					$(this).parent().find("button.ui-button:eq(2)").focus();
 						},';
-            }
-            if ($post) {
-                $formconfirm .= '
+			}
+			if ($post) {
+				$formconfirm .= '
                     resizable: ' . ($resizable ? 'true' : 'false') . ',
                     height: "' . $height . '",
                     width: "' . $width . '",
@@ -649,8 +648,8 @@ class FormDigitalSignatureManager
             });
             });
             </script>';
-            } else {
-                $formconfirm .= '
+			} else {
+				$formconfirm .= '
                     resizable: false,
                     height: "' . $height . '",
                     width: "' . $width . '",
@@ -707,44 +706,67 @@ class FormDigitalSignatureManager
             });
             });
             </script>';
-            }
-            $formconfirm .= "<!-- end ajax form_confirm -->\n";
-        } else {
-            $formconfirm .= "\n<!-- begin form_confirm page=" . $page . " -->\n";
+			}
+			$formconfirm .= "<!-- end ajax form_confirm -->\n";
+		} else {
+			$formconfirm .= "\n<!-- begin form_confirm page=" . $page . " -->\n";
 
-            $formconfirm .= '<form method="POST" action="' . $page . '" class="notoptoleftroright">' . "\n";
-            $formconfirm .= '<input type="hidden" name="action" value="' . $action . '">' . "\n";
-            $formconfirm .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">' . "\n";
+			$formconfirm .= '<form method="POST" action="' . $page . '" class="notoptoleftroright">' . "\n";
+			$formconfirm .= '<input type="hidden" name="action" value="' . $action . '">' . "\n";
+			$formconfirm .= '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">' . "\n";
 
-            $formconfirm .= '<table width="100%" class="valid">' . "\n";
+			$formconfirm .= '<table width="100%" class="valid">' . "\n";
 
-            // Line title
-            $formconfirm .= '<tr class="validtitre"><td class="validtitre" colspan="3">' . img_picto('', 'recent') . ' ' . $title . '</td></tr>' . "\n";
+			// Line title
+			$formconfirm .= '<tr class="validtitre"><td class="validtitre" colspan="3">' . img_picto('', 'recent') . ' ' . $title . '</td></tr>' . "\n";
 
-            // Line form fields
-            if ($more) {
-                $formconfirm .= '<tr class="valid"><td class="valid" colspan="3">' . "\n";
-                $formconfirm .= $more;
-                $formconfirm .= '</td></tr>' . "\n";
-            }
+			// Line form fields
+			if ($more) {
+				$formconfirm .= '<tr class="valid"><td class="valid" colspan="3">' . "\n";
+				$formconfirm .= $more;
+				$formconfirm .= '</td></tr>' . "\n";
+			}
 
-            // Line with question
-            $formconfirm .= '<tr class="valid">';
-            $formconfirm .= '<td class="valid">' . $question . '</td>';
-            $formconfirm .= '<td class="valid">';
-            $formconfirm .= $form->selectyesno("confirm", $newselectedchoice);
-            $formconfirm .= '</td>';
-            $formconfirm .= '<td class="valid" align="center"><input class="button valignmiddle" type="submit" value="' . $langs->trans("Validate") . '"></td>';
-            $formconfirm .= '</tr>' . "\n";
+			// Line with question
+			$formconfirm .= '<tr class="valid">';
+			$formconfirm .= '<td class="valid">' . $question . '</td>';
+			$formconfirm .= '<td class="valid">';
+			$formconfirm .= $form->selectyesno("confirm", $newselectedchoice);
+			$formconfirm .= '</td>';
+			$formconfirm .= '<td class="valid" align="center"><input class="button valignmiddle" type="submit" value="' . $langs->trans("Validate") . '"></td>';
+			$formconfirm .= '</tr>' . "\n";
 
-            $formconfirm .= '</table>' . "\n";
+			$formconfirm .= '</table>' . "\n";
 
-            $formconfirm .= "</form>\n";
-            $formconfirm .= '<br>';
+			$formconfirm .= "</form>\n";
+			$formconfirm .= '<br>';
 
-            $formconfirm .= "<!-- end form_confirm -->\n";
-        }
+			$formconfirm .= "<!-- end form_confirm -->\n";
+		}
 
-        return $formconfirm;
-    }
+		return $formconfirm;
+	}
+	/**
+	 * Function to display linked digital signature request
+	 * @param DigitalSignatureRequest[] $listOfDigitalSignatureRequest digital signature requests to be displayed
+	 * @return string
+	 */
+	public function showLinkedDigitalSignatureBlock($listOfDigitalSignatureRequest)
+	{
+		global $langs;
+		$out = "<br>";
+		$out .= load_fiche_titre($langs->trans('DigitalSignatureManagerLinkedRequestBlock'));
+		$out .= '<table class="noborder allwidth"><tr class="liste_titre">';
+		$out .= '<td>' . $langs->trans("DigitalSignatureManagerRequestSign") . '</td>';
+		$out .= '<td style="text-align:right">' . $langs->trans("Statut") . '</td>';
+		$out .= '</tr>';
+		foreach($listOfDigitalSignatureRequest as $request) {
+			$out .= '<tr>';
+			$out .= '<td>' . $request->getNomUrl(1) . '</td>';
+			$out .= '<td style="text-align:right">' . $request->getLibStatut(5) . '</td>';
+			$out .= '</tr>';
+		}
+		$out .= '</table>';
+		return $out;
+	}
 }

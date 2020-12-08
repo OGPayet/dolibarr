@@ -71,6 +71,8 @@ class ActionsDigitalSignatureManager
 		$this->db = $db;
 		dol_include_once("/digitalsignaturemanager/class/html.formdigitalsignaturerequesttemplate.class.php");
 		$this->formDigitalSignatureRequestTemplate = new FormDigitalSignatureRequestTemplate($this->db);
+		dol_include_once("/digitalsignaturemanager/class/html.formdigitalsignaturemanager.class.php");
+		$this->formDigitalSignatureManager = new FormDigitalSignatureManager($this->db);
 	}
 
 	/**
@@ -240,14 +242,15 @@ class ActionsDigitalSignatureManager
 	 */
 	public function formConfirm($parameters, &$object, &$action, $hookmanager)
 	{
+		global $langs;
 		$contexts = explode(':', $parameters['context']);
 		if(in_array('propalcard', $contexts)) {
-			$selectFiles = $this->formDigitalSignatureRequestTemplate->manageCreateFromAction($action, $object);
-			$selectSigners = $this->formDigitalSignatureRequestTemplate->manageCreateFromSelectedFiles($action, $object);
-			if($selectFiles) {
-				$result = $selectFiles;
-			} elseif($selectSigners) {
-				$result = $selectSigners;
+			$selectSignersHtmlForm = $this->formDigitalSignatureRequestTemplate->displayCreateFromSelectedFiles($action, $object);
+			$selectFilesHtmlForm = $this->formDigitalSignatureRequestTemplate->displayCreateFromObject($action, $object);
+			if($selectFilesHtmlForm) {
+				$result = $selectFilesHtmlForm;
+			} elseif($selectSignersHtmlForm) {
+				$result = $selectSignersHtmlForm;
 			}
 			if($result) {
 				$this->resprints = $result;
@@ -255,5 +258,54 @@ class ActionsDigitalSignatureManager
 			}
 		}
 		return 0;
+	}
+
+	/**
+	 * Overloading the doActions function : replacing the parent's function with the one below
+	 *
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function doActions($parameters, &$object, &$action, $hookmanager)
+	{
+		global $user;
+		$contexts = explode(':', $parameters['context']);
+		if(in_array('propalcard', $contexts)) {
+			$this->formDigitalSignatureRequestTemplate->manageCreateFromObject($action, $object);
+			$this->formDigitalSignatureRequestTemplate->manageCreateFromFiles($action, $object, $user);
+		}
+	}
+
+	/**
+	 * Overloading the showLinkedObjectBlock function : replacing the parent's function with the one below
+	 *
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function showLinkedObjectBlock($parameters, &$object, &$action, $hookmanager)
+	{
+		$contexts = explode(':', $parameters['context']);
+		if(in_array('propalcard', $contexts)) {
+			$linkedDigitalSignatureRequest = $this->getLinkedDigitalSignatureRequest($object);
+			print $this->formDigitalSignatureManager->showLinkedDigitalSignatureBlock($linkedDigitalSignatureRequest);
+		}
+	}
+
+	/**
+	 * Get linked digital signature request to an object
+	 *
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @return  DigitalSignatureManager[]|null
+	 */
+	private function getLinkedDigitalSignatureRequest($object)
+	{
+		$digitalSignatureManager = new DigitalSignatureRequest($this->db);
+		return $digitalSignatureManager->fetchAll('DESC', 'date_creation', 0, 0, array('elementtype' =>$object->table_element, 'fk_object'=>$object->id));
 	}
 }

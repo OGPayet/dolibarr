@@ -193,7 +193,7 @@ class FormDigitalSignaturePeople
 	public function getAvailableContactSelectForm($object, $selectedContactId)
 	{
 		$listOfContactIdAlreadyLinked = $this->elementObjectStatic->getIdOfContactIntoThesePeople($object->people);
-		return $this->formDigitalSignatureManager->selectContact($object, $selectedContactId, self::ELEMENT_POST_FOREIGN_KEY_LINKED_CONTACT, $object->getLinkedThirdpartyId(), array(), $listOfContactIdAlreadyLinked);
+		return $this->formDigitalSignatureManager->selectContact($object, $selectedContactId, self::ELEMENT_POST_FOREIGN_KEY_LINKED_CONTACT, $object->getLinkedThirdpartyId(), null, $listOfContactIdAlreadyLinked);
 	}
 
 	/**

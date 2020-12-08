@@ -425,6 +425,11 @@ class FormDigitalSignatureRequest
 		);
 
 		print $this->formDigitalSignatureManager->getColumnTitle(
+			$langs->trans('DigitalSignatureSignatoryFieldLabel')
+		);
+
+
+		print $this->formDigitalSignatureManager->getColumnTitle(
 			$langs->trans('DigitalSignatureSignatoryFieldPage')
 		);
 
