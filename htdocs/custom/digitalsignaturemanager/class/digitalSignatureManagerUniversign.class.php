@@ -262,7 +262,7 @@ Class DigitalSignatureManagerUniversign
 		));
 
 		if($areAllOperationBeenASuccess && $oldRequestStatus != $this->digitalSignatureRequest->status && $this->digitalSignatureRequest->status == $this->digitalSignatureRequest::STATUS_SUCCESS) {
-			$areAllOperationBeenASuccess = $this->downloadSignedDocuments($this->digitalSignatureRequest);
+			$areAllOperationBeenASuccess = $this->downloadSignedDocuments($user);
 		}
 
 		if($areAllOperationBeenASuccess) {
@@ -277,9 +277,10 @@ Class DigitalSignatureManagerUniversign
 
 	/**
 	 * Download signed documents
+	 * @param User $user user downloading documents
 	 * @return bool true if files have successfully been downloaded
 	 */
-	public function downloadSignedDocuments()
+	public function downloadSignedDocuments($user)
 	{
 		global $langs;
 		$errorOfThisProcess = array();
@@ -288,10 +289,24 @@ Class DigitalSignatureManagerUniversign
 		$response = $requester->getTransactionInfo($transactionId);
 		if ($response->status === \Globalis\Universign\Response\TransactionInfo::STATUS_COMPLETED) {
 			$docs = $requester->getDocuments($transactionId);
+			$staticEcm = new ExtendedEcm($this->db);
+			$ecmSignedFiles = array();
 			foreach ($docs as $doc) {
-				$res = file_put_contents($this->digitalSignatureRequest->getAbsoluteDirectoryOfSignedFiles() . '/' . $doc->name, $doc->content);
+				$res = $staticEcm->writeEcmFileFromStreamContent($this->digitalSignatureRequest->getRelativePathToDolDataRootForSignedFiles(), $doc->name, $doc->content, $user);
 				if(!$res) {
 					$errorOfThisProcess[] = $langs->trans('DigitalSignatureManagerUniversignErrorSavingFileInServer', $doc->name);
+				}
+				else {
+					$ecmSignedFiles[] = $res;
+				}
+			}
+			//Now we update digitalSignatureDocument fk_ecm_signed property with files just downloaded
+			foreach($this->digitalSignatureRequest->documents as $document) {
+				foreach($ecmSignedFiles as $ecmSignedFile) {
+					if($ecmSignedFile->filename == $document->getDocumentName()) {
+						$document->fk_ecm_signed = $ecmSignedFile->id;
+						$document->update($user);
+					}
 				}
 			}
 		}

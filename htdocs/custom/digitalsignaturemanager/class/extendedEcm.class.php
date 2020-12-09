@@ -445,7 +445,7 @@ class ExtendedEcm extends EcmFiles
 	/**
 	 * Function to manage proper upload of file and return linked ecm instance
 	 * @param DoliDB $db database instance to use
-     * @param string $moduleRelativePathToDocument Relative path to DOL_DATA_ROOT of the module base directory
+	 * @param string $moduleRelativePathToDocument Relative path to DOL_DATA_ROOT of the module base directory
 	 * @param string $relativePathInModuleWhereStoreFile Relative path to module where store file
 	 * @param string $postFieldContainingFilesName Post field containing files to be saved
 	 * @return self[]|null
@@ -468,12 +468,43 @@ class ExtendedEcm extends EcmFiles
 		}
 		$listOfUploadedFileNames = $TFile['name'];
 		$justUploadedEcmInstance = array();
-		foreach($listOfUploadedFileNames as $fileName) {
+		foreach ($listOfUploadedFileNames as $fileName) {
 			$linkedEcmInstance = findObjectInArrayByProperty($arrayOfEcmInstance, 'filename', $fileName);
-			if($linkedEcmInstance) {
+			if ($linkedEcmInstance) {
 				$justUploadedEcmInstance[] = $linkedEcmInstance;
 			}
 		}
 		return $res > 0 ? $justUploadedEcmInstance : null;
+	}
+
+	/**
+	 * Function to create file from a stream content
+	 * @param string $relativePathToDolDataRoot path relative to DOL_DATA_ROOT where write file
+	 * @param string $fileName Name to give to the file
+	 * @param mixed $streamContent Content of the file
+	 * @param User $user user requesting action
+	 * @return ExtendedEcm|null
+	 */
+	public function writeEcmFileFromStreamContent($relativePathToDolDataRoot, $fileName, $streamContent, $user)
+	{
+		//File have successfully been copied
+		$result = null;
+		$destinationFilePath = DOL_DATA_ROOT . '/' . $relativePathToDolDataRoot . '/' . $fileName;
+		if (file_put_contents($destinationFilePath, $streamContent)) {
+			//We create ecm file instance of it
+			$newEcm = new self($this->db);
+			$newEcm->fetch(null, null, $relativePathToDolDataRoot . '/' . $fileName);
+			$newEcm->label = md5_file(dol_osencode($destinationFilePath));
+			$newEcm->filepath = $relativePathToDolDataRoot;
+			$newEcm->filename = $fileName;
+			$newEcm->gen_or_uploaded = 'generated';
+			//$newEcm->mask = $this->mask;
+			if ($newEcm->id > 0) {
+				$result = $newEcm->update($user);
+			} else {
+				$result = $newEcm->create($user);
+			}
+		}
+		return $result > 0 ? $newEcm : null;
 	}
 }

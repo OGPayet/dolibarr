@@ -87,6 +87,11 @@ class DigitalSignatureDocument extends CommonObject
 	public $ecmFile;
 
 	/**
+	 * @var ExtendedEcm signed linked ecm file
+	 */
+	public $signedEcmFile;
+
+	/**
 	 * @var DigitalSignatureCheckBox[] linked checkbox of this document
 	 */
 	public $checkBoxes;
@@ -133,7 +138,8 @@ class DigitalSignatureDocument extends CommonObject
 	public $fields = array(
 		'rowid' => array('type' => 'integer', 'label' => 'TechnicalID', 'enabled' => '1', 'position' => 1, 'notnull' => 1, 'visible' => 0, 'noteditable' => '1', 'index' => 1, 'comment' => "Id"),
 		'fk_digitalsignaturerequest' => array('type' => 'integer:DigitalSignatureRequest:digitalsignaturemanager/class/digitalsignaturerequest.class.php', 'label' => 'Linked Digital Signature request', 'enabled' => '1', 'position' => 10, 'notnull' => 1, 'visible' => 1, 'index' => 1,),
-		'fk_ecm' => array('type' => 'integer:ExtendedEcm:digitalsignaturemanager/class/extendedEcm.class.php', 'label' => 'Linked To ECM Files', 'enabled' => '1', 'position' => 11, 'notnull' => 1, 'visible' => 1, 'index' => 1,),
+		'fk_ecm' => array('type' => 'integer:ExtendedEcm:digitalsignaturemanager/class/extendedEcm.class.php', 'label' => 'Linked To ECM File', 'enabled' => '1', 'position' => 11, 'notnull' => 1, 'visible' => 1, 'index' => 1),
+		'fk_ecm_signed' => array('type' => 'integer:ExtendedEcm:digitalsignaturemanager/class/extendedEcm.class.php', 'label' => 'Linked To ECM signed file', 'enabled' => '1', 'position' => 11, 'notnull' => 0, 'visible' => 1, 'index' => 1),
 		'position' => array('type' => 'integer', 'label' => 'Position of files in digital signature request', 'enabled' => '1', 'position' => 12, 'notnull' => 0, 'visible' => 1,),
 		'date_creation' => array('type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 500, 'notnull' => 1, 'visible' => -2,),
 		'tms' => array('type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 501, 'notnull' => 0, 'visible' => -2,),
@@ -142,6 +148,7 @@ class DigitalSignatureDocument extends CommonObject
 	public $rowid;
 	public $fk_digitalsignaturerequest;
 	public $fk_ecm;
+	public $fk_ecm_signed;
 	public $position;
 	public $date_creation;
 	public $tms;
@@ -288,6 +295,20 @@ class DigitalSignatureDocument extends CommonObject
 	}
 
 	/**
+	 * Function to fetch linked ecm signed file
+	 * @return int         <0 if KO, 0 if not found, >0 if OK
+	 */
+	public function fetchSignedLinkedEcmFile()
+	{
+		$staticEcm = new ExtendedEcm($this->db);
+		$result = $staticEcm->fetch($this->fk_ecm_signed);
+		if ($result > 0) {
+			$this->signedEcmFile = $staticEcm;
+		}
+		return $result;
+	}
+
+	/**
 	 * Function to get linked ecm files
 	 * @return null|ExtendedEcm
 	 */
@@ -297,6 +318,18 @@ class DigitalSignatureDocument extends CommonObject
 			$this->fetchLinkedEcmFile();
 		}
 		return $this->ecmFile ?? null;
+	}
+
+	/**
+	 * Function to get linked ecm signed files
+	 * @return null|ExtendedEcm
+	 */
+	public function getSignedLinkedEcmFile()
+	{
+		if(!$this->ecmFile) {
+			$this->fetchSignedLinkedEcmFile();
+		}
+		return $this->signedEcmFile ?? null;
 	}
 
 	/**
