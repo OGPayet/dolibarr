@@ -424,8 +424,12 @@ class ActionsDigitalSignatureManager
 		$contexts = explode(':', $parameters['context']);
 		if (in_array('propalcard', $contexts)) {
 			$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
-			$linkedDigitalSignatureRequest = $digitalSignatureRequestLinkedObject->getLinkedDigitalSignatureRequest();
-			print $this->formDigitalSignatureManager->showLinkedDigitalSignatureBlock($linkedDigitalSignatureRequest);
+			$linkedDigitalSignatureRequests = $digitalSignatureRequestLinkedObject->getLinkedDigitalSignatureRequests();
+			$signedAndNotStaleLinkDigitalSignatureRequest = $digitalSignatureRequestLinkedObject->getEndedLinkedSignatureWithNoStaledData();
+			if($signedAndNotStaleLinkDigitalSignatureRequest) {
+				print $this->formDigitalSignatureRequest->displayListOfSignedFiles($signedAndNotStaleLinkDigitalSignatureRequest, $_SERVER["PHP_SELF"] . "?id=" . $object->id);
+			}
+			print $this->formDigitalSignatureManager->showLinkedDigitalSignatureBlock($linkedDigitalSignatureRequests);
 		}
 	}
 }

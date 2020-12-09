@@ -113,7 +113,7 @@ class InterfaceDigitalSignatureManagerManageRequestWhenLinkedObjectChange extend
 				}
 				unset($request);
 
-				foreach ($digitalSignatureLinkedObject->getLinkedDigitalSignatureRequest() as &$request) {
+				foreach ($digitalSignatureLinkedObject->getLinkedDigitalSignatureRequests() as &$request) {
 					if (!$request->is_staled_according_to_source_object) {
 						$request->is_staled_according_to_source_object = true;
 						$request->update($user);

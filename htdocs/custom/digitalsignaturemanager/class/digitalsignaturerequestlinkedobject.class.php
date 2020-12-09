@@ -61,7 +61,7 @@ class DigitalSignatureRequestLinkedObject
 	 * @param bool $forceUpdateOfCache should we forget cached data
 	 * @return  DigitalSignatureRequest[]|null
 	 */
-	public function getLinkedDigitalSignatureRequest($forceUpdateOfCache = false)
+	public function getLinkedDigitalSignatureRequests($forceUpdateOfCache = false)
 	{
 		if ($forceUpdateOfCache || !self::$cacheDigitalSignatureRequest || !self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id]) {
 			$digitalSignatureManager = new DigitalSignatureRequest($this->db);
@@ -78,7 +78,7 @@ class DigitalSignatureRequestLinkedObject
 	public function getDigitalSignatureRequestsWithStatus($researchedStatus)
 	{
 		$result = array();
-		foreach ($this->getLinkedDigitalSignatureRequest() as &$digitalSignatureRequest) {
+		foreach ($this->getLinkedDigitalSignatureRequests() as &$digitalSignatureRequest) {
 			if ($digitalSignatureRequest->status == $researchedStatus) {
 				$result[] = &$digitalSignatureRequest;
 			}
@@ -114,6 +114,20 @@ class DigitalSignatureRequestLinkedObject
 	public function getInProgressDigitalSignatureRequest()
 	{
 		return $this->getFirstDigitalSignatureRequestWithStatut(DigitalSignatureRequest::STATUS_IN_PROGRESS);
+	}
+
+	/**
+	 * Get current ended signature with data not considered as staled
+	 * @return DigitalSignatureRequest|null
+	 */
+	public function getEndedLinkedSignatureWithNoStaledData(){
+		$crudeList = $this->getDigitalSignatureRequestsWithStatus(DigitalSignatureRequest::STATUS_SUCCESS);
+		foreach($crudeList as $request) {
+			if(!$request->is_staled_according_to_source_object) {
+				return $request;
+			}
+		}
+		return null;
 	}
 
 	/**
