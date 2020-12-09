@@ -403,6 +403,15 @@ DigitalSignatureManagerPeopleDeleteEvent = Créer un évènement lorsqu'un signa
 DigitalSignatureManagerPeopleDeleteEventTitle = Signataire %s supprimé
 DigitalSignatureManagerPeopleDeleteEventDescription = Signataire %s supprimé
 
+DigitalSignatureRequestStartAndSendByMail = Demande de signature électronique pour la pièce commerciale créé et envoyée par email avec la référence %s
+DigitalSignatureRequestStartAndSendByMailDescription = La demande de signature électronique %s a été créé et envoyé avec succès au prestataire et aux signataires par email pour la validation de la pièce commerciale conçernée
+DigitalSignatureRequestCanceledBySigners = La signature %s de la pièce commerciale courante a été refusé par un signataire
+DigitalSignatureRequestCanceledBySignersDescription = Un signataire de la signature électronique %s a refusé de signer le document représentant la pièce commerciale courante
+DigitalSignatureRequestCanceledByOpsy = Le processus de signature %s de la pièce commerciale courante a été annulée
+DigitalSignatureRequestCanceledByOpsyDescription = Un utilisateur a annulée le processus de signature %s  de la pièce commerciale courante
+DigitalSignatureRequestSuccesfullySigned = Pièce commerciale signé avec succès - signature %s
+DigitalSignatureRequestSuccesfullySignedDescription = La pièce commerciale a été signée avec succès lors de la signature électronique %s
+
 #
 # Erreurs
 #

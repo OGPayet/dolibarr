@@ -38,7 +38,7 @@ dol_include_once("/digitalsignaturemanager/class/digitalsignaturerequestlinkedob
 /**
  *  Class of triggers for DigitalSignatureManager module
  */
-class InterfaceDigitalSignatureManagerCancelRequestWhenLinkedObjectChange extends DolibarrTriggers
+class InterfaceDigitalSignatureManagerManageRequestWhenLinkedObjectChange extends DolibarrTriggers
 {
 	/**
 	 * @var DoliDB Database handler

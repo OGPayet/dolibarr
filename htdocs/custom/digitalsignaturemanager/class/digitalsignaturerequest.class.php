@@ -1434,4 +1434,13 @@ class DigitalSignatureRequest extends CommonObject
 		}
 		return $result;
 	}
+
+	/**
+	 * Function to return linked Object instance
+	 * @return CommonObject|null
+	 */
+	public function getLinkedObject()
+	{
+		return DigitalSignatureRequestLinkedObject::getLinkedObject($this);
+	}
 }

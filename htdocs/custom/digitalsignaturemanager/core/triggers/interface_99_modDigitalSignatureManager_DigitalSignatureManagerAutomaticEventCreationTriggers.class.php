@@ -219,7 +219,7 @@ class InterfaceDigitalSignatureManagerAutomaticEventCreationTriggers extends Dol
 			$actioncomm->authorid    = $user->id;   // User saving action
 			$actioncomm->userownerid = $user->id;	// Owner of action
 			$actioncomm->fk_element  = $object->id;
-			$actioncomm->elementtype = 'digitalsignaturemanager_' . $object->element;
+			$actioncomm->elementtype = $object->table_element;
 			$ret=$actioncomm->create($user);       // User creating action
 			return $ret;
 		}

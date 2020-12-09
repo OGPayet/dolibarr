@@ -63,8 +63,7 @@ class DigitalSignatureRequestLinkedObject
 	 */
 	public function getLinkedDigitalSignatureRequest($forceUpdateOfCache = false)
 	{
-		if($forceUpdateOfCache || !self::$cacheDigitalSignatureRequest || !self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id])
-		{
+		if ($forceUpdateOfCache || !self::$cacheDigitalSignatureRequest || !self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id]) {
 			$digitalSignatureManager = new DigitalSignatureRequest($this->db);
 			self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id] = &$digitalSignatureManager->fetchAll('DESC', 'date_creation', 0, 0, array('elementtype' => $this->object->table_element, 'fk_object' => $this->object->id));
 		}
@@ -184,6 +183,7 @@ class DigitalSignatureRequestLinkedObject
 		$digitalSignatureRequest->elementtype = $this->object->table_element;
 		$digitalSignatureRequest->fk_object = $this->object->id;
 		$digitalSignatureRequest->fk_soc = $this->object->socid;
+		$digitalSignatureRequest->fk_project = $this->object->fk_project;
 
 		if ($digitalSignatureRequest->create($user) < 0) {
 			$errors = array_merge($errors, $digitalSignatureRequest->errors);
@@ -263,7 +263,7 @@ class DigitalSignatureRequestLinkedObject
 			$this->db->commit();
 			//dolibarr bullshit adaptation - as createCommon change some values into database but do not reflect it on object
 			$digitalSignatureRequest->fetch($digitalSignatureRequest->id);
-			if(!self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id]) {
+			if (!self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id]) {
 				self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id] = array();
 			}
 			self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id][] = $digitalSignatureRequest;
@@ -326,7 +326,7 @@ class DigitalSignatureRequestLinkedObject
 
 	/**
 	 * Function to check that all needed information asked on displayCreateFromSelectedFiles have been asked
-	  * @param ExtendedEcm[] $selectedFiles Array of files to sign
+	 * @param ExtendedEcm[] $selectedFiles Array of files to sign
 	 * @param DigitalSignaturePeople[][] $signatoryInstancePerEcmFileAndDictionaryRowId array('ecmFileId'=>array('dictionnaryRowId'=>DigitalSignaturePeopleInstance))
 	 * @return string[] array of validation errors
 	 */
@@ -378,5 +378,116 @@ class DigitalSignatureRequestLinkedObject
 		$digitalSignatureDocument->fk_ecm = $ecmFile->id;
 		$digitalSignatureDocument->ecmFile = $ecmFile;
 		return $digitalSignatureDocument->getDictionarySignatoryFieldsOfThisDocument();
+	}
+
+
+	/**
+	 * Static function to get linked object of a digital signature request
+	 *
+	 * @param 	DigitalSignatureRequest		$object Instance on which we are looking to fetch linked instance
+	 * @return	CommonObject|null
+	 */
+	public static function getLinkedObject($object)
+	{
+		global $db, $conf;
+
+		if (!$object || !$object->fk_object || !$object->elementtype) {
+			return null;
+		}
+		$objecttype = $object->elementtype;
+		$objectid = $object->fk_object;
+
+		$ret = '';
+
+		// Parse element/subelement (ex: project_task)
+		$module = $element = $subelement = $objecttype;
+		if (preg_match('/^([^_]+)_([^_]+)/i', $objecttype, $regs)) {
+			$module = $element = $regs[1];
+			$subelement = $regs[2];
+		}
+
+		$classpath = $element . '/class';
+
+		// To work with non standard path
+		if ($objecttype == 'facture' || $objecttype == 'invoice') {
+			$classpath = 'compta/facture/class';
+			$module = 'facture';
+			$subelement = 'facture';
+		}
+		if ($objecttype == 'commande' || $objecttype == 'order') {
+			$classpath = 'commande/class';
+			$module = 'commande';
+			$subelement = 'commande';
+		}
+		if ($objecttype == 'propal') {
+			$classpath = 'comm/propal/class';
+		}
+		if ($objecttype == 'supplier_proposal') {
+			$classpath = 'supplier_proposal/class';
+		}
+		if ($objecttype == 'shipping') {
+			$classpath = 'expedition/class';
+			$subelement = 'expedition';
+			$module = 'expedition_bon';
+		}
+		if ($objecttype == 'delivery') {
+			$classpath = 'livraison/class';
+			$subelement = 'livraison';
+			$module = 'livraison_bon';
+		}
+		if ($objecttype == 'contract') {
+			$classpath = 'contrat/class';
+			$module = 'contrat';
+			$subelement = 'contrat';
+		}
+		if ($objecttype == 'member') {
+			$classpath = 'adherents/class';
+			$module = 'adherent';
+			$subelement = 'adherent';
+		}
+		if ($objecttype == 'cabinetmed_cons') {
+			$classpath = 'cabinetmed/class';
+			$module = 'cabinetmed';
+			$subelement = 'cabinetmedcons';
+		}
+		if ($objecttype == 'fichinter') {
+			$classpath = 'fichinter/class';
+			$module = 'ficheinter';
+			$subelement = 'fichinter';
+		}
+		if ($objecttype == 'task') {
+			$classpath = 'projet/class';
+			$module = 'projet';
+			$subelement = 'task';
+		}
+
+		//print "objecttype=".$objecttype." module=".$module." subelement=".$subelement;
+
+		$classfile = strtolower($subelement);
+		$classname = ucfirst($subelement);
+		if ($objecttype == 'invoice_supplier') {
+			$classfile = 'fournisseur.facture';
+			$classname = 'FactureFournisseur';
+			$classpath = 'fourn/class';
+			$module = 'fournisseur';
+		}
+		if ($objecttype == 'order_supplier') {
+			$classfile = 'fournisseur.commande';
+			$classname = 'CommandeFournisseur';
+			$classpath = 'fourn/class';
+			$module = 'fournisseur';
+		}
+
+		if (!empty($conf->$module->enabled)) {
+			$res = dol_include_once('/' . $classpath . '/' . $classfile . '.class.php');
+			if ($res) {
+				$object = new $classname($db);
+				$res = $object->fetch($objectid);
+				if ($res > 0) {
+					return $object;
+				}
+			}
+		}
+		return null;
 	}
 }

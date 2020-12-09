@@ -229,21 +229,22 @@ class InterfaceSynergiesTech extends DolibarrTriggers
                 // only for signed propal
                 if ($object->statut == Propal::STATUS_SIGNED) {
                     // file is required for signed propal
-                    if ($action == "PROPAL_CLOSE_SIGNED" && empty($_FILES['addfile']['name'])) {
-                        $error_msg = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File'));
-                        // file is required
-                        //setEventMessage($error_msg, 'errors');
+                    //if ($action == "PROPAL_CLOSE_SIGNED" && empty($_FILES['addfile']['name'])) {
+                    // if ($action == "PROPAL_CLOSE_SIGNED") {
+                    //    // $error_msg = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv('File'));
+                    //     // file is required
+                    //     //setEventMessage($error_msg, 'errors');
 
-                        dol_syslog(__METHOD__ . " Error : " . $error_msg, LOG_ERR);
-                        //header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
-                        //exit(0);
-                        $this->error = $error_msg;
-                        $this->errors[] = $error_msg;
-                        $object->statut = $object->oldcopy->statut;
-                        $object->date_cloture = $object->oldcopy->date_cloture;
-                        $object->note_private = $object->oldcopy->note_private;
-                        return -1;
-                    }
+                    //     //dol_syslog(__METHOD__ . " Error : " . $error_msg, LOG_ERR);
+                    //     //header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=statut&' . http_build_query($_POST));
+                    //     //exit(0);
+                    //   //  $this->error = $error_msg;
+                    //   //  $this->errors[] = $error_msg;
+                    //   //  $object->statut = $object->oldcopy->statut;
+                    //     $object->date_cloture = $object->oldcopy->date_cloture;
+                    //     $object->note_private = $object->oldcopy->note_private;
+                    //     return -1;
+                    // }
 
                     // upload file
                     if (!empty($_FILES['addfile']['name'])) {

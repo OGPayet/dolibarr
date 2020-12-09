@@ -261,24 +261,18 @@ Class DigitalSignatureManagerUniversign
 			$resultOfSignerStatusUpdate
 		));
 
+		if($areAllOperationBeenASuccess && $oldRequestStatus != $this->digitalSignatureRequest->status && $this->digitalSignatureRequest->status == $this->digitalSignatureRequest::STATUS_SUCCESS) {
+			$areAllOperationBeenASuccess = $this->downloadSignedDocuments($this->digitalSignatureRequest);
+		}
+
 		if($areAllOperationBeenASuccess) {
 			$this->db->commit();
-			//we download documents if request has just been successfully finished
-			if($oldRequestStatus != $this->digitalSignatureRequest->status && $this->digitalSignatureRequest->status == $this->digitalSignatureRequest::STATUS_SUCCESS) {
-				//we download files
-				$result = $this->downloadSignedDocuments($this->digitalSignatureRequest);
-			}
-			else {
-				$result = true;
-			}
+			return true;
 		}
 		else {
 			$this->db->rollback();
-			return $result = false;
+			return false;
 		}
-
-
-		return $result;
 	}
 
 	/**
@@ -295,7 +289,7 @@ Class DigitalSignatureManagerUniversign
 		if ($response->status === \Globalis\Universign\Response\TransactionInfo::STATUS_COMPLETED) {
 			$docs = $requester->getDocuments($transactionId);
 			foreach ($docs as $doc) {
-				$res = file_put_contents($this->digitalSignatureRequest->getUploadDirOfSignedFiles() . '/' . $doc->name, $doc->content);
+				$res = file_put_contents($this->digitalSignatureRequest->getAbsoluteDirectoryOfSignedFiles() . '/' . $doc->name, $doc->content);
 				if(!$res) {
 					$errorOfThisProcess[] = $langs->trans('DigitalSignatureManagerUniversignErrorSavingFileInServer', $doc->name);
 				}
