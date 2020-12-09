@@ -30,33 +30,33 @@ dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.p
 class FormDigitalSignatureRequest
 {
 	/**
-     * @var DoliDb		Database handler (result of a new DoliDB)
-     */
+	 * @var DoliDb		Database handler (result of a new DoliDB)
+	 */
 	public $db;
 
-    /**
-     * @var Form  Instance of the form
-     */
-    public $form;
+	/**
+	 * @var Form  Instance of the form
+	 */
+	public $form;
 
-    /**
-     * @var array
-     */
+	/**
+	 * @var array
+	 */
 	public static $errors = array();
 
 	/**
-     * @var FormHelperDigitalSignatureManager  Instance of the form
-     */
+	 * @var FormHelperDigitalSignatureManager  Instance of the form
+	 */
 	public $helper;
 
 	/**
-     * @var FormDigitalSignatureDocument  Instance of the form
-     */
+	 * @var FormDigitalSignatureDocument  Instance of the form
+	 */
 	public $formDigitalSignatureDocument;
 
 	/**
-     * @var FormDigitalSignaturePeople  Instance of the form
-     */
+	 * @var FormDigitalSignaturePeople  Instance of the form
+	 */
 	public $formDigitalSignaturePeople;
 
 	/**
@@ -108,16 +108,51 @@ class FormDigitalSignatureRequest
 	 */
 	const DIGITALSIGNATURECHECKBOX_TABLEID = "digitalsignaturecheckbox";
 
-    /**
-     * Constructor
-     *
-     * @param   DoliDB $db Database handler
-     */
-    public function __construct(DoliDb $db)
-    {
-        $this->db = $db;
+	/**
+	 * @var string name of the action to refresh data from provider
+	 */
+	const REFRESH_DATA_ACTION_NAME = "refreshDataFromProvider";
 
-        require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
+	/**
+	 * @var string name of the action to cancel request on the provider
+	 */
+	const CANCEL_REQUEST_ACTION_NAME = "cancelRequest";
+
+	/**
+	 * @var string name of the action to create request on the provide
+	 */
+	const CREATE_REQUEST_ACTION_NAME = "validateAndCreateRequestToProvider";
+
+	/**
+	 * @var string name of the action to reset process on provider
+	 */
+	const RESET_ACTION_NAME = "resetSignatureProcess";
+
+	/**
+	 * @var string name of the action to confirm cancellation of the request on the provider
+	 */
+	const CONFIRM_CANCEL_REQUEST_ACTION_NAME = "confirm_cancelTransaction";
+
+	/**
+	 * @var string name of the action to confirm creation request on the provide
+	 */
+	const CONFIRM_CREATE_REQUEST_ACTION_NAME = "confirm_validateAndCreateRequestToProvider";
+
+	/**
+	 * @var string name of the action to confirm reset process on provider
+	 */
+	const CONFIRM_RESET_ACTION_NAME = "confirmResetSignatureProcess";
+
+	/**
+	 * Constructor
+	 *
+	 * @param   DoliDB $db Database handler
+	 */
+	public function __construct(DoliDb $db)
+	{
+		$this->db = $db;
+
+		require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
 		$this->form = new Form($db);
 
 		dol_include_once('/digitalsignaturemanager/class/helper.formdigitalsignaturemanager.class.php');
@@ -143,128 +178,121 @@ class FormDigitalSignatureRequest
 
 		require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 		$this->formFile = new FormFile($db);
-    }
+	}
 
 
 	/**
-     *  Show list of actions for element
-     *
-     *  @param	Object	$object			Object
-     *	@param	int		$socid			socid of user
-     *  @param	int		$forceshowtitle	Show title even if there is no actions to show
-     *  @param  string  $morecss        More css on table
-     *  @param	int		$max			Max number of record
-     *  @param	string	$moreparambacktopage	More param for the backtopage
-     *	@return	int						<0 if KO, >=0 if OK
-     */
-    public function showActions($object, $socid = 0, $forceshowtitle = 0, $morecss = 'listactions', $max = 0, $moreparambacktopage = '')
-    {
-		global $langs,$conf;
+	 *  Show list of actions for element
+	 *
+	 *  @param	Object	$object			Object
+	 *	@param	int		$socid			socid of user
+	 *  @param	int		$forceshowtitle	Show title even if there is no actions to show
+	 *  @param  string  $morecss        More css on table
+	 *  @param	int		$max			Max number of record
+	 *  @param	string	$moreparambacktopage	More param for the backtopage
+	 *	@return	int						<0 if KO, >=0 if OK
+	 */
+	public function showActions($object, $socid = 0, $forceshowtitle = 0, $morecss = 'listactions', $max = 0, $moreparambacktopage = '')
+	{
+		global $langs, $conf;
 
-		$listofactions = $this->helper->getActions($object, $socid,  null, 'datep, id', 'ASC', ($max?($max+1):0));
-		if (! is_array($listofactions)) {
+		$listofactions = $this->helper->getActions($object, $socid,  null, 'datep, id', 'ASC', ($max ? ($max + 1) : 0));
+		if (!is_array($listofactions)) {
 			dol_print_error($this->db, 'FailedToGetActions');
 		}
-        $num = count($listofactions);
-        if ($num || $forceshowtitle)
-        {
-			$title=$langs->trans("Actions");
+		$num = count($listofactions);
+		if ($num || $forceshowtitle) {
+			$title = $langs->trans("Actions");
 
-            $urlbacktopage=$_SERVER['PHP_SELF'].'?id='.$object->id.($moreparambacktopage?'&'.$moreparambacktopage:'');
+			$urlbacktopage = $_SERVER['PHP_SELF'] . '?id=' . $object->id . ($moreparambacktopage ? '&' . $moreparambacktopage : '');
 
 			if ($conf->agenda->enabled) {
 				$buttontoaddnewevent = '<a href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create&datep=' . dol_print_date(dol_now(), 'dayhourlog') . '&origin=' . $this->elementStatic->element . '&originid=' . $object->id . '&socid=' . $object->socid . '&projectid=' . $object->fk_project . '&backtopage=' . urlencode($urlbacktopage) . '">';
-				$buttontoaddnewevent.= $langs->trans("AddEvent");
-				$buttontoaddnewevent.= '</a>';
+				$buttontoaddnewevent .= $langs->trans("AddEvent");
+				$buttontoaddnewevent .= '</a>';
 			}
 			print load_fiche_titre($title, $buttontoaddnewevent, '');
 
-		$page=0; $param=''; $sortfield='a.datep';
+			$page = 0;
+			$param = '';
+			$sortfield = 'a.datep';
 
-		$total = 0;
+			$total = 0;
 
-		print '<div class="div-table-responsive">';
-		print '<table class="noborder'.($morecss?' '.$morecss:'').'" width="100%">';
-		print '<tr class="liste_titre">';
-		print_liste_field_titre('Ref', $_SERVER["PHP_SELF"], '', $page, $param, '');
-		print_liste_field_titre('Action', $_SERVER["PHP_SELF"], '', $page, $param, '');
-		print_liste_field_titre('Type', $_SERVER["PHP_SELF"], '', $page, $param, '');
-		print_liste_field_titre('Date', $_SERVER["PHP_SELF"], '', $page, $param, 'align="center"');
-		print_liste_field_titre('By', $_SERVER["PHP_SELF"], '', $page, $param, '');
-		print_liste_field_titre('', $_SERVER["PHP_SELF"], '', $page, $param, 'align="right"');
-		print '</tr>';
-		print "\n";
+			print '<div class="div-table-responsive">';
+			print '<table class="noborder' . ($morecss ? ' ' . $morecss : '') . '" width="100%">';
+			print '<tr class="liste_titre">';
+			print_liste_field_titre('Ref', $_SERVER["PHP_SELF"], '', $page, $param, '');
+			print_liste_field_titre('Action', $_SERVER["PHP_SELF"], '', $page, $param, '');
+			print_liste_field_titre('Type', $_SERVER["PHP_SELF"], '', $page, $param, '');
+			print_liste_field_titre('Date', $_SERVER["PHP_SELF"], '', $page, $param, 'align="center"');
+			print_liste_field_titre('By', $_SERVER["PHP_SELF"], '', $page, $param, '');
+			print_liste_field_titre('', $_SERVER["PHP_SELF"], '', $page, $param, 'align="right"');
+			print '</tr>';
+			print "\n";
 
-		$userstatic = new User($this->db);
+			$userstatic = new User($this->db);
 
-		$cursorevent = 0;
-		foreach($listofactions as $action)
-		{
-			if ($max && $cursorevent >= $max) break;
-				if(empty($action->id)) {
+			$cursorevent = 0;
+			foreach ($listofactions as $action) {
+				if ($max && $cursorevent >= $max) break;
+				if (empty($action->id)) {
 					continue;
 				}
-			$ref=$action->getNomUrl(1, -1);
-			$label=$action->getNomUrl(0, 38);
+				$ref = $action->getNomUrl(1, -1);
+				$label = $action->getNomUrl(0, 38);
 
-			print '<tr class="oddeven">';
-				print '<td>'.$ref.'</td>';
-			print '<td>'.$label.'</td>';
-			print '<td>';
-			if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
-			{
-			    if ($action->type_picto) print img_picto('', $action->type_picto);
-			    else {
-			        if ($action->type_code == 'AC_RDV')   print img_picto('', 'object_group').' ';
-			        if ($action->type_code == 'AC_TEL')   print img_picto('', 'object_phoning').' ';
-			        if ($action->type_code == 'AC_FAX')   print img_picto('', 'object_phoning_fax').' ';
-			        if ($action->type_code == 'AC_EMAIL') print img_picto('', 'object_email').' ';
-			    }
-			}
-			print $action->type;
-			print '</td>';
-			print '<td align="center">'.dol_print_date($action->datep, 'dayhour');
-			if ($action->datef)
-			{
-				$tmpa=dol_getdate($action->datep);
-				$tmpb=dol_getdate($action->datef);
-				if ($tmpa['mday'] == $tmpb['mday'] && $tmpa['mon'] == $tmpb['mon'] && $tmpa['year'] == $tmpb['year'])
-				{
-					if ($tmpa['hours'] != $tmpb['hours'] || $tmpa['minutes'] != $tmpb['minutes'] && $tmpa['seconds'] != $tmpb['seconds']) print '-'.dol_print_date($action->datef, 'hour');
+				print '<tr class="oddeven">';
+				print '<td>' . $ref . '</td>';
+				print '<td>' . $label . '</td>';
+				print '<td>';
+				if (!empty($conf->global->AGENDA_USE_EVENT_TYPE)) {
+					if ($action->type_picto) print img_picto('', $action->type_picto);
+					else {
+						if ($action->type_code == 'AC_RDV')   print img_picto('', 'object_group') . ' ';
+						if ($action->type_code == 'AC_TEL')   print img_picto('', 'object_phoning') . ' ';
+						if ($action->type_code == 'AC_FAX')   print img_picto('', 'object_phoning_fax') . ' ';
+						if ($action->type_code == 'AC_EMAIL') print img_picto('', 'object_email') . ' ';
+					}
 				}
-				else print '-'.dol_print_date($action->datef, 'dayhour');
-			}
-			print '</td>';
-			print '<td>';
-			if (! empty($action->author->id))
-			{
-				$userstatic->id = $action->author->id;
-				$userstatic->firstname = $action->author->firstname;
-				$userstatic->lastname = $action->author->lastname;
-				print $userstatic->getNomUrl(1, '', 0, 0, 16, 0, '', '');
-			}
-			print '</td>';
-			print '<td align="right">';
-			if (! empty($action->author->id))
-			{
-				print $action->getLibStatut(3);
-			}
-			print '</td>';
-			print '</tr>';
+				print $action->type;
+				print '</td>';
+				print '<td align="center">' . dol_print_date($action->datep, 'dayhour');
+				if ($action->datef) {
+					$tmpa = dol_getdate($action->datep);
+					$tmpb = dol_getdate($action->datef);
+					if ($tmpa['mday'] == $tmpb['mday'] && $tmpa['mon'] == $tmpb['mon'] && $tmpa['year'] == $tmpb['year']) {
+						if ($tmpa['hours'] != $tmpb['hours'] || $tmpa['minutes'] != $tmpb['minutes'] && $tmpa['seconds'] != $tmpb['seconds']) print '-' . dol_print_date($action->datef, 'hour');
+					} else print '-' . dol_print_date($action->datef, 'dayhour');
+				}
+				print '</td>';
+				print '<td>';
+				if (!empty($action->author->id)) {
+					$userstatic->id = $action->author->id;
+					$userstatic->firstname = $action->author->firstname;
+					$userstatic->lastname = $action->author->lastname;
+					print $userstatic->getNomUrl(1, '', 0, 0, 16, 0, '', '');
+				}
+				print '</td>';
+				print '<td align="right">';
+				if (!empty($action->author->id)) {
+					print $action->getLibStatut(3);
+				}
+				print '</td>';
+				print '</tr>';
 
-			$cursorevent++;
+				$cursorevent++;
+			}
+
+			if ($max && $num > $max) {
+				print '<tr class="oddeven"><td colspan="6">' . $langs->trans("More") . '...</td></tr>';
+			}
+
+			print '</table>';
+			print '</div>';
 		}
 
-		if ($max && $num > $max)
-		{
-			print '<tr class="oddeven"><td colspan="6">'.$langs->trans("More").'...</td></tr>';
-		}
-
-		print '</table>';
-		print '</div>';
-        }
-
-        return $num;
+		return $num;
 	}
 
 	/**
@@ -305,7 +333,7 @@ class FormDigitalSignatureRequest
 		$nbOfActionColumn = 0;
 		print '<tr class="liste_titre nodrag nodrop">';
 
-		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
 		}
 
@@ -317,22 +345,22 @@ class FormDigitalSignatureRequest
 			$langs->trans('DigitalSignatureManagerDocumentCheckBoxColumnTitle')
 		);
 
-		if($userCanAskToEditDocumentLine) {
+		if ($userCanAskToEditDocumentLine) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		if($userCanAskToDeleteDocumentLine) {
+		if ($userCanAskToDeleteDocumentLine) {
 			print '<td class="linecoldelete" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		if($userCanChangeOrder) {
+		if ($userCanChangeOrder) {
 			print '<td class="linecolmove" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
+		for ($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
@@ -347,19 +375,20 @@ class FormDigitalSignatureRequest
 		}
 
 		//we display documents
-		foreach($documents as $document) {
-			if($document->id != $currentDocumentIdEdited) {
+		foreach ($documents as $document) {
+			if ($document->id != $currentDocumentIdEdited) {
 				$this->formDigitalSignatureDocument->showDocument($document, $userCanAskToEditDocumentLine, $userCanAskToDeleteDocumentLine, $userCanChangeOrder, $nbOfActionColumn);
-			}
-			else {
+			} else {
 				//We display the form to edit line
 				$this->formDigitalSignatureDocument->showDocumentEditForm($object, $currentLineEdited, $nbOfActionColumn, $userCanChangeOrder);
 			}
 		}
 		//We display form to add new document
-		if ($userCanAddDocumentLine)
-		{
+		if ($userCanAddDocumentLine) {
 			$this->formDigitalSignatureDocument->showDocumentAddForm($object, $nbOfActionColumn);
+		} else if(empty($documents)) {
+			//We display no elements if none is present and we can't add it
+			print $this->formDigitalSignatureManager->getRowWithTextOnCenter($langs->trans("DigitalSignatureNoElementToDisplay"), !empty($conf->global->MAIN_VIEW_LINE_NUMBER) + 2 + $nbOfActionColumn);
 		}
 
 		print '</table>';
@@ -389,8 +418,8 @@ class FormDigitalSignatureRequest
 		$userCanAddLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
 
 		$numberOfActionColumnPerComponentsDisplayed = array(
-			'showSignatoryField'=>count($listOfSignatoryField) > 0 ? count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine))) : null,
-			'editSignatoryField'=> $isALineBeingEdited ? 1 : null,
+			'showSignatoryField' => count($listOfSignatoryField) > 0 ? count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine))) : null,
+			'editSignatoryField' => $isALineBeingEdited ? 1 : null,
 			'addSignatoryField' => $userCanAddLine ? 1 : null,
 		);
 		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
@@ -402,7 +431,7 @@ class FormDigitalSignatureRequest
 		print $this->formDigitalSignatureManager->getInfoBox(true, $langs->trans('DigitalSignatureManagerSignatureSignatoryListHelperText'));
 		print $langs->trans('DigitalSignatureManagerSignatureSignatoryList');
 		$validationErrorsMissingSignatoryField = $object->checkThatEachDocumentHasASignatureField();
-		if(!empty($validationErrorsMissingSignatoryField)) {
+		if (!empty($validationErrorsMissingSignatoryField)) {
 			print $this->formDigitalSignatureManager->getWarningInfoBox(!$readOnlyMode, $validationErrorsMissingSignatoryField);
 		}
 		print '</h3>';
@@ -413,7 +442,7 @@ class FormDigitalSignatureRequest
 
 		print '<tr class="liste_titre nodrag nodrop">';
 
-		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
 		}
 		print $this->formDigitalSignatureManager->getColumnTitle(
@@ -442,17 +471,17 @@ class FormDigitalSignatureRequest
 		);
 
 		$nbOfActionColumn = 0;
-		if($userCanAskToEditLine) {
+		if ($userCanAskToEditLine) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		if($userCanAskToDeleteLine) {
+		if ($userCanAskToDeleteLine) {
 			print '<td class="linecoldelete" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
+		for ($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
@@ -460,20 +489,21 @@ class FormDigitalSignatureRequest
 
 		$nbOfContentColumn = 5;
 
-		//we display digital signature people
-		foreach($listOfSignatoryField as $signatoryField) {
-			if($signatoryField->id != $currentSignatoryFieldEditedId) {
+		//we display digital signatory field
+		foreach ($listOfSignatoryField as $signatoryField) {
+			if ($signatoryField->id != $currentSignatoryFieldEditedId) {
 				$this->formDigitalSignatureSignatoryField->show($signatoryField, $userCanAskToEditLine, $userCanAskToDeleteLine, $neededActionColumn);
-			}
-			else {
+			} else {
 				//We display the form to edit line
 				$this->formDigitalSignatureSignatoryField->showEditForm($object, $signatoryField, $nbOfContentColumn, $neededActionColumn);
 			}
 		}
-		//We display form to add new document
-		if ($userCanAddLine)
-		{
+		//We display form to add new signatory field
+		if ($userCanAddLine) {
 			$this->formDigitalSignatureSignatoryField->showAddForm($object, $nbOfContentColumn, $neededActionColumn);
+		} else if(empty($listOfSignatoryField)) {
+			//We display no elements if none is present and we can't add it
+			print $this->formDigitalSignatureManager->getRowWithTextOnCenter($langs->trans("DigitalSignatureNoElementToDisplay"), !empty($conf->global->MAIN_VIEW_LINE_NUMBER) + $nbOfContentColumn + $nbOfActionColumn);
 		}
 
 		print '</table>';
@@ -510,29 +540,28 @@ class FormDigitalSignatureRequest
 		if (count($listOfpeople) > 0 && $this->formDigitalSignaturePeople->elementObjectStatic::isThereOnlyFreePeople($listOfpeople)) {
 			$displayLinkedObjectColumn = false;
 		}
-		if(count($listOfpeople) == 0) {
+		if (count($listOfpeople) == 0) {
 			$numberOfContentColumnForShowPeople = null;
-		}
-		else {
+		} else {
 			$numberOfContentColumnForShowPeople = $displayLinkedObjectColumn ? 5 : 4;
 		}
 
 		$numberOfContentColumnPerComponentsDisplayed = array(
-			'showPeople'=>$numberOfContentColumnForShowPeople,
-			'showEditForm'=> $isALineBeingEdited ? 5 : null,
+			'showPeople' => $numberOfContentColumnForShowPeople,
+			'showEditForm' => $isALineBeingEdited ? 5 : null,
 			'showFromContactAddForm' => $userCanAddLine ? 1 : null,
 			'showFromUserAddForm' => $userCanAddLine ? 1 : null,
-			'showFreeAddForm' => $userCanAddLine ? 4:null
+			'showFreeAddForm' => $userCanAddLine ? 4 : null
 		);
 		$neededContentColumn = max(array_values(array_filter($numberOfContentColumnPerComponentsDisplayed)));
 		$neededContentColumn = $neededContentColumn < 1 ? 1 : $neededContentColumn;
 
 		$numberOfActionColumnPerComponentsDisplayed = array(
-			'showPeople'=>count($listOfpeople) > 0 ? count(array_filter(array($userCanChangeOrder , $userCanAskToEditLine, $userCanAskToDeleteLine))) : null,
-			'showEditForm'=> $isALineBeingEdited ? 1 + count(array($userCanChangeOrder)) : null,
+			'showPeople' => count($listOfpeople) > 0 ? count(array_filter(array($userCanChangeOrder, $userCanAskToEditLine, $userCanAskToDeleteLine))) : null,
+			'showEditForm' => $isALineBeingEdited ? 1 + count(array($userCanChangeOrder)) : null,
 			'showFromContactAddForm' => $userCanAddLine ? 1 : null,
 			'showFromUserAddForm' => $userCanAddLine ? 1 : null,
-			'showFreeAddForm' => $userCanAddLine ? 1: null
+			'showFreeAddForm' => $userCanAddLine ? 1 : null
 		);
 		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
 
@@ -544,11 +573,11 @@ class FormDigitalSignatureRequest
 
 		print '<tr class="liste_titre nodrag nodrop">';
 
-		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
 		}
 
-		if($displayLinkedObjectColumn) {
+		if ($displayLinkedObjectColumn) {
 			print $this->formDigitalSignatureManager->getColumnTitle(
 				$langs->trans('DigitalSignatureLinkedObjectTitle')
 			);
@@ -570,29 +599,29 @@ class FormDigitalSignatureRequest
 			$langs->trans('DigitalSignaturePeopleMobilePhoneNumber')
 		);
 
-		if($displayStatus) {
+		if ($displayStatus) {
 			print $this->formDigitalSignatureManager->getColumnTitle(
 				$langs->trans('DigitalSignaturePeopleStatus')
 			);
 		}
 
 		$nbOfActionColumn = 0;
-		if($userCanAskToEditLine) {
+		if ($userCanAskToEditLine) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		if($userCanAskToDeleteLine) {
+		if ($userCanAskToDeleteLine) {
 			print '<td class="linecoldelete" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		if($userCanChangeOrder) {
+		if ($userCanChangeOrder) {
 			print '<td class="linecolmove" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
+		for ($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
@@ -607,21 +636,22 @@ class FormDigitalSignatureRequest
 		}
 
 		//we display digital signature people
-		foreach($listOfpeople as $people) {
-			if($people->id != $currentPeopleIdEdited) {
+		foreach ($listOfpeople as $people) {
+			if ($people->id != $currentPeopleIdEdited) {
 				$this->formDigitalSignaturePeople->showPeople($people, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder, $neededActionColumn, $displayLinkedObjectColumn, $displayStatus);
-			}
-			else {
+			} else {
 				//We display the form to edit line
 				$this->formDigitalSignaturePeople->showEditForm($object, $people, $userCanChangeOrder, $neededContentColumn, $neededActionColumn, $displayLinkedObjectColumn);
 			}
 		}
 		//We display form to add new document
-		if ($userCanAddLine)
-		{
+		if ($userCanAddLine) {
 			$this->formDigitalSignaturePeople->showFreeAddForm($object, $neededContentColumn, $neededActionColumn);
 			$this->formDigitalSignaturePeople->showFromContactAddForm($object, $neededContentColumn, $neededActionColumn);
 			$this->formDigitalSignaturePeople->showFromUserAddForm($object, $neededContentColumn, $neededActionColumn);
+		} else if(empty($listOfpeople)) {
+			//We display no elements if none is present and we can't add it
+			print $this->formDigitalSignatureManager->getRowWithTextOnCenter($langs->trans("DigitalSignatureNoElementToDisplay"), !empty($conf->global->MAIN_VIEW_LINE_NUMBER) + $neededContentColumn + $nbOfActionColumn);
 		}
 
 		print '</table>';
@@ -652,8 +682,8 @@ class FormDigitalSignatureRequest
 		$userCanAddLine = !$readOnlyMode && $permissionToAdd && !$isALineBeingEdited;
 
 		$numberOfActionColumnPerComponentsDisplayed = array(
-			'show'=>count($listOfCheckBox) > 0 ? count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder))) : null,
-			'showEditForm'=> $isALineBeingEdited ? count(array_filter(array(true, $userCanChangeOrder))) : null,
+			'show' => count($listOfCheckBox) > 0 ? count(array_filter(array($userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder))) : null,
+			'showEditForm' => $isALineBeingEdited ? count(array_filter(array(true, $userCanChangeOrder))) : null,
 			'showAddForm' => $userCanAddLine ? 1 : null,
 		);
 		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
@@ -666,7 +696,7 @@ class FormDigitalSignatureRequest
 
 		print '<tr class="liste_titre nodrag nodrop">';
 
-		if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+		if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
 			print '<td class="linecolnum" align="center"></td>';
 		}
 		print $this->formDigitalSignatureManager->getColumnTitle(
@@ -674,21 +704,21 @@ class FormDigitalSignatureRequest
 		);
 
 		$nbOfActionColumn = 0;
-		if($userCanAskToEditLine) {
+		if ($userCanAskToEditLine) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		if($userCanAskToDeleteLine) {
+		if ($userCanAskToDeleteLine) {
 			print '<td class="linecoldelete" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
 
-		if($userCanChangeOrder) {
+		if ($userCanChangeOrder) {
 			print '<td class="linecolmove" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
-		for($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
+		for ($i = $nbOfActionColumn; $i < $neededActionColumn; $i++) {
 			print '<td class="linecoledit" style="width: 10px"></td>';
 			$nbOfActionColumn++;
 		}
@@ -704,19 +734,21 @@ class FormDigitalSignatureRequest
 		}
 
 		//we display digital signature people
-		foreach($listOfCheckBox as $checkBox) {
-			if($checkBox->id != $currentCheckBoxEditedId) {
+		foreach ($listOfCheckBox as $checkBox) {
+			if ($checkBox->id != $currentCheckBoxEditedId) {
 				$this->formDigitalSignatureCheckBox->show($checkBox, $userCanAskToEditLine, $userCanAskToDeleteLine, $userCanChangeOrder, $neededActionColumn);
-			}
-			else {
+			} else {
 				//We display the form to edit line
 				$this->formDigitalSignatureCheckBox->showEditForm($object, $checkBox, $nbOfContentColumn, $neededActionColumn);
 			}
 		}
 		//We display form to add new document
-		if ($userCanAddLine)
-		{
+		if ($userCanAddLine) {
 			$this->formDigitalSignatureCheckBox->showAddForm($object, $nbOfContentColumn, $neededActionColumn);
+		}
+		else if(empty($listOfCheckBox)) {
+			//We display no elements if none is present and we can't add it
+			print $this->formDigitalSignatureManager->getRowWithTextOnCenter($langs->trans("DigitalSignatureNoElementToDisplay"), !empty($conf->global->MAIN_VIEW_LINE_NUMBER) + $nbOfContentColumn + $nbOfActionColumn);
 		}
 
 		print '</table>';
@@ -751,6 +783,147 @@ class FormDigitalSignatureRequest
 			$langs->defaultlang,
 			null,
 			$digitalSignatureRequest,
-			0);
+			0
+		);
+	}
+
+	/**
+	 * Function to get update button
+	 * @param int $objectId object id on which this button is displayed
+	 * @param bool $userPermission Is user allowed to click on this button
+	 * @return string
+	 */
+	public function getRefreshButton($objectId, $userPermission)
+	{
+		global $langs;
+		return $this->formDigitalSignatureManager->generateButton($langs->trans('DigitalSignatureRequestRefreshData'), $userPermission, $objectId, self::REFRESH_DATA_ACTION_NAME);
+	}
+
+	/**
+	 * Function to get reset signature process button
+	 * @param int $objectId object id on which this button is displayed
+	 * @param bool $userPermission Is user allowed to click on this button
+	 * @return string
+	 */
+	public function getResetButton($objectId, $userPermission)
+	{
+		global $langs;
+		return $this->formDigitalSignatureManager->generateButton($langs->trans('DigitalSignatureRequestResetSignatureProcess'), $userPermission, $objectId, self::RESET_ACTION_NAME);
+	}
+
+	/**
+	 * Function to get cancel signature process button
+	 * @param int $objectId object id on which this button is displayed
+	 * @param bool $userPermission Is user allowed to click on this button
+	 * @return string
+	 */
+	public function getCancelButton($objectId, $userPermission)
+	{
+		global $langs;
+		return $this->formDigitalSignatureManager->generateButton($langs->trans('DigitalSignatureManagerCancelTransaction'), $userPermission, $objectId, self::CANCEL_REQUEST_ACTION_NAME);
+	}
+
+	/**
+	 * Function to manage refresh of data action
+	 * @param DigitalSignatureRequest $object request on which we are doing action
+	 * @param User $user user requesting action
+	 * @return void
+	 */
+	public function manageRefreshAction($object, $user)
+	{
+		global $langs;
+		$result = $object->updateDataFromExternalService($user);
+		if ($result <= 0) {
+			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileRefreshingData'), $object->errors, 'errors');
+		} else {
+			setEventMessages($langs->trans('DigitalSignatureManagerSuccesfullyRefreshedData'), array());
+		}
+	}
+
+	/**
+	 * Function to manage confirm creation of the request
+	 * @param DigitalSignatureRequest $object request on which we are doing action
+	 * @param User $user user requesting action
+	 * @return void
+	 */
+	public function manageConfirmCreateAction($object, $user)
+	{
+		global $langs;
+		$result = $object->validateAndCreateRequestOnTheProvider($user);
+		if ($result <= 0) {
+			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileCreatingRequestOnProvider'), $object->errors, 'errors');
+		} else {
+			setEventMessages($langs->trans('DigitalSignatureManagerSucessfullyCreatedOnProvider'), array());
+		}
+	}
+
+	/**
+	 * Function to manage confirm cancellation of the request
+	 * @param DigitalSignatureRequest $object request on which we are doing action
+	 * @param User $user user requesting action
+	 * @return void
+	 */
+	public function manageConfirmCancelAction($object, $user)
+	{
+		global $langs;
+		if ($object->cancelRequest($user) > 0) {
+			setEventMessages($langs->trans('DigitalSignatureManagerSuccessfullyCanceled'), $object->errors);
+		} else {
+			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileCanceling'), $object->errors, 'errors');
+		}
+	}
+	/**
+	 * Function to manage confirm cancellation of the request
+	 * @param DigitalSignatureRequest $object request on which we are doing action
+	 * @param User $user user requesting action
+	 * @param book $goToCreatedRequest Should we go to created request
+	 * @return void
+	 */
+	public function manageConfirmResetProcessAction($object, $user, $goToCreatedRequest = true)
+	{
+		global $langs;
+		$result = $object->resetSignatureProcess($user);
+		if (!$result) {
+			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileResetingProcess'), $object->errors, 'errors');
+		} else {
+			setEventMessages($langs->trans('DigitalSignatureManagerSuccesfullyResetProcess'), array());
+			if ($goToCreatedRequest) {
+				header("Location: " . $_SERVER['PHP_SELF'] . '?id=' . $result->id); // Open record of new object
+				exit;
+			}
+		}
+	}
+
+	/**
+	 * Function to get form confirm for creating request
+	 * @param int $urlObjectId object to be used into url
+	 * @return string
+	 */
+	public function getCreateFormConfirm($urlObjectId)
+	{
+		global $langs;
+		return $this->formDigitalSignatureManager->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $urlObjectId, $langs->trans('DigitalSignatureRequestValidate'), $langs->trans('DigitalSignatureRequestValidateDetails'), self::CONFIRM_CREATE_REQUEST_ACTION_NAME, '', 0, 1, 200, 500);
+	}
+
+	/**
+	 * Function to get form confirm for cancelling request
+	 * @param int $urlObjectId object to be used into url
+	 * @return string
+	 */
+	public function getCancelFormConfirm($urlObjectId)
+	{
+		global $langs;
+		return $this->formDigitalSignatureManager->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $urlObjectId, $langs->trans('DigitalSignatureRequestCancelTransactionTitle'), $langs->trans('DigitalSignatureRequestCancelTransactionContent'), self::CONFIRM_CANCEL_REQUEST_ACTION_NAME, '', 0, 1);
+	}
+
+	/**
+	 * Function to get form confirm for resetting request
+	 * @param int $urlObjectId object to be used into url
+	 * @return string
+	 */
+	public function getResetFormConfirm($urlObjectId)
+	{
+		global $langs;
+		return $this->form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $urlObjectId, $langs->trans('DigitalSignatureRequestCanceResetSignatureProcessTitle'), $langs->trans('DigitalSignatureRequestConfirmResetSignatureProcessContent'), self::CONFIRM_RESET_ACTION_NAME, '', 0, 1);
 	}
 }

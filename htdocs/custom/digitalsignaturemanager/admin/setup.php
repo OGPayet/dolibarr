@@ -99,7 +99,7 @@ $arrayOfParametersForAutomaticEventManagment = array(
 	);
 
 $arrayOfParametersOfMiscellaneous = array(
-	'DIGITALSIGNATUREMANAGER_CHECKBOX_ADDNUMBEROFPAGE'=>array('name'=>$langs->trans('DigitalSignatureManagerCheckBoxAddNumberOfPage'))
+//	'DIGITALSIGNATUREMANAGER_CHECKBOX_ADDNUMBEROFPAGE'=>array('name'=>$langs->trans('DigitalSignatureManagerCheckBoxAddNumberOfPage'))
 );
 
 $arrayofparameters = array_merge($arrayOfParametersForProductionSettings, $arrayOfParametersForTestSettings, $arrayOfParametersForTestMode, $arrayOfParametersForAutomaticEventManagment, $arrayOfParametersOfMiscellaneous);
@@ -570,25 +570,25 @@ foreach($arrayOfParametersForTestMode as $key=>$parameter) {
 print '</table>';
 
 //Miscellaneous
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre">';
-print '<td class="titlefield" style="min-width:500px;">'.$langs->trans("DigitalSignatureManagerMiscellaneous").'</td>';
-print '<td class="minwidth300">'.$langs->trans("Value").'</td>';
-print '</tr>';
-foreach($arrayOfParametersOfMiscellaneous as $key=>$parameter) {
-	print '<tr class="oddeven">';
-	print '<td>';
-	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
-	print '</td>';
-	print '<td>';
-	print '<input size="64" type="hidden" name="' . $key . '" value="0">';
-	print '<input size="64" type="checkbox" name="' . $key . '" value="1" ';
-	print !empty($conf->global->$key) ? 'checked="checked"' : '';
-	print '>';
-	print '</td>';
-}
+// print '<table class="noborder centpercent">';
+// print '<tr class="liste_titre">';
+// print '<td class="titlefield" style="min-width:500px;">'.$langs->trans("DigitalSignatureManagerMiscellaneous").'</td>';
+// print '<td class="minwidth300">'.$langs->trans("Value").'</td>';
+// print '</tr>';
+// foreach($arrayOfParametersOfMiscellaneous as $key=>$parameter) {
+// 	print '<tr class="oddeven">';
+// 	print '<td>';
+// 	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
+// 	print '</td>';
+// 	print '<td>';
+// 	print '<input size="64" type="hidden" name="' . $key . '" value="0">';
+// 	print '<input size="64" type="checkbox" name="' . $key . '" value="1" ';
+// 	print !empty($conf->global->$key) ? 'checked="checked"' : '';
+// 	print '>';
+// 	print '</td>';
+// }
 
-print '</table>';
+// print '</table>';
 
 //Automatic Event Managment
 print '<table class="noborder centpercent">';

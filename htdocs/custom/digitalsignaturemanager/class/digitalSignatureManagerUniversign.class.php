@@ -169,9 +169,9 @@ Class DigitalSignatureManagerUniversign
 			foreach($document->getCheckBoxes() as $checkBox) {
 				$checkBoxTexts[] = $checkBox->label;
 			}
-			if(!empty($conf->global->DIGITALSIGNATUREMANAGER_CHECKBOX_ADDNUMBEROFPAGE)) {
-				$checkBoxTexts[] = $langs->trans('DigitalSignatureManagerPageNumberCheckBox', $document->getNumberOfPage());
-			}
+			// if(!empty($conf->global->DIGITALSIGNATUREMANAGER_CHECKBOX_ADDNUMBEROFPAGE)) {
+			// 	$checkBoxTexts[] = $langs->trans('DigitalSignatureManagerPageNumberCheckBox', $document->getNumberOfPage());
+			// }
 			if(!empty($checkBoxTexts)) {
 				$universignDocument->setCheckBoxTexts($checkBoxTexts);
 			}
@@ -541,7 +541,7 @@ Class DigitalSignatureManagerUniversign
 	public static function updateRequestInformation(&$db, &$digitalSignatureRequest, &$requestInfo, &$user)
 	{
 		$db->begin();
-		$arrayOfFieldToUpdate = array('externalId'=>$requestInfo->transactionId);
+		$arrayOfFieldToUpdate = array('externalId'=>$requestInfo->transactionId, 'last_update_from_provider'=>dol_now());
 		$isThereSomeThingToUpdate = false;
 		foreach($arrayOfFieldToUpdate as $propertyName => $universignValue) {
 			$propertyValue = $digitalSignatureRequest->$propertyName;

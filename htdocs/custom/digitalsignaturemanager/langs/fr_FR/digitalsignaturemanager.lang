@@ -215,6 +215,8 @@ DigitalSignaturePeopleStatus = Avancement
 DigitalSignatureRequestUniversignProcessLabel = Processus de signature %s
 DigitalSignatureManagerNotDeletable = La demande %s ne peux être supprimé, car elle a été créé chez le prestataire
 
+DigitalSignatureRequestLastUpdateFromProvider = Date de la dernière mise à jour des données depuis le prestataire extérieur
+DigitalSignatureRequestLastUpdateFromProviderShort = Dernière synchronisation
 DigitalSignatureRequestExternalId = Id de la demande chez le prestataire
 DigitalSignatureRequestExternalUrl = Lien de la page de signature
 DigitalSignatureManagerLinkedObject = Signature électronique de la pièce commerciale
@@ -231,13 +233,25 @@ DigitalSignatureRequestConfirmResetSignatureProcessContent = Le processus de sig
 
 DigitalSignatureManagerSelectFilesToSignTitle = Signature électronique d'une pièce commerciale
 DigitalSignatureManagerSelectFilesToSign = Selectionner le ou les documents à envoyer aux signataires pour effectuer la signature électronique de cette pièce commerciale
+DigitalSignatureManagerSelectSignatoryToSignTitle = Affectation des signataires sur chaque document
 DigitalSignatureManagerRequestSign = Signature électronique
 DigitalSignatureManagerSignersForDocument = Signataires à définir pour les champs de signature du document %s
 DigitalSignatureManagerNoSettingForDocument = Aucun champs de signature paramétré pour le type de document de %s. Vous devrez manuellement ajouter les champs de signature de ce document ou alors le retirer du processus de signature électronique
 DigitalSignatureManagerSignatoryFieldTitle = Selection du signataire pour le champs de signature : %s
 DigitalSignatureManagerNoSignatorySelected = Pas de signataire sélectionné pour le champs de signature "%s" du document "%s"
-DigitalSignatureManagerFreeSignatoryIncomplete = Information incorrectes pour le champs de signature "%s" du document "%s"
+DigitalSignatureManagerFreeSignatoryIncomplete = Pas de signataire sélectionné ou information incorrectes pour le champs de signature "%s" du document "%s"
 DigitalSignatureManagerLinkedRequestBlock = Demande de signature électronique pour cette pièce
+DigitalSignatureManagerNoneLinked = Aucune signature électronique pour cette pièce
+DigitalSignatureManagerAlreadyOneRequestInProgress = Une procédure de signature électronique est déjà en cours
+DigitalSignatureManagerNotAllowedForUser = Opération non autorisée pour votre utilisateur
+DigitalSignatureManagerNoRequestInProgress = Aucune signature électronique n'est en cours
+DigitalSignatureManagerObjectMustBeValidated = La pièce commerciale doit être au statut validé pour pouvoir être signé
+DigitalSignatureManagerNoDocumentSelected = Aucun document à signer sélectionné
+DigitalSignatureManagerDraftSuccessfullyCreated = Demande de signature électronique brouillon créé avec succès
+DigitalSignatureDocumentTemplateOptions = Options de création de la signature électronique
+DigitalSignatureManagerCreateOnlyDraft = Ne pas envoyer maintenant la demande de signatur électronique, créer simplement un brouillon
+DigitalSignatureNoElementToDisplay = Aucun élément à afficher
+DigitalSignatureManagerStaledData = Cette demande de signature électronique a été générée depuis une pièce commerciale mais cette dernière a été modifiée depuis la génération. Ce processus de signature contient donc une pièce commerciale qui n'est plus d'actualité.
 #
 # Status
 #

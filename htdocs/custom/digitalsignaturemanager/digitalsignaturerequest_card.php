@@ -138,6 +138,8 @@ $formDigitalSignatureSignatoryField = new FormDigitalSignatureSignatoryField($db
 dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturecheckbox.class.php');
 $formDigitalSignatureCheckBox = new FormDigitalSignatureCheckBox($db);
 
+$formdigitalsignaturerequest = new FormDigitalSignatureRequest($db);
+
 $parameters = array();
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
@@ -183,46 +185,21 @@ if (empty($reshook)) {
 		}
 	}
 
-	if ($action == 'confirm_validateAndCreateRequestToProvider' && $permissioncreate && $confirm == 'yes' && $object->status == $object::STATUS_DRAFT && $permissiontoadd) {
-		$result = $object->validateAndCreateRequestOnTheProvider($user);
-		if ($result <= 0) {
-			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileCreatingRequestOnProvider'), $object->errors, 'errors');
-		}
-		else {
-			setEventMessages($langs->trans('DigitalSignatureManagerSucessfullyCreatedOnProvider'), array());
-		}
+	if ($action == $formdigitalsignaturerequest::CONFIRM_CREATE_REQUEST_ACTION_NAME && $permissioncreate && $confirm == 'yes' && $object->status == $object::STATUS_DRAFT && $permissiontoadd) {
+		$formdigitalsignaturerequest->manageConfirmCreateAction($object, $user);
 	}
 
-	if($action == 'confirm_cancelTransaction' && $permissiontoedit && $confirm == 'yes' && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
-		if($object->cancelRequest($user) > 0) {
-			setEventMessages($langs->trans('DigitalSignatureManagerSuccessfullyCanceled'), $object->errors);
-		}
-		else {
-			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileCanceling'), $object->errors, 'errors');
-		}
+	if($action == $formdigitalsignaturerequest::CONFIRM_CANCEL_REQUEST_ACTION_NAME && $permissiontoedit && $confirm == 'yes' && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
+		$formdigitalsignaturerequest->manageConfirmCancelAction($object, $user);
 	}
 
-	if($action == 'refreshDataFromProvider' && $object->isInProgress() && $permissiontoread)
+	if($action == $formdigitalsignaturerequest::REFRESH_DATA_ACTION_NAME && $object->isInProgress() && $permissiontoread)
 	{
-		$result = $object->updateDataFromExternalService($user);
-		if ($result <= 0) {
-			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileRefreshingData'), $object->errors, 'errors');
-		}
-		else {
-			setEventMessages($langs->trans('DigitalSignatureManagerSuccesfullyRefreshedData'), array());
-		}
+		$formdigitalsignaturerequest->manageRefreshAction($object, $user);
 	}
 
-	if($action == 'confirmResetSignatureProcess' && $permissiontoedit && $confirm == 'yes' && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
-		$result = $object->resetSignatureProcess($user);
-		if (!$result) {
-			setEventMessages($langs->trans('DigitalSignatureManagerErrorWhileResetingProcess'), $object->errors, 'errors');
-		}
-		else {
-			header("Location: ".$_SERVER['PHP_SELF'].'?id=' . $result->id); // Open record of new object
-			setEventMessages($langs->trans('DigitalSignatureManagerSuccesfullyResetProcess'), array());
-			exit;
-		}
+	if($action == $formdigitalsignaturerequest::CONFIRM_RESET_ACTION_NAME && $permissiontoedit && $confirm == 'yes' && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
+		$formdigitalsignaturerequest->manageConfirmResetProcessAction($object, $user, true);
 	}
 
 	//Action to manage delete of digitalsignaturedocument
@@ -322,7 +299,7 @@ if(!empty($object->errors)) {
  */
 
 $form = new Form($db);
-$formdigitalsignaturerequest = new FormDigitalSignatureRequest($db);
+
 $formproject = new FormProjets($db);
 
 $title = $langs->trans("DigitalSignatureRequest");
@@ -418,18 +395,18 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	}
 
 	// Confirmation to create request on provider side
-	if ($action == 'validateAndCreateRequestToProvider' && $permissioncreate) {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestValidate'), $langs->trans('DigitalSignatureRequestValidateDetails'), 'confirm_validateAndCreateRequestToProvider', '', 0, 1);
+	if ($action == $formdigitalsignaturerequest::CREATE_REQUEST_ACTION_NAME && $permissioncreate) {
+		$formconfirm = $formdigitalsignaturerequest->getCreateFormConfirm($object->id);
 	}
 
 	//Confirmation to cancel request from opsy
-	if ($action == 'cancelTransaction' && $permissiontoedit) {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestCancelTransactionTitle'), $langs->trans('DigitalSignatureRequestCancelTransactionContent'), 'confirm_cancelTransaction', '', 0, 1);
+	if ($action == $formdigitalsignaturerequest::CANCEL_REQUEST_ACTION_NAME  && $permissiontoedit) {
+		$formconfirm = $formdigitalsignaturerequest->getCancelFormConfirm($object->id);
 	}
 
 	//Confirmation to reset process
-	if($action == 'resetSignatureProcess' && $permissiontoedit) {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DigitalSignatureRequestCanceResetSignatureProcessTitle'), $langs->trans('DigitalSignatureRequestConfirmResetSignatureProcessContent'), 'confirmResetSignatureProcess', '', 0, 1);
+	if($action == $formdigitalsignaturerequest::RESET_ACTION_NAME && $permissiontoedit) {
+		$formconfirm = $formdigitalsignaturerequest->getResetFormConfirm($object->id);
 	}
 
 	//Form confirm for digital signature request
@@ -508,6 +485,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	unset($object->fields['fk_soc']);					// Hide field already shown in banner
 	unset($object->fields['ref_client']);					// Hide field already shown in banner
 
+	if($object->status == $object::STATUS_DRAFT || $object->last_update_from_provider == 0) {
+		$object->fields['last_update_from_provider']['visible'] = 0;
+	}
+
 	include DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_view.tpl.php';
 
 	//We display linked object
@@ -518,7 +499,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print $langs->trans("DigitalSignatureManagerLinkedObject");
 		print "</td>";
 		print "<td>";
-		print dolGetElementUrl($object->fk_object, $object->elementtype, 1);
+		print dolGetElementUrl($object->fk_object, $object->elementtype, 1) . $formdigitalsignaturerequest->formDigitalSignatureManager->getWarningInfoBox($object->is_staled_according_to_source_object, $langs->trans("DigitalSignatureManagerStaledData"));
 		print "</td>";
 		print "</tr>";
 	}
@@ -581,31 +562,22 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			//Update information from the provider
-			if($permissiontoread && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
-				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=refreshDataFromProvider">' . $langs->trans("DigitalSignatureRequestRefreshData") . '</a>';
+			if($object->isInProgress() || $object->status == $object::STATUS_FAILED) {
+				print $formdigitalsignaturerequest->getRefreshButton($object->id, $permissiontoread);
 			}
 
 			//Reset signature process
-			if($permissiontoread && ($object->isInProgress() || $object->status == $object::STATUS_FAILED)) {
-				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=resetSignatureProcess">' . $langs->trans("DigitalSignatureRequestResetSignatureProcess") . '</a>';
+			if($object->isInProgress() || $object->status == $object::STATUS_FAILED) {
+				print $formdigitalsignaturerequest->getResetButton($object->id, $permissiontoread);
 			}
-
 
 			//Delete transaction on provider
 			if($object->isInProgress()) {
-				if ($permissiontoedit) {
-					print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=cancelTransaction">' . $langs->trans('DigitalSignatureManagerCancelTransaction') . '</a>' . "\n";
-				} else {
-					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('DigitalSignatureManagerCancelTransaction') . '</a>' . "\n";
-				}
+				print $formdigitalsignaturerequest->getCancelButton($object->id, $permissiontoedit);
 			}
 			// Delete (need delete permission, or if draft, just need create/modify permission)
 			if($object->isEditable()) {
-				if ($permissiontodelete || $object->status == $object::STATUS_DRAFT) {
-					print '<a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=delete">' . $langs->trans('Delete') . '</a>' . "\n";
-				} else {
-					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Delete') . '</a>' . "\n";
-				}
+				print $formdigitalsignaturerequest->formDigitalSignatureManager->generateButton($langs->trans('Delete'), $permissiontodelete || $object->status == $object::STATUS_DRAFT, $object->id, 'delete');
 			}
 		}
 		print '</div>' . "\n";

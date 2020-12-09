@@ -343,6 +343,18 @@ class FormDigitalSignatureManager
 	}
 
 	/**
+	 * Function to get a row from a table with text center on it
+	 * @param string $textToDisplay text to be displayed
+	 * @param int $colspan needed colspan for row to take full table width
+	 * @return int
+	 */
+	public function getRowWithTextOnCenter($textToDisplay, $colspan = 1)
+	{
+		return '<tr style="text-align:center;"><td colspan="' .$colspan .'">' . $textToDisplay . '</tr>';
+	}
+
+
+	/**
 	 * Function to build an url for subItem action
 	 * @param int $objectId Digital signature request id
 	 * @param string $actionName Name of the asked action
@@ -400,7 +412,7 @@ class FormDigitalSignatureManager
 		} else {
 			$listOfUserId = '';
 		}
-		return $this->form->select_dolusers($selectedUserId, $htmlName, (int) $purposeEmptyChoice, $excludeFollowingUserIds, 0, $listOfUserId, '', null, null, null, null, null, null, 'fullwidth', 1);
+		return $this->form->select_dolusers($selectedUserId, $htmlName, (int) $purposeEmptyChoice, $excludeFollowingUserIds, 0, $listOfUserId, '', null, null, null, null, null, null, 'fullwidth minwidth200', 1);
 	}
 
 	/**
@@ -427,7 +439,7 @@ class FormDigitalSignatureManager
 			$excludeFollowingContactIds,
 			$filterToFollowingContactIds,
 			0,
-			'fullwidth',
+			'fullwidth minwidth200',
 			null,
 			null,
 			null,
@@ -436,7 +448,7 @@ class FormDigitalSignatureManager
 		);
 	}
 
-	/**
+		/**
 	 *     Show a confirmation HTML form or AJAX popup.
 	 *     Easiest way to use this is with useajax=1.
 	 *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
@@ -513,7 +525,7 @@ class FormDigitalSignatureManager
 						$more .= '</td></tr>' . "\n";
 					} else if ($input['type'] == 'checkbox') {
 						$more .= '<tr class="oddeven">';
-						$more .= '<td class="titlefield">' . $input['label'] . ' </td><td align="left">';
+						$more .= '<td class="titlefield">' . $input['label'] . ' </td><td align="right">';
 						$more .= '<input type="checkbox" class="flat" id="' . $input['name'] . '" name="' . $input['name'] . '"';
 						if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
 						if (is_bool($input['value']) && $input['value']) $more .= ' checked';
@@ -624,7 +636,8 @@ class FormDigitalSignatureManager
                         "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
                             var form_dialog_confirm = $("form#form_dialog_confirm");
                             form_dialog_confirm.find("input#confirm").val("yes");
-                            form_dialog_confirm.submit();
+							form_dialog_confirm.submit();
+							console.log(form_dialog_confirm.submit());
                             $(this).dialog("close");
                         },
                         "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
@@ -760,13 +773,37 @@ class FormDigitalSignatureManager
 		$out .= '<td>' . $langs->trans("DigitalSignatureManagerRequestSign") . '</td>';
 		$out .= '<td style="text-align:right">' . $langs->trans("Statut") . '</td>';
 		$out .= '</tr>';
-		foreach($listOfDigitalSignatureRequest as $request) {
-			$out .= '<tr>';
-			$out .= '<td>' . $request->getNomUrl(1) . '</td>';
-			$out .= '<td style="text-align:right">' . $request->getLibStatut(5) . '</td>';
-			$out .= '</tr>';
+		if(!empty($listOfDigitalSignatureRequest)) {
+			foreach($listOfDigitalSignatureRequest as $request) {
+				$out .= '<tr>';
+				$out .= '<td>' . $request->getNomUrl(1) . $this->getWarningInfoBox($request->is_staled_according_to_source_object, $langs->trans("DigitalSignatureManagerStaledData")) . '</td>';
+				$out .= '<td style="text-align:right">' . $request->getLibStatut(5) . '</td>';
+				$out .= '</tr>';
+			}
+		}
+		else {
+			$out .= '<td colspan="2" style="text-align:center">' . $langs->trans("DigitalSignatureManagerNoneLinked") . '</td>';
 		}
 		$out .= '</table>';
+		return $out;
+	}
+
+	/**
+	 * Function to generate button
+	 * @param string $label label of the button
+	 * @param bool $permissionToRequestAction is user able to click on this button
+	 * @param int $objectId id of the card object
+	 * @param string $actionName name of the action launched by this button
+	 * @return string
+	 */
+	public function generateButton($label, $permissionToRequestAction, $objectId, $actionName)
+	{
+		global $langs;
+		if ($permissionToRequestAction) {
+			$out = '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $objectId . '&amp;action=' . $actionName . '">' . $label . '</a>' . "\n";
+		} else {
+			$out = '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $label . '</a>' . "\n";
+		}
 		return $out;
 	}
 }

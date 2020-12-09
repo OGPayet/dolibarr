@@ -95,6 +95,11 @@ class FormDigitalSignatureRequestTemplate
 	const SELECTED_FILES_HTML_NAME = 'selectedFiles';
 
 	/**
+	 * @var string Files selection html name
+	 */
+	const CREATE_DRAFT_OPTION_FIELD_NAME = 'createInDraftMode';
+
+	/**
 	 * @var string Base contact signatory selection html name
 	 */
 	const BASE_SIGNATORY_FIELDS_FROM_CONTACT_HTML_NAME = 'contactIdForSignatory';
@@ -162,6 +167,8 @@ class FormDigitalSignatureRequestTemplate
 		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 		$this->elementStatic = new DigitalSignatureRequest($db);
 
+		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequestlinkedobject.class.php');
+
 		require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 		$this->formFile = new FormFile($db);
 	}
@@ -180,66 +187,18 @@ class FormDigitalSignatureRequestTemplate
 	}
 
 	/**
-	 * Function to get list of files to sign for a digital signature manager request
-	 * @param string $directory Directory to be watched
-	 * @return ExtendedEcm[]
-	 */
-	public function getEcmListForDirectory($directory)
-	{
-		$relativePathToDolDataRoot = ExtendedEcm::getRelativeDirectoryOfADirectory($directory);
-		$result = array();
-		if ($relativePathToDolDataRoot) {
-			global $user;
-			ExtendedEcm::cleanEcmFileDatabase($this->db, $relativePathToDolDataRoot, $user);
-			$extendedEcm = new ExtendedEcm($this->db);
-			$crudeResult = $extendedEcm->fetchAll('DESC', 'GREATEST(date_c, date_m) DESC, rowid ', 0, 0, array('filepath' => $relativePathToDolDataRoot, 'filename' => '.pdf'));
-			foreach ($crudeResult as &$ecm) {
-				$result[$ecm->id] = $ecm;
-			}
-		}
-		return $result;
-	}
-
-	/**
-	 * Function to get directory where search files for propal
-	 * @param Propal $object object on which search where are stored files
-	 * @return string|null
-	 */
-	private function getPropalDirectory(&$object)
-	{
-		if ($object->ref) {
-			global $conf;
-			return $conf->propal->dir_output . "/" . dol_sanitizeFileName($object->ref);
-		}
-		return null;
-	}
-
-	/**
-	 * Function to get selectable files for an object
-	 * @param CommonObject $object object instance on which list files
-	 * @return ExtendedEcm[]
-	 */
-	public function getEcmFilesOfAnObject($object)
-	{
-		$result = array();
-		if ($object->element == 'propal') {
-			$result = $this->getEcmListForDirectory($this->getPropalDirectory($object));
-		}
-		return $result;
-	}
-
-
-	/**
 	 * Function to manage CREATE_FROM_OBJECT_ACTION_NAME sign action
-	 * @param string $action action name
 	 * @param CommonObject $object source object instance
 	 * @return string HTML content to be displayed
 	 */
-	public function displayCreateFromObject(&$action, &$object)
+	public function displayCreateFromObject(&$object)
 	{
 		global $langs;
-		if ($action == self::CREATE_FROM_OBJECT_ACTION_NAME) {
-			$filesToBeDisplayed = $this->getEcmFilesOfAnObject($object);
+		$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
+		$filesToBeDisplayed = $digitalSignatureRequestLinkedObject->getEcmFiles();
+		if (count($filesToBeDisplayed) == 1) {
+			return $this->displayCreateFromSelectedFiles($object, $filesToBeDisplayed);
+		} else {
 			$destinationUrl = $this->formDigitalSignatureManager->buildActionUrlForLine($object->id);
 			$title = $langs->trans('DigitalSignatureManagerSelectFilesToSignTitle');
 			$selectedFileIds = $this->getSelectedFileIds();
@@ -248,7 +207,7 @@ class FormDigitalSignatureRequestTemplate
 				$selectedFileIds[] = array_keys($filesToBeDisplayed)[0];
 			}
 			$questions = array(
-				'filesToSelect' => array('name' => self::SELECTED_FILES_HTML_NAME, 'type' => 'other', 'label' => $langs->trans("DigitalSignatureManagerSelectFilesToSign"), 'value' => $this->getHtmlMultipleFileSelect($selectedFileIds, $filesToBeDisplayed))
+				self::SELECTED_FILES_HTML_NAME => array('name' => self::SELECTED_FILES_HTML_NAME, 'type' => 'other', 'label' => $langs->trans("DigitalSignatureManagerSelectFilesToSign"), 'value' => $this->getHtmlMultipleFileSelect($selectedFileIds, $filesToBeDisplayed))
 			);
 			return $this->formDigitalSignatureManager->formconfirm($destinationUrl, $title, null, self::CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME, $questions, null, 1, 'auto', 'auto', 1, 1);
 		}
@@ -264,9 +223,46 @@ class FormDigitalSignatureRequestTemplate
 	{
 		global $langs;
 		$selectedFiles = $this->getSelectedFiles($object);
-		if ($action == self::CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME && empty($selectedFiles)) {
+		if (empty($selectedFiles)) {
 			$action = self::CREATE_FROM_OBJECT_ACTION_NAME;
 			setEventMessages('', $langs->trans('DigitalSignatureManagerNoDocumentSelected'), 'errors');
+			return null;
+		}
+	}
+
+	/**
+	 * Function to manage create of request from post informations
+	 * @param CommonObject $object source object instance
+	 * @param User $user user requesting create from files
+	 * @return DigitalSignatureRequest|null
+	 */
+	private function createRequestWithPostInformation(&$object, $user)
+	{
+		global $langs;
+		$this->db->begin();
+		$errors = array();
+
+		$selectedFiles = $this->getSelectedFiles($object);
+		if (empty($selectedFiles)) {
+			$errors[] = $langs->trans('DigitalSignatureManagerNoDocumentSelected');
+		}
+
+		$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
+
+		$requestedSignatoryInformation = $this->getAllSignaturePeopleInformationFromPost($object);
+
+		$formValidationErrors = $digitalSignatureRequestLinkedObject->checkContentFromSelectedFiles($selectedFiles, $requestedSignatoryInformation);
+		$errors = array_merge($errors, $formValidationErrors);
+		if (empty($errors)) {
+			$digitalSignatureRequest = $digitalSignatureRequestLinkedObject->createDigitalSignatureRequestFromLinkedObject($user, $selectedFiles, $requestedSignatoryInformation);
+			$errors = array_merge($errors, $digitalSignatureRequestLinkedObject->errors);
+		}
+		if(empty($errors)) {
+			$this->db->commit();
+			return $digitalSignatureRequest;
+		}
+		else {
+			$this->errors = array_merge($this->errors, $errors);
 			return null;
 		}
 	}
@@ -276,106 +272,104 @@ class FormDigitalSignatureRequestTemplate
 	 * @param string $action action name
 	 * @param CommonObject $object source object instance
 	 * @param User $user user requesting create from files
+	 * @param bool $createOnlyADraft We should not send request to provider
 	 * @return void
 	 */
 	public function manageCreateFromFiles(&$action, &$object, $user)
 	{
 		global $langs;
-		if ($action == self::CONFIRM_CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME) {
-			$this->db->begin();
-			$errors = array();
-			$selectedFiles = $this->getSelectedFiles($object);
-			if (empty($selectedFiles)) {
-				$errors[] = $langs->trans('DigitalSignatureManagerNoDocumentSelected');
-			}
-			$formValidationErrors = $this->checkContentFromCreateFromSelectedFiles($object);
-			$errors = array_merge($errors, $formValidationErrors);
-			if(empty($errors)) {
-				$digitalSignatureRequest = $this->createDigitalSignatureRequestFromPost($object, $user);
-				$errors = array_merge($errors, $this->errors);
-				$this->errors = array();
-			}
+		$this->db->begin();
+		$errors = array();
 
-			if(empty($errors) && $digitalSignatureRequest) {
-				$digitalSignatureRequest->validateAndCreateRequestOnTheProvider($user);
-				$errors = array_merge($errors, $digitalSignatureRequest->errors);
-				if(!empty($digitalSignatureRequest->errors)) {
-					//We have to delete files as we will remove entries from database
-					$digitalSignatureRequest->deleteFilesToSign();
-				}
-			}
+		$selectedFiles = $this->getSelectedFiles($object);
+		if (empty($selectedFiles)) {
+			$errors[] = $langs->trans('DigitalSignatureManagerNoDocumentSelected');
+		}
 
-			if(!empty($errors)) {
-				setEventMessages('', $errors, 'errors');
-				$this->db->rollback();
-				$action = self::CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME;
+		$requestOptions = $this->getSelectedOptions();
+		$onlyCreateADraft = $requestOptions[self::CREATE_DRAFT_OPTION_FIELD_NAME];
+
+		$digitalSignatureRequest = $this->createRequestWithPostInformation($object, $user);
+		$errors = array_merge($errors, $this->errors);
+		if ($digitalSignatureRequest && !$onlyCreateADraft) {
+			$digitalSignatureRequest->validateAndCreateRequestOnTheProvider($user);
+			$errors = array_merge($errors, $digitalSignatureRequest->errors);
+		}
+
+		if (!empty($errors)) {
+			setEventMessages('', $errors, 'errors');
+			$this->db->rollback();
+			$action = self::CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME;
+		} else {
+			$this->db->commit();
+			if($onlyCreateADraft) {
+				setEventMessages($langs->trans("DigitalSignatureManagerDraftSuccessfullyCreated"), array());
 			}
 			else {
-				$this->db->commit();
 				setEventMessages($langs->trans("DigitalSignatureManagerSucessfullyCreatedOnProvider"), array());
 			}
 		}
 	}
 
 	/**
-	 * Function to manage CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME action
-	 * @param string $action action name
-	 * @param CommonObject $object source object instance
-	 * @return string HTML content to be displayed
+	 * Function to get request options set from displayCreateFromSelectedFiles
+	 * @return array
 	 */
-	public function displayCreateFromSelectedFiles(&$action, &$object)
+	public function getSelectedOptions()
 	{
-		global $langs;
-		if ($action == self::CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME) {
-			$formquestion = array();
-			$selectedFiles = $this->getSelectedFiles($object);
-
-			foreach ($selectedFiles as $ecmFile) {
-				$formquestion[] = array('type' => 'hidden', 'name' => self::SELECTED_FILES_HTML_NAME . '[]', 'value' => $ecmFile->id);
-				$dictionaryItems = $this->getDigitalSignatureSignatoryFieldsDictionaryLinesForFile($ecmFile);
-				if (empty($dictionaryItems)) {
-					$labelValue = '<div><h3 class="error">' . $langs->trans("DigitalSignatureManagerNoSettingForDocument", $ecmFile->filename) . '</h3></div>';
-				} else {
-					$labelValue = '<div class="titre"><h2 style="text-align:center;">' . $langs->trans("DigitalSignatureManagerSignersForDocument", $ecmFile->filename) . '</h2></div>';
-				}
-				$formquestion[] = array(
-					'type' => 'onecolumn',
-					'value' => $labelValue
-				);
-				foreach ($dictionaryItems as $dictionaryItem) {
-					$formquestion = array_merge($formquestion, $this->displaySignatoryFieldSelectionFromDictionary($dictionaryItem, $object, $ecmFile->id));
-				}
-			}
-			$destinationUrl = $this->formDigitalSignatureManager->buildActionUrlForLine($object->id);
-			$title = $langs->trans('DigitalSignatureManagerSelectSignatoryToSignTitle');
-			return $this->formDigitalSignatureManager->formconfirm($destinationUrl, $title, null, self::CONFIRM_CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME, $formquestion, null, 1, 'auto', 'auto', 1, 1);
-		}
+		return array(
+			self::CREATE_DRAFT_OPTION_FIELD_NAME => !empty(GETPOST(self::CREATE_DRAFT_OPTION_FIELD_NAME))
+		);
 	}
 
+
 	/**
-	 * Function to check that all needed information asked on displayCreateFromSelectedFiles have been asked
-	 * @param CommonObject $object Object from which we create request
-	 * @return string[] array of validation errors
+	 * Function to manage CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME action
+	 * @param CommonObject $object source object instance
+	 * @param ExtendedEcm[] $selectedFiles instance files selected
+	 * @return string HTML content to be displayed
 	 */
-	public function checkContentFromCreateFromSelectedFiles($object)
+	public function displayCreateFromSelectedFiles(&$object, $selectedFiles = null)
 	{
 		global $langs;
-		$errors = array();
-		$selectedFiles = $this->getSelectedFiles($object);
-		foreach($selectedFiles as $ecmFile) {
-			$dictionaryItems = $this->getDigitalSignatureSignatoryFieldsDictionaryLinesForFile($ecmFile);
-			foreach($dictionaryItems as $dictionaryItem) {
-				$selectedSignatory = $this->getSignatoryInformationFromPost($dictionaryItem->c_rowid, $ecmFile->id, $dictionaryItem->linkedContactType);
-				$isFreeSignatoryAllowed = in_array(DigitalSignaturePeople::LINKED_OBJECT_FREE_TYPE, $dictionaryItem->linkedContactType);
-				$isContactOrUserSignatorySourceAllowed = in_array(DigitalSignaturePeople::LINKED_OBJECT_USER_TYPE, $dictionaryItem->linkedContactType) || in_array(DigitalSignaturePeople::LINKED_OBJECT_CONTACT_TYPE, $dictionaryItem->linkedContactType);
-				if(!$selectedSignatory && !$isFreeSignatoryAllowed) {
-					$errors[] = $langs->trans('DigitalSignatureManagerNoSignatorySelected', $dictionaryItem->label, $ecmFile->filename);
-				} elseif($isFreeSignatoryAllowed && !$isContactOrUserSignatorySourceAllowed && !empty($selectedSignatory->checkDataValidForCreateRequestOnProvider())) {
-					$errors[] = $langs->trans('DigitalSignatureManagerFreeSignatoryIncomplete', $dictionaryItem->label, $ecmFile->filename);
-				}
+		$formquestion = array();
+		if (!$selectedFiles) {
+			$selectedFiles = $this->getSelectedFiles($object);
+		}
+		$isThereMissingParameters = false;
+		foreach ($selectedFiles as $ecmFile) {
+			$formquestion[] = array('type' => 'hidden', 'name' => self::SELECTED_FILES_HTML_NAME . '[]', 'value' => $ecmFile->id);
+			$dictionaryItems = $this->getDictionaryLinesForFile($object, $ecmFile);
+			$formquestion[] = array(
+				'type' => 'onecolumn',
+				'value' => '<div class="titre"><h2 style="text-align:center;">' . $langs->trans("DigitalSignatureManagerSignersForDocument", $ecmFile->filename) . '</h2></div>'
+			);
+			if (empty($dictionaryItems)) {
+				$formquestion[] = array(
+					'type' => 'onecolumn',
+					'value' => '<div><h3 class="error">' . $langs->trans("DigitalSignatureManagerNoSettingForDocument", $ecmFile->filename) . '</h3></div>'
+				);
+				$isThereMissingParameters = true;
+			}
+			foreach ($dictionaryItems as $dictionaryItem) {
+				$formquestion = array_merge($formquestion, $this->displaySignatoryFieldSelectionFromDictionary($dictionaryItem, $object, $ecmFile->id));
 			}
 		}
-		return $errors;
+
+		// Request creation option
+		$requestedOptions = $this->getSelectedOptions();
+		$formquestion[] = array(
+			'type' => 'onecolumn',
+			'value' => '<div class="titre"><h2 style="text-align:center;">' . $langs->trans("DigitalSignatureDocumentTemplateOptions") . '</h2></div>'
+		);
+		$displayedCheckboxState = $requestedOptions[self::CREATE_DRAFT_OPTION_FIELD_NAME] || $isThereMissingParameters;
+		$formquestion[] = array('type'=>'checkbox', 'name'=>self::CREATE_DRAFT_OPTION_FIELD_NAME, 'label'=>$langs->trans("DigitalSignatureManagerCreateOnlyDraft"), 'value' => $displayedCheckboxState);
+
+
+		$destinationUrl = $this->formDigitalSignatureManager->buildActionUrlForLine($object->id);
+		$title = $langs->trans('DigitalSignatureManagerSelectSignatoryToSignTitle');
+
+		return $this->formDigitalSignatureManager->formconfirm($destinationUrl, $title, null, self::CONFIRM_CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME, $formquestion, null, 1, 'auto', 'auto', 1, 1);
 	}
 
 	/**
@@ -385,26 +379,14 @@ class FormDigitalSignatureRequestTemplate
 	public function getSelectedFileIds()
 	{
 		$contentPost = GETPOST(self::SELECTED_FILES_HTML_NAME);
-		$properContentPost = !empty($contentPost) ? $contentPost : array();
-		return array_map('intval', $properContentPost);
-	}
-
-	/**
-	 * Function to get selected files instance
-	 * @param Object $object Object on which we are looking effective selected files
-	 * @return ExtendedEcm[]
-	 */
-	public function getSelectedFiles($object)
-	{
-		$selectedFilesId = $this->getSelectedFileIds();
-		$selectableFiles = $this->getEcmFilesOfAnObject($object);
-		$filesEffectivelyChosen = array();
-		foreach ($selectedFilesId as $id) {
-			if ($selectableFiles[$id]) {
-				$filesEffectivelyChosen[] = $selectableFiles[$id];
-			}
+		if(is_array($contentPost)) {
+			$properContent = $contentPost;
 		}
-		return $filesEffectivelyChosen;
+		elseif(!empty($contentPost)) {
+			$properContent = explode(',', $contentPost);
+		}
+		$properContentPost = !empty($properContent) ? $properContent : array();
+		return array_map('intval', $properContentPost);
 	}
 
 	/**
@@ -420,19 +402,6 @@ class FormDigitalSignatureRequestTemplate
 			$displayedName[$id] = $ecmFile->filename;
 		}
 		return $this->form->multiselectarray(self::SELECTED_FILES_HTML_NAME, $displayedName, $selectedEcmFileIds, 0, 0, 'fullwidth minwidth200');
-	}
-
-	/**
-	 * Function to get signatory field from dictionary according to document file origin
-	 * @param ExtendedEcm $ecmFile ecm file on which search predefined signatory fields
-	 * @return DigitalSignatureSignatoryFieldsDictionary[]
-	 */
-	public function getDigitalSignatureSignatoryFieldsDictionaryLinesForFile($ecmFile)
-	{
-		$digitalSignatureDocument = new DigitalSignatureDocument($this->db);
-		$digitalSignatureDocument->fk_ecm = $ecmFile->id;
-		$digitalSignatureDocument->ecmFile = $ecmFile;
-		return $digitalSignatureDocument->getDictionarySignatoryFieldsOfThisDocument();
 	}
 
 	/**
@@ -526,112 +495,6 @@ class FormDigitalSignatureRequestTemplate
 	}
 
 	/**
-	 * Function to create digital signature request instance with document and signatory fields according to post content
-	 * @param CommonObject $object Linked object from which we are creating request
-	 * @param User $user user requesting creation of request
-	 * @return DigitalSignatureRequest|null
-	 */
-	public function createDigitalSignatureRequestFromPost($object, $user)
-	{
-		$this->db->begin();
-		global $langs;
-		$errors = array();
-		$digitalSignatureRequest = new DigitalSignatureRequest($this->db);
-		$digitalSignatureRequest->elementtype = $object->table_element;
-		$digitalSignatureRequest->fk_object = $object->id;
-		$digitalSignatureRequest->fk_soc = $object->socid;
-
-		if ($digitalSignatureRequest->create($user) < 0) {
-			$errors = array_merge($errors, $digitalSignatureRequest->errors);
-		}
-
-		$arrayOfOriginalAndCopiedEcmFile = array();
-		//We build digitalsignaturedocument array for this request
-		$selectedFiles = $this->getSelectedFiles($object);
-		foreach ($selectedFiles as $ecmFile) {
-			if (empty($errors)) {
-				$digitalSignatureDocument = new DigitalSignatureDocument($this->db);
-				$copyEcmFile = $ecmFile->copyFileTo($digitalSignatureRequest->getRelativePathToDolDataRootForFilesToSign());
-				if (!$copyEcmFile) {
-					$errors[] = $langs->trans("DigitalSignatureManagerErrorWhileCopyingFile", $ecmFile->filename);
-				}
-				else {
-					$arrayOfOriginalAndCopiedEcmFile[$copyEcmFile->id] = $ecmFile;
-					$digitalSignatureDocument->ecmFile = $copyEcmFile;
-					$digitalSignatureDocument->fk_ecm = $copyEcmFile->id;
-					$digitalSignatureDocument->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
-					$digitalSignatureDocument->digitalSignatureRequest = $digitalSignatureRequest;
-					$digitalSignatureDocument->create($user);
-					$errors = array_merge($errors, $digitalSignatureDocument->errors);
-					$digitalSignatureRequest->documents[] = $digitalSignatureDocument;
-				}
-			}
-		}
-
-
-		//We build digitalsignaturepeople array for this request
-		$listOfSignatoryByIdentifier = array();
-		$listOfSignatoryIdentifierByEcmFileAndSignatoryFieldDictionnaryId = array();
-		foreach ($selectedFiles as $ecmFile) {
-			foreach ($this->getDigitalSignatureSignatoryFieldsDictionaryLinesForFile($ecmFile) as $dictionaryItem) {
-				$signatorySelected = $this->getSignatoryInformationFromPost($dictionaryItem->c_rowid, $ecmFile->id, $dictionaryItem->linkedContactType);
-				if ($signatorySelected && $signatorySelected->generateUniqueIdentifier()) {
-					$signatoryIdentifier = $signatorySelected->generateUniqueIdentifier();
-					if (!$listOfSignatoryByIdentifier[$signatoryIdentifier]) {
-						$signatorySelected->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
-						$signatorySelected->digitalSignatureRequest = $digitalSignatureRequest;
-						$signatorySelected->create($user);
-						$errors = array_merge($errors, $signatorySelected->errors);
-						$listOfSignatoryByIdentifier[$signatoryIdentifier] = $signatorySelected;
-					}
-					$listOfSignatoryIdentifierByEcmFileAndSignatoryFieldDictionnaryId[$dictionaryItem->c_rowid][$ecmFile->id] = $signatoryIdentifier;
-				}
-			}
-		}
-
-		$digitalSignatureRequest->people = array_values($listOfSignatoryByIdentifier);
-
-		//We create signatory fields
-
-		foreach ($digitalSignatureRequest->documents as $document) {
-			if(empty($errors)) {
-				$originalEcmFile = $arrayOfOriginalAndCopiedEcmFile[$document->fk_ecm];
-				$dictionaryItems = $this->getDigitalSignatureSignatoryFieldsDictionaryLinesForFile($originalEcmFile);
-				foreach ($dictionaryItems as $dictionaryItem) {
-					$digitalSignatureSignatoryField = new DigitalSignatureSignatoryField($this->db);
-					$digitalSignatureSignatoryField->c_rowid = $dictionaryItem->c_rowid;
-					$digitalSignatureSignatoryField->label = $dictionaryItem->label;
-					$digitalSignatureSignatoryField->page = $document->correctPageNumber($dictionaryItem->pageNumber);
-					$digitalSignatureSignatoryField->x = (int) $dictionaryItem->x;
-					$digitalSignatureSignatoryField->y = (int) $dictionaryItem->y;
-					$digitalSignatureSignatoryField->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
-					$digitalSignatureSignatoryField->fk_chosen_digitalsignaturedocument = $document->id;
-					$signatoryIdentifierForThisField = $listOfSignatoryIdentifierByEcmFileAndSignatoryFieldDictionnaryId[$dictionaryItem->c_rowid][$originalEcmFile->id];
-					$signatoryOfThisField = $listOfSignatoryByIdentifier[$signatoryIdentifierForThisField];
-					$digitalSignatureSignatoryField->fk_chosen_digitalsignaturepeople = $signatoryOfThisField->id;
-					$digitalSignatureSignatoryField->create($user);
-					$errors = array_merge($errors, $digitalSignatureSignatoryField->errors);
-					$digitalSignatureRequest->signatoryFields[] = $digitalSignatureSignatoryField;
-				}
-			}
-		}
-
-		$this->errors = array_merge($this->errors, $errors);
-		if(empty($errors)) {
-			$this->db->commit();
-			//dolibarr bullshit adaptation - as createCommon change some values into database but do not reflect it on object
-			$digitalSignatureRequest->fetch($digitalSignatureRequest->id);
-			return $digitalSignatureRequest;
-		}
-		else {
-			//We remove files
-			$digitalSignatureRequest->deleteFilesToSign();
-			$this->db->rollback();
-			return null;
-		}
-	}
-
-	/**
 	 * Function to get free signatory information from post
 	 * @param int $dictionaryLineId signatory fields dictionary line Id
 	 * @param int $ecmFileId ecm file id of the document on which we are looking for dictionary line id
@@ -640,13 +503,13 @@ class FormDigitalSignatureRequestTemplate
 	public function getFreeSignatoryInformationFromPost($dictionaryLineId, $ecmFileId)
 	{
 		$digitalSignaturePeople = new DigitalSignaturePeople($this->db);
-		$arrayOfPropertyNameAndHtmlBaseBame = array(
+		$arrayOfPropertyNameAndHtmlBaseName = array(
 			'firstName' => self::BASE_FREE_SIGNATORY_FIRSTNAME_HTML_NAME,
 			'lastName' => self::BASE_FREE_SIGNATORY_LASTNAME_HTML_NAME,
 			'mail' => self::BASE_FREE_SIGNATORY_MAIL_HTML_NAME,
 			'phoneNumber' => self::BASE_FREE_SIGNATORY_PHONE_HTML_NAME
 		);
-		foreach ($arrayOfPropertyNameAndHtmlBaseBame as $propertyName => $baseHtmlName) {
+		foreach ($arrayOfPropertyNameAndHtmlBaseName as $propertyName => $baseHtmlName) {
 			$digitalSignaturePeople->$propertyName = GETPOST($this->generateHtmlName($dictionaryLineId, $ecmFileId, $baseHtmlName));
 		}
 		return $digitalSignaturePeople;
@@ -674,5 +537,45 @@ class FormDigitalSignatureRequestTemplate
 			$signatory = $this->getFreeSignatoryInformationFromPost($dictionaryLineId, $ecmFileId);
 		}
 		return $signatory;
+	}
+
+	/**
+	 * Function to get Selected files from post
+	 * @param CommonObject $object Object on which we are working on
+	 * @return ExtendedEcm[]
+	 */
+	public function getSelectedFiles($object)
+	{
+		$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
+		return $digitalSignatureRequestLinkedObject->getFilesByIds($this->getSelectedFileIds());
+	}
+
+	/**
+	 * Function to get signatories from post, order by ecmFileId and signatory field dictionary Id
+	 * @param CommonObject $object Object on which we are working on
+	 * @return DigitalSignaturePeople[]
+	 */
+	public function getAllSignaturePeopleInformationFromPost($object)
+	{
+		$selectedFiles = $this->getSelectedFiles($object);
+		$result = array();
+		foreach ($selectedFiles as $ecmFile) {
+			foreach ($this->getDictionaryLinesForFile($object, $ecmFile) as $dictionaryLine) {
+				$result[$ecmFile->id][$dictionaryLine->c_rowid] = $this->getSignatoryInformationFromPost($dictionaryLine->c_rowid, $ecmFile->id, $dictionaryLine->linkedContactType);
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Function to get dictionary lines that are should be set to an ecm file instance
+	 * @param CommonObject $object Object on which we are working on
+	 * @param ExtendedEcm $ecmFile Ecm file on which we are looking for dictionnary lines
+	 * @return DigitalSignatureSignatoryField[]
+	 */
+	public function getDictionaryLinesForFile($object, $ecmFile)
+	{
+		$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
+		return $digitalSignatureRequestLinkedObject->getSignatoryFieldsDictionaryLinesForFile($ecmFile);
 	}
 }

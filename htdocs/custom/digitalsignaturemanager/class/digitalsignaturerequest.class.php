@@ -125,7 +125,10 @@ class DigitalSignatureRequest extends CommonObject
 		'externalId' => array('type' => 'varchar(255)', 'label' => 'Id of the signature process at external provider', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'externalUrl' => array('type' => 'url', 'label' => 'Url given by universign after request have been created', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'elementtype' => array('type' => 'varchar(128)', 'label' => 'Linked Element Type', 'enabled' => '1', 'position' => 1003, 'notnull' => 0, 'visible' => 0, 'index' => 1,),
-		'fk_object' => array('type' => 'integer', 'label' => 'Id of the dolibarr object we sign', 'enabled' => '1', 'position' => 1004, 'notnull' => 0, 'visible' => 0, 'index' => 1,)
+		'fk_object' => array('type' => 'integer', 'label' => 'Id of the dolibarr object we sign', 'enabled' => '1', 'position' => 1004, 'notnull' => 0, 'visible' => 0, 'index' => 1,),
+		'is_staled_according_to_source_object' => array('type'=>'boolean', 'label'=>'Does this signature request contained staled information compare to linked object', 'visible'=>-1, 'enabled'=>1, 'position'=>20),
+		'last_update_from_provider' => array('type' => 'datetime', 'label' => 'Last update from provider', 'enabled' => '1', 'position' => 500, 'visible' => -5,),
+
 	);
 	public $rowid;
 	public $entity;
@@ -145,6 +148,8 @@ class DigitalSignatureRequest extends CommonObject
 	public $externalUrl;
 	public $elementtype;
 	public $fk_object;
+	public $is_staled_according_to_source_object;
+	public $last_update_from_provider;
 	// END MODULEBUILDER PROPERTIES
 
 	/**
@@ -235,6 +240,7 @@ class DigitalSignatureRequest extends CommonObject
 		$this->fields['status']['arrayofkeyval'] = $this->labelStatus;
 		$this->fields['externalId']['label'] = $langs->trans("DigitalSignatureRequestExternalId");
 		$this->fields['externalUrl']['label'] = $langs->trans("DigitalSignatureRequestExternalUrl");
+		$this->fields['last_update_from_provider']['label'] = $langs->trans("DigitalSignatureRequestLastUpdateFromProvider");
 
 		$this->externalProviderService = new DigitalSignatureManagerUniversign($this);
 	}
@@ -686,6 +692,10 @@ class DigitalSignatureRequest extends CommonObject
 		$label .= '<b>' . $langs->trans('Ref') . ':</b> ' . $this->ref;
 		if (isset($this->status)) {
 			$label .= '<br><b>' . $langs->trans("Status") . ":</b> " . $this->getLibStatut(5);
+		}
+
+		if($this->last_update_from_provider != 0) {
+			$label .= '<br><b>' . $langs->trans("DigitalSignatureRequestLastUpdateFromProviderShort") . ":</b> " . $this->showOutputField($this->fields['last_update_from_provider'], 'last_update_from_provider', $this->last_update_from_provider);
 		}
 
 		$url = dol_buildpath('/digitalsignaturemanager/digitalsignaturerequest_card.php', 1) . '?id=' . $this->id;
