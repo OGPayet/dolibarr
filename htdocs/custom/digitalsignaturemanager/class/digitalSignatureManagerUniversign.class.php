@@ -231,12 +231,12 @@ Class DigitalSignatureManagerUniversign
 		$resultOfRequestInformationUpdate = self::updateRequestInformation($this->db, $this->digitalSignatureRequest, $transactionInfo, $user);
 		//We save request status
 		$oldRequestStatus = $this->digitalSignatureRequest->status;
-		//we update request status
-		$resultOfRequestStatusUpdate = true;
+		//We set new status to request without saving it to database
 		if($this->digitalSignatureRequest->status != $this->digitalSignatureRequest::STATUS_CANCELED_BY_OPSY || $transactionInfo->status != \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED) {
 			//request is not canceled on opsy or not canceled on universign
-			$resultOfRequestStatusUpdate = self::updateRequestStatus($this->db, $this->digitalSignatureRequest, $transactionInfo, $user);
+			$this->digitalSignatureRequest->status = self::UNIVERSIGN_STATUS_REQUEST_DICTIONNARY[$transactionInfo->status];
 		}
+
 		//We update signers information
 		$resultOfSignerInformationUpdates = array();
 		foreach($signerInfos as $index => $signerInfo) {
@@ -252,6 +252,14 @@ Class DigitalSignatureManagerUniversign
 		}
 		else {
 			$resultOfSignerStatusUpdate = self::updateDigitalSignaturePeopleStatusWhenRequestNotCanceledOrFailed($this->db, $this->digitalSignatureRequest, $signerInfos, $user);
+		}
+		//we update request status and save it to database
+		//First we set old status (which still be the value saved into database)
+		$this->digitalSignatureRequest->status = $oldRequestStatus;
+		$resultOfRequestStatusUpdate = true;
+		if($this->digitalSignatureRequest->status != $this->digitalSignatureRequest::STATUS_CANCELED_BY_OPSY || $transactionInfo->status != \Globalis\Universign\Response\TransactionInfo::STATUS_CANCELED) {
+			//request is not canceled on opsy or not canceled on universign
+			$resultOfRequestStatusUpdate = self::updateRequestStatus($this->db, $this->digitalSignatureRequest, $transactionInfo, $user);
 		}
 
 		$areAllOperationBeenASuccess = self::areAllValuesOfThisReturnArrayOnlySuccess(array(
