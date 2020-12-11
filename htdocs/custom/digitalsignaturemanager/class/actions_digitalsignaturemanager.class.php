@@ -408,6 +408,47 @@ class ActionsDigitalSignatureManager
 				}
 			}
 		}
+
+		//prevent modification of linked objects of a digital signature request
+		if ($action == "addlink" || $action == "dellink") {
+            $errors = array(); // Error array results
+			$digitalSignatureRequestIds = array();
+            if ($action == "addlink") {
+                $sourceElementType = $object->element;
+                $destinationElementType = GETPOST('addlink', 'alpha');
+                if ($sourceElementType == DigitalSignatureRequest::$staticElement) {
+                    $digitalSignatureRequestIds = array($object->id);
+                } elseif ($destinationElementType == DigitalSignatureRequest::$staticElement) {
+                    $digitalSignatureRequestIds = GETPOST('idtolinkto', 'array');
+                    if(empty($digitalSignatureRequestIds)){
+                        $digitalSignatureRequestIds = array(GETPOST('idtolinkto', 'int'));
+                    }
+                }
+                $id = $object->id; //used for /core/actions_dellink.inc.php
+            } elseif($action == "dellink") {
+                //here $action == "dellink"
+
+                $sql = "SELECT fk_source, sourcetype, targettype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . GETPOST('dellinkid', 'int');
+
+                $resql = $this->db->query($sql);
+                if ($resql) {
+                    if ($obj = $this->db->fetch_object($resql)) {
+                        if ($obj->sourcetype == DigitalSignatureRequest::$staticElement) {
+                            $digitalSignatureRequestIds = array($obj->fk_source);
+                        } elseif ($obj->targettype == DigitalSignatureRequest::$staticElement) {
+                            $digitalSignatureRequestIds = array($obj->fk_target);
+                        }
+                    }
+                } else {
+                    $errors[] = $this->db->lasterror();
+                }
+			}
+			$digitalSignatureRequestIds = array_filter($digitalSignatureRequestIds);
+			if(!empty($digitalSignatureRequestIds)) {
+				$action = null;
+				setEventMessages("DigitalSignatureRequestLinkAreProtected", array(), 'errors');
+			}
+		}
 	}
 
 	/**
@@ -429,7 +470,7 @@ class ActionsDigitalSignatureManager
 			if($signedAndNotStaleLinkDigitalSignatureRequest) {
 				print $this->formDigitalSignatureRequest->displayListOfSignedFiles($signedAndNotStaleLinkDigitalSignatureRequest, $_SERVER["PHP_SELF"] . "?id=" . $object->id);
 			}
-			print $this->formDigitalSignatureManager->showLinkedDigitalSignatureBlock($linkedDigitalSignatureRequests);
+			//print $this->formDigitalSignatureManager->showLinkedDigitalSignatureBlock($linkedDigitalSignatureRequests);
 		}
 	}
 }

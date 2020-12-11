@@ -134,8 +134,6 @@ class DigitalSignatureRequest extends CommonObject
 		'status' => array('type' => 'smallint', 'label' => 'Status', 'enabled' => '1', 'position' => 1000, 'notnull' => 1, 'visible' => 1, 'noteditable' => '1', 'default' => '0', 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Processus de signature en cours', '2' => 'Annul&eacute;', '3' => 'Signature termin&eacute;e', '9' => 'Erreur Technique'),),
 		'externalId' => array('type' => 'varchar(255)', 'label' => 'Id of the signature process at external provider', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'externalUrl' => array('type' => 'url', 'label' => 'Url given by universign after request have been created', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
-		'elementtype' => array('type' => 'varchar(128)', 'label' => 'Linked Element Type', 'enabled' => '1', 'position' => 1003, 'notnull' => 0, 'visible' => 0, 'index' => 1,),
-		'fk_object' => array('type' => 'integer', 'label' => 'Id of the dolibarr object we sign', 'enabled' => '1', 'position' => 1004, 'notnull' => 0, 'visible' => 0, 'index' => 1,),
 		'is_staled_according_to_source_object' => array('type'=>'boolean', 'label'=>'Does this signature request contained staled information compare to linked object', 'visible'=>-1, 'enabled'=>1, 'position'=>20),
 		'last_update_from_provider' => array('type' => 'datetime', 'label' => 'Last update from provider', 'enabled' => '1', 'position' => 500, 'visible' => -5,),
 	);
@@ -155,8 +153,6 @@ class DigitalSignatureRequest extends CommonObject
 	public $status;
 	public $externalId;
 	public $externalUrl;
-	public $elementtype;
-	public $fk_object;
 	public $is_staled_according_to_source_object;
 	public $last_update_from_provider;
 	// END MODULEBUILDER PROPERTIES
@@ -342,8 +338,6 @@ class DigitalSignatureRequest extends CommonObject
 		$newDigitalSignatureRequest->note_public = $object->note_public;
 		$newDigitalSignatureRequest->ref_client = $object->ref_client;
 		$newDigitalSignatureRequest->fk_project = $object->fk_project;
-		$newDigitalSignatureRequest->elementtype = $object->elementtype;
-		$newDigitalSignatureRequest->fk_object = $object->fk_object;
 
 		//We merge extrafield values, except those which are unique
 		if (is_array($object->array_options) && count($object->array_options) > 0) {
@@ -360,6 +354,16 @@ class DigitalSignatureRequest extends CommonObject
 		$newDigitalSignatureRequest->context['createfromclone'] = 'createfromclone';
 		$result = $newDigitalSignatureRequest->createOrUpdate($user);
 		$errors = array_merge($errors, $newDigitalSignatureRequest->errors);
+
+		//We merge linked object
+		$object->fetchObjectLinked();
+		foreach($object->linkedObjectsIds as $elementType => $linkAndObjectId) {
+			$elementIds = array_values($linkAndObjectId);
+			foreach($elementIds as $destinationId) {
+				$newDigitalSignatureRequest->add_object_linked($elementType, $destinationId);
+			}
+		}
+
 
 		if ($result > 0 && $newDigitalSignatureRequest->id > 0) {
 			//We clone checkBox
@@ -1194,7 +1198,7 @@ class DigitalSignatureRequest extends CommonObject
 	 * Get label for in_progress status
 	 * @return string|null
 	 */
-	private function getNameOfPeopleThatShouldDoAnAction()
+	public function getNameOfPeopleThatShouldDoAnAction()
 	{
 		$currentSignatory = $this->getPeopleThatShouldDoAnAction();
 		if ($currentSignatory) {
@@ -1207,7 +1211,7 @@ class DigitalSignatureRequest extends CommonObject
 	 * Get label for canceled status
 	 * @return string|null
 	 */
-	private function getNameOfPeopleThatRefusedOrFailToSign()
+	public function getNameOfPeopleThatRefusedOrFailToSign()
 	{
 		$peopleThatCanceled = $this->getPeopleThatCanceledProcess();
 		if ($peopleThatCanceled) {
@@ -1485,10 +1489,10 @@ class DigitalSignatureRequest extends CommonObject
 
 	/**
 	 * Function to return linked Object instance
-	 * @return CommonObject|null
+	 * @return CommonObject[]|null
 	 */
-	public function getLinkedObject()
+	public function getLinkedObjects()
 	{
-		return DigitalSignatureRequestLinkedObject::getLinkedObject($this);
+		return DigitalSignatureRequestLinkedObject::getLinkedObjects($this);
 	}
 }

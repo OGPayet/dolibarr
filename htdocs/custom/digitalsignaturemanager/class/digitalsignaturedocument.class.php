@@ -144,6 +144,8 @@ class DigitalSignatureDocument extends CommonObject
 		'date_creation' => array('type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 500, 'notnull' => 1, 'visible' => -2,),
 		'tms' => array('type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 501, 'notnull' => 0, 'visible' => -2,),
 		'check_box_ids' => array('type' => 'array', 'label' => 'List of attached check box on this document', 'enabled' => 1, 'position' => 32, 'notnull' => 0, 'visible' => 0,),
+		'elementtype' => array('type' => 'varchar(128)', 'label' => 'Linked Element Type', 'enabled' => '1', 'position' => 1003, 'notnull' => 0, 'visible' => 0, 'index' => 1,),
+		'fk_object' => array('type' => 'integer', 'label' => 'Id of the dolibarr object we sign', 'enabled' => '1', 'position' => 1004, 'notnull' => 0, 'visible' => 0, 'index' => 1,)
 	);
 	public $rowid;
 	public $fk_digitalsignaturerequest;
@@ -153,6 +155,8 @@ class DigitalSignatureDocument extends CommonObject
 	public $date_creation;
 	public $tms;
 	public $check_box_ids;
+	public $elementtype;
+	public $fk_object;
 	// END MODULEBUILDER PROPERTIES
 
 	/**
@@ -950,5 +954,114 @@ class DigitalSignatureDocument extends CommonObject
 			$result = $requestedPageNumber;
 		}
 		return $result;
+	}
+
+	/**
+	 * Static function to get linked object of a digital signature request
+	 *
+	 * @return	CommonObject|null
+	 */
+	public function getLinkedObject()
+	{
+		global $db, $conf;
+
+		if (!$this->fk_object || !$this->elementtype) {
+			return null;
+		}
+		$objecttype = $this->elementtype;
+		$objectid = $this->fk_object;
+
+		$ret = '';
+
+		// Parse element/subelement (ex: project_task)
+		$module = $element = $subelement = $objecttype;
+		if (preg_match('/^([^_]+)_([^_]+)/i', $objecttype, $regs)) {
+			$module = $element = $regs[1];
+			$subelement = $regs[2];
+		}
+
+		$classpath = $element . '/class';
+
+		// To work with non standard path
+		if ($objecttype == 'facture' || $objecttype == 'invoice') {
+			$classpath = 'compta/facture/class';
+			$module = 'facture';
+			$subelement = 'facture';
+		}
+		if ($objecttype == 'commande' || $objecttype == 'order') {
+			$classpath = 'commande/class';
+			$module = 'commande';
+			$subelement = 'commande';
+		}
+		if ($objecttype == 'propal') {
+			$classpath = 'comm/propal/class';
+		}
+		if ($objecttype == 'supplier_proposal') {
+			$classpath = 'supplier_proposal/class';
+		}
+		if ($objecttype == 'shipping') {
+			$classpath = 'expedition/class';
+			$subelement = 'expedition';
+			$module = 'expedition_bon';
+		}
+		if ($objecttype == 'delivery') {
+			$classpath = 'livraison/class';
+			$subelement = 'livraison';
+			$module = 'livraison_bon';
+		}
+		if ($objecttype == 'contract') {
+			$classpath = 'contrat/class';
+			$module = 'contrat';
+			$subelement = 'contrat';
+		}
+		if ($objecttype == 'member') {
+			$classpath = 'adherents/class';
+			$module = 'adherent';
+			$subelement = 'adherent';
+		}
+		if ($objecttype == 'cabinetmed_cons') {
+			$classpath = 'cabinetmed/class';
+			$module = 'cabinetmed';
+			$subelement = 'cabinetmedcons';
+		}
+		if ($objecttype == 'fichinter') {
+			$classpath = 'fichinter/class';
+			$module = 'ficheinter';
+			$subelement = 'fichinter';
+		}
+		if ($objecttype == 'task') {
+			$classpath = 'projet/class';
+			$module = 'projet';
+			$subelement = 'task';
+		}
+
+		//print "objecttype=".$objecttype." module=".$module." subelement=".$subelement;
+
+		$classfile = strtolower($subelement);
+		$classname = ucfirst($subelement);
+		if ($objecttype == 'invoice_supplier') {
+			$classfile = 'fournisseur.facture';
+			$classname = 'FactureFournisseur';
+			$classpath = 'fourn/class';
+			$module = 'fournisseur';
+		}
+		if ($objecttype == 'order_supplier') {
+			$classfile = 'fournisseur.commande';
+			$classname = 'CommandeFournisseur';
+			$classpath = 'fourn/class';
+			$module = 'fournisseur';
+		}
+
+		if (!empty($conf->$module->enabled)) {
+			$res = dol_include_once('/' . $classpath . '/' . $classfile . '.class.php');
+			if ($res) {
+				$object = new $classname($db);
+				$res = $object->fetch($objectid);
+				if ($res > 0) {
+					return $object;
+				}
+			}
+		}
+		return null;
 	}
 }

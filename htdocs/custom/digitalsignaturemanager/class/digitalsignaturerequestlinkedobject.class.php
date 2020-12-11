@@ -63,11 +63,31 @@ class DigitalSignatureRequestLinkedObject
 	 */
 	public function getLinkedDigitalSignatureRequests($forceUpdateOfCache = false)
 	{
-		if ($forceUpdateOfCache || !self::$cacheDigitalSignatureRequest || !self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id]) {
-			$digitalSignatureManager = new DigitalSignatureRequest($this->db);
-			self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id] = &$digitalSignatureManager->fetchAll('DESC', 'date_creation', 0, 0, array('elementtype' => $this->object->table_element, 'fk_object' => $this->object->id));
+		if(!$this->object->linkedObjects || $forceUpdateOfCache) {
+			$this->object->fetchObjectLinked();
 		}
-		return self::$cacheDigitalSignatureRequest[$this->object->table_element][$this->object->id];
+		$result = array_values($this->object->linkedObjects[DigitalSignatureRequest::$staticElement]);
+		uasort($result, array($this, 'sortLinkedDigitalSignatureRequestToAnObject'));
+		return array_values($result);
+	}
+
+	/**
+	 * Sort digital signature request when fetching linked digital signature request to a common object
+	 * @param DigitalSignatureRequest $a first element
+	 * @param DigitalSignatureRequest $b second element
+	 * @return int values for uasort
+	 */
+	private function sortLinkedDigitalSignatureRequestToAnObject($a, $b) {
+		if (!isset($a) || !isset($a->date_creation) || is_null($a->date_creation)) {
+			return -1;
+		}
+		if (!isset($b) || !isset($b->date_creation) || is_null($b->date_creation)) {
+			return 1;
+		}
+		if ($a->date_creation == $b->date_creation) {
+			return 0;
+		}
+		return $a->date_creation < $b->date_creation ? 1 : -1;
 	}
 
 	/**
@@ -120,7 +140,8 @@ class DigitalSignatureRequestLinkedObject
 	 * Get current ended signature with data not considered as staled
 	 * @return DigitalSignatureRequest|null
 	 */
-	public function getEndedLinkedSignatureWithNoStaledData(){
+	public function getEndedLinkedSignatureWithNoStaledData()
+	{
 		$crudeList = $this->getDigitalSignatureRequestsWithStatus(DigitalSignatureRequest::STATUS_SUCCESS);
 		foreach($crudeList as $request) {
 			if(!$request->is_staled_according_to_source_object) {
@@ -194,12 +215,12 @@ class DigitalSignatureRequestLinkedObject
 		global $langs;
 		$errors = array();
 		$digitalSignatureRequest = new DigitalSignatureRequest($this->db);
-		$digitalSignatureRequest->elementtype = $this->object->table_element;
-		$digitalSignatureRequest->fk_object = $this->object->id;
+		// $digitalSignatureRequest->elementtype = $this->object->table_element;
+		// $digitalSignatureRequest->fk_object = $this->object->id;
 		$digitalSignatureRequest->fk_soc = $this->object->socid;
 		$digitalSignatureRequest->fk_project = $this->object->fk_project;
 
-		if ($digitalSignatureRequest->create($user) < 0) {
+		if ($digitalSignatureRequest->create($user) < 0 || $digitalSignatureRequest->add_object_linked($this->object->table_element, $this->object->id) < 0) {
 			$errors = array_merge($errors, $digitalSignatureRequest->errors);
 		}
 
@@ -217,6 +238,8 @@ class DigitalSignatureRequestLinkedObject
 					$digitalSignatureDocument->fk_ecm = $copyEcmFile->id;
 					$digitalSignatureDocument->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
 					$digitalSignatureDocument->digitalSignatureRequest = $digitalSignatureRequest;
+					$digitalSignatureDocument->elementtype = $this->object->element;
+					$digitalSignatureDocument->fk_object = $this->object->id;
 					$digitalSignatureDocument->create($user);
 					$errors = array_merge($errors, $digitalSignatureDocument->errors);
 					$digitalSignatureRequest->documents[] = $digitalSignatureDocument;
@@ -399,109 +422,18 @@ class DigitalSignatureRequestLinkedObject
 	 * Static function to get linked object of a digital signature request
 	 *
 	 * @param 	DigitalSignatureRequest		$object Instance on which we are looking to fetch linked instance
-	 * @return	CommonObject|null
+	 * @param	Bool	$forceUpdateOfCache should we force update of linked objects cache
+	 * @return	CommonObject[]|null
 	 */
-	public static function getLinkedObject($object)
+	public static function getLinkedObjects($object, $forceUpdateOfCache = false)
 	{
-		global $db, $conf;
-
-		if (!$object || !$object->fk_object || !$object->elementtype) {
-			return null;
+		if(!$object->linkedObjects || $forceUpdateOfCache) {
+			$object->fetchObjectLinked();
 		}
-		$objecttype = $object->elementtype;
-		$objectid = $object->fk_object;
-
-		$ret = '';
-
-		// Parse element/subelement (ex: project_task)
-		$module = $element = $subelement = $objecttype;
-		if (preg_match('/^([^_]+)_([^_]+)/i', $objecttype, $regs)) {
-			$module = $element = $regs[1];
-			$subelement = $regs[2];
+		$result = array();
+		foreach($object->linkedObjects as $linkIdsAndLinkedObjects) {
+			$result = array_merge($result, array_values($linkIdsAndLinkedObjects));
 		}
-
-		$classpath = $element . '/class';
-
-		// To work with non standard path
-		if ($objecttype == 'facture' || $objecttype == 'invoice') {
-			$classpath = 'compta/facture/class';
-			$module = 'facture';
-			$subelement = 'facture';
-		}
-		if ($objecttype == 'commande' || $objecttype == 'order') {
-			$classpath = 'commande/class';
-			$module = 'commande';
-			$subelement = 'commande';
-		}
-		if ($objecttype == 'propal') {
-			$classpath = 'comm/propal/class';
-		}
-		if ($objecttype == 'supplier_proposal') {
-			$classpath = 'supplier_proposal/class';
-		}
-		if ($objecttype == 'shipping') {
-			$classpath = 'expedition/class';
-			$subelement = 'expedition';
-			$module = 'expedition_bon';
-		}
-		if ($objecttype == 'delivery') {
-			$classpath = 'livraison/class';
-			$subelement = 'livraison';
-			$module = 'livraison_bon';
-		}
-		if ($objecttype == 'contract') {
-			$classpath = 'contrat/class';
-			$module = 'contrat';
-			$subelement = 'contrat';
-		}
-		if ($objecttype == 'member') {
-			$classpath = 'adherents/class';
-			$module = 'adherent';
-			$subelement = 'adherent';
-		}
-		if ($objecttype == 'cabinetmed_cons') {
-			$classpath = 'cabinetmed/class';
-			$module = 'cabinetmed';
-			$subelement = 'cabinetmedcons';
-		}
-		if ($objecttype == 'fichinter') {
-			$classpath = 'fichinter/class';
-			$module = 'ficheinter';
-			$subelement = 'fichinter';
-		}
-		if ($objecttype == 'task') {
-			$classpath = 'projet/class';
-			$module = 'projet';
-			$subelement = 'task';
-		}
-
-		//print "objecttype=".$objecttype." module=".$module." subelement=".$subelement;
-
-		$classfile = strtolower($subelement);
-		$classname = ucfirst($subelement);
-		if ($objecttype == 'invoice_supplier') {
-			$classfile = 'fournisseur.facture';
-			$classname = 'FactureFournisseur';
-			$classpath = 'fourn/class';
-			$module = 'fournisseur';
-		}
-		if ($objecttype == 'order_supplier') {
-			$classfile = 'fournisseur.commande';
-			$classname = 'CommandeFournisseur';
-			$classpath = 'fourn/class';
-			$module = 'fournisseur';
-		}
-
-		if (!empty($conf->$module->enabled)) {
-			$res = dol_include_once('/' . $classpath . '/' . $classfile . '.class.php');
-			if ($res) {
-				$object = new $classname($db);
-				$res = $object->fetch($objectid);
-				if ($res > 0) {
-					return $object;
-				}
-			}
-		}
-		return null;
+		return $result;
 	}
 }

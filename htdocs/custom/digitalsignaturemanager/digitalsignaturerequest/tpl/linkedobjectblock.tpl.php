@@ -52,15 +52,19 @@ foreach($linkedObjectBlock as $key => $objectlink)
 	} elseif ($objectlink->status == $objectlink::STATUS_CANCELED_BY_SIGNERS) {
 		$labelStatus = $langs->trans('DigitalSignatureRequestActionCanceledBy', $objectlink->getNameOfPeopleThatRefusedOrFailToSign());
 	}
+	else {
+		$labelStatus = "";
+	}
 ?>
     <tr class="<?php echo $trclass; ?>">
         <td><?php echo $langs->trans("DigitalSignatureRequest"); ?></td>
         <td><?php echo $objectlink->getNomUrl(1); ?></td>
         <td colspan="3" align="center"><?php echo $labelStatus; ?></td>
         <td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
-        <td align="right"><a href="<?php echo $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=dellink&dellinkid='.$key; ?>"><?php echo img_delete($langs->transnoentitiesnoconv("RemoveLink")); ?></a></td>
+        <td align="right"></td>
     </tr>
 <?php
+//$var = !$var;
 }
 ?>
 

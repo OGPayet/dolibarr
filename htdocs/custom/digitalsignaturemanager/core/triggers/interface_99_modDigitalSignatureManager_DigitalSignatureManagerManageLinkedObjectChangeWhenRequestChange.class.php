@@ -99,72 +99,75 @@ class InterfaceDigitalSignatureManagerManageLinkedObjectChangeWhenRequestChange 
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 	{
-		if (empty($conf->digitalsignaturemanager->enabled) || $object->element != 'digitalsignaturerequest') {
+		dol_include_once("/digitalsignaturemanager/class/digitalsignaturerequest.class.php");
+		if (empty($conf->digitalsignaturemanager->enabled) || $object->element != DigitalSignatureRequest::$staticElement) {
 			return 0; // If module is not enabled or object not a digital signature request, we do nothing
 		}
 
-		$linkedObjectInDolibarr = $object->getLinkedObject();
-		if(!$linkedObjectInDolibarr) {
+		$linkedObjectsInDolibarr = $object->getLinkedObjects();
+		if(!$linkedObjectsInDolibarr) {
 			return 0;
 		}
-
 		$errors = array();
-		switch ($action) {
-			case 'DIGITALSIGNATUREREQUEST_INPROGRESS':
-				$label = $langs->trans("DigitalSignatureRequestStartAndSendByMail", $object->ref);
-				$description = $langs->trans("DigitalSignatureRequestStartAndSendByMailDescription", $object->getNomUrl(1));
-				break;
-			case 'DIGITALSIGNATUREREQUEST_CANCELEDBYSIGNERS':
-				$label = $langs->trans("DigitalSignatureRequestCanceledBySigners", $object->ref);
-				$description = $langs->trans("DigitalSignatureRequestCanceledBySignersDescription", $object->getNomUrl(1));
-				$this->manageRefusedLinkedSignature($object, $linkedObjectInDolibarr, $user);
-				break;
-			case 'DIGITALSIGNATUREREQUEST_CANCELEDBYOPSY':
-				$label = $langs->trans("DigitalSignatureRequestCanceledByOpsy", $object->ref);
-				$description = $langs->trans("DigitalSignatureRequestCanceledByOpsyDescription", $object->getNomUrl(1));
-				break;
-				break;
-			case 'DIGITALSIGNATUREREQUEST_SUCCESS':
-				$label = $langs->trans("DigitalSignatureRequestSuccesfullySigned", $object->ref);
-				$description = $langs->trans("DigitalSignatureRequestSuccesfullySignedDescription", $object->getNomUrl(1));
-				$this->manageSuccessLinkedSignature($object, $linkedObjectInDolibarr, $user);
-				break;
-			case 'DIGITALSIGNATUREREQUEST_FAILED':
-				break;
-			case 'DIGITALSIGNATUREREQUEST_EXPIRED':
-				break;
-			case 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER':
-				break;
-			default:
-				dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
-				break;
-		}
 
-		if(!empty($label))
-		{
-			// Insertion action
-			$now = dol_now();
-			dol_include_once('/comm/action/class/actioncomm.class.php');
-			$actioncomm = new ActionComm($this->db);
-			$actioncomm->type_code   = "AC_OTH_AUTO";		// Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
-			$actioncomm->code        = 'AC_'.$action;
-			$actioncomm->label       = $label;
-			$actioncomm->note        = $description . "<br>" . $langs->trans('DigitalSignatureManagerEventAuthor', $user->login);
-			$actioncomm->fk_project  = $object->fk_project;
-			$actioncomm->datep       = $now;
-			$actioncomm->datef       = $now;
-			$actioncomm->percentage  = -1;   // Not applicable
-			$actioncomm->socid       = $linkedObjectInDolibarr->fk_soc ?? $linkedObjectInDolibarr->socid;;
-			$actioncomm->authorid    = $user->id;   // User saving action
-			$actioncomm->userownerid = $user->id;	// Owner of action
-			$actioncomm->fk_element  = $linkedObjectInDolibarr->id;
-			$actioncomm->elementtype = $linkedObjectInDolibarr->table_element;
-			$ret=$actioncomm->create($user);       // User creating action
-			return $ret;
+		foreach($linkedObjectsInDolibarr as $linkedObjectInDolibarr) {
+			switch ($action) {
+				case 'DIGITALSIGNATUREREQUEST_INPROGRESS':
+					$label = $langs->trans("DigitalSignatureRequestStartAndSendByMail", $object->ref);
+					$description = $langs->trans("DigitalSignatureRequestStartAndSendByMailDescription", $object->getNomUrl(1, '', 1));
+					break;
+				case 'DIGITALSIGNATUREREQUEST_CANCELEDBYSIGNERS':
+					$label = $langs->trans("DigitalSignatureRequestCanceledBySigners", $object->ref);
+					$description = $langs->trans("DigitalSignatureRequestCanceledBySignersDescription", $object->getNomUrl(1, '', 1));
+					$this->manageRefusedLinkedSignature($object, $linkedObjectInDolibarr, $user);
+					break;
+				case 'DIGITALSIGNATUREREQUEST_CANCELEDBYOPSY':
+					$label = $langs->trans("DigitalSignatureRequestCanceledByOpsy", $object->ref);
+					$description = $langs->trans("DigitalSignatureRequestCanceledByOpsyDescription", $object->getNomUrl(1, '', 1));
+					break;
+					break;
+				case 'DIGITALSIGNATUREREQUEST_SUCCESS':
+					$label = $langs->trans("DigitalSignatureRequestSuccesfullySigned", $object->ref);
+					$description = $langs->trans("DigitalSignatureRequestSuccesfullySignedDescription", $object->getNomUrl(1, '', 1));
+					$this->manageSuccessLinkedSignature($object, $linkedObjectInDolibarr, $user);
+					break;
+				case 'DIGITALSIGNATUREREQUEST_FAILED':
+					break;
+				case 'DIGITALSIGNATUREREQUEST_EXPIRED':
+					break;
+				case 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER':
+					break;
+				default:
+					dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+					break;
+			}
+
+			if(!empty($label))
+			{
+				// Insertion action
+				$now = dol_now();
+				dol_include_once('/comm/action/class/actioncomm.class.php');
+				$actioncomm = new ActionComm($this->db);
+				$actioncomm->type_code   = "AC_OTH_AUTO";		// Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
+				$actioncomm->code        = 'AC_'.$action;
+				$actioncomm->label       = $label;
+				$actioncomm->note        = $description . "<br>" . $langs->trans('DigitalSignatureManagerEventAuthor', $user->login);
+				$actioncomm->fk_project  = $object->fk_project;
+				$actioncomm->datep       = $now;
+				$actioncomm->datef       = $now;
+				$actioncomm->percentage  = -1;   // Not applicable
+				$actioncomm->socid       = $linkedObjectInDolibarr->fk_soc ?? $linkedObjectInDolibarr->socid;;
+				$actioncomm->authorid    = $user->id;   // User saving action
+				$actioncomm->userownerid = $user->id;	// Owner of action
+				$actioncomm->fk_element  = $linkedObjectInDolibarr->id;
+				$actioncomm->elementtype = $linkedObjectInDolibarr->table_element;
+				$actioncomm->create($user);       // User creating action
+				$errors = array_merge($errors, $actioncomm->errors);
+			}
 		}
 
 		$this->errors = array_merge($this->errors, $errors);
-		return 0;
+		return empty($errors) ? 0 : -1;
 	}
 
 	/**
