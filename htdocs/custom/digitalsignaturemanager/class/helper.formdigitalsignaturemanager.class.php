@@ -79,11 +79,11 @@ class FormHelperDigitalSignatureManager
 			$sql.= " AND a.fk_soc = " . $socid;
 		}
 		if($digitalSignatureRequest->id) {
-			$filterForDigitalSignatureRequest[] = "( a.fk_element = " . (int) $digitalSignatureRequest->id . " AND a.elementtype = 'digitalsignaturemanager_digitalsignaturerequest' )";
+			$filterForDigitalSignatureRequest[] = '( a.fk_element = ' . (int) $digitalSignatureRequest->id . ' AND a.elementtype = "' . DigitalSignatureRequest::$staticElement . '" )';
 		}
 
 		if(!empty($arrayOfPeopleSignatureIds)) {
-			$filterForDigitalSignatureRequest[] = "( a.fk_element IN (" . implode(",", $arrayOfPeopleSignatureIds) .") AND a.elementtype = 'digitalsignaturemanager_digitalsignaturepeople' )";
+			$filterForDigitalSignatureRequest[] = '( a.fk_element IN (' . implode(",", $arrayOfPeopleSignatureIds) . ') AND a.elementtype = "' . DigitalSignaturePeople::$staticElement . '" )';
 		}
 
 		if(!empty($filterForDigitalSignatureRequest)) {
@@ -105,8 +105,8 @@ class FormHelperDigitalSignatureManager
         $resql=$this->db->query($sql);
         if ($resql)
         {
-            $num = $this->db->num_rows($resql);
-
+			$num = $this->db->num_rows($resql);
+			$resarray = array();
             if ($num)
             {
                 for($i=0;$i<$num;$i++)

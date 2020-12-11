@@ -104,7 +104,10 @@ class InterfaceDigitalSignatureManagerAutomaticEventCreationTriggers extends Dol
 			return 0; // If module is not enabled, we do nothing
 		}
 
-		if($object->element == 'digitalsignaturerequest') {
+		dol_include_once("/digitalsignaturemanager/class/digitalsignaturerequest.class.php");
+		dol_include_once("/digitalsignaturemanager/class/digitalsignaturepeople.class.php");
+
+		if($object->element == DigitalSignatureRequest::$staticElement) {
 			$arrayOfTriggerCodeConfigurationAndEventContent = array(
 			'DIGITALSIGNATUREREQUEST_CREATE'=>array(
 				'activated'=>$conf->global->DIGITALSIGNATUREMANAGER_REQUESTEVENT_CREATION,
@@ -145,7 +148,7 @@ class InterfaceDigitalSignatureManagerAutomaticEventCreationTriggers extends Dol
 			);
 		}
 
-		if($object->element == 'digitalsignaturepeople') {
+		if($object->element == DigitalSignaturePeople::$staticElement) {
 			$arrayOfTriggerCodeConfigurationAndEventContent = array(
 			'DIGITALSIGNATUREPEOPLE_CREATE' => array(
 				'activated'=>$conf->global->DIGITALSIGNATUREMANAGER_PEOPLEEVENT_CREATE,
@@ -208,8 +211,8 @@ class InterfaceDigitalSignatureManagerAutomaticEventCreationTriggers extends Dol
 			$actioncomm = new ActionComm($this->db);
 			$actioncomm->type_code   = "AC_OTH_AUTO";		// Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
 			$actioncomm->code        = 'AC_'.$action;
-			$actioncomm->label       = $arrayOfTriggerCodeConfigurationAndEventContent[$action]['title'];
-			$actioncomm->note        = $arrayOfTriggerCodeConfigurationAndEventContent[$action]['description'] . "<br>" . $langs->trans('DigitalSignatureManagerEventAuthor', $user->login);
+			$actioncomm->label       = $titleAndDescription['title'];
+			$actioncomm->note        = $titleAndDescription['description'] . "<br>" . $langs->trans('DigitalSignatureManagerEventAuthor', $user->login);
 			$actioncomm->fk_project  = $object->getLinkedProjectId();
 			$actioncomm->datep       = $now;
 			$actioncomm->datef       = $now;
@@ -219,7 +222,7 @@ class InterfaceDigitalSignatureManagerAutomaticEventCreationTriggers extends Dol
 			$actioncomm->authorid    = $user->id;   // User saving action
 			$actioncomm->userownerid = $user->id;	// Owner of action
 			$actioncomm->fk_element  = $object->id;
-			$actioncomm->elementtype = $object->table_element;
+			$actioncomm->elementtype = $object->element;
 			$ret=$actioncomm->create($user);       // User creating action
 			return $ret;
 		}

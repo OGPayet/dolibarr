@@ -57,6 +57,11 @@ class DigitalSignatureDocumentSepa extends CommonObject
 	public $picto = 'digitalsignaturedocumentsepa@digitalsignaturemanager';
 
 	/**
+	 * @var DigitalSignatureRequest linkedDigitalSignatureRequest
+	 */
+	public $digitalSignatureRequest;
+
+	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
 	 *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
 	 *  'label' the translation key.
@@ -305,7 +310,7 @@ class DigitalSignatureDocumentSepa extends CommonObject
 	 * @param  int         $offset       Offset
 	 * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
 	 * @param  string      $filtermode   Filter mode (AND or OR)
-	 * @return array|int                 int <0 if KO, array of pages if OK
+	 * @return DigitalSignatureDocumentSepa[]|null
 	 */
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND')
 	{
@@ -371,7 +376,7 @@ class DigitalSignatureDocumentSepa extends CommonObject
 			$this->errors[] = 'Error '.$this->db->lasterror();
 			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
 
-			return -1;
+			return null;
 		}
 	}
 
@@ -662,6 +667,56 @@ class DigitalSignatureDocumentSepa extends CommonObject
 		{
 			print $langs->trans("ErrorNumberingModuleNotSetup", $this->element);
 			return "";
+		}
+	}
+
+	/**
+	 * Function to get linked digital signature request instance
+	 * @return DigitalSignatureRequest
+	 */
+	public function getLinkedDigitalSignatureRequest()
+	{
+		if (!$this->digitalSignatureRequest) {
+			$this->fetchLinkedDigitalSignatureRequest();
+		}
+		return $this->digitalSignatureRequest;
+	}
+
+		/**
+	 * Function to fetch linked digital signature request
+	 * @return int         <0 if KO, 0 if not found, >0 if OK
+	 */
+	public function fetchLinkedDigitalSignatureRequest()
+	{
+		dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
+		$digitalSignatureRequestStatic = new DigitalSignatureRequest($this->db);
+		$result = $digitalSignatureRequestStatic->fetch($this->fk_digitalsignaturerequest);
+		if ($result > 0) {
+			$this->digitalSignatureRequest = $digitalSignatureRequestStatic;
+		}
+		return $result;
+	}
+
+	/**
+	 * Fetch documents for digital signature document sepa
+	 * @param DoliDB $db database instance to use
+	 * @param DigitalSignatureRequest $digitalSignatureRequest linked digitalsignaturerequestobject
+	 * @return DigitalSignatureDocumentSepa|string[]
+	 */
+	public function fetchSepaMandateForDigitalSignature($db, &$digitalSignatureRequest)
+	{
+		$staticInstance = new self($db);
+		$listOfSepaMandate = $staticInstance->fetchAll(null, null, null, null, array('fk_digitalsignaturerequest' => $digitalSignatureRequest->id));
+		$sepaMandate = array_shift($listOfSepaMandate);
+		if(!empty($staticInstance->errors)) {
+			return $staticInstance->errors;
+		}
+		elseif($sepaMandate) {
+			$sepaMandate->digitalSignatureRequest = $digitalSignatureRequest;
+			return $sepaMandate;
+		}
+		else {
+			return null;
 		}
 	}
 }

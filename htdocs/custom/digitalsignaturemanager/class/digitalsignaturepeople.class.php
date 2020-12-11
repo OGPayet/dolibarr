@@ -35,12 +35,23 @@ class DigitalSignaturePeople extends CommonObject
 	/**
 	 * @var string ID to identify managed object.
 	 */
-	public $element = 'digitalsignaturepeople';
+	public $element = 'digitalsignaturemanager_digitalsignaturepeople';
 
 	/**
 	 * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management.
 	 */
 	public $table_element = 'digitalsignaturemanager_digitalsignaturepeople';
+
+	/**
+	 * @var string ID to identify managed object.
+	 */
+	public static $staticElement = 'digitalsignaturemanager_digitalsignaturepeople';
+
+	/**
+	 * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management.
+	 */
+	public static $static_table_element = 'digitalsignaturemanager_digitalsignaturepeople';
+
 
 	/**
 	 * @var int  Does this object support multicompany module ?

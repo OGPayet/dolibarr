@@ -175,6 +175,7 @@ Class DigitalSignatureManagerUniversign
 			if(!empty($checkBoxTexts)) {
 				$universignDocument->setCheckBoxTexts($checkBoxTexts);
 			}
+			$universignDocument->setDocumentType("pdf");
 			$universignDocuments[] = $universignDocument;
 		}
 

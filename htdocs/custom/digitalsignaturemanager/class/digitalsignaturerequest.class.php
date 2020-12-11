@@ -29,6 +29,7 @@ dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.ph
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryfield.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturecheckbox.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocumentsepa.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
 dol_include_once('/digitalsignaturemanager/class/digitalSignatureManagerUniversign.class.php');
 
@@ -40,13 +41,22 @@ class DigitalSignatureRequest extends CommonObject
 	/**
 	 * @var string ID to identify managed object.
 	 */
-	public $element = 'digitalsignaturerequest';
+	public $element = 'digitalsignaturemanager_digitalsignaturerequest';
 
 	/**
 	 * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management.
 	 */
 	public $table_element = 'digitalsignaturemanager_digitalsignaturerequest';
 
+	/**
+	 * @var string ID to identify managed object.
+	 */
+	public static $staticElement = 'digitalsignaturemanager_digitalsignaturerequest';
+
+	/**
+	 * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management.
+	 */
+	public static $static_table_element = 'digitalsignaturemanager_digitalsignaturerequest';
 	/**
 	 * @var int  Does this object support multicompany module ?
 	 * 0=No test on entity, 1=Test with field entity, 'field@table'=Test with link by field@table
@@ -128,7 +138,6 @@ class DigitalSignatureRequest extends CommonObject
 		'fk_object' => array('type' => 'integer', 'label' => 'Id of the dolibarr object we sign', 'enabled' => '1', 'position' => 1004, 'notnull' => 0, 'visible' => 0, 'index' => 1,),
 		'is_staled_according_to_source_object' => array('type'=>'boolean', 'label'=>'Does this signature request contained staled information compare to linked object', 'visible'=>-1, 'enabled'=>1, 'position'=>20),
 		'last_update_from_provider' => array('type' => 'datetime', 'label' => 'Last update from provider', 'enabled' => '1', 'position' => 500, 'visible' => -5,),
-
 	);
 	public $rowid;
 	public $entity;
@@ -178,6 +187,11 @@ class DigitalSignatureRequest extends CommonObject
 	 * @var DigitalSignatureManagerUniversign Accessible service for this request
 	 */
 	public $externalProviderService;
+
+	/**
+	 * @var DigitalSignatureDocumentSepa Sepa mandate linked to this request
+	 */
+	public $sepaMandate;
 
 	/**
 	 * Constructor
@@ -426,6 +440,10 @@ class DigitalSignatureRequest extends CommonObject
 		if ($result >= 0) {
 			$result = $this->fetchSignatoryField();
 		}
+
+		if ($result >= 0) {
+			$result = $this->fetchSepaMandate();
+		}
 		return $result;
 	}
 
@@ -475,6 +493,23 @@ class DigitalSignatureRequest extends CommonObject
 			$this->signatoryFields = $linkedSignatoryField;
 		}
 		return empty($staticDigitalSignatureSignatoryField->errors) ? 1 : -1;
+	}
+
+	/**
+	 * Load sepa mandate in memory from the database
+	 * @return int         <0 if KO, 0 if not found, >0 if OK
+	 */
+	public function fetchSepaMandate()
+	{
+		$sepaMandate = DigitalSignatureDocumentSepa::fetchSepaMandateForDigitalSignature($this->db, $this);
+		if(is_array($sepaMandate)) {
+			$this->errors = array_merge($this->errors, $sepaMandate);
+			return -1;
+		}
+		else {
+			$this->sepaMandate = $sepaMandate;
+			return 1;
+		}
 	}
 
 	/**
@@ -594,13 +629,26 @@ class DigitalSignatureRequest extends CommonObject
 			$this->db->rollback();
 			return -1;
 		}
-		// Define new ref
+		// Define new ref for request
 		if ((preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref))) // empty should not happened, but when it occurs, the test save life
 		{
 			$num = $this->getNextNumRef();
 		} else {
 			$num = $this->ref;
 		}
+
+		// Define new ref for mandat sepate
+		if($this->sepaMandate) {
+			// if ((preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref))) // empty should not happened, but when it occurs, the test save life
+			// {
+			// 	$num = $this->getNextNumRef();
+			// } else {
+			// 	$num = $this->ref;
+			// }
+		}
+
+
+
 		$this->ref = $num;
 		$returnedValues = $this->externalProviderService->create();
 		if($returnedValues && !empty($returnedValues['id'])) {
