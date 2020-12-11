@@ -239,8 +239,8 @@ class ExtendedEcm extends EcmFiles
 	{
 		self::deleteAdditionalProperty($db, $instance->id);
 		$sql = "INSERT INTO " . MAIN_DB_PREFIX . self::$extended_table_element . " (fk_ecm, mask) VALUES ";
-		$sqlId = $instance->id ? $db->escape($instance->id) : NULL;
-		$maskSql = $instance->mask ?  $db->escape($instance->mask) : NULL;
+		$sqlId = $instance->id ? $db->escape($instance->id) : "NULL";
+		$maskSql = $instance->mask ?  $db->escape($instance->mask) : "NULL";
 		$sql .= "(" . $sqlId . ',"' . $maskSql . '")';
 		$resql = $instance->db->query($sql);
 		if ($resql) {
@@ -498,7 +498,6 @@ class ExtendedEcm extends EcmFiles
 			$newEcm->filepath = $relativePathToDolDataRoot;
 			$newEcm->filename = $fileName;
 			$newEcm->gen_or_uploaded = 'generated';
-			//$newEcm->mask = $this->mask;
 			if ($newEcm->id > 0) {
 				$result = $newEcm->update($user);
 			} else {
