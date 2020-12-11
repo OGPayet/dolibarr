@@ -32,7 +32,7 @@ class DigitalSignatureCheckboxDictionary extends Dictionary
 	/**
 	 * @var int         Version of this dictionary
 	 */
-	public $version = 2;
+	public $version = 3;
 	/**
 	 * @var array       List of languages to load
 	 */
@@ -192,7 +192,8 @@ class DigitalSignatureCheckboxDictionary extends Dictionary
 	 *   ),
 	 * )
 	 */
-	public $updates = array();
+	public $updates = array(
+	);
 
 	/**
 	 * @var array  List of index for the database

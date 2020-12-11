@@ -25,71 +25,79 @@
  * Function to compare two values accoring to JS ==
  */
 
-function compareValues($a, $b)
-{
-    if ($a === null || $b === null) {
-        return $a === $b;
-    } else {
-        return $a == $b;
+if(!function_exists('compareValues')) {
+
+    function compareValues($a, $b)
+    {
+        if ($a === null || $b === null) {
+            return $a === $b;
+        } else {
+            return $a == $b;
+        }
     }
 }
+
 
 
 /**
  * * Get element from an array according to an array of parameters set with "fieldName"=>valueToMatch
  */
-function getItemFromThisArray(array &$array, array $arrayOfParameters = array(), bool $returnPosition = false)
-{
-    $result = null;
-    foreach ($array as $index => &$item) {
-        $test = false;
-        foreach ($arrayOfParameters as $fieldName => $searchValue) {
-            if(is_array($item)){
-                $itemValue = $item[$fieldName];
+if(!function_exists("getItemFromThisArray")) {
+    function getItemFromThisArray(array &$array, array $arrayOfParameters = array(), bool $returnPosition = false)
+    {
+        $result = null;
+        foreach ($array as $index => &$item) {
+            $test = false;
+            foreach ($arrayOfParameters as $fieldName => $searchValue) {
+                if(is_array($item)){
+                    $itemValue = $item[$fieldName];
+                }
+                else
+                {
+                    $itemValue = $item->$fieldName;
+                }
+                if (compareValues($itemValue, $searchValue)) {
+                    $test = true;
+                } else {
+                    $test = false;
+                    break;
+                }
             }
-            else
-            {
-                $itemValue = $item->$fieldName;
-            }
-            if (compareValues($itemValue, $searchValue)) {
-                $test = true;
-            } else {
-                $test = false;
+            if ($test) {
+                $result = $index;
                 break;
             }
         }
-        if ($test) {
-            $result = $index;
-            break;
-        }
+        return $returnPosition ? $result : $array[$result];
     }
-    return $returnPosition ? $result : $array[$result];
 }
-
 
 //Function to get object from an array having the same id field than the given parameter
-function getItemWithSameFieldsValue(array &$array, &$object, array &$fieldName = array('id'), $returnPosition = false)
-{
-    $parameters = array();
-    foreach ($fieldName as $name) {
-        $parameters[$name] = $object->$name;
+if(function_exists('getItemWithSameFieldsValue')) {
+    function getItemWithSameFieldsValue(array &$array, &$object, array &$fieldName = array('id'), $returnPosition = false)
+    {
+        $parameters = array();
+        foreach ($fieldName as $name) {
+            $parameters[$name] = $object->$name;
+        }
+        return getItemFromThisArray($array, $parameters, $returnPosition);
     }
-    return getItemFromThisArray($array, $parameters, $returnPosition);
 }
 
-
 //Function to get missing item into the second array according to the first array identified by an array of field
-function getMissingItem(array &$oldData, array &$newData, array &$arrayOfIdentifierField = array('id'))
-{
-    $missingItems = array();
-    foreach ($oldData as $index => &$oldObject) {
-        $newObject = getItemWithSameFieldsValue($newData, $oldObject, $arrayOfIdentifierField);
-        if (!$newObject) {
-            //Item is missing
-            $missingItems[$index] = $oldObject;
+if(function_exists('getMissingItem')) {
+    function getMissingItem(array &$oldData, array &$newData, array &$arrayOfIdentifierField = array('id'))
+    {
+        $missingItems = array();
+        foreach ($oldData as $index => &$oldObject) {
+            $newObject = getItemWithSameFieldsValue($newData, $oldObject, $arrayOfIdentifierField);
+            if (!$newObject) {
+                //Item is missing
+                $missingItems[$index] = $oldObject;
+            }
         }
+        return $missingItems;
     }
-    return $missingItems;
 }
 
 //Function to get missing item into the second array according to the first array identified by an array of field
