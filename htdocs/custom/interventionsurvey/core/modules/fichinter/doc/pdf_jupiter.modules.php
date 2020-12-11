@@ -1161,6 +1161,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             $numberOfPeriodRowForThisUser = count($user['times']);
             $minRowHeight = $numberOfPeriodRowForThisUser * $singleLineMinHeight;
             $this->addCellToRow($row, $nameToDisplay, 1, $numberOfPeriodRowForThisUser, null, null, 'C', 'middle', 'normal', null, $minRowHeight, $default_font_size - 1);
+            $lastIndex = end(array_keys($user['times']));
             foreach ($user['times'] as $index => $dateInformation) {
                 $beginDate = $dateInformation['begin'];
                 $endDate = $dateInformation['end'];
@@ -1173,9 +1174,12 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $this->addCellToRow($row, $displayedEndDate, 1, null, null, null, 'C', 'middle', 'normal', null, null, $default_font_size - 1);
                 $this->addCellToRow($row, $displayedDuration, 1, null, null, null, 'R', 'middle', 'normal', null, null, $default_font_size - 1);
                 $row = $row->end();
-                if (!empty($user['times'][$index + 1])) {
+                if ($index != $lastIndex) {
                     $row = $row->newRow();
                 }
+            }
+            if(count($user['times']) == 0) {
+                $row = $row->end();
             }
         }
         //We Add Total Row
