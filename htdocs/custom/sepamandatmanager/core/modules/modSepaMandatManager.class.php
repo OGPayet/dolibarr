@@ -26,7 +26,7 @@
  *  \ingroup    sepamandatmanager
  *  \brief      Description and activation file for module SepaMandatManager
  */
-include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
+include_once DOL_DOCUMENT_ROOT . '/core/modules/DolibarrModules.class.php';
 
 /**
  *  Description and activation class for module SepaMandatManager
@@ -69,11 +69,11 @@ class modSepaMandatManager extends DolibarrModules
 		//$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
 		// Key used in llx_const table to save module status enabled/disabled (where SEPAMANDATMANAGER is value of property name of module in uppercase)
-		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
+		$this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto = 'generic';
+		$this->picto = 'sepamandatmanager_over_large_black@sepamandatmanager';
 		// Define some features supported by module (triggers, login, substitutions, menus, css, etc...)
 		$this->module_parts = array(
 			// Set this to 1 if module has its own trigger directory (core/triggers)
@@ -310,46 +310,46 @@ class modSepaMandatManager extends DolibarrModules
 		);
 		*/
 
-        $this->menu[$r++]=array(
-            // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-            'fk_menu'=>'fk_mainmenu=bank',
-            // This is a Left menu entry
-            'type'=>'left',
-            'titre'=>'ListOfSepaMandat',
-            'mainmenu'=>'bank',
-            'leftmenu'=>'sepamandatmanager_sepamandat',
-            'url'=>'/sepamandatmanager/sepamandat_list.php',
-            // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-            'langs'=>'sepamandatmanager@sepamandatmanager',
-            'position'=>100+$r,
-            // Define condition to show or hide menu entry. Use '$conf->sepamandatmanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-            'enabled'=>'$conf->sepamandatmanager->enabled',
-            // Use 'perms'=>'$user->rights->sepamandatmanager->level1->level2' if you want your menu with a permission rules
-            'perms'=>'1',
-            'target'=>'',
-            // 0=Menu for internal users, 1=external users, 2=both
-            'user'=>2,
-        );
-        $this->menu[$r++]=array(
-            // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-            'fk_menu'=>'fk_mainmenu=bank,fk_leftmenu=sepamandatmanager_sepamandat',
-            // This is a Left menu entry
-            'type'=>'left',
-            'titre'=>'NewSepaMandat',
-            'mainmenu'=>'bank',
-            'leftmenu'=>'sepamandatmanager_sepamandat',
-            'url'=>'/sepamandatmanager/sepamandat_card.php?action=create',
-            // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-            'langs'=>'sepamandatmanager@sepamandatmanager',
-            'position'=>100+$r,
-            // Define condition to show or hide menu entry. Use '$conf->sepamandatmanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-            'enabled'=>'$conf->sepamandatmanager->enabled',
-            // Use 'perms'=>'$user->rights->sepamandatmanager->level1->level2' if you want your menu with a permission rules
-            'perms'=>'1',
-            'target'=>'',
-            // 0=Menu for internal users, 1=external users, 2=both
-            'user'=>2
-        );
+		$this->menu[$r++] = array(
+			// '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'fk_menu' => 'fk_mainmenu=bank',
+			// This is a Left menu entry
+			'type' => 'left',
+			'titre' => 'ListOfSepaMandat',
+			'mainmenu' => 'bank',
+			'leftmenu' => 'sepamandatmanager_sepamandat',
+			'url' => '/sepamandatmanager/sepamandat_list.php',
+			// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'langs' => 'sepamandatmanager@sepamandatmanager',
+			'position' => 100 + $r,
+			// Define condition to show or hide menu entry. Use '$conf->sepamandatmanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'enabled' => '$conf->sepamandatmanager->enabled',
+			// Use 'perms'=>'$user->rights->sepamandatmanager->level1->level2' if you want your menu with a permission rules
+			'perms' => '1',
+			'target' => '',
+			// 0=Menu for internal users, 1=external users, 2=both
+			'user' => 2,
+		);
+		$this->menu[$r++] = array(
+			// '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
+			'fk_menu' => 'fk_mainmenu=bank,fk_leftmenu=sepamandatmanager_sepamandat',
+			// This is a Left menu entry
+			'type' => 'left',
+			'titre' => 'NewSepaMandat',
+			'mainmenu' => 'bank',
+			'leftmenu' => 'sepamandatmanager_sepamandat',
+			'url' => '/sepamandatmanager/sepamandat_card.php?action=create',
+			// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
+			'langs' => 'sepamandatmanager@sepamandatmanager',
+			'position' => 100 + $r,
+			// Define condition to show or hide menu entry. Use '$conf->sepamandatmanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
+			'enabled' => '$conf->sepamandatmanager->enabled',
+			// Use 'perms'=>'$user->rights->sepamandatmanager->level1->level2' if you want your menu with a permission rules
+			'perms' => '1',
+			'target' => '',
+			// 0=Menu for internal users, 1=external users, 2=both
+			'user' => 2
+		);
 
 		/* END MODULEBUILDER LEFTMENU SEPAMANDAT */
 
@@ -437,33 +437,31 @@ class modSepaMandatManager extends DolibarrModules
 		// Document templates
 		$moduledir = 'sepamandatmanager';
 		$myTmpObjects = array();
-		$myTmpObjects['Sepamandat']=array('includerefgeneration'=>0, 'includedocgeneration'=>0);
+		$myTmpObjects['Sepamandat'] = array('includerefgeneration' => 0, 'includedocgeneration' => 0);
 
 		foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
 			if ($myTmpObjectKey == 'Sepamandat') continue;
 			if ($myTmpObjectArray['includerefgeneration']) {
-				$src=DOL_DOCUMENT_ROOT.'/install/doctemplates/sepamandatmanager/template_sepamandats.odt';
-				$dirodt=DOL_DATA_ROOT.'/doctemplates/sepamandatmanager';
-				$dest=$dirodt.'/template_sepamandats.odt';
+				$src = DOL_DOCUMENT_ROOT . '/install/doctemplates/sepamandatmanager/template_sepamandats.odt';
+				$dirodt = DOL_DATA_ROOT . '/doctemplates/sepamandatmanager';
+				$dest = $dirodt . '/template_sepamandats.odt';
 
-				if (file_exists($src) && ! file_exists($dest))
-				{
-					require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+				if (file_exists($src) && !file_exists($dest)) {
+					require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 					dol_mkdir($dirodt);
-					$result=dol_copy($src, $dest, 0, 0);
-					if ($result < 0)
-					{
+					$result = dol_copy($src, $dest, 0, 0);
+					if ($result < 0) {
 						$langs->load("errors");
-						$this->error=$langs->trans('ErrorFailToCopyFile', $src, $dest);
+						$this->error = $langs->trans('ErrorFailToCopyFile', $src, $dest);
 						return 0;
 					}
 				}
 
 				$sql = array_merge($sql, array(
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'standard_".strtolower($myTmpObjectKey)."' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('standard_".strtolower($myTmpObjectKey)."','".strtolower($myTmpObjectKey)."',".$conf->entity.")",
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'generic_".strtolower($myTmpObjectKey)."_odt' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('generic_".strtolower($myTmpObjectKey)."_odt', '".strtolower($myTmpObjectKey)."', ".$conf->entity.")"
+					"DELETE FROM " . MAIN_DB_PREFIX . "document_model WHERE nom = 'standard_" . strtolower($myTmpObjectKey) . "' AND type = '" . strtolower($myTmpObjectKey) . "' AND entity = " . $conf->entity,
+					"INSERT INTO " . MAIN_DB_PREFIX . "document_model (nom, type, entity) VALUES('standard_" . strtolower($myTmpObjectKey) . "','" . strtolower($myTmpObjectKey) . "'," . $conf->entity . ")",
+					"DELETE FROM " . MAIN_DB_PREFIX . "document_model WHERE nom = 'generic_" . strtolower($myTmpObjectKey) . "_odt' AND type = '" . strtolower($myTmpObjectKey) . "' AND entity = " . $conf->entity,
+					"INSERT INTO " . MAIN_DB_PREFIX . "document_model (nom, type, entity) VALUES('generic_" . strtolower($myTmpObjectKey) . "_odt', '" . strtolower($myTmpObjectKey) . "', " . $conf->entity . ")"
 				));
 			}
 		}
