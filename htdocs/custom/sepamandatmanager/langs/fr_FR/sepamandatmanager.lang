@@ -1,0 +1,80 @@
+# Copyright (C) 2020 Alexis LAURIER
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModuleSepaMandatManagerName'
+ModuleSepaMandatManagerName = Sepa Mandat Manager
+# Module description 'ModuleSepaMandatManagerDesc'
+ModuleSepaMandatManagerDesc = Gestionnaire avancé de mandat sepa
+
+#
+# Page d'administration
+#
+SepaMandatManagerSetup = Configuration du module Sepa Mandat Manager
+Settings = Réglages
+SepaMandatManagerSetupPage = Page de configuration du module Sepa Mandat Manager
+
+#
+# List Page
+#
+SepaMandatTab = Mandat SEPA
+ListOfSepaMandatForCompany = Mandat SEPA de la société %s
+ListOfSepaMandat = Liste de Mandat SEPA
+NewSepaMandat = Nouveau mandat SEPA
+
+#
+# Status
+#
+SepaMandateDraft = Mandat brouillon
+SepaMandateToSign = Mandat à signer
+SepaMandateSigned = Mandat Signé
+SepaMandateCanceled = Mandat Annulé
+SepaMandateStale = Mandat expiré
+SepaMandateDraftShort = Brouillon
+SepaMandateToSignShort = A signer
+SepaMandateSignedShort = Signé
+SepaMandateCanceledShort = Annulé
+SepaMandateStaleShort = Expiré
+
+#
+# Fields
+#
+SepaMandateIcs = Identifiant de créancier SEPA
+SepaMandateRum = Code Rum
+SepaMandateIban = Iban
+SepaMandateBic = Code BIC
+SepaMandateDebtorName = Nom
+SepaMandateDebtorAddress = Adresse
+SepaMandateDebtorPostalCode = Code Postal
+SepaMandateDebtorCity = Ville
+SepaMandateDebtorCountry = Pays
+SepaMandateCreditorName = Nom
+SepaMandateCreditorAddress = Adresse
+SepaMandateCreditorPostalCode = Code postal
+SepaMandateCreditorCity = Ville
+SepaMandateCreditorCountry = Pays
+SepaMandateType = Type de mandat
+SepaMandatePunctualType = Ponctuel
+SepaMandateRecurrentType = Récurrent
+
+#
+# Page À propos
+#
+About = À propos
+SepaMandatManagerAbout = À propos de Sepa Mandat Manager
+SepaMandatManagerAboutPage = Page à propos de Sepa Mandat Manager

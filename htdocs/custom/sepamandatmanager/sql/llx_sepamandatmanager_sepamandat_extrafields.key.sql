@@ -15,5 +15,5 @@
 
 
 -- BEGIN MODULEBUILDER INDEXES
-ALTER TABLE llx_digitalsignaturemanager_digitalsignaturedocumentsepa_extrafields ADD INDEX idx_fk_object(fk_object);
+ALTER TABLE llx_sepamandatmanager_sepamandat_extrafields ADD INDEX idx_fk_object(fk_object);
 -- END MODULEBUILDER INDEXES

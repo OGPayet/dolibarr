@@ -29,7 +29,6 @@ dol_include_once('/digitalsignaturemanager/class/digitalsignaturepeople.class.ph
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocument.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturesignatoryfield.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturecheckbox.class.php');
-dol_include_once('/digitalsignaturemanager/class/digitalsignaturedocumentsepa.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
 dol_include_once('/digitalsignaturemanager/class/digitalSignatureManagerUniversign.class.php');
 
@@ -134,7 +133,7 @@ class DigitalSignatureRequest extends CommonObject
 		'status' => array('type' => 'smallint', 'label' => 'Status', 'enabled' => '1', 'position' => 1000, 'notnull' => 1, 'visible' => 1, 'noteditable' => '1', 'default' => '0', 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Processus de signature en cours', '2' => 'Annul&eacute;', '3' => 'Signature termin&eacute;e', '9' => 'Erreur Technique'),),
 		'externalId' => array('type' => 'varchar(255)', 'label' => 'Id of the signature process at external provider', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'externalUrl' => array('type' => 'url', 'label' => 'Url given by universign after request have been created', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
-		'is_staled_according_to_source_object' => array('type'=>'boolean', 'label'=>'Does this signature request contained staled information compare to linked object', 'visible'=>-1, 'enabled'=>1, 'position'=>20),
+		'is_staled_according_to_source_object' => array('type' => 'boolean', 'label' => 'Does this signature request contained staled information compare to linked object', 'visible' => -1, 'enabled' => 1, 'position' => 20),
 		'last_update_from_provider' => array('type' => 'datetime', 'label' => 'Last update from provider', 'enabled' => '1', 'position' => 500, 'visible' => -5,),
 	);
 	public $rowid;
@@ -183,11 +182,6 @@ class DigitalSignatureRequest extends CommonObject
 	 * @var DigitalSignatureManagerUniversign Accessible service for this request
 	 */
 	public $externalProviderService;
-
-	/**
-	 * @var DigitalSignatureDocumentSepa Sepa mandate linked to this request
-	 */
-	public $sepaMandate;
 
 	/**
 	 * Constructor
@@ -357,9 +351,9 @@ class DigitalSignatureRequest extends CommonObject
 
 		//We merge linked object
 		$object->fetchObjectLinked();
-		foreach($object->linkedObjectsIds as $elementType => $linkAndObjectId) {
+		foreach ($object->linkedObjectsIds as $elementType => $linkAndObjectId) {
 			$elementIds = array_values($linkAndObjectId);
-			foreach($elementIds as $destinationId) {
+			foreach ($elementIds as $destinationId) {
 				$newDigitalSignatureRequest->add_object_linked($elementType, $destinationId);
 			}
 		}
@@ -388,7 +382,7 @@ class DigitalSignatureRequest extends CommonObject
 			foreach ($object->documents as $document) {
 				$newPayload = $document->createFromClone($user, $document->id, $newDigitalSignatureRequest, $arrayOfOldCheckBoxIdAndClonedCheckBoxId);
 				$errors = array_merge($errors, $document->errors);
-				if(is_object($newPayload)) {
+				if (is_object($newPayload)) {
 					$arrayOfOldDocumentIdAndCloneDocumentId[$document->id] = $newPayload->id;
 					$arrayOfSuccessfullyCreatedDocument[] = $newPayload;
 				}
@@ -444,10 +438,6 @@ class DigitalSignatureRequest extends CommonObject
 		if ($result >= 0) {
 			$result = $this->fetchSignatoryField();
 		}
-
-		if ($result >= 0) {
-			$result = $this->fetchSepaMandate();
-		}
 		return $result;
 	}
 
@@ -500,23 +490,6 @@ class DigitalSignatureRequest extends CommonObject
 	}
 
 	/**
-	 * Load sepa mandate in memory from the database
-	 * @return int         <0 if KO, 0 if not found, >0 if OK
-	 */
-	public function fetchSepaMandate()
-	{
-		$sepaMandate = DigitalSignatureDocumentSepa::fetchSepaMandateForDigitalSignature($this->db, $this);
-		if(is_array($sepaMandate)) {
-			$this->errors = array_merge($this->errors, $sepaMandate);
-			return -1;
-		}
-		else {
-			$this->sepaMandate = $sepaMandate;
-			return 1;
-		}
-	}
-
-	/**
 	 * Delete object in database
 	 *
 	 * @param User $user       User that deletes
@@ -528,7 +501,7 @@ class DigitalSignatureRequest extends CommonObject
 		global $langs;
 		$this->db->begin();
 		$errors = array();
-		if($this->status != self::STATUS_DRAFT) {
+		if ($this->status != self::STATUS_DRAFT) {
 			$errors[] = $langs->trans('DigitalSignatureManagerNotDeletable', $this->ref);
 		}
 		foreach ($this->people as $people) {
@@ -602,15 +575,15 @@ class DigitalSignatureRequest extends CommonObject
 	{
 		global $langs;
 		$errors = array();
-		foreach($this->documents as $document) {
+		foreach ($this->documents as $document) {
 			$signatureFieldOnThisDocument = false;
-			foreach($this->signatoryFields as $signatoryField) {
-				if($signatoryField->fk_chosen_digitalsignaturedocument == $document->id) {
+			foreach ($this->signatoryFields as $signatoryField) {
+				if ($signatoryField->fk_chosen_digitalsignaturedocument == $document->id) {
 					$signatureFieldOnThisDocument = true;
 					break;
 				}
 			}
-			if(!$signatureFieldOnThisDocument) {
+			if (!$signatureFieldOnThisDocument) {
 				$errors[] = $langs->trans("DigitalSignatureManagerMissingSignatoryField", $document->getDocumentName());
 			}
 		}
@@ -641,21 +614,9 @@ class DigitalSignatureRequest extends CommonObject
 			$num = $this->ref;
 		}
 
-		// Define new ref for mandat sepate
-		if($this->sepaMandate) {
-			// if ((preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref))) // empty should not happened, but when it occurs, the test save life
-			// {
-			// 	$num = $this->getNextNumRef();
-			// } else {
-			// 	$num = $this->ref;
-			// }
-		}
-
-
-
 		$this->ref = $num;
 		$returnedValues = $this->externalProviderService->create();
-		if($returnedValues && !empty($returnedValues['id'])) {
+		if ($returnedValues && !empty($returnedValues['id'])) {
 			$this->externalId = $returnedValues['id'];
 			$this->externalUrl = $returnedValues['url'];
 			$signatureRequestSuccessfullyCreated = true;
@@ -746,7 +707,7 @@ class DigitalSignatureRequest extends CommonObject
 			$label .= '<br><b>' . $langs->trans("Status") . ":</b> " . $this->getLibStatut(5);
 		}
 
-		if($this->last_update_from_provider != 0) {
+		if ($this->last_update_from_provider != 0) {
 			$label .= '<br><b>' . $langs->trans("DigitalSignatureRequestLastUpdateFromProviderShort") . ":</b> " . $this->showOutputField($this->fields['last_update_from_provider'], 'last_update_from_provider', $this->last_update_from_provider);
 		}
 
@@ -859,18 +820,17 @@ class DigitalSignatureRequest extends CommonObject
 			$labelStatus = $langs->trans('DigitalSignatureRequestActionCanceledBy', $this->getNameOfPeopleThatRefusedOrFailToSign());
 		}
 
-		if(version_compare(DOL_VERSION, '12.0.0', '<')) {
+		if (version_compare(DOL_VERSION, '12.0.0', '<')) {
 			$statusPicto = str_replace("status", "statut", $this->statusType[$status]);
 
 			if ($mode == 0)	return $labelStatus;
 			if ($mode == 1)	return $labelStatusShort;
-			if ($mode == 2)	return img_picto($labelStatusShort, $statusPicto).' '.$labelStatusShort;
+			if ($mode == 2)	return img_picto($labelStatusShort, $statusPicto) . ' ' . $labelStatusShort;
 			if ($mode == 3)	return img_picto($labelStatus,  $statusPicto);
-			if ($mode == 4)	return img_picto($labelStatus,  $statusPicto).' '.$labelStatus;
-			if ($mode == 5)	return '<span class="hideonsmartphone">'.$labelStatusShort.' </span>'.img_picto($labelStatus,  $statusPicto);
-			if ($mode == 6)	return '<span class="hideonsmartphone">'.$labelStatus.' </span>'.img_picto($labelStatus,  $statusPicto);
-		}
-		else {
+			if ($mode == 4)	return img_picto($labelStatus,  $statusPicto) . ' ' . $labelStatus;
+			if ($mode == 5)	return '<span class="hideonsmartphone">' . $labelStatusShort . ' </span>' . img_picto($labelStatus,  $statusPicto);
+			if ($mode == 6)	return '<span class="hideonsmartphone">' . $labelStatus . ' </span>' . img_picto($labelStatus,  $statusPicto);
+		} else {
 			return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
 		}
 	}
@@ -992,11 +952,10 @@ class DigitalSignatureRequest extends CommonObject
 
 		$requestsToUpdate = $this->fetchAll('DESC', 'rowid', 0, 0, array('status' => self::STATUS_IN_PROGRESS));
 		$outputTexts = array();
-		foreach($requestsToUpdate as $digitalSignatureRequest) {
-			if($digitalSignatureRequest->updateDataFromExternalService($user)) {
+		foreach ($requestsToUpdate as $digitalSignatureRequest) {
+			if ($digitalSignatureRequest->updateDataFromExternalService($user)) {
 				$outputTexts[] = $langs->trans("DigitalSignatureManagerUpdateFromCronJob", $digitalSignatureRequest->ref);
-			}
-			else {
+			} else {
 				$outputTexts[] = $langs->trans("DigitalSignatureManagerUpdateFromCronJobError", $digitalSignatureRequest->ref) . ' - ' . implode(' - ', $digitalSignatureRequest->errors);
 				$error++;
 			}
@@ -1341,10 +1300,9 @@ class DigitalSignatureRequest extends CommonObject
 	public function getUniversignPublicLabel()
 	{
 		global $langs;
-		if($this->status == self::STATUS_DRAFT) {
+		if ($this->status == self::STATUS_DRAFT) {
 			$publicRef = $this->getNextNumRef();
-		}
-		else {
+		} else {
 			$publicRef = $this->ref;
 		}
 		return $langs->trans('DigitalSignatureRequestUniversignProcessLabel', $publicRef);
@@ -1361,7 +1319,7 @@ class DigitalSignatureRequest extends CommonObject
 		return $peopleByIndex[$index];
 	}
 
-		/**
+	/**
 	 * Load list of objects in memory from the database.
 	 *
 	 * @param  string      $sortorder    Sort Order
@@ -1382,44 +1340,40 @@ class DigitalSignatureRequest extends CommonObject
 
 		$sql = 'SELECT ';
 		$sql .= $this->getFieldList();
-		$sql .= ' FROM '.MAIN_DB_PREFIX.$this->table_element.' as t';
-		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN ('.getEntity($this->table_element).')';
+		$sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
+		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN (' . getEntity($this->table_element) . ')';
 		else $sql .= ' WHERE 1 = 1';
 		// Manage filter
 		$sqlwhere = array();
 		if (count($filter) > 0) {
 			foreach ($filter as $key => $value) {
 				if ($key == 't.rowid') {
-					$sqlwhere[] = $key.'='.$value;
-				}
-				elseif (strpos($key, 'date') !== false) {
-					$sqlwhere[] = $key.' = \''.$this->db->idate($value).'\'';
-				}
-				elseif ($key == 'customsql') {
+					$sqlwhere[] = $key . '=' . $value;
+				} elseif (strpos($key, 'date') !== false) {
+					$sqlwhere[] = $key . ' = \'' . $this->db->idate($value) . '\'';
+				} elseif ($key == 'customsql') {
 					$sqlwhere[] = $value;
-				}
-				else {
-					$sqlwhere[] = $key.' LIKE \'%'.$this->db->escape($value).'%\'';
+				} else {
+					$sqlwhere[] = $key . ' LIKE \'%' . $this->db->escape($value) . '%\'';
 				}
 			}
 		}
 		if (count($sqlwhere) > 0) {
-			$sql .= ' AND ('.implode(' '.$filtermode.' ', $sqlwhere).')';
+			$sql .= ' AND (' . implode(' ' . $filtermode . ' ', $sqlwhere) . ')';
 		}
 
 		if (!empty($sortfield)) {
 			$sql .= $this->db->order($sortfield, $sortorder);
 		}
 		if (!empty($limit)) {
-			$sql .= ' '.$this->db->plimit($limit, $offset);
+			$sql .= ' ' . $this->db->plimit($limit, $offset);
 		}
 
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
 			$i = 0;
-			while ($i < ($limit ? min($limit, $num) : $num))
-			{
+			while ($i < ($limit ? min($limit, $num) : $num)) {
 				$obj = $this->db->fetch_object($resql);
 
 				$record = new self($this->db);
@@ -1432,8 +1386,8 @@ class DigitalSignatureRequest extends CommonObject
 
 			return $records;
 		} else {
-			$this->errors[] = 'Error '.$this->db->lasterror();
-			dol_syslog(__METHOD__.' '.join(',', $this->errors), LOG_ERR);
+			$this->errors[] = 'Error ' . $this->db->lasterror();
+			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
 
 			return null;
 		}
@@ -1443,26 +1397,25 @@ class DigitalSignatureRequest extends CommonObject
 	 * Function to close current signature process, recreate one and start it
 	 * @param User $user User requesting reset of the signature process
 	 * @return DigitalSignatureRequest|false
-	*/
+	 */
 	public function resetSignatureProcess($user)
 	{
 		//first we check if we have to update data of current process
-		if($this->isInProgress() || $this->status == $this::STATUS_FAILED) {
+		if ($this->isInProgress() || $this->status == $this::STATUS_FAILED) {
 			$this->updateDataFromExternalService($user);
 		}
 
 		//we try to cancel request if it still be active
-		if($this->isInProgress() && !$this->cancelRequest($user)) {
+		if ($this->isInProgress() && !$this->cancelRequest($user)) {
 			return false;
 		}
 		//Current process has been canceled. We clone it
 		$this->db->begin();
 		$cloneRequest = $this->createFromClone($user, $this->id);
-		if(is_object($cloneRequest) && $cloneRequest->validateAndCreateRequestOnTheProvider($user) > 0) {
+		if (is_object($cloneRequest) && $cloneRequest->validateAndCreateRequestOnTheProvider($user) > 0) {
 			$this->db->commit();
 			return $cloneRequest;
-		}
-		else {
+		} else {
 			$errorsFromCloneObject = $cloneRequest ? $cloneRequest->errors : array();
 			$this->errors = array_merge($this->errors, $errorsFromCloneObject);
 			$this->db->rollback();
@@ -1478,9 +1431,9 @@ class DigitalSignatureRequest extends CommonObject
 	{
 		$result = true;
 		//We remove files
-		foreach($this->documents as $document) {
+		foreach ($this->documents as $document) {
 			$ecmFile = $document->getLinkedEcmFile();
-			if($ecmFile && !$ecmFile->deleteFile()) {
+			if ($ecmFile && !$ecmFile->deleteFile()) {
 				$result = false;
 			}
 		}
