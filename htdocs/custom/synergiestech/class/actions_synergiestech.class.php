@@ -3478,4 +3478,26 @@ SCRIPT;
         }
         return 0;
     }
+/**
+     * Overloading the restrictedArea function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function restrictedArea(&$parameters, &$object, &$action, $hookmanager) {
+        global $user;
+        $feature = $parameters['features'];
+        $objectId = $parameters['objectid'];
+        if($feature == 'propal' && $objectId){
+            dol_include_once('/comm/propal/class/propal.class.php');
+            $propal = new Propal($this->db);
+            if($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && !empty($propal->array_options['options_sitevalue'] && !$user->rights->synergiestech->propal->installation_value))
+            {
+                accessforbidden();
+            }
+        }
+    }
 }

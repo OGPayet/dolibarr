@@ -473,4 +473,41 @@ class ActionsDigitalSignatureManager
 			//print $this->formDigitalSignatureManager->showLinkedDigitalSignatureBlock($linkedDigitalSignatureRequests);
 		}
 	}
+	/**
+	 * Overloading the showLinkedObjectBlock function : replacing the parent's function with the one below
+	 *
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function downloadDocument($parameters, &$object, &$action, $hookmanager)
+	{
+		global $user;
+		$modulePart = $parameters['modulepart'];
+		if($modulePart == 'digitalsignaturemanager') {
+			$ecmFile = $parameters['ecmfile'];
+			if(!$ecmFile) {
+				$relativePathOfFileIntoModule = $parameters['original_file'];
+				$ecmFile = new ExtendedEcm($this->db);
+				$ecmFile->fetch(null, null, '/' . $modulePart . $relativePathOfFileIntoModule);
+			}
+			$ecmFileId = $ecmFile->id;
+			$digitalSignatureDocuments = array();
+			if($ecmFileId > 0) {
+				//We try to find digital signature document of this file
+				$staticDigitalSignatureDocument = new DigitalSignatureDocument($this->db);
+				$digitalSignatureDocuments = $staticDigitalSignatureDocument->fetchAll(null, null, 0, 0, array('fk_ecm'=>$ecmFileId, 'fk_ecm_signed'=>$ecmFileId), 'OR');
+			}
+			foreach($digitalSignatureDocuments as $document) {
+				//We check that user can open linked dolibarr object on this document
+				if($document->elementtype && $document->fk_object) {
+					restrictedArea($user, $document->elementtype, $document->fk_object);
+				}
+			}
+			return 1;
+		}
+
+	}
 }
