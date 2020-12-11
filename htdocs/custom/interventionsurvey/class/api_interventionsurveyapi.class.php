@@ -116,8 +116,10 @@ class InterventionSurveyApi extends DolibarrApi
      */
     public function __construct()
     {
-        global $db, $langs;
+        global $db, $langs, $conf;
         $this->db = $db;
+        $langs = new Translate("", $conf);
+        $langs->setDefaultLang(!empty(DolibarrApiAccess::$user->lang) ? DolibarrApiAccess::$user->lang : 'fr_FR');
         $langs->load("interventionsurvey@interventionsurvey");
         $this->interventionSurvey = new InterventionSurvey($this->db);
         $this->interventionLine = new InterventionSurveyLine($this->db);
@@ -292,7 +294,7 @@ class InterventionSurveyApi extends DolibarrApi
                 $i++;
             }
             InterventionSurvey::fillSurveyCacheForParentObjectIds($arrayOfInterventionIds);
-            foreach($arrayOfInterventionIds as $id) {
+            foreach ($arrayOfInterventionIds as $id) {
                 $fichinter_static = new InterventionSurvey($this->db);
                 if ($fichinter_static->fetch($id, null, true)) {
                     $fichinter_static->fetchObjectLinkedIdsWithCache();
@@ -376,35 +378,34 @@ class InterventionSurveyApi extends DolibarrApi
         $result = $this->interventionSurvey->update(DolibarrApiAccess::$user);
 
         //Finally we update survey
-        if($result > 0){
+        if ($result > 0) {
             $result = $this->interventionSurvey->mergeWithFollowingData(DolibarrApiAccess::$user, $request, true);
         }
 
         //Add linked equipment to the intervention and update intervention survey
         $this->interventionSurvey->fetchObjectLinked();
-        if ($request_data->linkedObjectsIds && $request_data->linkedObjectsIds->equipement)
-        {
+        if ($request_data->linkedObjectsIds && $request_data->linkedObjectsIds->equipement) {
             $alreadyLinkedEquipementsIds = [];
-            if($this->interventionSurvey->linkedObjectsIds && $this->interventionSurvey->linkedObjectsIds['equipement']) {
+            if ($this->interventionSurvey->linkedObjectsIds && $this->interventionSurvey->linkedObjectsIds['equipement']) {
                 $alreadyLinkedEquipementsIds = array_values((array) $this->interventionSurvey->linkedObjectsIds['equipement']);
             }
 
             $newLinkedEquipementsIds = [];
-            foreach((array) $request_data->linkedObjectsIds->equipement as $requestDataLinkedEquipementId) {
+            foreach ((array) $request_data->linkedObjectsIds->equipement as $requestDataLinkedEquipementId) {
                 if (!in_array($requestDataLinkedEquipementId, $alreadyLinkedEquipementsIds)) {
                     $newLinkedEquipementsIds[] = $requestDataLinkedEquipementId;
                 }
             }
 
-            foreach($newLinkedEquipementsIds as $newLinkedEquipementId) {
-                if((int) $newLinkedEquipementId > 0) {
+            foreach ($newLinkedEquipementsIds as $newLinkedEquipementId) {
+                if ((int) $newLinkedEquipementId > 0) {
                     $this->interventionSurvey->add_object_linked('equipement', (int) $newLinkedEquipementId);
                 }
             }
 
             //If we want to unlinked some equipement, links should be deleted here
             //We update survey with data from dictionnary as some equipment may have been removed/deleted
-            if(!empty($newLinkedEquipementsIds)) {
+            if (!empty($newLinkedEquipementsIds)) {
                 $this->interventionSurvey->fetchObjectLinkedIdsWithCache(true, true);
                 $this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
             }
@@ -486,7 +487,7 @@ class InterventionSurveyApi extends DolibarrApi
             $result = $this->interventionLine->insert(DolibarrApiAccess::$user);
         }
 
-        if ($result >= 0) {
+        if ($result >= 0 && $this->interventionLine->fetch_optionals() > 0) {
             $this->updatePdfFileIfNeeded();
             return $this->_cleanObjectData($this->interventionLine);
         } else {
@@ -575,11 +576,11 @@ class InterventionSurveyApi extends DolibarrApi
         if ($this->interventionSurvey->is_survey_read_only() && $this->interventionSurvey->statut != $this->interventionSurvey::STATUS_DONE) {
             throw new RestException(401, 'Intervention survey with id = ' . $this->interventionSurvey->id . ' is in readonly mode but not closed');
         }
-        if($this->interventionSurvey->statut != $this->interventionSurvey::STATUS_DONE){
+        if ($this->interventionSurvey->statut != $this->interventionSurvey::STATUS_DONE) {
             $this->interventionSurvey->context['closedFromApi'] = true;
             $result = $this->interventionSurvey->setStatut(3);
         } else {
-            $result = 1;//intervention is already closed
+            $result = 1; //intervention is already closed
         }
         if ($result < 0) {
             throw new RestException(403, 'Error when closing Intervention with id=' . $this->interventionSurvey->id . ' : ' .  $this->_getErrors($this->interventionSurvey));
@@ -648,7 +649,7 @@ class InterventionSurveyApi extends DolibarrApi
     /******************************************** */
 
     private function updatePdfFileIfNeeded()
-	{
+    {
         global $conf;
         global $langs;
         if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {

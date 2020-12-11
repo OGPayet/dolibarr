@@ -948,7 +948,7 @@ class pdf_soleil_st extends ModelePDFFicheinter
             foreach ($object->lines as $line) {
                 // Get involved user id
                 $line->fetch_optionals();
-                $user_ids = !empty($line->array_options['options_st_involved_users']) ? explode(',', $line->array_options['options_st_involved_users']) : array('');
+                $user_ids = !empty($line->array_options['options_involved_users']) ? explode(',', $line->array_options['options_involved_users']) : array('');
 
                 foreach ($user_ids as $user_id) {
                     if (!isset($this->effective_working_time[$user_id])) {

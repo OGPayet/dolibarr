@@ -364,13 +364,12 @@ class pdf_jupiter extends ModelePDFFicheinter
         $startPage = $pdf->getPage();
 
         $startPageAndYForWorkingTimeArea = self::getStartPageAndYPositionInOrderToItemEndsOnFooterOfAPage($pdf, $startPage, $margin['top'], $needeSpaceForWorkingTimeArea['spaceToFooterOnLastPage'], $needeSpaceForWorkingTimeArea['numberOfPageCreated'], $curY);
-        $startPageAndYForSignatoryArea = self::getStartPageAndYPositionInOrderToItemEndsOnFooterOfAPage($pdf, $startPage, $margin['top'], $neededSpaceForSignatureArea['spaceToFooterOnLastPage'], $neededSpaceForSignatureArea['numberOfPageCreated'],$curY);
+        $startPageAndYForSignatoryArea = self::getStartPageAndYPositionInOrderToItemEndsOnFooterOfAPage($pdf, $startPage, $margin['top'], $neededSpaceForSignatureArea['spaceToFooterOnLastPage'], $neededSpaceForSignatureArea['numberOfPageCreated'], $curY);
 
-        if($startPageAndYForWorkingTimeArea['lastPage'] < $startPageAndYForSignatoryArea['lastPage']){
+        if ($startPageAndYForWorkingTimeArea['lastPage'] < $startPageAndYForSignatoryArea['lastPage']) {
             $startPageAndYForWorkingTimeArea['startPage'] += $startPageAndYForSignatoryArea['lastPage'] - $startPageAndYForWorkingTimeArea['lastPage'];
             $startPageAndYForWorkingTimeArea['lastPage'] += $startPageAndYForSignatoryArea['lastPage'] - $startPageAndYForWorkingTimeArea['lastPage'];
-        }
-        elseif($startPageAndYForWorkingTimeArea['lastPage'] > $startPageAndYForSignatoryArea['lastPage']) {
+        } elseif ($startPageAndYForWorkingTimeArea['lastPage'] > $startPageAndYForSignatoryArea['lastPage']) {
             $startPageAndYForSignatoryArea['startPage'] += $startPageAndYForWorkingTimeArea['lastPage'] - $startPageAndYForSignatoryArea['lastPage'];
             $startPageAndYForSignatoryArea['lastPage'] += $startPageAndYForWorkingTimeArea['lastPage'] - $startPageAndYForSignatoryArea['lastPage'];
         }
@@ -1053,22 +1052,37 @@ class pdf_jupiter extends ModelePDFFicheinter
             foreach ($object->lines as $line) {
                 // Get involved user id
                 $line->fetch_optionals(null, null, true);
-                $user_ids = !empty($line->array_options['options_involved_users']) ? explode(',', $line->array_options['options_involved_users']) : array('');
+                $user_ids = !empty($line->array_options['options_involved_users']) ? explode(',', $line->array_options['options_involved_users']) : array();
+                $user_ids = array_filter($user_ids);
+
 
                 foreach ($user_ids as $user_id) {
-                    if (!isset($result[$user_id])) {
-                        if (!isset($user_cached[$user_id])) {
-                            $user_name = '';
-                            if ($user_id > 0) {
-                                $user = new User($this->db);
-                                $user->fetch($user_id);
-                                $user_name = $user->getFullName($outputlangs);
-                            }
-                            $user_cached[$user_id] = $user_name;
-                        }
-                        $result[$user_id] = array('name' => $user_cached[$user_id], 'times' => array());
+                    $user_id = (int) $user_id;
+                    if (!$user_id > 0) {
+                        break;
                     }
 
+                    if (!$user_cached[$user_id]) {
+                        $user = new User($this->db);
+                        $user->fetch($user_id);
+                        $user_name = $user->getFullName($outputlangs);
+                        if ($user_name) {
+                            $user_cached[$user_id] = $user_name;
+                        }
+                    }
+
+                    if (!$user_cached[$user_id]) {
+                        break;
+                    }
+
+                    if (!$result[$user_id]) {
+                        $result[$user_id] = array();
+                    }
+
+                    $result[$user_id]['name'] = $user_cached[$user_id];
+                    if (!$result[$user_id]['times']) {
+                        $result[$user_id]['times'] = array();
+                    }
                     $result[$user_id]['times'][] = array('begin' => $line->datei, 'end' => $line->datei + $line->duration, 'duration' => $line->duration);
                 }
             }
@@ -1159,7 +1173,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $this->addCellToRow($row, $displayedEndDate, 1, null, null, null, 'C', 'middle', 'normal', null, null, $default_font_size - 1);
                 $this->addCellToRow($row, $displayedDuration, 1, null, null, null, 'R', 'middle', 'normal', null, null, $default_font_size - 1);
                 $row = $row->end();
-                if ($index + 1 != $numberOfPeriodRowForThisUser) {
+                if (!empty($user['times'][$index + 1])) {
                     $row = $row->newRow();
                 }
             }
@@ -1276,10 +1290,9 @@ class pdf_jupiter extends ModelePDFFicheinter
         $pdf->startTransaction();
         $endY = $this->printTitleForPdfPartWithoutSamePageCheck($pdf, $posx, $posy, $w, $textToDisplay, $defaultFontSize);
         $endPage = $pdf->getPage();
-        if($startPage == $endPage || $endPage - $startPage > 1){
+        if ($startPage == $endPage || $endPage - $startPage > 1) {
             $pdf->commitTransaction();
-        }
-        else {
+        } else {
             $pdf->rollbackTransaction(true);
             //We add a new page and display again title
             $pdf->AddPage('', '', true);
@@ -1803,7 +1816,8 @@ class pdf_jupiter extends ModelePDFFicheinter
         return trim($text);
     }
 
-    public static function getStartPageAndYPositionInOrderToItemEndsOnFooterOfAPage($pdf, $curPage, $curYForItemEstimation, $spaceToFooter, $numberOfPage, $curY) {
+    public static function getStartPageAndYPositionInOrderToItemEndsOnFooterOfAPage($pdf, $curPage, $curYForItemEstimation, $spaceToFooter, $numberOfPage, $curY)
+    {
 
         $page_height = $pdf->getPageHeight();
         $page_margins = $pdf->getMargins();
@@ -1821,10 +1835,10 @@ class pdf_jupiter extends ModelePDFFicheinter
             $curPage += 1;
         }
 
-        if($curPage == $startPage && $curY + 10 > $computedY){
+        if ($curPage == $startPage && $curY + 10 > $computedY) {
             $curPage += 1;
         }
 
-        return array('startPage'=>$curPage, 'Y'=>$computedY, 'lastPage'=>$numberOfPage + $curPage);
+        return array('startPage' => $curPage, 'Y' => $computedY, 'lastPage' => $numberOfPage + $curPage);
     }
 }
