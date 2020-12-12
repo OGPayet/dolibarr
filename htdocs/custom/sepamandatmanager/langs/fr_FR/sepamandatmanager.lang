@@ -44,6 +44,16 @@ ListOfSepaMandat = Liste de Mandat SEPA
 NewSepaMandat = Nouveau mandat SEPA
 
 #
+# Card
+#
+SepaMandateValidateTitle = Passage du mandant SEPA en "A signer"
+SepaMandateSetSigned = Mandat signé
+SepaMandateSetCanceled = Mandat annulé
+SepaMandateValidateDescription = Confirmez-vous le passage de ce mandat en à signer sous la référence %s ?
+
+
+
+#
 # Status
 #
 SepaMandateDraft = Mandat brouillon

@@ -674,10 +674,24 @@ class DigitalSignatureRequest extends CommonObject
 			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER'
 		);
 		if ($statusValue != $this->status) {
-			return $this->setStatusCommon($user, $statusValue, $notrigger, $statusAndTriggerCode[$statusValue]);
+			$result = $this->setStatusCommon($user, $statusValue, $notrigger, $statusAndTriggerCode[$statusValue]);
 		} else {
 			return 0;
 		}
+		if ($result > 0 && !$notrigger && ($statusValue == self::STATUS_SUCCESS || $statusValue == self::STATUS_CANCELED_BY_SIGNERS)) {
+			if ($statusValue == self::STATUS_SUCCESS) {
+				$triggerName = 'DIGITALSIGNATUREDOCUMENT_SIGNED';
+			} elseif ($statusValue == self::STATUS_CANCELED_BY_SIGNERS) {
+				$triggerName = 'DIGITALSIGNATUREDOCUMENT_REFUSED';
+			}
+			foreach ($this->documents as $document) {
+				$result = $document->call_trigger($triggerName, $user);
+				if ($result < 0) {
+					break;
+				}
+			}
+		}
+		return $result;
 	}
 
 	/**

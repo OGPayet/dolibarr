@@ -113,14 +113,16 @@ $permissiontodelete = $user->rights->sepamandatmanager->sepamandat->delete || ($
 $permissionnote = $user->rights->sepamandatmanager->sepamandat->write; // Used by the include of actions_setnotes.inc.php
 $permissiondellink = $user->rights->sepamandatmanager->sepamandat->write; // Used by the include of actions_dellink.inc.php
 $upload_dir = $conf->sepamandatmanager->multidir_output[isset($object->entity) ? $object->entity : 1];
+$permissioncreate = $permissiontoadd; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
 
-// Security check - Protection if external user
-//if ($user->socid > 0) accessforbidden();
-//if ($user->socid > 0) $socid = $user->socid;
-//$isdraft = (($object->statut == $object::STATUS_DRAFT) ? 1 : 0);
-//$result = restrictedArea($user, 'sepamandatmanager', $object->id, '', '', 'fk_soc', 'rowid', $isdraft);
+$isObjectAbleToBeSent = $object->status == $object::STATUS_SIGNED || $object->status == $object::STATUS_TOSIGN;
 
-//if (!$permissiontoread) accessforbidden();
+if ($object->status != $object::STATUS_DRAFT) {
+	$permissiontoadd = false;
+	$permissiontodelete = false;
+}
+
+if (!$permissiontoread) accessforbidden();
 
 
 /*
@@ -153,18 +155,8 @@ if (empty($reshook)) {
 	// Actions when printing a doc from card
 	include DOL_DOCUMENT_ROOT . '/core/actions_printing.inc.php';
 
-	// Action to move up and down lines of object
-	//include DOL_DOCUMENT_ROOT.'/core/actions_lineupdown.inc.php';
-
 	// Action to build doc
 	include DOL_DOCUMENT_ROOT . '/core/actions_builddoc.inc.php';
-
-	if ($action == 'set_thirdparty' && $permissiontoadd) {
-		$object->setValueFrom('fk_soc', GETPOST('fk_soc', 'int'), '', '', 'date', '', $user, 'SEPAMANDAT_MODIFY');
-	}
-	if ($action == 'classin' && $permissiontoadd) {
-		$object->setProject(GETPOST('projectid', 'int'));
-	}
 
 	// Actions to send emails
 	$triggersendname = 'SEPAMANDAT_SENTBYMAIL';
@@ -289,10 +281,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	if ($action == 'delete') {
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('DeleteSepamandat'), $langs->trans('ConfirmDeleteObject'), 'confirm_delete', '', 0, 1);
 	}
-	// Confirmation to delete line
-	if ($action == 'deleteline') {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id . '&lineid=' . $lineid, $langs->trans('DeleteLine'), $langs->trans('ConfirmDeleteLine'), 'confirm_deleteline', '', 0, 1);
-	}
+
 	// Clone confirmation
 	if ($action == 'clone') {
 		// Create an array for form
@@ -300,10 +289,14 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ToClone'), $langs->trans('ConfirmCloneAsk', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
 	}
 
-	// Confirmation of action xxxx
-	if ($action == 'xxx') {
+	if($action == 'validate') {
 		$formquestion = array();
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('XXX'), $text, 'confirm_xxx', $formquestion, 0, 1, 220);
+		$nextRef = $object->ref;
+		if (preg_match('/^[\(]?PROV/i', $object->ref) || empty($object->ref)) // empty should not happened, but when it occurs, the test save life
+		{
+			$nextRef = $object->getNextNumRef();
+		}
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateValidateTitle'), $langs->trans('SepaMandateValidateDescription', $nextRef), 'confirm_validate', $formquestion, 'yes', 1);
 	}
 
 	// Call Hook formConfirm
@@ -332,10 +325,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '<div class="underbanner clearboth"></div>';
 	print '<table class="border centpercent tableforfield">' . "\n";
 
-	// Common attributes
-	//$keyforbreak='fieldkeytoswitchonsecondcolumn';	// We change column just before this field
-	//unset($object->fields['fk_project']);				// Hide field already shown in banner
-	//unset($object->fields['fk_soc']);					// Hide field already shown in banner
 	include DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_view.tpl.php';
 
 	// Other attributes. Fields from hook formObjectOptions and Extrafields.
@@ -359,19 +348,19 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 		if (empty($reshook)) {
 			// Send
-			if (empty($user->socid)) {
-				print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendMail') . '</a>' . "\n";
-			}
+			// if (empty($user->socid) && $user->rights->sepamandatmanager->sepamandat->read && $isObjectAbleToBeSent) {
+			// 	print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendMail') . '</a>' . "\n";
+			// }
 
 			// Back to draft
 			if ($object->status == $object::STATUS_TOSIGN) {
-				if ($permissiontoadd) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
 					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_setdraft&confirm=yes">' . $langs->trans("SetToDraft") . '</a>';
 				}
 			}
 
 			// Modify
-			if ($permissiontoadd) {
+			if ($user->rights->sepamandatmanager->sepamandat->write && $object->status == $object::STATUS_DRAFT) {
 				print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=edit">' . $langs->trans("Modify") . '</a>' . "\n";
 			} else {
 				print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Modify') . '</a>' . "\n";
@@ -379,26 +368,81 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 			// Validate
 			if ($object->status == $object::STATUS_DRAFT) {
-				if ($permissiontoadd) {
-					if (empty($object->table_element_line) || (is_array($object->lines) && count($object->lines) > 0)) {
-						print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_validate&confirm=yes">' . $langs->trans("Validate") . '</a>';
-					} else {
-						$langs->load("errors");
-						print '<a class="butActionRefused" href="" title="' . $langs->trans("ErrorAddAtLeastOneLineFirst") . '">' . $langs->trans("Validate") . '</a>';
-					}
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=validate">' . $langs->trans("Validate") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Validate') . '</a>' . "\n";
+				}
+			}
+
+			// Set as signed
+			if ($object->status == $object::STATUS_TOSIGN) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=setsigned">' . $langs->trans("SepaMandateSetSigned") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetSigned') . '</a>' . "\n";
+				}
+			}
+
+
+			// Set as signed
+			if ($object->status == $object::STATUS_TOSIGN) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=setcanceled">' . $langs->trans("SepaMandateSetCanceled") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetCanceled') . '</a>' . "\n";
+				}
+			}
+
+			// Set as staled
+			if ($object->status == $object::STATUS_SIGNED) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=setstaled">' . $langs->trans("SepaMandateSetStaled") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetStaled') . '</a>' . "\n";
+				}
+			}
+
+			// Set back from stale to tosign
+			if ($object->status == $object::STATUS_STALE) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=unstale">' . $langs->trans("SepaMandateSetUnStale") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetUnStale') . '</a>' . "\n";
+				}
+			}
+
+			// Set back from stale to tosign
+			if ($object->status == $object::STATUS_CANCELED) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=uncancel">' . $langs->trans("SepaMandateSetUnCancel") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetUnCancel') . '</a>' . "\n";
+				}
+			}
+
+
+			// Set back from signed to tosign
+			if ($object->status == $object::STATUS_SIGNED) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=unsign">' . $langs->trans("SepaMandateSetUnSign") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetUnSign') . '</a>' . "\n";
 				}
 			}
 
 			// Clone
-			if ($permissiontoadd) {
+			if ($user->rights->sepamandatmanager->sepamandat->write && ($object->status == $object::STATUS_STALE || $object->status == $object::STATUS_CANCELED)) {
 				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&socid=' . $object->socid . '&action=clone&object=sepamandat">' . $langs->trans("ToClone") . '</a>' . "\n";
 			}
 
 			// Delete (need delete permission, or if draft, just need create/modify permission)
-			if ($object->status == $object::STATUS_DRAFT && $permissiontoadd) {
-				print '<a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=delete">' . $langs->trans('Delete') . '</a>' . "\n";
-			} else {
-				print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Delete') . '</a>' . "\n";
+			if ($object->status == $object::STATUS_DRAFT) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=delete">' . $langs->trans('Delete') . '</a>' . "\n";
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Delete') . '</a>' . "\n";
+				}
 			}
 		}
 		print '</div>' . "\n";
@@ -419,12 +463,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		// Documents
 		if ($includedocgeneration) {
 			$objref = dol_sanitizeFileName($object->ref);
-			$relativepath = $objref . '/' . $objref . '.pdf';
-			$filedir = $conf->sepamandatmanager->dir_output . '/' . $object->element . '/' . $objref;
 			$urlsource = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
-			$genallowed = $user->rights->sepamandatmanager->sepamandat->read;	// If you can read, you can build the PDF to read content
-			$delallowed = $user->rights->sepamandatmanager->sepamandat->write;	// If you can create/edit, you can remove a file on card
-			print $formfile->showdocuments('sepamandatmanager:sepamandat', $object->element . '/' . $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
+			$genallowed = $user->rights->sepamandatmanager->sepamandat->read && ($object->status == $object::STATUS_DRAFT || $object->status == $object::STATUS_TOSIGN);	// If you can read, you can build the PDF to read content
+			$delallowed = $user->rights->sepamandatmanager->sepamandat->write && ($object->status == $object::STATUS_DRAFT || $object->status == $object::STATUS_TOSIGN);	// If you can create/edit, you can remove a file on card
+			print $formfile->showdocuments('sepamandatmanager:sepamandat', $object->getRelativePathOfFileToModuleDataRoot(), $object->getAbsolutePath(), $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
 		}
 
 		// Show links to link elements
@@ -434,7 +476,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 
-		$MAXEVENT = 10;
+		$MAXEVENT = 30;
 
 		$morehtmlright = '<a href="' . dol_buildpath('/sepamandatmanager/sepamandat_agenda.php', 1) . '?id=' . $object->id . '">';
 		$morehtmlright .= $langs->trans("SeeAll");

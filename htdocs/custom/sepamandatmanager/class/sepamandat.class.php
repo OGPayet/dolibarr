@@ -33,7 +33,7 @@ class Sepamandat extends CommonObject
 	/**
 	 * @var string ID to identify managed object.
 	 */
-	public $element = 'sepamandat';
+	public $element = 'sepamandatmanager_sepamandat';
 
 	/**
 	 * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management.
@@ -224,7 +224,6 @@ class Sepamandat extends CommonObject
 
 		// Load source object
 		$result = $object->fetchCommon($fromid);
-		if ($result > 0 && !empty($object->table_element_line)) $object->fetchLines();
 
 		// Reset some properties
 		unset($object->id);
@@ -271,6 +270,19 @@ class Sepamandat extends CommonObject
 	}
 
 	/**
+	 * Function to load data from a SQL pointer into properties of current object $this
+	 *
+	 * @param   stdClass    $obj    Contain data of object from database
+     * @return void
+	 */
+	public function setVarsFromFetchObj(&$obj){
+		parent::setVarsFromFetchObj($obj);
+		if(!$this->date_rum) {
+			$this->date_rum = null;
+		}
+	}
+
+	/**
 	 * Load object in memory from the database
 	 *
 	 * @param int    $id   Id object
@@ -290,7 +302,9 @@ class Sepamandat extends CommonObject
 	public function getRelativePathOfModuleDirToDolDataRoot()
 	{
 		$absoluteModuleDirectory = $this->getAbsoluteModuleDirectory();
-		return preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $absoluteModuleDirectory);
+		$result = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $absoluteModuleDirectory);
+		$result = preg_replace('/^[\\/]/', '', $result);
+		return $result;
 	}
 
 	/**
@@ -309,7 +323,7 @@ class Sepamandat extends CommonObject
 	 */
 	public function getRelativePathOfFileToModuleDataRoot()
 	{
-		return $this->specimen > 0 ? '' : $this->id . '/';
+		return $this->specimen > 0 ? '' : $this->id;
 	}
 
 	/**
@@ -318,7 +332,7 @@ class Sepamandat extends CommonObject
 	 */
 	public function getRelativePathToDolDataRoot()
 	{
-		return $this->getRelativePathOfModuleDirToDolDataRoot() . $this->getRelativePathOfFileToModuleDataRoot();
+		return $this->getRelativePathOfModuleDirToDolDataRoot() . '/' . $this->getRelativePathOfFileToModuleDataRoot();
 	}
 
 	/**
@@ -327,7 +341,7 @@ class Sepamandat extends CommonObject
 	 */
 	public function getAbsolutePath()
 	{
-		return DOL_DATA_ROOT . $this->getRelativePathOfModuleDirToDolDataRoot();
+		return DOL_DATA_ROOT . '/' . $this->getRelativePathToDolDataRoot();
 	}
 
 	/**
@@ -437,101 +451,36 @@ class Sepamandat extends CommonObject
 	 */
 	public function validate($user, $notrigger = 0)
 	{
-		global $conf, $langs;
-
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 
-		$error = 0;
-
 		// Protection
-		if ($this->status == self::STATUS_TOSIGN) {
+		if ($this->status != self::STATUS_DRAFT) {
 			dol_syslog(get_class($this) . "::validate action abandonned: already validated", LOG_WARNING);
 			return 0;
 		}
-
-		$now = dol_now();
-
 		$this->db->begin();
-
 		// Define new ref
-		if (!$error && (preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref))) // empty should not happened, but when it occurs, the test save life
+		if (preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref)) // empty should not happened, but when it occurs, the test save life
 		{
-			$num = $this->getNextNumRef();
-		} else {
-			$num = $this->ref;
-		}
-		$this->newref = $num;
-
-		if (!empty($num)) {
-			// Validate
-			$sql = "UPDATE " . MAIN_DB_PREFIX . $this->table_element;
-			$sql .= " SET ref = '" . $this->db->escape($num) . "',";
-			$sql .= " status = " . self::STATUS_TOSIGN;
-			if (!empty($this->fields['date_validation'])) $sql .= ", date_validation = '" . $this->db->idate($now) . "',";
-			if (!empty($this->fields['fk_user_valid'])) $sql .= ", fk_user_valid = " . $user->id;
-			$sql .= " WHERE rowid = " . $this->id;
-
-			dol_syslog(get_class($this) . "::validate()", LOG_DEBUG);
-			$resql = $this->db->query($sql);
-			if (!$resql) {
-				dol_print_error($this->db);
-				$this->error = $this->db->lasterror();
-				$error++;
-			}
-
-			if (!$error && !$notrigger) {
-				// Call trigger
-				$result = $this->call_trigger('SEPAMANDAT_VALIDATE', $user);
-				if ($result < 0) $error++;
-				// End call triggers
-			}
+			$this->ref = $this->getNextNumRef();
 		}
 
-		if (!$error) {
-			$this->oldref = $this->ref;
-
-			// Rename directory if dir was a temporary ref
-			if (preg_match('/^[\(]?PROV/i', $this->ref)) {
-				// Now we rename also files into index
-				$sql = 'UPDATE ' . MAIN_DB_PREFIX . "ecm_files set filename = CONCAT('" . $this->db->escape($this->newref) . "', SUBSTR(filename, " . (strlen($this->ref) + 1) . ")), filepath = 'sepamandat/" . $this->db->escape($this->newref) . "'";
-				$sql .= " WHERE filename LIKE '" . $this->db->escape($this->ref) . "%' AND filepath = 'sepamandat/" . $this->db->escape($this->ref) . "' and entity = " . $conf->entity;
-				$resql = $this->db->query($sql);
-				if (!$resql) {
-					$error++;
-					$this->error = $this->db->lasterror();
-				}
-
-				// We rename directory ($this->ref = old ref, $num = new ref) in order not to lose the attachments
-				$oldref = dol_sanitizeFileName($this->ref);
-				$newref = dol_sanitizeFileName($num);
-				$dirsource = $conf->sepamandatmanager->dir_output . '/sepamandat/' . $oldref;
-				$dirdest = $conf->sepamandatmanager->dir_output . '/sepamandat/' . $newref;
-				if (!$error && file_exists($dirsource)) {
-					dol_syslog(get_class($this) . "::validate() rename dir " . $dirsource . " into " . $dirdest);
-
-					if (@rename($dirsource, $dirdest)) {
-						dol_syslog("Rename ok");
-						// Rename docs starting with $oldref with $newref
-						$listoffiles = dol_dir_list($conf->sepamandatmanager->dir_output . '/sepamandat/' . $newref, 'files', 1, '^' . preg_quote($oldref, '/'));
-						foreach ($listoffiles as $fileentry) {
-							$dirsource = $fileentry['name'];
-							$dirdest = preg_replace('/^' . preg_quote($oldref, '/') . '/', $newref, $dirsource);
-							$dirsource = $fileentry['path'] . '/' . $dirsource;
-							$dirdest = $fileentry['path'] . '/' . $dirdest;
-							@rename($dirsource, $dirdest);
-						}
-					}
-				}
-			}
+		if(empty($this->rum)) {
+			$this->rum = $this->getNextNumRum();
 		}
 
-		// Set new ref and current status
-		if (!$error) {
-			$this->ref = $num;
-			$this->status = self::STATUS_TOSIGN;
+		$this->status = self::STATUS_TOSIGN;
+		//ToDO - check data
+		$validationErrors = array();
+		$this->errors = array_merge($this->errors, $validationErrors);
+
+		if (empty($this->errors) && $this->update($user, true) > 0 && !$notrigger) {
+			// Call trigger
+			$this->call_trigger('SEPAMANDAT_TOSIGN', $user);
+			// End call triggers
 		}
 
-		if (!$error) {
+		if (empty($this->errors)) {
 			$this->db->commit();
 			return 1;
 		} else {
@@ -892,8 +841,8 @@ class Sepamandat extends CommonObject
 
 			if ($this->modelpdf) {
 				$modele = $this->modelpdf;
-			} elseif (!empty($conf->global->SEPAMANDAT_ADDON_PDF)) {
-				$modele = $conf->global->SEPAMANDAT_ADDON_PDF;
+			} elseif (!empty($conf->global->SEPAMANDATMANAGER_SEPAMANDAT_ADDON_PDF)) {
+				$modele = $conf->global->SEPAMANDATMANAGER_SEPAMANDAT_ADDON_PDF;
 			}
 		}
 
