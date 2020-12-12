@@ -44,7 +44,7 @@ class Sepamandat extends CommonObject
 	 * @var int  Does this object support multicompany module ?
 	 * 0=No test on entity, 1=Test with field entity, 'field@table'=Test with link by field@table
 	 */
-	public $ismultientitymanaged = 0;
+	public $ismultientitymanaged = 1;
 
 	/**
 	 * @var int  Does object support extrafields ? 0=No, 1=Yes
@@ -96,31 +96,22 @@ class Sepamandat extends CommonObject
 	 */
 	public $fields = array(
 		'rowid' => array('type' => 'integer', 'label' => 'TechnicalID', 'enabled' => '1', 'position' => 1, 'notnull' => 1, 'visible' => 0, 'noteditable' => '1', 'index' => 1, 'comment' => "Id"),
+		'entity' => array('type' => 'integer', 'label' => 'Entity ID', 'enabled' => '1', 'position' => 1, 'notnull' => 0, 'visible' => 0, 'noteditable' => '1', 'index' => 1, 'comment' => "Entity ID"),
 		'ref' => array('type' => 'varchar(128)', 'label' => 'Ref', 'enabled' => '1', 'position' => 10, 'notnull' => 1, 'visible' => 4, 'noteditable' => '1', 'default' => '(PROV)', 'index' => 1, 'searchall' => 1, 'showoncombobox' => '1', 'comment' => "Reference of object"),
-		'fk_soc' => array('type' => 'integer:Societe:societe/class/societe.class.php:1:status=1 AND entity IN (__SHARED_ENTITIES__)', 'label' => 'ThirdParty', 'enabled' => '1', 'position' => 50, 'notnull' => -1, 'visible' => 1, 'index' => 1, 'help' => "LinkToThirparty",),
+		'fk_soc' => array('type' => 'integer:Societe:societe/class/societe.class.php:1:status=1 AND entity IN (__SHARED_ENTITIES__)', 'label' => 'ThirdParty', 'enabled' => '1', 'position' => 50, 'notnull' => -1, 'visible' => 1, 'index' => 1),
 		'note_public' => array('type' => 'html', 'label' => 'NotePublic', 'enabled' => '1', 'position' => 61, 'notnull' => 0, 'visible' => 0,),
 		'note_private' => array('type' => 'html', 'label' => 'NotePublic', 'enabled' => '1', 'position' => 62, 'notnull' => 0, 'visible' => 0,),
 		'date_creation' => array('type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 500, 'notnull' => 1, 'visible' => -2,),
 		'tms' => array('type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 501, 'notnull' => 0, 'visible' => -2,),
 		'fk_user_creat' => array('type' => 'integer:User:user/class/user.class.php', 'label' => 'UserAuthor', 'enabled' => '1', 'position' => 510, 'notnull' => 1, 'visible' => -2, 'foreignkey' => 'user.rowid',),
 		'fk_user_modif' => array('type' => 'integer:User:user/class/user.class.php', 'label' => 'UserModif', 'enabled' => '1', 'position' => 511, 'notnull' => -1, 'visible' => -2,),
-		'fk_project' => array('type' => 'integer:Project:projet/class/project.class.php:1', 'label' => 'Project', 'enabled' => '1', 'position' => 52, 'notnull' => -1, 'visible' => -1, 'index' => 1,),
 		'rum' => array('type' => 'varchar(255)', 'label' => 'code rum', 'enabled' => '1', 'position' => 100, 'notnull' => 0, 'visible' => 1,),
 		'ics' => array('type' => 'varchar(255)', 'label' => 'Sepa Creditor Identifier', 'enabled' => '1', 'position' => 101, 'notnull' => 0, 'visible' => 0,),
 		'iban' => array('type' => 'varchar(255)', 'label' => 'Debtor iban', 'enabled' => '1', 'position' => 102, 'notnull' => 0, 'visible' => 1,),
 		'bic' => array('type' => 'varchar(255)', 'label' => 'debtor bic', 'enabled' => '1', 'position' => 103, 'notnull' => 0, 'visible' => 1,),
-		'debtor_name' => array('type' => 'varchar(255)', 'label' => 'Nom du débiteur', 'enabled' => '1', 'position' => 105, 'notnull' => 0, 'visible' => 1,),
-		'debtor_address' => array('type' => 'varchar(1024)', 'label' => 'Debtor address', 'enabled' => '1', 'position' => 106, 'notnull' => 0, 'visible' => 1,),
-		'debtor_postal_code' => array('type' => 'varchar(255)', 'label' => 'Debtor postal code', 'enabled' => '1', 'position' => 107, 'notnull' => 0, 'visible' => 1,),
-		'debtor_city' => array('type' => 'varchar(255)', 'label' => 'Debtor city', 'enabled' => '1', 'position' => 108, 'notnull' => 0, 'visible' => 1,),
-		'debtor_country' => array('type' => 'varchar(255)', 'label' => 'Debtor country', 'enabled' => '1', 'position' => 109, 'notnull' => 0, 'visible' => 1,),
-		'creditor_name' => array('type' => 'varchar(255)', 'label' => 'Nom du créditeur', 'enabled' => '1', 'position' => 110, 'notnull' => 0, 'visible' => 0,),
-		'creditor_address' => array('type' => 'varchar(1024)', 'label' => 'Adresse du créditeur', 'enabled' => '1', 'position' => 111, 'notnull' => 0, 'visible' => 0,),
-		'creditor_postal_code' => array('type' => 'varchar(255)', 'label' => 'Creditor postal code', 'enabled' => '1', 'position' => 112, 'notnull' => 0, 'visible' => 0,),
-		'creditor_city' => array('type' => 'varchar(255)', 'label' => 'Creditor city', 'enabled' => '1', 'position' => 113, 'notnull' => 0, 'visible' => 0,),
-		'creditor_country' => array('type' => 'varchar(255)', 'label' => 'Creditor country', 'enabled' => '1', 'position' => 114, 'notnull' => 0, 'visible' => 0,),
-		'status' => array('type' => 'integer', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 1, 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Validé', '9' => 'Annulé'),),
-		'type' => array('type' => 'integer', 'label' => 'Type de mandat', 'enabled' => '1', 'position' => 115, 'notnull' => 0, 'visible' => 1, 'arrayofkeyval' => array('0' => 'Non défini', '1' => 'Ponctuel', '9' => 'Récurrent'),),
+		'status' => array('type' => 'integer', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 1, 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Validé', '9' => 'Annulé'), 'noteditable'=>1),
+		'type' => array('type' => 'integer', 'label' => 'Type de mandat', 'enabled' => '1', 'position' => 115, 'notnull' => 1, 'visible' => 1, 'arrayofkeyval' => array('1' => 'Ponctuel', '9' => 'Récurrent'),),
+		'date_rum' => array('type' => 'date', 'label' => 'Date du mandat', 'enabled' => '1', 'position' => 500, 'notnull' => 0, 'visible' => 1,),
 	);
 	public $rowid;
 	public $ref;
@@ -131,61 +122,14 @@ class Sepamandat extends CommonObject
 	public $tms;
 	public $fk_user_creat;
 	public $fk_user_modif;
-	public $fk_project;
 	public $rum;
 	public $ics;
 	public $iban;
 	public $bic;
-	public $debtor_name;
-	public $debtor_address;
-	public $debtor_postal_code;
-	public $debtor_city;
-	public $debtor_country;
-	public $creditor_name;
-	public $creditor_address;
-	public $creditor_postal_code;
-	public $creditor_city;
-	public $creditor_country;
 	public $status;
 	public $type;
+	public $date_rum;
 	// END MODULEBUILDER PROPERTIES
-
-
-	// If this object has a subtable with lines
-
-	/**
-	 * @var int    Name of subtable line
-	 */
-	//public $table_element_line = 'sepamandatmanager_sepamandatline';
-
-	/**
-	 * @var int    Field with ID of parent key if this object has a parent
-	 */
-	//public $fk_element = 'fk_sepamandat';
-
-	/**
-	 * @var int    Name of subtable class that manage subtable lines
-	 */
-	//public $class_element_line = 'Sepamandatline';
-
-	/**
-	 * @var array	List of child tables. To test if we can delete object.
-	 */
-	//protected $childtables = array();
-
-	/**
-	 * @var array    List of child tables. To know object to delete on cascade.
-	 *               If name matches '@ClassNAme:FilePathClass;ParentFkFieldName' it will
-	 *               call method deleteByParentField(parentId, ParentFkFieldName) to fetch and delete child object
-	 */
-	//protected $childtablesoncascade = array('sepamandatmanager_sepamandatdet');
-
-	/**
-	 * @var SepamandatLine[]     Array of subtable lines
-	 */
-	//public $lines = array();
-
-
 
 	/**
 	 * Constructor
@@ -198,8 +142,12 @@ class Sepamandat extends CommonObject
 
 		$this->db = $db;
 
-		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
-		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) $this->fields['entity']['enabled'] = 0;
+		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) {
+			$this->fields['rowid']['visible'] = 0;
+		}
+		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) {
+			$this->fields['entity']['enabled'] = 0;
+		}
 
 		// Unset fields that are disabled
 		foreach ($this->fields as $key => $val) {
@@ -237,16 +185,6 @@ class Sepamandat extends CommonObject
 		$this->fields['rum']['label'] = $langs->trans("SepaMandateRum");
 		$this->fields['iban']['label'] = $langs->trans("SepaMandateIban");
 		$this->fields['bic']['label'] = $langs->trans("SepaMandateBic");
-		$this->fields['debtor_name']['label'] = $langs->trans("SepaMandateDebtorName");
-		$this->fields['debtor_address']['label'] = $langs->trans("SepaMandateDebtorAddress");
-		$this->fields['debtor_postal_code']['label'] = $langs->trans("SepaMandateDebtorPostalCode");
-		$this->fields['debtor_city']['label'] = $langs->trans("SepaMandateDebtorCity");
-		$this->fields['debtor_country']['label'] = $langs->trans("SepaMandateDebtorCountry");
-		$this->fields['creditor_name']['label'] = $langs->trans("SepaMandateCreditorName");
-		$this->fields['creditor_address']['label'] = $langs->trans("SepaMandateCreditorAddress");
-		$this->fields['creditor_postal_code']['label'] = $langs->trans("SepaMandateCreditorPostalCode");
-		$this->fields['creditor_city']['label'] = $langs->trans("SepaMandateCreditorCity");
-		$this->fields['creditor_country']['label'] = $langs->trans("SepaMandateCreditorCountry");
 		$this->fields['type']['label'] = $langs->trans("SepaMandateType");
 		$this->fields['type']['arrayofkeyval'] = array(
 			self::TYPE_PUNCTUAL => $langs->trans("SepaMandatePunctualType"),
@@ -288,10 +226,6 @@ class Sepamandat extends CommonObject
 		$result = $object->fetchCommon($fromid);
 		if ($result > 0 && !empty($object->table_element_line)) $object->fetchLines();
 
-		// get lines so they will be clone
-		//foreach($this->lines as $line)
-		//	$line->fetch_optionals();
-
 		// Reset some properties
 		unset($object->id);
 		unset($object->fk_user_creat);
@@ -324,21 +258,6 @@ class Sepamandat extends CommonObject
 			$this->errors = $object->errors;
 		}
 
-		if (!$error) {
-			// copy internal contacts
-			if ($this->copy_linked_contact($object, 'internal') < 0) {
-				$error++;
-			}
-		}
-
-		if (!$error) {
-			// copy external contacts if same company
-			if (property_exists($this, 'socid') && $this->socid == $object->socid) {
-				if ($this->copy_linked_contact($object, 'external') < 0)
-					$error++;
-			}
-		}
-
 		unset($object->context['createfromclone']);
 
 		// End
@@ -361,23 +280,55 @@ class Sepamandat extends CommonObject
 	public function fetch($id, $ref = null)
 	{
 		$result = $this->fetchCommon($id, $ref);
-		if ($result > 0 && !empty($this->table_element_line)) $this->fetchLines();
 		return $result;
 	}
 
 	/**
-	 * Load object lines in memory from the database
-	 *
-	 * @return int         <0 if KO, 0 if not found, >0 if OK
+	 * Get module relative directory to document root directory
+	 * @return string
 	 */
-	public function fetchLines()
+	public function getRelativePathOfModuleDirToDolDataRoot()
 	{
-		$this->lines = array();
-
-		$result = $this->fetchLinesCommon();
-		return $result;
+		$absoluteModuleDirectory = $this->getAbsoluteModuleDirectory();
+		return preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $absoluteModuleDirectory);
 	}
 
+	/**
+	 * Get absolute directory of document of module
+	 * @return string
+	 */
+	public function getAbsoluteModuleDirectory()
+	{
+		global $conf;
+		return $conf->sepamandatmanager->multidir_output[$this->entity ? $this->entity : $conf->entity];
+	}
+
+	/**
+	 * Function to get relativePathToModuleOfCurrentObject
+	 * @return string
+	 */
+	public function getRelativePathOfFileToModuleDataRoot()
+	{
+		return $this->specimen > 0 ? '' : $this->id . '/';
+	}
+
+	/**
+	 * Function to get relativePath of object to dol data root
+	 * @return string
+	 */
+	public function getRelativePathToDolDataRoot()
+	{
+		return $this->getRelativePathOfModuleDirToDolDataRoot() . $this->getRelativePathOfFileToModuleDataRoot();
+	}
+
+	/**
+	 * Function to get absolute path of object
+	 * @return string
+	 */
+	public function getAbsolutePath()
+	{
+		return DOL_DATA_ROOT . $this->getRelativePathOfModuleDirToDolDataRoot();
+	}
 
 	/**
 	 * Load list of objects in memory from the database.
@@ -476,28 +427,7 @@ class Sepamandat extends CommonObject
 	public function delete(User $user, $notrigger = false)
 	{
 		return $this->deleteCommon($user, $notrigger);
-		//return $this->deleteCommon($user, $notrigger, 1);
 	}
-
-	/**
-	 *  Delete a line of object in database
-	 *
-	 *	@param  User	$user       User that delete
-	 *  @param	int		$idline		Id of line to delete
-	 *  @param 	bool 	$notrigger  false=launch triggers after, true=disable triggers
-	 *  @return int         		>0 if OK, <0 if KO
-	 */
-	public function deleteLine(User $user, $idline, $notrigger = false)
-	{
-		if ($this->status < 0) {
-			$this->error = 'ErrorDeleteLineNotAllowedByObjectStatus';
-			return -2;
-		}
-
-		return $this->deleteLineCommon($user, $idline, $notrigger);
-	}
-
-
 	/**
 	 *	Validate object
 	 *
@@ -514,18 +444,10 @@ class Sepamandat extends CommonObject
 		$error = 0;
 
 		// Protection
-		if ($this->status == self::STATUS_VALIDATED) {
+		if ($this->status == self::STATUS_TOSIGN) {
 			dol_syslog(get_class($this) . "::validate action abandonned: already validated", LOG_WARNING);
 			return 0;
 		}
-
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->sepamandatmanager->sepamandat->write))
-		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->sepamandatmanager->sepamandat->sepamandat_advance->validate))))
-		 {
-		 $this->error='NotEnoughPermissions';
-		 dol_syslog(get_class($this)."::valid ".$this->error, LOG_ERR);
-		 return -1;
-		 }*/
 
 		$now = dol_now();
 
@@ -544,7 +466,7 @@ class Sepamandat extends CommonObject
 			// Validate
 			$sql = "UPDATE " . MAIN_DB_PREFIX . $this->table_element;
 			$sql .= " SET ref = '" . $this->db->escape($num) . "',";
-			$sql .= " status = " . self::STATUS_VALIDATED;
+			$sql .= " status = " . self::STATUS_TOSIGN;
 			if (!empty($this->fields['date_validation'])) $sql .= ", date_validation = '" . $this->db->idate($now) . "',";
 			if (!empty($this->fields['fk_user_valid'])) $sql .= ", fk_user_valid = " . $user->id;
 			$sql .= " WHERE rowid = " . $this->id;
@@ -606,7 +528,7 @@ class Sepamandat extends CommonObject
 		// Set new ref and current status
 		if (!$error) {
 			$this->ref = $num;
-			$this->status = self::STATUS_VALIDATED;
+			$this->status = self::STATUS_TOSIGN;
 		}
 
 		if (!$error) {
@@ -633,62 +555,7 @@ class Sepamandat extends CommonObject
 			return 0;
 		}
 
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->sepamandatmanager->write))
-		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->sepamandatmanager->sepamandatmanager_advance->validate))))
-		 {
-		 $this->error='Permission denied';
-		 return -1;
-		 }*/
-
 		return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'SEPAMANDAT_UNVALIDATE');
-	}
-
-	/**
-	 *	Set cancel status
-	 *
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
-	 */
-	public function cancel($user, $notrigger = 0)
-	{
-		// Protection
-		if ($this->status != self::STATUS_VALIDATED) {
-			return 0;
-		}
-
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->sepamandatmanager->write))
-		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->sepamandatmanager->sepamandatmanager_advance->validate))))
-		 {
-		 $this->error='Permission denied';
-		 return -1;
-		 }*/
-
-		return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'SEPAMANDAT_CLOSE');
-	}
-
-	/**
-	 *	Set back to validated status
-	 *
-	 *	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
-	 */
-	public function reopen($user, $notrigger = 0)
-	{
-		// Protection
-		if ($this->status != self::STATUS_CANCELED) {
-			return 0;
-		}
-
-		/*if (! ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->sepamandatmanager->write))
-		 || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->sepamandatmanager->sepamandatmanager_advance->validate))))
-		 {
-		 $this->error='Permission denied';
-		 return -1;
-		 }*/
-
-		return $this->setStatusCommon($user, self::STATUS_VALIDATED, $notrigger, 'SEPAMANDAT_REOPEN');
 	}
 
 	/**
@@ -804,23 +671,21 @@ class Sepamandat extends CommonObject
 	 */
 	public function LibStatut($status, $mode = 0)
 	{
-		// phpcs:enable
-		if (empty($this->labelStatus) || empty($this->labelStatusShort)) {
-			global $langs;
-			//$langs->load("sepamandatmanager");
-			$this->labelStatus[self::STATUS_DRAFT] = $langs->trans('Draft');
-			$this->labelStatus[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			$this->labelStatus[self::STATUS_CANCELED] = $langs->trans('Disabled');
-			$this->labelStatusShort[self::STATUS_DRAFT] = $langs->trans('Draft');
-			$this->labelStatusShort[self::STATUS_VALIDATED] = $langs->trans('Enabled');
-			$this->labelStatusShort[self::STATUS_CANCELED] = $langs->trans('Disabled');
+		$labelStatus = $this->labelStatus[$status];
+		$labelStatusShort = $this->labelStatusShort[$status];
+		if (version_compare(DOL_VERSION, '12.0.0', '<')) {
+			$statusPicto = str_replace("status", "statut", $this->statusType[$status]);
+
+			if ($mode == 0)	return $labelStatus;
+			if ($mode == 1)	return $labelStatusShort;
+			if ($mode == 2)	return img_picto($labelStatusShort, $statusPicto) . ' ' . $labelStatusShort;
+			if ($mode == 3)	return img_picto($labelStatus,  $statusPicto);
+			if ($mode == 4)	return img_picto($labelStatus,  $statusPicto) . ' ' . $labelStatus;
+			if ($mode == 5)	return '<span class="hideonsmartphone">' . $labelStatusShort . ' </span>' . img_picto($labelStatus,  $statusPicto);
+			if ($mode == 6)	return '<span class="hideonsmartphone">' . $labelStatus . ' </span>' . img_picto($labelStatus,  $statusPicto);
+		} else {
+			return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
 		}
-
-		$statusType = 'status' . $status;
-		//if ($status == self::STATUS_VALIDATED) $statusType = 'status1';
-		if ($status == self::STATUS_CANCELED) $statusType = 'status6';
-
-		return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
 	}
 
 	/**
@@ -878,28 +743,17 @@ class Sepamandat extends CommonObject
 	public function initAsSpecimen()
 	{
 		$this->initAsSpecimenCommon();
-	}
-
-	/**
-	 * 	Create an array of lines
-	 *
-	 * 	@return array|int		array of lines if OK, <0 if KO
-	 */
-	public function getLinesArray()
-	{
-		$this->lines = array();
-
-		$objectline = new SepamandatLine($this->db);
-		$result = $objectline->fetchAll('ASC', 'position', 0, 0, array('customsql' => 'fk_sepamandat = ' . $this->id));
-
-		if (is_numeric($result)) {
-			$this->error = $this->error;
-			$this->errors = $this->errors;
-			return $result;
-		} else {
-			$this->lines = $result;
-			return $this->lines;
-		}
+		$this->date_rum = dol_now();
+		$this->ics = 'ABC123456789';
+		$this->ref = $this->getNextNumRef();
+		$this->rum = $this->getNextNumRum();
+		$this->fk_soc = 3000;
+		$thirdparty = new Societe($this->db);
+		$thirdparty->initAsSpecimen();
+		$this->thirdparty = $thirdparty;
+		$this->iban = "FR14 2004 1010 0505 0001 3M02 606";
+		$this->bic = 'BIC12345';
+		$this->type = self::TYPE_PUNCTUAL;
 	}
 
 	/**
@@ -921,6 +775,62 @@ class Sepamandat extends CommonObject
 
 			$file = $conf->global->SEPAMANDATMANAGER_SEPAMANDAT_ADDON . ".php";
 			$classname = $conf->global->SEPAMANDATMANAGER_SEPAMANDAT_ADDON;
+
+			// Include file with class
+			$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
+			foreach ($dirmodels as $reldir) {
+				$dir = dol_buildpath($reldir . "core/modules/sepamandatmanager/");
+
+				// Load file with numbering class (if found)
+				$mybool |= @include_once $dir . $file;
+			}
+
+			if ($mybool === false) {
+				dol_print_error('', "Failed to include file " . $file);
+				return '';
+			}
+
+			if (class_exists($classname)) {
+				$obj = new $classname();
+				$numref = $obj->getNextValue($this);
+
+				if ($numref != '' && $numref != '-1') {
+					return $numref;
+				} else {
+					$this->error = $obj->error;
+					//dol_print_error($this->db,get_class($this)."::getNextNumRef ".$obj->error);
+					return "";
+				}
+			} else {
+				print $langs->trans("Error") . " " . $langs->trans("ClassNotFound") . ' ' . $classname;
+				return "";
+			}
+		} else {
+			print $langs->trans("ErrorNumberingModuleNotSetup", $this->element);
+			return "";
+		}
+	}
+
+
+	/**
+	 *  Returns the reference to the following non used object depending on the active numbering module.
+	 *
+	 *  @return string      		Object free reference
+	 */
+	public function getNextNumRum()
+	{
+		global $langs, $conf;
+		$langs->load("sepamandatmanager@sepamandat");
+
+		if (empty($conf->global->SEPAMANDATMANAGER_SEPAMANDATRUM_ADDON)) {
+			$conf->global->SEPAMANDATMANAGER_SEPAMANDATRUM_ADDON = 'mod_sepamandatrum_standard';
+		}
+
+		if (!empty($conf->global->SEPAMANDATMANAGER_SEPAMANDATRUM_ADDON)) {
+			$mybool = false;
+
+			$file = $conf->global->SEPAMANDATMANAGER_SEPAMANDATRUM_ADDON . ".php";
+			$classname = $conf->global->SEPAMANDATMANAGER_SEPAMANDATRUM_ADDON;
 
 			// Include file with class
 			$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
@@ -995,43 +905,4 @@ class Sepamandat extends CommonObject
 
 		return $result;
 	}
-
-	/**
-	 * Action executed by scheduler
-	 * CAN BE A CRON TASK. In such a case, parameters come from the schedule job setup field 'Parameters'
-	 * Use public function doScheduledJob($param1, $param2, ...) to get parameters
-	 *
-	 * @return	int			0 if OK, <>0 if KO (this function is used also by cron so only 0 is OK)
-	 */
-	public function doScheduledJob()
-	{
-		global $conf, $langs;
-
-		//$conf->global->SYSLOG_FILE = 'DOL_DATA_ROOT/dolibarr_mydedicatedlofile.log';
-
-		$error = 0;
-		$this->output = '';
-		$this->error = '';
-
-		dol_syslog(__METHOD__, LOG_DEBUG);
-
-		$now = dol_now();
-
-		$this->db->begin();
-
-		// ...
-
-		$this->db->commit();
-
-		return $error;
-	}
-}
-
-/**
- * Class SepamandatLine. You can also remove this and generate a CRUD class for lines objects.
- */
-class SepamandatLine
-{
-	// To complete with content of an object SepamandatLine
-	// We should have a field rowid, fk_sepamandat and position
 }

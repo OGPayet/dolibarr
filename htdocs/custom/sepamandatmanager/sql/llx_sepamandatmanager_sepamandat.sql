@@ -17,6 +17,7 @@
 CREATE TABLE llx_sepamandatmanager_sepamandat(
 	-- BEGIN MODULEBUILDER FIELDS
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
+	entity integer,
 	ref varchar(128) DEFAULT '(PROV)' NOT NULL,
 	fk_soc integer,
 	note_public text,
@@ -25,23 +26,12 @@ CREATE TABLE llx_sepamandatmanager_sepamandat(
 	tms timestamp,
 	fk_user_creat integer NOT NULL,
 	fk_user_modif integer,
-	fk_project integer,
 	rum varchar(255),
 	ics varchar(255),
 	iban varchar(255),
 	bic varchar(255),
-	recurring boolean,
-	debtor_name varchar(255),
-	debtor_address varchar(1024),
-	debtor_postal_code varchar(255),
-	debtor_city varchar(255),
-	debtor_country varchar(255),
-	creditor_name varchar(255),
-	creditor_address varchar(1024),
-	creditor_postal_code varchar(255),
-	creditor_city varchar(255),
-	creditor_country varchar(255),
 	status integer NOT NULL,
-	type integer
+	type integer,
+	date_rum date
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

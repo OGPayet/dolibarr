@@ -28,6 +28,12 @@ SepaMandatManagerDescription = Gestionnaire avancé de mandat sepa
 SepaMandatManagerSetup = Configuration du module Sepa Mandat Manager
 Settings = Réglages
 SepaMandatManagerSetupPage = Page de configuration du module Sepa Mandat Manager
+SepaMandateFooterTextSettings = Texte de pied de page des mandats SEPA générés
+DocumentModelSepaMandateMercure = Modèle de mandat SEPA. Utile pour les pays européens de la CEE seulement
+SepaMandateRefGenerator = Générateur de référence
+SepaMandateDocGenerator = Masques de document
+SepaMandateRumGenerator = Générateur de code Rum
+SepaMandateParameters = Paramètres
 
 #
 # List Page
@@ -58,19 +64,21 @@ SepaMandateIcs = Identifiant de créancier SEPA
 SepaMandateRum = Code Rum
 SepaMandateIban = Iban
 SepaMandateBic = Code BIC
-SepaMandateDebtorName = Nom
-SepaMandateDebtorAddress = Adresse
-SepaMandateDebtorPostalCode = Code Postal
-SepaMandateDebtorCity = Ville
-SepaMandateDebtorCountry = Pays
-SepaMandateCreditorName = Nom
-SepaMandateCreditorAddress = Adresse
-SepaMandateCreditorPostalCode = Code postal
-SepaMandateCreditorCity = Ville
-SepaMandateCreditorCountry = Pays
 SepaMandateType = Type de mandat
 SepaMandatePunctualType = Ponctuel
 SepaMandateRecurrentType = Récurrent
+
+#
+# Evènements automatiques
+#
+SepaMandateEventOnCreate = Créer un évènement à la création d'un mandat
+SepaMandateEventOnValidate = Créer un évènement à son passage en "à signer"
+SepaMandateEventOnSign = Créer un évènement à son passage en "signé"
+SepaMandateEventOnCancel = Créer un évènement lors de l'annulation d'un mandat
+SepaMandateEventOnStale = Créer un évènement lors du passage en "expiré"
+SepaMandateEventOnUnstale = Créer un évènement lors de la réouverture du mandat depuis l'état "Annulé"
+SepaMandateEventOnUncanceled = Créer un évènement lors de la réouverture du mandant depuis l'état "Signé"
+SepaMandateEventOnUnsigned = Créer un évènement lors du passage de l'état "signé" en "à signer"
 
 #
 # Page À propos

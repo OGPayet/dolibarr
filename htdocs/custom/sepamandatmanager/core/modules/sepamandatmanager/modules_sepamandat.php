@@ -51,7 +51,7 @@ abstract class ModelePDFSepamandat extends CommonDocGenerator
 		// phpcs:enable
 		global $conf;
 
-		$type = 'sepamandat';
+		$type = 'sepamandatmanager';
 		$list = array();
 
 		include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
