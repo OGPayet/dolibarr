@@ -163,6 +163,24 @@ if (empty($reshook)) {
 	$autocopy = 'MAIN_MAIL_AUTOCOPY_SEPAMANDAT_TO';
 	$trackid = 'sepamandat' . $object->id;
 	include DOL_DOCUMENT_ROOT . '/core/actions_sendmails.inc.php';
+
+	//Set back to draft
+	if($action == 'setdraft') {
+		if($user->rights->sepamandatmanager->sepamandat->write)
+		{
+
+		}
+		elseif($object->status != $object::STATUS_TOSIGN)
+		{
+
+		}
+		else if($object->setBackToDraft($user) < 0) {
+
+		}
+	}
+	$object->status == $object::STATUS_TOSIGN && $user->rights->sepamandatmanager->sepamandat->write;
+
+
 }
 
 
@@ -299,6 +317,21 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateValidateTitle'), $langs->trans('SepaMandateValidateDescription', $nextRef), 'confirm_validate', $formquestion, 'yes', 1);
 	}
 
+	if($action == 'setsigned') {
+		$formquestion = array();
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateSetSignedTitle'), $langs->trans('SepaMandateSetSignedDescription', $nextRef), 'confirm_setsigned', $formquestion, 'yes', 1);
+	}
+
+	if($action == 'setcanceled') {
+		$formquestion = array();
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateSetCanceledTitle'), $langs->trans('SepaMandateSetCanceledDescription', $nextRef), 'confirm_setcanceled', $formquestion, 'yes', 1);
+	}
+
+	if($action == 'setdraft') {
+		$formquestion = array();
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateSetDraftTitle'), $langs->trans('SepaMandateSetDraftDescription', $nextRef), 'confirm_setdraft', $formquestion, 'yes', 1);
+	}
+
 	// Call Hook formConfirm
 	$parameters = array('formConfirm' => $formconfirm, 'lineid' => $lineid);
 	$reshook = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
@@ -347,23 +380,18 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 		if (empty($reshook)) {
-			// Send
-			// if (empty($user->socid) && $user->rights->sepamandatmanager->sepamandat->read && $isObjectAbleToBeSent) {
-			// 	print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendMail') . '</a>' . "\n";
-			// }
-
 			// Back to draft
 			if ($object->status == $object::STATUS_TOSIGN) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_setdraft&confirm=yes">' . $langs->trans("SetToDraft") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=setdraft">' . $langs->trans("SetToDraft") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SetToDraft') . '</a>' . "\n";
 				}
 			}
 
 			// Modify
 			if ($user->rights->sepamandatmanager->sepamandat->write && $object->status == $object::STATUS_DRAFT) {
 				print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=edit">' . $langs->trans("Modify") . '</a>' . "\n";
-			} else {
-				print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Modify') . '</a>' . "\n";
 			}
 
 			// Validate
@@ -383,7 +411,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetSigned') . '</a>' . "\n";
 				}
 			}
-
 
 			// Set as signed
 			if ($object->status == $object::STATUS_TOSIGN) {
@@ -421,7 +448,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 				}
 			}
 
-
 			// Set back from signed to tosign
 			if ($object->status == $object::STATUS_SIGNED) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
@@ -448,7 +474,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</div>' . "\n";
 	}
 
-
 	// Select mail models is same action as presend
 	if (GETPOST('modelselected')) {
 		$action = 'presend';
@@ -472,7 +497,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		// Show links to link elements
 		$linktoelem = $form->showLinkToObjectBlock($object, null, array('sepamandat'));
 		$somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
-
 
 		print '</div><div class="fichehalfright"><div class="ficheaddleft">';
 
