@@ -123,6 +123,9 @@ if ($object->status != $object::STATUS_DRAFT) {
 
 if (!$permissiontoread) accessforbidden();
 
+dol_include_once('/sepamandatmanager/class/html.formsepamandate.class.php');
+$formSepaMandate = new FormSepaMandate($db);
+
 
 /*
  * Actions
@@ -163,24 +166,14 @@ if (empty($reshook)) {
 	$trackid = 'sepamandat' . $object->id;
 	include DOL_DOCUMENT_ROOT . '/core/actions_sendmails.inc.php';
 
-	//Set back to draft
-	if($action == 'setdraft' && $confirm == 'yes') {
-		if(!$user->rights->sepamandatmanager->sepamandat->write)
-		{
-			setEventMessages($langs->trans("NotAllowed"), array(), 'errors');
-		}
-		elseif($object->status != $object::STATUS_TOSIGN)
-		{
-			setEventMessages($langs->trans("SepaMandateOperationNotAllowedAccordingToStatus"), array(), 'errors');
-		}
-		elseif($object->setBackToDraft($user) <= 0)
-		{
-			setEventMessages($langs->trans("SepaMandateSuccessfullySetToDraft"), array());
-		}
-		else {
-			setEventMessages($langs->trans("SepaMandateSuccessfullySetErrors"), $object->errors, 'errors');
-		}
-	}
+	$formSepaMandate->manageValidateAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
+	$formSepaMandate->manageSignedAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
+	$formSepaMandate->manageStaledAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
+	$formSepaMandate->manageCanceledAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
+	$formSepaMandate->manageBackToDraftAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
+	$formSepaMandate->manageBackToToSignAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
+	$formSepaMandate->manageBackToSignedAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
+
 }
 
 
@@ -307,30 +300,13 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('ToClone'), $langs->trans('ConfirmCloneAsk', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
 	}
 
-	if($action == 'validate') {
-		$formquestion = array();
-		$nextRef = $object->ref;
-		if (preg_match('/^[\(]?PROV/i', $object->ref) || empty($object->ref)) // empty should not happened, but when it occurs, the test save life
-		{
-			$nextRef = $object->getNextNumRef();
-		}
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateValidateTitle'), $langs->trans('SepaMandateValidateDescription', $nextRef), 'confirm_validate', $formquestion, 'yes', 1);
-	}
-
-	if($action == 'setsigned') {
-		$formquestion = array();
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateSetSignedTitle'), $langs->trans('SepaMandateSetSignedDescription', $nextRef), 'confirm_setsigned', $formquestion, 'yes', 1);
-	}
-
-	if($action == 'setcanceled') {
-		$formquestion = array();
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateSetCanceledTitle'), $langs->trans('SepaMandateSetCanceledDescription', $nextRef), 'confirm_setcanceled', $formquestion, 'yes', 1);
-	}
-
-	if($action == 'setdraft') {
-		$formquestion = array();
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SepaMandateSetDraftTitle'), $langs->trans('SepaMandateSetDraftDescription', $nextRef), 'confirm_setdraft', $formquestion, 'yes', 1);
-	}
+	$formconfirm = $formSepaMandate->getValidateFormConfirm($formconfirm, $action, $object, $user->rights->sepamandatmanager->sepamandat->write);
+	$formconfirm = $formSepaMandate->getSignedFormConfirm($formconfirm, $action, $object, $user->rights->sepamandatmanager->sepamandat->write);
+	$formconfirm = $formSepaMandate->getStaledFormConfirm($formconfirm, $action, $object, $user->rights->sepamandatmanager->sepamandat->write);
+	$formconfirm = $formSepaMandate->getCanceledFormConfirm($formconfirm, $action, $object, $user->rights->sepamandatmanager->sepamandat->write);
+	$formconfirm = $formSepaMandate->getBackToDraftFormConfirm($formconfirm, $action, $object, $user->rights->sepamandatmanager->sepamandat->write);
+	$formconfirm = $formSepaMandate->getBackToToSignFormConfirm($formconfirm, $action, $object, $user->rights->sepamandatmanager->sepamandat->write);
+	$formconfirm = $formSepaMandate->getBackToSignedFormConfirm($formconfirm, $action, $object, $user->rights->sepamandatmanager->sepamandat->write);
 
 	// Call Hook formConfirm
 	$parameters = array('formConfirm' => $formconfirm, 'lineid' => $lineid);
@@ -383,7 +359,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// Back to draft
 			if ($object->status == $object::STATUS_TOSIGN) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=setdraft">' . $langs->trans("SetToDraft") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=' . FormSepaMandate::SET_BACK_TO_DRAFT_ACTION_NAME . '">' . $langs->trans("SetToDraft") . '</a>';
 				} else {
 					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SetToDraft') . '</a>' . "\n";
 				}
@@ -397,25 +373,34 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// Validate
 			if ($object->status == $object::STATUS_DRAFT) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=validate">' . $langs->trans("Validate") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=' . FormSepaMandate::TO_SIGN_ACTION_NAME . '">' . $langs->trans("SepaMandateValidate") . '</a>';
 				} else {
-					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('Validate') . '</a>' . "\n";
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateValidate') . '</a>' . "\n";
 				}
 			}
 
 			// Set as signed
 			if ($object->status == $object::STATUS_TOSIGN) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=setsigned">' . $langs->trans("SepaMandateSetSigned") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=' . FormSepaMandate::SIGNED_ACTION_NAME . '">' . $langs->trans("SepaMandateSetSigned") . '</a>';
 				} else {
 					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetSigned') . '</a>' . "\n";
 				}
 			}
 
-			// Set as signed
-			if ($object->status == $object::STATUS_TOSIGN) {
+			// Set back from signed to tosign
+			if ($object->status == $object::STATUS_SIGNED) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=setcanceled">' . $langs->trans("SepaMandateSetCanceled") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=' . FormSepaMandate::SET_BACK_TO_TO_SIGN_ACTION_NAME . '">' . $langs->trans("SepaMandateSetUnSign") . '</a>';
+				} else {
+					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetUnSign') . '</a>' . "\n";
+				}
+			}
+
+			// Set as canceled
+			if ($object->status == $object::STATUS_TOSIGN || $object->status == $object::STATUS_SIGNED) {
+				if ($user->rights->sepamandatmanager->sepamandat->write) {
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=' . FormSepaMandate::SET_CANCELED_ACTION_NAME . '">' . $langs->trans("SepaMandateSetCanceled") . '</a>';
 				} else {
 					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetCanceled') . '</a>' . "\n";
 				}
@@ -424,7 +409,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// Set as staled
 			if ($object->status == $object::STATUS_SIGNED) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=setstaled">' . $langs->trans("SepaMandateSetStaled") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=' . FormSepaMandate::SET_STALED_ACTION_NAME . '">' . $langs->trans("SepaMandateSetStaled") . '</a>';
 				} else {
 					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetStaled') . '</a>' . "\n";
 				}
@@ -433,7 +418,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// Set back from stale to tosign
 			if ($object->status == $object::STATUS_STALE) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=unstale">' . $langs->trans("SepaMandateSetUnStale") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=' . FormSepaMandate::SET_BACK_TO_SIGNED_ACTION_NAME . '">' . $langs->trans("SepaMandateSetUnStale") . '</a>';
 				} else {
 					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetUnStale') . '</a>' . "\n";
 				}
@@ -442,24 +427,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// Set back from stale to tosign
 			if ($object->status == $object::STATUS_CANCELED) {
 				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=uncancel">' . $langs->trans("SepaMandateSetUnCancel") . '</a>';
+					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=' . FormSepaMandate::SET_BACK_TO_TO_SIGN_ACTION_NAME . '">' . $langs->trans("SepaMandateSetUnCancel") . '</a>';
 				} else {
 					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetUnCancel') . '</a>' . "\n";
 				}
-			}
-
-			// Set back from signed to tosign
-			if ($object->status == $object::STATUS_SIGNED) {
-				if ($user->rights->sepamandatmanager->sepamandat->write) {
-					print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=unsign">' . $langs->trans("SepaMandateSetUnSign") . '</a>';
-				} else {
-					print '<a class="butActionRefused classfortooltip" href="#" title="' . dol_escape_htmltag($langs->trans("NotEnoughPermissions")) . '">' . $langs->trans('SepaMandateSetUnSign') . '</a>' . "\n";
-				}
-			}
-
-			// Clone
-			if ($user->rights->sepamandatmanager->sepamandat->write && ($object->status == $object::STATUS_STALE || $object->status == $object::STATUS_CANCELED)) {
-				print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&socid=' . $object->socid . '&action=clone&object=sepamandat">' . $langs->trans("ToClone") . '</a>' . "\n";
 			}
 
 			// Delete (need delete permission, or if draft, just need create/modify permission)

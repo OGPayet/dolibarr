@@ -22,8 +22,8 @@
  * \brief       This file is a CRUD class file for Sepamandat (Create/Read/Update/Delete)
  */
 
-// Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+dol_include_once('/sepamandatmanager/class/sepamandat.class.php');
 
 /**
  * Class for Sepamandat
@@ -440,7 +440,17 @@ class Sepamandat extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
-		return $this->deleteCommon($user, $notrigger);
+		$result = $this->deleteCommon($user, $notrigger);
+		if($result > 0)
+		{
+			$extendedEcm = new ExtendedEcm($this->db);
+			$files = $extendedEcm->fetchAll(null, null, null, null, array('filepath' => $this->getRelativePathToDolDataRoot()));
+			foreach($files as $file) {
+				$file->deleteFile();
+			}
+			dol_delete_dir($this->getAbsolutePath());
+		}
+		return $result;
 	}
 	/**
 	 *	Validate object
@@ -449,7 +459,7 @@ class Sepamandat extends CommonObject
 	 *  @param		int		$notrigger		1=Does not execute triggers, 0= execute triggers
 	 *	@return  	int						<=0 if OK, 0=Nothing done, >0 if KO
 	 */
-	public function validate($user, $notrigger = 0)
+	public function setToSign($user, $notrigger = 0)
 	{
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 
@@ -516,10 +526,10 @@ class Sepamandat extends CommonObject
 	public function setBackToToSign($user, $notrigger = 0)
 	{
 		// Protection
-		if ($this->status != self::STATUS_SIGNED) {
+		if ($this->status != self::STATUS_SIGNED && $this->status != self::STATUS_CANCELED) {
 			return 0;
 		}
-		return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'SEPAMANDAT_UNSIGNED');
+		return $this->setStatusCommon($user, self::STATUS_TOSIGN, $notrigger, 'SEPAMANDAT_UNSIGNED');
 	}
 
 	/**
@@ -548,7 +558,7 @@ class Sepamandat extends CommonObject
 	public function setCanceled($user, $notrigger = 0)
 	{
 		// Protection
-		if ($this->status != self::STATUS_TOSIGN) {
+		if ($this->status != self::STATUS_TOSIGN && $this->status != self::STATUS_SIGNED) {
 			return 0;
 		}
 		return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'SEPAMANDAT_CANCELED');
@@ -567,7 +577,7 @@ class Sepamandat extends CommonObject
 		if ($this->status != self::STATUS_SIGNED) {
 			return 0;
 		}
-		return $this->setStatusCommon($user, self::STATUS_SIGNED, $notrigger, 'SEPAMANDAT_STALE');
+		return $this->setStatusCommon($user, self::STATUS_STALE, $notrigger, 'SEPAMANDAT_STALE');
 	}
 
 	/**

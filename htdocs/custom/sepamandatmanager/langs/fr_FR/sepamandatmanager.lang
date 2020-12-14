@@ -46,10 +46,44 @@ NewSepaMandat = Nouveau mandat SEPA
 #
 # Card
 #
-SepaMandateValidateTitle = Passage du mandant SEPA en "A signer"
-SepaMandateSetSigned = Mandat signé
-SepaMandateSetCanceled = Mandat annulé
-SepaMandateValidateDescription = Confirmez-vous le passage de ce mandat en à signer sous la référence %s ?
+SepaMandateNotAllowedAccordingToData = L'opération est interdite selon l'état actuel du mandat
+SepaMandateNotAllowed = Opération interdite
+SepaMandateSetToSignTitle = Validation du mandat SEPA
+SepaMandateSetToSignDescription = Confirmez-vous la validation du mandat SEPA sous la référence %s et son passage sous le status 'A signer' ?
+SepaMandateSetSignedTitle = Passage du mandat SEPA au status 'Signé'
+SepaMandateSetSignedDescription = Confirmez-vous le passage du mandat SEPA au status 'Signé' ?
+SepaMandateSetStaledTitle = Passage du mandat SEPA au status "Expiré" ?
+SepaMandateSetStaledDescription = Confirmez-vous que ce mandat SEPA doit être considéré comme "expiré" ?
+SepaMandateSetCanceledTitle = Annulation du mandat SEPA
+SepaMandateSetCanceledDescription = Confirmez-vous l'annulation du mandat SEPA ?
+SepaMandateSetBackToDraftTitle = Retour du mandat SEPA à l'état brouillon ?
+SepaMandateSetBackToDraftDescription = Confirmez-vous le passage de ce mandat SEPA à l'état brouillon ?
+SepaMandateSetBackToToSignTitle = Passage au status précédent "A signer"
+SepaMandateSetBackToToSignDescription = Confirmez-vous le passage au status précédent de ce mandat (A signer) ?
+SepaMandateSetBackToSignedTitle = Passage au status précédent "Signé"
+SepaMandateSetBackToSignedDescription = Confirmez-vous le passage au status précédent de ce mandat (Signé) ?
+SepaMandateErrorWhileValidatingMandat = Erreur lors du passage au status 'A signer'
+SepaMandateSuccessfullyValidated = Mandat passé au status "A signer" avec succès
+SepaMandateErrorWhileSettingSignedMandat = Erreur lors du passage "Signé"
+SepaMandateSuccessfullySetSigned = Mandat passé au status "Signé" avec succès
+SepaMandateErrorWhileSettingToStaleMandat = Erreur lors du passage au status "expiré"
+SepaMandateSuccessfullySetToStale = Mandat passé au status "expiré" avec succès
+SepaMandateErrorWhileCancellingMandat = Errors lors du passage au status annulé du mandat
+SepaMandateSuccessfullySetToCancel = Mandat passé au status "Annulé" avec succès
+SepaMandateErrorWhileSettingBackToDraftMandat = Erreur lors du passage au status précédent "Brouillon"
+SepaMandateSuccessfullySetBackToDraft = Passage au status précédent "Brouillon" effectué avec succès
+SepaMandateErrorWhileSettingBackToToSignMandat = Erreur lors du passage précédent au status "A signé"
+SepaMandateSuccessfullySetBackToToSign = Passage au status précédent "A signé" effectué avec succès
+SepaMandateErrorWhileSettingBackToSignedMandat = Erreur lors du passage au status précédent "Signé" du mandat
+SepaMandateSuccessfullySetBackToSigned = Passage au status précédent "A signé" effectué avec succès
+SetToDraft = Passer en brouillon
+SepaMandateValidate = Passer en "A signer"
+SepaMandateSetSigned = Passer en "Signé"
+SepaMandateSetCanceled = Annuler le mandat
+SepaMandateSetStaled = Clôturer
+SepaMandateSetUnStale = Réouvrir
+SepaMandateSetUnCancel = Réouvrir
+SepaMandateSetUnSign = Repasser en "A signer"
 
 
 

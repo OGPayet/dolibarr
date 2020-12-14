@@ -45,12 +45,12 @@ class FormSepaMandate
 	/**
 	 * @var string confirm set to sign status action name
 	 */
-	const CONFIRM_TO_SIGN_ACTION_NAME = 'confirm_validate';
+	const CONFIRM_TO_SIGN_ACTION_NAME = 'confirm_setToSign';
 
 	/**
 	 * @var string set to sign status action name
 	 */
-	const TO_SIGN_ACTION_NAME = 'validate';
+	const TO_SIGN_ACTION_NAME = 'setToSign';
 
 	/**
 	 * @var string confirm set to sign status action name
@@ -72,7 +72,7 @@ class FormSepaMandate
 	 */
 	const CONFIRM_SET_STALED_ACTION_NAME = 'confirm_setStaled';
 
-		/**
+	/**
 	 * @var string confirm set to sign status action name
 	 */
 	const SET_CANCELED_ACTION_NAME = 'setCanceled';
@@ -85,32 +85,32 @@ class FormSepaMandate
 	/**
 	 * @var string confirm set to sign status action name
 	 */
-	const SET_BACK_TO_DRAFT_ACTION_NAME = 'confirm_setBackToDraft';
+	const SET_BACK_TO_DRAFT_ACTION_NAME = 'setBackToDraft';
 
 	/**
 	 * @var string set to sign status action name
 	 */
-	const CONFIRM_SET_BACK_TO_DRAFT_ACTION_NAME = 'setBackToDraft';
+	const CONFIRM_SET_BACK_TO_DRAFT_ACTION_NAME = 'confirm_setBackToDraft';
 
 	/**
 	 * @var string confirm set to sign status action name
 	 */
-	const SET_BACK_TO_TO_SIGN_ACTION_NAME = 'confirm_setBackToToSign';
+	const SET_BACK_TO_TO_SIGN_ACTION_NAME = 'setBackToToSign';
 
 	/**
 	 * @var string set to sign status action name
 	 */
-	const CONFIRM_SET_BACK_TO_TO_SIGN_ACTION_NAME = 'setBackToToSign';
+	const CONFIRM_SET_BACK_TO_TO_SIGN_ACTION_NAME = 'confirm_setBackToToSign';
 
 	/**
 	 * @var string confirm set to signed status action name
 	 */
-	const SET_BACK_TO_SIGNED_ACTION_NAME = 'confirm_setBackToSigned';
+	const SET_BACK_TO_SIGNED_ACTION_NAME = 'setBackToSigned';
 
 	/**
 	 * @var string set to sign status action name
 	 */
-	const CONFIRM_SET_BACK_TO_SIGNED_ACTION_NAME = 'setBackToSigned';
+	const CONFIRM_SET_BACK_TO_SIGNED_ACTION_NAME = 'confirm_setBackToSigned';
 
 	/**
 	 * Constructor
@@ -138,22 +138,25 @@ class FormSepaMandate
 	 * @param boolean $objectCheck Permission regarding object values
 	 * @return string
 	 */
-	public function getFormConfirmAccordingToSettings($formconfirm, $currentAction, $id, $actionName, $confirmActionName, $title, $description, $userPermission, $objectCheck) {
+	public function getFormConfirmAccordingToSettings($formconfirm, $currentAction, $id, $actionName, $confirmActionName, $title, $description, $userPermission, $objectCheck)
+	{
 		$out = $formconfirm ? $formconfirm : '';
-		if($currentAction == $actionName) {
+		if ($currentAction == $actionName) {
 			global $langs;
-			if(!$userPermission) {
-				setEventMessages($langs->trans("NotAllowed"), array(), 'errors');
-			}
-			elseif(!$objectCheck) {
-				setEventMessages($langs->trans('SepaMandateNotAllorwedAccordingToData'), array(), 'errors');
-			}
-			else {
+			if (!$userPermission) {
+				setEventMessages($langs->trans("SepaMandateNotAllowed"), array(), 'errors');
+			} elseif (!$objectCheck) {
+				setEventMessages($langs->trans('SepaMandateNotAllowedAccordingToData'), array(), 'errors');
+			} else {
 				$out = $this->form->formconfirm(
 					$_SERVER["PHP_SELF"] . '?id=' . $id,
 					$title,
 					$description,
-					$confirmActionName, array(), 'yes', 1);
+					$confirmActionName,
+					array(),
+					'yes',
+					1
+				);
 			}
 		}
 		return $out;
@@ -253,8 +256,8 @@ class FormSepaMandate
 			$object->id,
 			self::SET_CANCELED_ACTION_NAME,
 			self::CONFIRM_SET_CANCELED_ACTION_NAME,
-			$langs->trans("SepaMandateSetStaledTitle"),
-			$langs->trans('SepaMandateSetStaledDescription'),
+			$langs->trans("SepaMandateSetCanceledTitle"),
+			$langs->trans('SepaMandateSetCanceledDescription'),
 			$userPermission,
 			$object->status == $object::STATUS_SIGNED || $object->status == $object::STATUS_TOSIGN
 		);
@@ -323,12 +326,181 @@ class FormSepaMandate
 			$formconfirm,
 			$action,
 			$object->id,
-			self::SET_BACK_TO_TO_SIGN_ACTION_NAME,
-			self::CONFIRM_SET_BACK_TO_TO_SIGN_ACTION_NAME,
-			$langs->trans("SepaMandateSetBackToToSignTitle"),
-			$langs->trans('SepaMandateSetBackToToSignDescription'),
+			self::SET_BACK_TO_SIGNED_ACTION_NAME,
+			self::CONFIRM_SET_BACK_TO_SIGNED_ACTION_NAME,
+			$langs->trans("SepaMandateSetBackToSignedTitle"),
+			$langs->trans('SepaMandateSetBackToSignedDescription'),
 			$userPermission,
-			$object->status == $object::STATUS_SIGNED || $object->status == $object::STATUS_CANCELED
+			$object->status == $object::STATUS_SIGNED || $object->status == $object::STATUS_STALE
 		);
+	}
+
+	/**
+	 * Function to manage confirm validate action
+	 * @param string $action request action
+	 * @param SepaMandat $object object on which do action
+	 * @param string $userPermission Permission of the user
+	 * @param User $user User requesting
+	 * @return void
+	 */
+	public function manageValidateAction($action, $object, $userPermission, $user)
+	{
+		if ($action == self::CONFIRM_TO_SIGN_ACTION_NAME) {
+			global $langs;
+			if (!$userPermission) {
+				setEventMessages($langs->trans("SepaMandateNotAllowed"), array(), 'errors');
+			} elseif ($object->status != $object::STATUS_DRAFT) {
+				setEventMessages($langs->trans('SepaMandateNotAllowedAccordingToData'), array(), 'errors');
+			} elseif ($object->setToSign($user) <= 0) {
+				setEventMessages($langs->trans("SepaMandateErrorWhileValidatingMandat"), $object->errors, 'errors');
+			} else {
+				setEventMessages($langs->trans('SepaMandateSuccessfullyValidated'), array());
+			}
+		}
+	}
+
+	/**
+	 * Function to manage confirm signed action
+	 * @param string $action request action
+	 * @param SepaMandat $object object on which do action
+	 * @param string $userPermission Permission of the user
+	 * @param User $user User requesting
+	 * @return void
+	 */
+	public function manageSignedAction($action, $object, $userPermission, $user)
+	{
+		if ($action == self::CONFIRM_SIGNED_ACTION_NAME) {
+			global $langs;
+			if (!$userPermission) {
+				setEventMessages($langs->trans("SepaMandateNotAllowed"), array(), 'errors');
+			} elseif ($object->status != $object::STATUS_TOSIGN) {
+				setEventMessages($langs->trans('SepaMandateNotAllowedAccordingToData'), array(), 'errors');
+			} elseif ($object->setSigned($user) <= 0) {
+				setEventMessages($langs->trans("SepaMandateErrorWhileSettingSignedMandat"), $object->errors, 'errors');
+			} else {
+				setEventMessages($langs->trans('SepaMandateSuccessfullySetSigned'), array());
+			}
+		}
+	}
+
+	/**
+	 * Function to manage confirm staled action
+	 * @param string $action request action
+	 * @param SepaMandat $object object on which do action
+	 * @param string $userPermission Permission of the user
+	 * @param User $user User requesting
+	 * @return void
+	 */
+	public function manageStaledAction($action, $object, $userPermission, $user)
+	{
+		if ($action == self::CONFIRM_SET_STALED_ACTION_NAME) {
+			global $langs;
+			if (!$userPermission) {
+				setEventMessages($langs->trans("SepaMandateNotAllowed"), array(), 'errors');
+			} elseif ($object->status != $object::STATUS_SIGNED) {
+				setEventMessages($langs->trans('SepaMandateNotAllowedAccordingToData'), array(), 'errors');
+			} elseif ($object->setStale($user) <= 0) {
+				setEventMessages($langs->trans("SepaMandateErrorWhileSettingToStaleMandat"), $object->errors, 'errors');
+			} else {
+				setEventMessages($langs->trans('SepaMandateSuccessfullySetToStale'), array());
+			}
+		}
+	}
+
+
+	/**
+	 * Function to manage confirm canceled action
+	 * @param string $action request action
+	 * @param SepaMandat $object object on which do action
+	 * @param string $userPermission Permission of the user
+	 * @param User $user User requesting
+	 * @return void
+	 */
+	public function manageCanceledAction($action, $object, $userPermission, $user)
+	{
+		if ($action == self::CONFIRM_SET_CANCELED_ACTION_NAME) {
+			global $langs;
+			if (!$userPermission) {
+				setEventMessages($langs->trans("SepaMandateNotAllowed"), array(), 'errors');
+			} elseif ($object->status != $object::STATUS_SIGNED && $object->status != $object::STATUS_TOSIGN) {
+				setEventMessages($langs->trans('SepaMandateNotAllowedAccordingToData'), array(), 'errors');
+			} elseif ($object->setCanceled($user) <= 0) {
+				setEventMessages($langs->trans("SepaMandateErrorWhileCancellingMandat"), $object->errors, 'errors');
+			} else {
+				setEventMessages($langs->trans('SepaMandateSuccessfullySetToCancel'), array());
+			}
+		}
+	}
+
+
+	/**
+	 * Function to manage confirm back to draft
+	 * @param string $action request action
+	 * @param SepaMandat $object object on which do action
+	 * @param string $userPermission Permission of the user
+	 * @param User $user User requesting
+	 * @return void
+	 */
+	public function manageBackToDraftAction($action, $object, $userPermission, $user)
+	{
+		if ($action == self::CONFIRM_SET_BACK_TO_DRAFT_ACTION_NAME) {
+			global $langs;
+			if (!$userPermission) {
+				setEventMessages($langs->trans("SepaMandateNotAllowed"), array(), 'errors');
+			} elseif ($object->status != $object::STATUS_TOSIGN) {
+				setEventMessages($langs->trans('SepaMandateNotAllowedAccordingToData'), array(), 'errors');
+			} elseif ($object->setBackToDraft($user) <= 0) {
+				setEventMessages($langs->trans("SepaMandateErrorWhileSettingBackToDraftMandat"), $object->errors, 'errors');
+			} else {
+				setEventMessages($langs->trans('SepaMandateSuccessfullySetBackToDraft'), array());
+			}
+		}
+	}
+
+	/**
+	 * Function to manage confirm back to draft
+	 * @param string $action request action
+	 * @param SepaMandat $object object on which do action
+	 * @param string $userPermission Permission of the user
+	 * @param User $user User requesting
+	 * @return void
+	 */
+	public function manageBackToToSignAction($action, $object, $userPermission, $user)
+	{
+		if ($action == self::CONFIRM_SET_BACK_TO_TO_SIGN_ACTION_NAME) {
+			global $langs;
+			if (!$userPermission) {
+				setEventMessages($langs->trans("SepaMandateNotAllowed"), array(), 'errors');
+			} elseif ($object->status != $object::STATUS_SIGNED && $object->status != $object::STATUS_CANCELED) {
+				setEventMessages($langs->trans('SepaMandateNotAllowedAccordingToData'), array(), 'errors');
+			} elseif ($object->setBackToToSign($user) <= 0) {
+				setEventMessages($langs->trans("SepaMandateErrorWhileSettingBackToToSignMandat"), $object->errors, 'errors');
+			} else {
+				setEventMessages($langs->trans('SepaMandateSuccessfullySetBackToToSign'), array());
+			}
+		}
+	}
+		/**
+	 * Function to manage confirm back to draft
+	 * @param string $action request action
+	 * @param SepaMandat $object object on which do action
+	 * @param string $userPermission Permission of the user
+	 * @param User $user User requesting
+	 * @return void
+	 */
+	public function manageBackToSignedAction($action, $object, $userPermission, $user)
+	{
+		if ($action == self::CONFIRM_SET_BACK_TO_SIGNED_ACTION_NAME) {
+			global $langs;
+			if (!$userPermission) {
+				setEventMessages($langs->trans("SepaMandateNotAllowed"), array(), 'errors');
+			} elseif ($object->status != $object::STATUS_SIGNED && $object->status != $object::STATUS_STALE) {
+				setEventMessages($langs->trans('SepaMandateNotAllowedAccordingToData'), array(), 'errors');
+			} elseif ($object->setBackToSigned($user) <= 0) {
+				setEventMessages($langs->trans("SepaMandateErrorWhileSettingBackToSignedMandat"), $object->errors, 'errors');
+			} else {
+				setEventMessages($langs->trans('SepaMandateSuccessfullySetBackToSigned'), array());
+			}
+		}
 	}
 }
