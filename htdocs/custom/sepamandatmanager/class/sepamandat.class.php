@@ -491,20 +491,106 @@ class Sepamandat extends CommonObject
 
 
 	/**
-	 *	Set draft status
+	 *	Set back to draft status
 	 *
 	 *	@param	User	$user			Object user that modify
 	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
 	 *	@return	int						<0 if KO, >0 if OK
 	 */
-	public function setDraft($user, $notrigger = 0)
+	public function setBackToDraft($user, $notrigger = 0)
 	{
 		// Protection
-		if ($this->status <= self::STATUS_DRAFT) {
+		if ($this->status != self::STATUS_TOSIGN) {
 			return 0;
 		}
-
 		return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'SEPAMANDAT_UNVALIDATE');
+	}
+
+	/**
+	 *	Set back to draft status
+	 *
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, >0 if OK
+	 */
+	public function setBackToToSign($user, $notrigger = 0)
+	{
+		// Protection
+		if ($this->status != self::STATUS_SIGNED) {
+			return 0;
+		}
+		return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'SEPAMANDAT_UNSIGNED');
+	}
+
+	/**
+	 *	Set back to signed status
+	 *
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, >0 if OK
+	 */
+	public function setSigned($user, $notrigger = 0)
+	{
+		// Protection
+		if ($this->status != self::STATUS_TOSIGN) {
+			return 0;
+		}
+		return $this->setStatusCommon($user, self::STATUS_SIGNED, $notrigger, 'SEPAMANDAT_SIGNED');
+	}
+
+	/**
+	 *	Set back to cancel status
+	 *
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, >0 if OK
+	 */
+	public function setCanceled($user, $notrigger = 0)
+	{
+		// Protection
+		if ($this->status != self::STATUS_TOSIGN) {
+			return 0;
+		}
+		return $this->setStatusCommon($user, self::STATUS_CANCELED, $notrigger, 'SEPAMANDAT_CANCELED');
+	}
+
+	/**
+	 *	Set back to cancel status
+	 *
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, >0 if OK
+	 */
+	public function setStale($user, $notrigger = 0)
+	{
+		// Protection
+		if ($this->status != self::STATUS_SIGNED) {
+			return 0;
+		}
+		return $this->setStatusCommon($user, self::STATUS_SIGNED, $notrigger, 'SEPAMANDAT_STALE');
+	}
+
+	/**
+	 *	Set back to signed status
+	 *
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *	@return	int						<0 if KO, >0 if OK
+	 */
+	public function setBackToSigned($user, $notrigger = 0)
+	{
+		// Protection
+		if($this->status == self::STATUS_STALE) {
+			$triggerName = 'SEPAMANDAT_UNSTALE';
+		}
+		elseif($this->status == self::STATUS_CANCELED) {
+			$triggerName = 'SEPAMANDAT_UNCANCELED';
+		}
+		else {
+			//Protection
+			return 0;
+		}
+		return $this->setStatusCommon($user, self::STATUS_SIGNED, $notrigger, $triggerName);
 	}
 
 	/**

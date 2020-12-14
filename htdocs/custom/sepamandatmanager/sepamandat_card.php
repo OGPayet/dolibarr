@@ -106,7 +106,6 @@ if (empty($action) && empty($id) && empty($ref)) $action = 'view';
 // Load object
 include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be include, not include_once.
 
-
 $permissiontoread = $user->rights->sepamandatmanager->sepamandat->read;
 $permissiontoadd = $user->rights->sepamandatmanager->sepamandat->write; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
 $permissiontodelete = $user->rights->sepamandatmanager->sepamandat->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
@@ -165,22 +164,23 @@ if (empty($reshook)) {
 	include DOL_DOCUMENT_ROOT . '/core/actions_sendmails.inc.php';
 
 	//Set back to draft
-	if($action == 'setdraft') {
-		if($user->rights->sepamandatmanager->sepamandat->write)
+	if($action == 'setdraft' && $confirm == 'yes') {
+		if(!$user->rights->sepamandatmanager->sepamandat->write)
 		{
-
+			setEventMessages($langs->trans("NotAllowed"), array(), 'errors');
 		}
 		elseif($object->status != $object::STATUS_TOSIGN)
 		{
-
+			setEventMessages($langs->trans("SepaMandateOperationNotAllowedAccordingToStatus"), array(), 'errors');
 		}
-		else if($object->setBackToDraft($user) < 0) {
-
+		elseif($object->setBackToDraft($user) <= 0)
+		{
+			setEventMessages($langs->trans("SepaMandateSuccessfullySetToDraft"), array());
+		}
+		else {
+			setEventMessages($langs->trans("SepaMandateSuccessfullySetErrors"), $object->errors, 'errors');
 		}
 	}
-	$object->status == $object::STATUS_TOSIGN && $user->rights->sepamandatmanager->sepamandat->write;
-
-
 }
 
 
