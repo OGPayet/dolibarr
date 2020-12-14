@@ -491,6 +491,7 @@ class Sepamandat extends CommonObject
 		}
 
 		if (empty($this->errors)) {
+			$this->generatePdf();
 			$this->db->commit();
 			return 1;
 		} else {
@@ -949,5 +950,32 @@ class Sepamandat extends CommonObject
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Function to generate pdf file
+	 * @return int <0 if ko, >0 if ok
+	 */
+	public function generatePdf()
+	{
+		global $conf, $langs;
+		// Define output language
+		if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
+		{
+			$outputlangs = $langs;
+			$newlang = '';
+			if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) {
+				$newlang = GETPOST('lang_id', 'aZ09');
+			}
+			if ($conf->global->MAIN_MULTILANGS && empty($newlang))	{
+				$newlang = $this->thirdparty->default_lang;
+			}
+			if (!empty($newlang)) {
+				$outputlangs = new Translate("", $conf);
+				$outputlangs->setDefaultLang($newlang);
+			}
+			$model = $this->modelpdf;
+			return $this->generateDocument($model, $outputlangs);
+		}
 	}
 }
