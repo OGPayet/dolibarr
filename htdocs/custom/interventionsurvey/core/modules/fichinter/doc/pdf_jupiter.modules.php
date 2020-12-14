@@ -1408,49 +1408,69 @@ class pdf_jupiter extends ModelePDFFicheinter
         //----------------------------------
         $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
 
-        $signature_date_list = array();
-        foreach ($signature_info['people'] as $people) {
-            if ($people['date']) {
-                $signature_date_list[] = $people['date'];
+        if (!$signature_info['isCustomerAbsent']) {
+            $signature_date_list = array();
+            foreach ($signature_info['people'] as $people) {
+                if ($people['date']) {
+                    $signature_date_list[] = $people['date'];
+                }
             }
-        }
-        if (count($signature_date_list) > 0) {
-            $signature_date = max($signature_date_list);
+            if (count($signature_date_list) > 0) {
+                $signature_date = max($signature_date_list);
+            } else {
+                $signature_date = "";
+            }
+
+            $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
+            $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
+            $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
+            $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
+            $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
+            $signature_info_people = $signature_info['people'];
+            $signature_info_image = $signature_info['value'];
+
+            // Print image
+            if (!empty($signature_info_image)) {
+                $img_src2 = $temp_dir_signature . '/signature2';
+                $imageContent = @file_get_contents($signature_info_image);
+                @file_put_contents($img_src2, $imageContent);
+
+                $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $img_src2 . '"/>', $border, 1);
+                $posy = $pdf->GetY();
+            }
+
+            // Print texte
+            $signature_title = $outputlangs->transnoentities('InterventionSurveyPdfCustomerSignature', $signature_info_day, $signature_info_hour);
+            $signature_people = array();
+            foreach ($signature_info_people as $person) {
+                $signature_people[] = $person['name'];
+            }
+            $signature_text = '<font size="' . $signature_font_size . '">' . $signature_title . '<br />' . implode(', ', $signature_people) . '</font>';
+            $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
+            $end_y = max($end_y, $pdf->GetY());
+
+            if (!empty($img_src1) && file_exists($img_src1)) @unlink($img_src1);
+            if (!empty($img_src2) && file_exists($img_src2)) @unlink($img_src2);
+            @unlink($temp_dir_signature);
         } else {
-            $signature_date = "";
+            $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
+            $signature_date = $signature_info['date'];
+            $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
+            $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
+            $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
+            $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
+            $signature_info_user = $signature_info['user'];
+            $signature_info_localisation = $signature_info['user']['localisation'];
+
+            // Print texte
+            $signature_title = $outputlangs->transnoentities('InterventionSurveyPdfCustomerSignature', $signature_info_day, $signature_info_hour);
+            $signature_user = $signature_info_user['name'];
+            $signature_text = '<font size="17px">Client non présent</font> <br />';
+            $signature_text .= '<font size="' . $signature_font_size . '">' . $signature_title . '<br />';
+            $signature_text .= 'Fait à ' . ' par ' . $signature_user . '</font>';
+            $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
+            $end_y = max($end_y, $pdf->GetY());
         }
-
-        $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
-        $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
-        $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
-        $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
-        $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
-        $signature_info_people = $signature_info['people'];
-        $signature_info_image = $signature_info['value'];
-
-        // Print image
-        if (!empty($signature_info_image)) {
-            $img_src2 = $temp_dir_signature . '/signature2';
-            $imageContent = @file_get_contents($signature_info_image);
-            @file_put_contents($img_src2, $imageContent);
-
-            $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $img_src2 . '"/>', $border, 1);
-            $posy = $pdf->GetY();
-        }
-
-        // Print texte
-        $signature_title = $outputlangs->transnoentities('InterventionSurveyPdfCustomerSignature', $signature_info_day, $signature_info_hour);
-        $signature_people = array();
-        foreach ($signature_info_people as $person) {
-            $signature_people[] = $person['name'];
-        }
-        $signature_text = '<font size="' . $signature_font_size . '">' . $signature_title . '<br />' . implode(', ', $signature_people) . '</font>';
-        $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
-        $end_y = max($end_y, $pdf->GetY());
-
-        if (!empty($img_src1) && file_exists($img_src1)) @unlink($img_src1);
-        if (!empty($img_src2) && file_exists($img_src2)) @unlink($img_src2);
-        @unlink($temp_dir_signature);
 
         // Draw frame
         call_user_func_array(array($pdf, 'SetDrawColor'), $this->main_color);
