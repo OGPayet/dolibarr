@@ -1421,14 +1421,22 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $signature_date = "";
             }
 
-            $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
-            $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
-            $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
-            $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
-            $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
             $signature_info_people = $signature_info['people'];
             $signature_info_image = $signature_info['value'];
+        } else {
+            $signature_date = $signature_info['date'];
+            $signature_info_user = $signature_info['user'];
+            $signature_info_localisation = $signature_info['user']['position'];
+            $signature_info_latitude = $signature_info_localisation['coords']['latitude'];
+            $signature_info_longitude = $signature_info_localisation['coords']['longitude'];
+        }
 
+        $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
+        $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
+        $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
+        $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
+
+        if (!$signature_info['isCustomerAbsent']) {
             // Print image
             if (!empty($signature_info_image)) {
                 $img_src2 = $temp_dir_signature . '/signature2';
@@ -1453,17 +1461,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             if (!empty($img_src2) && file_exists($img_src2)) @unlink($img_src2);
             @unlink($temp_dir_signature);
         } else {
-            $signature_info = !empty($object->array_options['options_customer_signature']) ? json_decode($object->array_options['options_customer_signature'], true) : array();
-            $signature_date = $signature_info['date'];
-            $signature_info_day = dol_print_date($signature_date, 'day', false, $outputlangs);
-            $signature_info_day = !empty($signature_info_day) ? $signature_info_day : '...';
-            $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
-            $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
-            $signature_info_user = $signature_info['user'];
-            $signature_info_localisation = $signature_info['user']['position'];
-            $signature_info_latitude = $signature_info_localisation['coords']['latitude'];
-            $signature_info_longitude = $signature_info_localisation['coords']['longitude'];
-            dol_include_once('nominatim//nominatim-api.php');
+            dol_include_once('interventionsurvey/lib/interventionSurveyReverseGeocoding.php');
 
             // Print texte
             $signature_title = $outputlangs->transnoentities('InterventionSurveyPdfCustomerSignature', $signature_info_day, $signature_info_hour);
