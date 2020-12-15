@@ -1466,10 +1466,10 @@ class pdf_jupiter extends ModelePDFFicheinter
             // Print texte
             $signature_title = $outputlangs->transnoentities('InterventionSurveyPdfCustomerSignature', $signature_info_day, $signature_info_hour);
             $signature_user = $signature_info_user['name'];
-            $signature_address = reverseGeocoding($signature_info_latitude, $signature_info_longitude);
-            $signature_text = '<br /><font size="10px">Client non présent</font><br /><br />';
+            $signature_address = interventionSurveyReverseGeocoding($signature_info_latitude, $signature_info_longitude);
+            $signature_text = '<br /><font size="10px">' . $langs->trans('InterventionSurveyPdfAbsentCustomerSignature') . '</font><br /><br />';
             $signature_text .= '<font size="' . $signature_font_size . '">' . $signature_title . '<br />';
-            $signature_text .= 'Fait à ' . $signature_address . ' par ' . $signature_user . '</font>';
+            $signature_text .= $langs->trans('InterventionSurveyPdfAbsentCustomerSignatureAddressAndUser', $signature_address, $signature_user) . '</font>';
             $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
             $end_y = max($end_y, $pdf->GetY());
         }

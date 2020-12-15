@@ -6,7 +6,7 @@
      * @param  string  $longitude       lng coord
 	 * @return string  $return          address
 */
-function reverseGeocoding($latitude, $longitude) {
+function interventionSurveyReverseGeocoding($latitude, $longitude) {
     $url = "https://nominatim.openstreetmap.org/reverse?lat={$latitude}&lon={$longitude}&format=json";
 
     // Create a curl handle to a non-existing location
