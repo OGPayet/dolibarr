@@ -14,20 +14,16 @@ function interventionSurveyReverseGeocoding($latitude, $longitude) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
 
-    $json = '';
-    if ( ($json = curl_exec($ch) ) !== false) {
-        $json = curl_exec($ch);
+    $result = '';
+    $json = curl_exec($ch);
+    if ($json !== false && !curl_errno($ch)) {
         $resp = json_decode($json, true);
-        $return = $resp['display_name'];
-    }
-
-    if (curl_errno($ch)) {
-        $return = '';
+        $result = $resp['display_name'];
     }
 
     // Close handle
     curl_close($ch);
 
-    return $return;
+    return $result;
 }
 ?>
