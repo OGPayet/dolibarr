@@ -32,6 +32,9 @@ CREATE TABLE llx_sepamandatmanager_sepamandat(
 	bic varchar(255),
 	status integer NOT NULL,
 	type integer,
-	date_rum date
+	date_rum date,
+	fk_companybankaccount integer
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;
+
+ALTER TABLE `llx_societe_rib` CHANGE `label` `label` VARCHAR(1000);

@@ -32,7 +32,7 @@
  * - The name property name must be MyTrigger
  */
 
-require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
 
 
 /**
@@ -99,56 +99,63 @@ class InterfaceSepaMandatManagerAutomaticEventCreationTriggers extends DolibarrT
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 	{
-		if (empty($conf->sepamandatmanager->enabled))
-		{
+		if (empty($conf->sepamandatmanager->enabled)) {
 			return 0; // If module is not enabled, we do nothing
 		}
 
 		dol_include_once("/sepamandatmanager/class/sepamandat.class.php");
 
-		if($object->element == SepaMandat::$staticElement) {
+		if ($object->element == SepaMandat::$staticElement) {
 			$arrayOfTriggerCodeConfigurationAndEventContent = array(
-				'SEPAMANDAT_CREATE'=>array(
-					'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_CREATION,
-					'title'=>$langs->trans('SepaMandatCreateEventTitle', $object->ref),
-					'description'=>$langs->trans('SepaMandatCreateEventDescription', $object->ref)),
-			'SEPAMANDAT_TOSIGN'=>array(
-				'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_TOSIGN,
-				'title'=>$langs->trans('SepaMandatToSignEventTitle', $object->ref),
-				'description'=>$langs->trans('SepaMandatToSignEventDescription', $object->ref)),
-			'SEPAMANDAT_UNVALIDATE' => array(
-				'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_UNVALIDATE,
-				'title'=>$langs->trans('SepaMandatUnValidateEventTitle', $object->ref),
-				'description'=>$langs->trans('SepaMandatUnValidateEventDescription', $object->ref)),
-			'SEPAMANDAT_UNSIGNED' => array(
-				'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_UNSIGNED,
-				'title'=>$langs->trans('SepaMandatSetBackToToSignEventTitle', $object->ref),
-				'description'=>$langs->trans('SepaMandatSetBackToToSignEventDescription', $object->ref)),
-			'SEPAMANDAT_SIGNED' => array(
-				'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_SIGNED,
-				'title'=>$langs->trans('SepaMandatSignedEventTitle', $object->ref),
-				'description'=>$langs->trans('SepaMandatSignedEventDescription', $object->ref)),
-			'SEPAMANDAT_CANCELED' => array(
-				'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_CANCELED,
-				'title'=>$langs->trans('SepaMandatCanceledEventTitle', $object->ref),
-				'description'=>$langs->trans('SepaMandatCanceledEventDescription', $object->ref)),
-			'SEPAMANDAT_STALE' => array(
-				'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_STALE,
-				'title'=>$langs->trans('SepaMandatStaleEventTitle', $object->ref),
-				'description'=>$langs->trans('SepaMandatStaleEventDescription', $object->ref)),
-			'SEPAMANDAT_UNSTALE' => array(
-				'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_UNSTALE,
-				'title'=>$langs->trans('SepaMandatUnStaleEventTitle', $object->ref),
-				'description'=>$langs->trans('SepaMandatUnStaleEventDescription', $object->ref)),
-			'SEPAMANDAT_UNCANCELED' => array(
-				'activated'=>$conf->global->SEPAMANDATE_SEPAMANDATEEVENT_UNCANCELED,
-				'title'=>$langs->trans('SepaMandatUnCanceledEventTitle', $object->ref),
-				'description'=>$langs->trans('SepaMandatUnCanceledEventDescription', $object->ref)),
+				'SEPAMANDAT_CREATE' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_CREATION,
+					'title' => $langs->trans('SepaMandatCreateEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatCreateEventDescription', $object->ref)
+				),
+				'SEPAMANDAT_TOSIGN' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_TOSIGN,
+					'title' => $langs->trans('SepaMandatToSignEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatToSignEventDescription', $object->ref)
+				),
+				'SEPAMANDAT_UNVALIDATE' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_UNVALIDATE,
+					'title' => $langs->trans('SepaMandatUnValidateEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatUnValidateEventDescription', $object->ref)
+				),
+				'SEPAMANDAT_UNSIGNED' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_UNSIGNED,
+					'title' => $langs->trans('SepaMandatSetBackToToSignEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatSetBackToToSignEventDescription', $object->ref)
+				),
+				'SEPAMANDAT_SIGNED' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_SIGNED,
+					'title' => $langs->trans('SepaMandatSignedEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatSignedEventDescription', $object->ref)
+				),
+				'SEPAMANDAT_CANCELED' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_CANCELED,
+					'title' => $langs->trans('SepaMandatCanceledEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatCanceledEventDescription', $object->ref)
+				),
+				'SEPAMANDAT_STALE' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_STALE,
+					'title' => $langs->trans('SepaMandatStaleEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatStaleEventDescription', $object->ref)
+				),
+				'SEPAMANDAT_UNSTALE' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_UNSTALE,
+					'title' => $langs->trans('SepaMandatUnStaleEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatUnStaleEventDescription', $object->ref)
+				),
+				'SEPAMANDAT_UNCANCELED' => array(
+					'activated' => $conf->global->SEPAMANDATE_SEPAMANDATEEVENT_UNCANCELED,
+					'title' => $langs->trans('SepaMandatUnCanceledEventTitle', $object->ref),
+					'description' => $langs->trans('SepaMandatUnCanceledEventDescription', $object->ref)
+				),
 			);
 		}
 
-		if(!empty($arrayOfTriggerCodeConfigurationAndEventContent[$action]['activated']))
-		{
+		if (!empty($arrayOfTriggerCodeConfigurationAndEventContent[$action]['activated'])) {
 			$titleAndDescription = $arrayOfTriggerCodeConfigurationAndEventContent[$action];
 
 			// Insertion action
@@ -156,7 +163,7 @@ class InterfaceSepaMandatManagerAutomaticEventCreationTriggers extends DolibarrT
 			dol_include_once('/comm/action/class/actioncomm.class.php');
 			$actioncomm = new ActionComm($this->db);
 			$actioncomm->type_code   = "AC_OTH_AUTO";		// Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
-			$actioncomm->code        = 'AC_'.$action;
+			$actioncomm->code        = 'AC_' . $action;
 			$actioncomm->label       = $titleAndDescription['title'];
 			$actioncomm->note        = $titleAndDescription['description'] . "<br>" . $langs->trans('SepaMandatEventAuthor', $user->login);
 			//$actioncomm->fk_project  = $object->getLinkedProjectId();
@@ -169,10 +176,10 @@ class InterfaceSepaMandatManagerAutomaticEventCreationTriggers extends DolibarrT
 			$actioncomm->userownerid = $user->id;	// Owner of action
 			$actioncomm->fk_element  = $object->id;
 			$actioncomm->elementtype = $object->element;
-			$ret=$actioncomm->create($user);       // User creating action
+			$ret = $actioncomm->create($user);       // User creating action
 			return $ret;
 		}
-		dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);
+		dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
 		return 0;
 	}
 }

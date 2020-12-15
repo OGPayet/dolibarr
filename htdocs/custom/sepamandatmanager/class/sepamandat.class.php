@@ -122,6 +122,7 @@ class SepaMandat extends CommonObject
 		'status' => array('type' => 'integer', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 1, 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Validé', '9' => 'Annulé'), 'noteditable' => 1),
 		'type' => array('type' => 'integer', 'label' => 'Type de mandat', 'enabled' => '1', 'position' => 115, 'notnull' => 1, 'visible' => 1, 'default' => self::TYPE_RECURRENT),
 		'date_rum' => array('type' => 'date', 'label' => 'Date du mandat', 'enabled' => '1', 'position' => 500, 'notnull' => 0, 'visible' => 1,),
+		'fk_companybankaccount'=> array('type' => 'integer:CompanyBankAccount:societe/class/companybankaccount.class.php', 'label' => 'Linked company bank account', 'enabled' => 1, 'visible' => 0, 'index' => 1)
 	);
 	public $rowid;
 	public $ref;
@@ -139,6 +140,7 @@ class SepaMandat extends CommonObject
 	public $status;
 	public $type;
 	public $date_rum;
+	public $fk_companybankaccount;
 	// END MODULEBUILDER PROPERTIES
 
 	/**
@@ -364,7 +366,7 @@ class SepaMandat extends CommonObject
 	 * @param  int         $offset       Offset
 	 * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
 	 * @param  string      $filtermode   Filter mode (AND or OR)
-	 * @return array|int                 int <0 if KO, array of pages if OK
+	 * @return SepaMandat[]|int                 int <0 if KO, array of pages if OK
 	 */
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND')
 	{
@@ -510,6 +512,7 @@ class SepaMandat extends CommonObject
 	public function checkMandatType()
 	{
 		global $langs;
+		$result = array();
 		if(empty($this->type)) {
 			$result[] = $langs->trans("SepaMandateNoTypeSet");
 		}
@@ -582,6 +585,54 @@ class SepaMandat extends CommonObject
 		}
 	}
 
+	/**
+	 * Proper function to override setStatus common which launch triggers without instance update to date
+	 *	@param	User	$user			Object user that modify
+	 *  @param	int		$status			New status to set (often a constant like self::STATUS_XXX)
+	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
+	 *  @param  string  $triggercode    Trigger code to use
+	 *	@return	int						<0 if KO, >0 if OK
+	 */
+	public function setStatusCommon($user, $status, $notrigger = 0, $triggercode = '')
+	{
+		$error = 0;
+
+		$this->db->begin();
+		$oldStatus = $this->status;
+		$sql = "UPDATE ".MAIN_DB_PREFIX.$this->table_element;
+		$sql .= " SET status = ".$status;
+		$sql .= " WHERE rowid = ".$this->id;
+
+		if ($this->db->query($sql))
+		{
+			if (!$error)
+			{
+				$this->oldcopy = clone $this;
+				$this->status = $status;
+			}
+
+			if (!$error && !$notrigger) {
+				// Call trigger
+				$result = $this->call_trigger($triggercode, $user);
+				if ($result < 0) $error++;
+			}
+
+			if (!$error) {
+				$this->db->commit();
+				return 1;
+			} else {
+				$this->db->rollback();
+				$this->status = $oldStatus;
+				return -1;
+			}
+		}
+		else
+		{
+			$this->error = $this->db->error();
+			$this->db->rollback();
+			return -1;
+		}
+	}
 
 	/**
 	 *	Set back to draft status
@@ -596,6 +647,7 @@ class SepaMandat extends CommonObject
 		if ($this->status != self::STATUS_TOSIGN) {
 			return 0;
 		}
+		$this->status = self::STATUS_DRAFT;
 		return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'SEPAMANDAT_UNVALIDATE');
 	}
 

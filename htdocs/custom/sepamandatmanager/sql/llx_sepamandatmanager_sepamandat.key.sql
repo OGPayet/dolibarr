@@ -21,6 +21,7 @@ ALTER TABLE llx_sepamandatmanager_sepamandat ADD INDEX idx_sepamandatmanager_sep
 ALTER TABLE llx_sepamandatmanager_sepamandat ADD CONSTRAINT llx_sepamandatmanager_sepamandat_fk_user_creat FOREIGN KEY (fk_user_creat) REFERENCES llx_user(rowid);
 ALTER TABLE llx_sepamandatmanager_sepamandat ADD INDEX idx_sepamandatmanager_sepamandat_fk_project (fk_project);
 ALTER TABLE llx_sepamandatmanager_sepamandat ADD INDEX idx_sepamandatmanager_sepamandat_status (status);
+ALTER TABLE llx_sepamandatmanager_sepamandat ADD INDEX idx_sepamandatmanager_fk_companybankaccount (fk_companybankaccount);
 -- END MODULEBUILDER INDEXES
 
 --ALTER TABLE llx_sepamandatmanager_sepamandat ADD UNIQUE INDEX uk_sepamandatmanager_sepamandat_fieldxy(fieldx, fieldy);
