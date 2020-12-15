@@ -28,7 +28,7 @@ dol_include_once('/sepamandatmanager/class/sepamandat.class.php');
 /**
  * Class for Sepamandat
  */
-class Sepamandat extends CommonObject
+class SepaMandat extends CommonObject
 {
 	/**
 	 * @var string ID to identify managed object.
@@ -39,6 +39,16 @@ class Sepamandat extends CommonObject
 	 * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management.
 	 */
 	public $table_element = 'sepamandatmanager_sepamandat';
+
+	/**
+	 * @var string ID to identify managed object.
+	 */
+	public static $staticElement = 'sepamandatmanager_sepamandat';
+
+	/**
+	 * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management.
+	 */
+	public static $static_table_element = 'sepamandatmanager_sepamandat';
 
 	/**
 	 * @var int  Does this object support multicompany module ?

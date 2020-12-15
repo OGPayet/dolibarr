@@ -85,8 +85,6 @@ SepaMandateSetUnStale = Réouvrir
 SepaMandateSetUnCancel = Réouvrir
 SepaMandateSetUnSign = Repasser en "A signer"
 
-
-
 #
 # Status
 #
@@ -123,6 +121,26 @@ SepaMandateEventOnStale = Créer un évènement lors du passage en "expiré"
 SepaMandateEventOnUnstale = Créer un évènement lors de la réouverture du mandat depuis l'état "Annulé"
 SepaMandateEventOnUncanceled = Créer un évènement lors de la réouverture du mandant depuis l'état "Signé"
 SepaMandateEventOnUnsigned = Créer un évènement lors du passage de l'état "signé" en "à signer"
+
+SepaMandatCreateEventTitle = Mandat SEPA %s créé
+SepaMandatCreateEventDescription = Mandat SEPA %s créé avec succès avec succès
+SepaMandatToSignEventTitle = Mandat SEPA %s place en "A signer"
+SepaMandatToSignEventDescription = Le Mandat SEPA %s a été placé en "A signer" par le débiteur
+SepaMandatUnValidateEventTitle = Mandat SEPA %s repassé en brouillon
+SepaMandatUnValidateEventDescription = Le mandat SEPA %s a été passé au statut brouillon
+SepaMandatSetBackToToSignEventTitle = Mandat SEPA %s repassé au statut 'A signer'
+SepaMandatSetBackToToSignEventDescription = Le mandat SEPA %s a été repassé au status à signer
+SepaMandatSignedEventTitle = Mandat SEPA %s signé
+SepaMandatSignedEventDescription = Le mandat SEPA %s a été placé au status Signé
+SepaMandatCanceledEventTitle = Mandat SEPA %s annulé
+SepaMandatCanceledEventDescription = Le mandat SEPA %s a été annulé
+SepaMandatStaleEventTitle = Mandat SEPA %s expiré
+SepaMandatStaleEventDescription = Le mandat SEPA %s a été noté comme expiré
+SepaMandatUnStaleEventTitle = Mandat SEPA %s réouvert
+SepaMandatUnStaleEventDescription = Le mandat SEPA %s a été réouvert. Son status est passé de "Expiré" à "A signer"
+SepaMandatUnCanceledEventTitle = Mandat SEPA %s réouvert
+SepaMandatUnCanceledEventDescription = Le mandat SEPA %s a été réouvert. Son status est passé de "Annulé" à "A signer"
+SepaMandatEventAuthor = Auteur :
 
 #
 # Page À propos
