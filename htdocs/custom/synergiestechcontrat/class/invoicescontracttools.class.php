@@ -1366,7 +1366,7 @@ class InvoicesContractTools
 
         $revaluation_date->year($effective_date->year);
 
-        if($revaluation_date < $effective_date) {
+        if($revaluation_date <= $effective_date) {
             $revaluation_date->addYear(1);
         }
 
