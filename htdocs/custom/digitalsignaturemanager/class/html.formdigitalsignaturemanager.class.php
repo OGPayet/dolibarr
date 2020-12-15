@@ -637,7 +637,6 @@ class FormDigitalSignatureManager
                             var form_dialog_confirm = $("form#form_dialog_confirm");
                             form_dialog_confirm.find("input#confirm").val("yes");
 							form_dialog_confirm.submit();
-							console.log(form_dialog_confirm.submit());
                             $(this).dialog("close");
                         },
                         "' . dol_escape_js($langs->transnoentities("No")) . '": function() {

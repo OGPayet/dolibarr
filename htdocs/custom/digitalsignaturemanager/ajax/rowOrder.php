@@ -64,9 +64,6 @@ $managedElementTypeAndStaticInstance = array(
 	$staticDigitalSignatureCheckBox->element => $staticDigitalSignatureCheckBox
 );
 
-
-
-
 // Registering the location of boxes
 if ($managedElementTypeAndStaticInstance[$elementType])
 {
