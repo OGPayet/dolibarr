@@ -22,6 +22,7 @@
  *
  * Put detailed description here.
  */
+dol_include_once('/sepamandatmanager/class/sepamandatcompanybankaccountlink.class.php');
 
 /**
  * Class ActionsSepaMandatManager
@@ -65,24 +66,6 @@ class ActionsSepaMandatManager
 		$this->db = $db;
 	}
 
-
-	/**
-	 * Execute action
-	 *
-	 * @param	array			$parameters		Array of parameters
-	 * @param	CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param	string			$action      	'add', 'update', 'view'
-	 * @return	int         					<0 if KO,
-	 *                           				=0 if OK but we want to process standard actions too,
-	 *                            				>0 if OK and we want to replace standard actions.
-	 */
-	public function getNomUrl($parameters, &$object, &$action)
-	{
-		global $db, $langs, $conf, $user;
-		$this->resprints = '';
-		return 0;
-	}
-
 	/**
 	 * Overloading the doActions function : replacing the parent's function with the one below
 	 *
@@ -94,218 +77,24 @@ class ActionsSepaMandatManager
 	 */
 	public function doActions($parameters, &$object, &$action, $hookmanager)
 	{
-		global $conf, $user, $langs;
-
-		$error = 0; // Error counter
-
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-		if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2')))	    // do something only for the context 'somecontext1' or 'somecontext2'
-		{
-			// Do what you want here...
-			// You can for example call global vars like $fieldstosearchall to overwrite them, or update database depending on $action and $_POST values.
-		}
-
-		if (!$error) {
-			$this->results = array('myreturn' => 999);
-			$this->resprints = 'A text to show';
-			return 0; // or return 1 to replace standard code
-		} else {
-			$this->errors[] = 'Error message';
-			return -1;
-		}
-	}
-
-
-	/**
-	 * Overloading the doMassActions function : replacing the parent's function with the one below
-	 *
-	 * @param   array           $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          $action         Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	public function doMassActions($parameters, &$object, &$action, $hookmanager)
-	{
-		global $conf, $user, $langs;
-
-		$error = 0; // Error counter
-
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-		if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-		{
-			foreach ($parameters['toselect'] as $objectid)
-			{
-				// Do action on each object id
+		global $langs;
+		$errors = array();
+		$contexts = explode(':', $parameters['context']);
+		if (in_array('thirdpartybancard', $contexts) && ($action == 'edit' || $action == 'delete' || $action == 'confirm_delete')) {
+			$id = GETPOST('id');
+			if(SepaMandatCompanyBankAccountLink::isAMandateLinkedToThisCompanyAccountId($this->db, $id)) {
+				$errors[] = $langs->trans('SepaMandateManagedByASepaMandate');
+				$action = null;
 			}
 		}
 
-		if (!$error) {
-			$this->results = array('myreturn' => 999);
-			$this->resprints = 'A text to show';
+		if (empty($errors)) {
+			// $this->results = array('myreturn' => 999);
+			// $this->resprints = 'A text to show';
 			return 0; // or return 1 to replace standard code
 		} else {
-			$this->errors[] = 'Error message';
+			$this->errors = array_merge($this->errors, $errors);
 			return -1;
 		}
 	}
-
-
-	/**
-	 * Overloading the addMoreMassActions function : replacing the parent's function with the one below
-	 *
-	 * @param   array           $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          $action         Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	public function addMoreMassActions($parameters, &$object, &$action, $hookmanager)
-	{
-		global $conf, $user, $langs;
-
-		$error = 0; // Error counter
-
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-		if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-		{
-			$this->resprints = '<option value="0"'.($disabled ? ' disabled="disabled"' : '').'>'.$langs->trans("SepaMandatManagerMassAction").'</option>';
-		}
-
-		if (!$error) {
-			return 0; // or return 1 to replace standard code
-		} else {
-			$this->errors[] = 'Error message';
-			return -1;
-		}
-	}
-
-
-
-	/**
-	 * Execute action
-	 *
-	 * @param	array	$parameters     Array of parameters
-	 * @param   Object	$object		   	Object output on PDF
-	 * @param   string	$action     	'add', 'update', 'view'
-	 * @return  int 		        	<0 if KO,
-	 *                          		=0 if OK but we want to process standard actions too,
-	 *  	                            >0 if OK and we want to replace standard actions.
-	 */
-	public function beforePDFCreation($parameters, &$object, &$action)
-	{
-		global $conf, $user, $langs;
-		global $hookmanager;
-
-		$outputlangs = $langs;
-
-		$ret = 0; $deltemp = array();
-		dol_syslog(get_class($this).'::executeHooks action='.$action);
-
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-		if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-		{
-		}
-
-		return $ret;
-	}
-
-	/**
-	 * Execute action
-	 *
-	 * @param	array	$parameters     Array of parameters
-	 * @param   Object	$pdfhandler     PDF builder handler
-	 * @param   string	$action         'add', 'update', 'view'
-	 * @return  int 		            <0 if KO,
-	 *                                  =0 if OK but we want to process standard actions too,
-	 *                                  >0 if OK and we want to replace standard actions.
-	 */
-	public function afterPDFCreation($parameters, &$pdfhandler, &$action)
-	{
-		global $conf, $user, $langs;
-		global $hookmanager;
-
-		$outputlangs = $langs;
-
-		$ret = 0; $deltemp = array();
-		dol_syslog(get_class($this).'::executeHooks action='.$action);
-
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
-		if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2')))		// do something only for the context 'somecontext1' or 'somecontext2'
-		{
-		}
-
-		return $ret;
-	}
-
-
-
-	/**
-	 * Overloading the loadDataForCustomReports function : returns data to complete the customreport tool
-	 *
-	 * @param   array           $parameters     Hook metadatas (context, etc...)
-	 * @param   string          $action         Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	public function loadDataForCustomReports($parameters, &$action, $hookmanager)
-	{
-		global $conf, $user, $langs;
-
-		$langs->load("sepamandatmanager@sepamandatmanager");
-
-		$this->results = array();
-
-		$head = array();
-		$h = 0;
-
-		if ($parameters['tabfamily'] == 'sepamandatmanager') {
-			$head[$h][0] = dol_buildpath('/module/index.php', 1);
-			$head[$h][1] = $langs->trans("Home");
-			$head[$h][2] = 'home';
-			$h++;
-
-			$this->results['title'] = $langs->trans("SepaMandatManager");
-			$this->results['picto'] = 'sepamandatmanager@sepamandatmanager';
-		}
-
-		$head[$h][0] = 'customreports.php?objecttype='.$parameters['objecttype'].(empty($parameters['tabfamily']) ? '' : '&tabfamily='.$parameters['tabfamily']);
-		$head[$h][1] = $langs->trans("CustomReports");
-		$head[$h][2] = 'customreports';
-
-		$this->results['head'] = $head;
-
-		return 1;
-	}
-
-
-
-	/**
-	 * Overloading the restrictedArea function : check permission on an object
-	 *
-	 * @param   array           $parameters     Hook metadatas (context, etc...)
-	 * @param   string          $action         Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int 		      			  	<0 if KO,
-	 *                          				=0 if OK but we want to process standard actions too,
-	 *  	                            		>0 if OK and we want to replace standard actions.
-	 */
-	public function restrictedArea($parameters, &$action, $hookmanager)
-	{
-		global $user;
-
-		if ($parameters['features'] == 'myobject') {
-			if ($user->rights->sepamandatmanager->myobject->read) {
-				$this->results['result'] = 1;
-				return 1;
-			} else {
-				$this->results['result'] = 0;
-				return 1;
-			}
-		}
-
-		return 0;
-	}
-
-	/* Add here any other hooked methods... */
 }

@@ -92,6 +92,16 @@ class SepaMandatCompanyBankAccountLink
 	}
 
 	/**
+	 * Function to get all sepa mandates for this company
+	 * @param int $socId
+	 * @return SepaMandate[] | int
+	 */
+	public function getSignedSepaMandatesOfThisCompany($socId)
+	{
+		return $this->object->fetchAll("DESC", "rowid", null, null, array('fk_soc' => $socId, 'status' => $this->object::STATUS_SIGNED));
+	}
+
+	/**
 	 * Function to delete linked company bank account
 	 * @param User $user user requesting action
 	 * @return boolean true if all linked account successfully deleted or nothing to delete
@@ -110,7 +120,7 @@ class SepaMandatCompanyBankAccountLink
 					}
 					else {
 						//mandates for this company
-						$otherMandates = $this->object->fetchAll("DESC", "rowid", null, null, array('fk_soc' => $companyAccount->socid, 'status' => $this->object::STATUS_SIGNED));
+						$otherMandates = $this->getSignedSepaMandatesOfThisCompany($companyAccount->socid);
 						if(is_array($otherMandates)) {
 							$firstElement = array_shift($otherMandates);
 							if($firstElement) {
@@ -125,5 +135,27 @@ class SepaMandatCompanyBankAccountLink
 			$result = true; //nothing to delete
 		}
 		return $result;
+	}
+
+	/**
+	 * Function to get Sepa Mandate linked to a company bank account
+	 * @param DoliDB $db Database instance to use
+	 * @param int $companyBankAccountId researched company bank account
+	 * @return SepaMandat|int
+	 */
+	public static function getSepaMandatesLinkToACompanyAccount($db, $companyBankAccountId) {
+		$element = new SepaMandat($db);
+		return $element->fetchAll("DESC", "rowid", null, null, array('fk_companybankaccount' => $companyBankAccountId));
+	}
+
+	/**
+	 * Function to know if a company account is managed by a sepa mandate
+	 * @param DoliDB $db Database instance to use
+	 * @param int $companyBankAccountId researched company bank account
+	 * @return bool
+	 */
+	public static function isAMandateLinkedToThisCompanyAccountId($db, $companyBankAccountId) {
+		$sepaMandates = self::getSepaMandatesLinkToACompanyAccount($db, $companyBankAccountId);
+		return is_array($sepaMandates) && count($sepaMandates) > 0 ? true : false;
 	}
 }

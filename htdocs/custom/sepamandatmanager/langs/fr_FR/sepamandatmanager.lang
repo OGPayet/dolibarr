@@ -155,6 +155,8 @@ SepaMandateNoTypeSet = Aucun type de mandat renseigné (ponctuel, récurrent)
 # Liaison avec CompanyBankAccount
 #
 SepaMandateCompanyAccountName = Mandat SEPA %s
+SepaMandateManagedByASepaMandate = Modification interdite - ce compte bancaire est géré depuis son mandat sepa
+SepaMandatErrorWhenUpdatingCompanyBankAccount = Erreur lors de la mise à jour des données bancaires sur la fiche tiers
 
 #
 # Page À propos

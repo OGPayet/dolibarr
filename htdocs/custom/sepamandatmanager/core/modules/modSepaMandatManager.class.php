@@ -102,6 +102,7 @@ class modSepaMandatManager extends DolibarrModules
 			),
 			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
 			'hooks' => array(
+				'thirdpartybancard'
 				//   'data' => array(
 				//       'hookcontext1',
 				//       'hookcontext2',
