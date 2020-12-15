@@ -119,6 +119,7 @@ $isObjectAbleToBeSent = $object->status == $object::STATUS_SIGNED || $object->st
 if ($object->status != $object::STATUS_DRAFT) {
 	$permissiontoadd = false;
 	$permissiontodelete = false;
+	$permissioncreate = false;
 }
 
 if (!$permissiontoread) accessforbidden();
@@ -173,7 +174,6 @@ if (empty($reshook)) {
 	$formSepaMandate->manageBackToDraftAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
 	$formSepaMandate->manageBackToToSignAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
 	$formSepaMandate->manageBackToSignedAction($action, $object, $user->rights->sepamandatmanager->sepamandat->write, $user);
-
 }
 
 
@@ -192,22 +192,6 @@ $formproject = new FormProjets($db);
 $title = $langs->trans("Sepamandat");
 $help_url = '';
 llxHeader('', $title, $help_url);
-
-// Example : Adding jquery code
-print '<script type="text/javascript" language="javascript">
-jQuery(document).ready(function() {
-	function init_myfunc()
-	{
-		jQuery("#myid").removeAttr(\'disabled\');
-		jQuery("#myid").attr(\'disabled\',\'disabled\');
-	}
-	init_myfunc();
-	jQuery("#mybutton").click(function() {
-		init_myfunc();
-	});
-});
-</script>';
-
 
 // Part to create
 if ($action == 'create') {
@@ -334,7 +318,48 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '<div class="underbanner clearboth"></div>';
 	print '<table class="border centpercent tableforfield">' . "\n";
 
-	include DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_view.tpl.php';
+	$object->fields = dol_sort_array($object->fields, 'position');
+	$object->fields['iban']['warning'] = implode('<br>', $object->checkIbanValue());
+	$object->fields['bic']['warning'] = implode('<br>', $object->checkBicValue());
+	$object->fields['bic']['type'] = implode('<br>', $object->checkMandatType());
+
+
+	foreach ($object->fields as $key => $val) {
+		// Discard if extrafield is a hidden field on form
+		if (abs($val['visible']) != 1 && abs($val['visible']) != 3 && abs($val['visible']) != 4 && abs($val['visible']) != 5) continue;
+
+		if (array_key_exists('enabled', $val) && isset($val['enabled']) && !verifCond($val['enabled'])) continue; // We don't want this field
+		if (in_array($key, array('ref', 'status'))) continue; // Ref and status are already in dol_banner
+
+		$value = $object->$key;
+
+		print '<tr><td';
+		print ' class="titlefield fieldname_' . $key;
+		//if ($val['notnull'] > 0) print ' fieldrequired';     // No fieldrequired on the view output
+		if ($val['type'] == 'text' || $val['type'] == 'html') print ' tdtop';
+		print '">';
+		print $langs->trans($val['label']);
+		if (!empty($val['help'])) print $form->textwithpicto("", $langs->trans($val['help']));
+		if (!empty($val['warning'])) print $form->textwithpicto("", $val['warning'], 1, 'warning');
+		print '</td>';
+		print '<td class="valuefield fieldname_' . $key;
+		if ($val['type'] == 'text') print ' wordbreak';
+		print '">';
+
+		print $object->showOutputField($val, $key, $value, '', '', '', 0);
+		//print dol_escape_htmltag($object->$key, 1, 1);
+		print '</td>';
+		print '</tr>';
+	}
+	print '</table>';
+	print '</div>';
+	print '<div class="fichehalfright">';
+
+	print '<div class="underbanner clearboth"></div>';
+	print '<table class="border centpercent tableforfield">';
+
+
+	//include DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_view.tpl.php';
 
 	// Other attributes. Fields from hook formObjectOptions and Extrafields.
 	include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_view.tpl.php';

@@ -108,19 +108,19 @@ class SepaMandat extends CommonObject
 		'rowid' => array('type' => 'integer', 'label' => 'TechnicalID', 'enabled' => '1', 'position' => 1, 'notnull' => 1, 'visible' => 0, 'noteditable' => '1', 'index' => 1, 'comment' => "Id"),
 		'entity' => array('type' => 'integer', 'label' => 'Entity ID', 'enabled' => '1', 'position' => 1, 'notnull' => 0, 'visible' => 0, 'noteditable' => '1', 'index' => 1, 'comment' => "Entity ID"),
 		'ref' => array('type' => 'varchar(128)', 'label' => 'Ref', 'enabled' => '1', 'position' => 10, 'notnull' => 1, 'visible' => 4, 'noteditable' => '1', 'default' => '(PROV)', 'index' => 1, 'searchall' => 1, 'showoncombobox' => '1', 'comment' => "Reference of object"),
-		'fk_soc' => array('type' => 'integer:Societe:societe/class/societe.class.php:1:status=1 AND entity IN (__SHARED_ENTITIES__)', 'label' => 'ThirdParty', 'enabled' => '1', 'position' => 50, 'notnull' => -1, 'visible' => 1, 'index' => 1),
+		'fk_soc' => array('type' => 'integer:Societe:societe/class/societe.class.php:1:status=1 AND entity IN (__SHARED_ENTITIES__)', 'label' => 'ThirdParty', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 1, 'index' => 1),
 		'note_public' => array('type' => 'html', 'label' => 'NotePublic', 'enabled' => '1', 'position' => 61, 'notnull' => 0, 'visible' => 0,),
 		'note_private' => array('type' => 'html', 'label' => 'NotePublic', 'enabled' => '1', 'position' => 62, 'notnull' => 0, 'visible' => 0,),
 		'date_creation' => array('type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 500, 'notnull' => 1, 'visible' => -2,),
 		'tms' => array('type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 501, 'notnull' => 0, 'visible' => -2,),
 		'fk_user_creat' => array('type' => 'integer:User:user/class/user.class.php', 'label' => 'UserAuthor', 'enabled' => '1', 'position' => 510, 'notnull' => 1, 'visible' => -2, 'foreignkey' => 'user.rowid',),
 		'fk_user_modif' => array('type' => 'integer:User:user/class/user.class.php', 'label' => 'UserModif', 'enabled' => '1', 'position' => 511, 'notnull' => -1, 'visible' => -2,),
-		'rum' => array('type' => 'varchar(255)', 'label' => 'code rum', 'enabled' => '1', 'position' => 100, 'notnull' => 0, 'visible' => 1,),
+		'rum' => array('type' => 'varchar(255)', 'label' => 'code rum', 'enabled' => '1', 'position' => 100, 'notnull' => 0, 'visible' => 4, 'noteditable' => 1),
 		'ics' => array('type' => 'varchar(255)', 'label' => 'Sepa Creditor Identifier', 'enabled' => '1', 'position' => 101, 'notnull' => 0, 'visible' => 0,),
-		'iban' => array('type' => 'varchar(255)', 'label' => 'Debtor iban', 'enabled' => '1', 'position' => 102, 'notnull' => 0, 'visible' => 1,),
+		'iban' => array('type' => 'varchar(255)', 'label' => 'Debtor iban', 'enabled' => '1', 'position' => 102, 'notnull' => 0, 'visible' => 1, 'css'=>'minwidth300'),
 		'bic' => array('type' => 'varchar(255)', 'label' => 'debtor bic', 'enabled' => '1', 'position' => 103, 'notnull' => 0, 'visible' => 1,),
-		'status' => array('type' => 'integer', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 1, 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Validé', '9' => 'Annulé'), 'noteditable'=>1),
-		'type' => array('type' => 'integer', 'label' => 'Type de mandat', 'enabled' => '1', 'position' => 115, 'notnull' => 1, 'visible' => 1, 'arrayofkeyval' => array('1' => 'Ponctuel', '9' => 'Récurrent'),),
+		'status' => array('type' => 'integer', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 1, 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Validé', '9' => 'Annulé'), 'noteditable' => 1),
+		'type' => array('type' => 'integer', 'label' => 'Type de mandat', 'enabled' => '1', 'position' => 115, 'notnull' => 1, 'visible' => 1, 'default' => self::TYPE_RECURRENT),
 		'date_rum' => array('type' => 'date', 'label' => 'Date du mandat', 'enabled' => '1', 'position' => 500, 'notnull' => 0, 'visible' => 1,),
 	);
 	public $rowid;
@@ -197,8 +197,8 @@ class SepaMandat extends CommonObject
 		$this->fields['bic']['label'] = $langs->trans("SepaMandateBic");
 		$this->fields['type']['label'] = $langs->trans("SepaMandateType");
 		$this->fields['type']['arrayofkeyval'] = array(
-			self::TYPE_PUNCTUAL => $langs->trans("SepaMandatePunctualType"),
-			self::TYPE_RECURRENT => $langs->trans("SepaMandateRecurrentType")
+			self::TYPE_RECURRENT => $langs->trans("SepaMandateRecurrentType"),
+			self::TYPE_PUNCTUAL => $langs->trans("SepaMandatePunctualType")
 		);
 	}
 
@@ -283,11 +283,12 @@ class SepaMandat extends CommonObject
 	 * Function to load data from a SQL pointer into properties of current object $this
 	 *
 	 * @param   stdClass    $obj    Contain data of object from database
-     * @return void
+	 * @return void
 	 */
-	public function setVarsFromFetchObj(&$obj){
+	public function setVarsFromFetchObj(&$obj)
+	{
 		parent::setVarsFromFetchObj($obj);
-		if(!$this->date_rum) {
+		if (!$this->date_rum) {
 			$this->date_rum = null;
 		}
 	}
@@ -438,6 +439,9 @@ class SepaMandat extends CommonObject
 	 */
 	public function update(User $user, $notrigger = false)
 	{
+		if (empty($this->rum)) {
+			$this->rum = $this->getNextNumRum();
+		}
 		return $this->updateCommon($user, $notrigger);
 	}
 
@@ -451,17 +455,76 @@ class SepaMandat extends CommonObject
 	public function delete(User $user, $notrigger = false)
 	{
 		$result = $this->deleteCommon($user, $notrigger);
-		if($result > 0)
-		{
+		if ($result > 0) {
 			$extendedEcm = new ExtendedEcm($this->db);
 			$files = $extendedEcm->fetchAll(null, null, null, null, array('filepath' => $this->getRelativePathToDolDataRoot()));
-			foreach($files as $file) {
+			foreach ($files as $file) {
 				$file->deleteFile();
 			}
 			dol_delete_dir($this->getAbsolutePath());
 		}
 		return $result;
 	}
+
+	/**
+	 * Check iban value
+	 * @return string[] array of errors
+	 */
+	public function checkIbanValue()
+	{
+		global $langs;
+		$result = array();
+		require_once DOL_DOCUMENT_ROOT . '/includes/php-iban/oophp-iban.php';
+		if (empty($this->iban)) {
+			$result[] = $langs->trans("SepaMandateNoIban");
+		} else {
+			$ibanCheck = new IBAN($this->iban);
+			if (!$ibanCheck->Verify()) {
+				$result[] = $langs->trans("SepaMandateIbanNotValid");
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Check bic value
+	 * @return string[] array of errors
+	 */
+	public function checkBicValue()
+	{
+		global $langs;
+		$result = array();
+		require_once DOL_DOCUMENT_ROOT . '/includes/php-iban/oophp-iban.php';
+		if (empty($this->bic)) {
+			$result[] = $langs->trans("SepaMandateNoBic");
+		} elseif (!(bool) (preg_match('/^[a-z]{6}[0-9a-z]{2}([0-9a-z]{3})?\z/i', $this->bic) == 1)) {
+			$result[] = $langs->trans("SepaMandateBicNotValid");
+		}
+		return $result;
+	}
+
+	/**
+	 * Check mandat type value
+	 * @return string[] array of errors
+	 */
+	public function checkMandatType()
+	{
+		global $langs;
+		if(empty($this->type)) {
+			$result[] = $langs->trans("SepaMandateNoTypeSet");
+		}
+		return $result;
+	}
+
+	/**
+	 * Function to check data
+	 * @return string[] array of errors
+	 */
+	public function checkData()
+	{
+		return array_merge($this->checkIbanValue(), $this->checkBicValue(), $this->checkMandatType());
+	}
+
 	/**
 	 *	Validate object
 	 *
@@ -479,21 +542,26 @@ class SepaMandat extends CommonObject
 			return 0;
 		}
 		$this->db->begin();
+		//We save some values
+		$oldRef = $this->ref;
+		$oldRum = $this->rum;
+		$olDateRum = $this->date_rum;
+		$oldStatus = $this->status;
+
 		// Define new ref
 		if (preg_match('/^[\(]?PROV/i', $this->ref) || empty($this->ref)) // empty should not happened, but when it occurs, the test save life
 		{
 			$this->ref = $this->getNextNumRef();
 		}
 
-		if(empty($this->rum)) {
-			$this->rum = $this->getNextNumRum();
+		if(empty($this->date_rum)) {
+			$this->date_rum = dol_now();
 		}
 
-		$this->status = self::STATUS_TOSIGN;
-		//ToDO - check data
-		$validationErrors = array();
+		$validationErrors = $this->checkData();
 		$this->errors = array_merge($this->errors, $validationErrors);
 
+		$this->status = self::STATUS_TOSIGN; //Avoid useless call of setStatusCommon
 		if (empty($this->errors) && $this->update($user, true) > 0 && !$notrigger) {
 			// Call trigger
 			$this->call_trigger('SEPAMANDAT_TOSIGN', $user);
@@ -506,6 +574,10 @@ class SepaMandat extends CommonObject
 			return 1;
 		} else {
 			$this->db->rollback();
+			$this->status = $oldStatus;
+			$this->ref = $oldRef;
+			$this->rum = $oldRum;
+			$this->date_rum = $olDateRum;
 			return -1;
 		}
 	}
@@ -601,13 +673,11 @@ class SepaMandat extends CommonObject
 	public function setBackToSigned($user, $notrigger = 0)
 	{
 		// Protection
-		if($this->status == self::STATUS_STALE) {
+		if ($this->status == self::STATUS_STALE) {
 			$triggerName = 'SEPAMANDAT_UNSTALE';
-		}
-		elseif($this->status == self::STATUS_CANCELED) {
+		} elseif ($this->status == self::STATUS_CANCELED) {
 			$triggerName = 'SEPAMANDAT_UNCANCELED';
-		}
-		else {
+		} else {
 			//Protection
 			return 0;
 		}
@@ -970,14 +1040,13 @@ class SepaMandat extends CommonObject
 	{
 		global $conf, $langs;
 		// Define output language
-		if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
-		{
+		if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
 			$outputlangs = $langs;
 			$newlang = '';
 			if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) {
 				$newlang = GETPOST('lang_id', 'aZ09');
 			}
-			if ($conf->global->MAIN_MULTILANGS && empty($newlang))	{
+			if ($conf->global->MAIN_MULTILANGS && empty($newlang)) {
 				$newlang = $this->thirdparty->default_lang;
 			}
 			if (!empty($newlang)) {

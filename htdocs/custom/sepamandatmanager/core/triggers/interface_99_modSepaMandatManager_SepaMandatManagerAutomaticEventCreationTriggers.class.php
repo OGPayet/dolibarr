@@ -104,7 +104,7 @@ class InterfaceSepaMandatManagerAutomaticEventCreationTriggers extends DolibarrT
 			return 0; // If module is not enabled, we do nothing
 		}
 
-		dol_include_once("/sepamandatmanager/class/sepamandatmanager.class.php");
+		dol_include_once("/sepamandatmanager/class/sepamandat.class.php");
 
 		if($object->element == SepaMandat::$staticElement) {
 			$arrayOfTriggerCodeConfigurationAndEventContent = array(

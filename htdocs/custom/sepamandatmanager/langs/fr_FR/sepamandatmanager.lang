@@ -143,6 +143,14 @@ SepaMandatUnCanceledEventDescription = Le mandat SEPA %s a été réouvert. Son 
 SepaMandatEventAuthor = Auteur :
 
 #
+# Validation des données
+#
+SepaMandateNoIban = Aucun Iban rensigné
+SepaMandateIbanNotValid = Iban non valide
+SepaMandateNoBic = Aucun BIC renseigné
+SepaMandateBicNotValid = Bic non valide
+SepaMandateNoTypeSet = Aucun type de mandat renseigné (ponctuel, récurrent)
+#
 # Page À propos
 #
 About = À propos
