@@ -9,13 +9,20 @@
 function reverseGeocoding($latitude, $longitude) {
     $url = "https://nominatim.openstreetmap.org/reverse?lat={$latitude}&lon={$longitude}&format=json";
 
-    ini_set("allow_url_open", "1");
-    $resp_json = file_get_contents($url);
+    // Create a curl handle to a non-existing location
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
+    $json = '';
+    if( ($json = curl_exec($ch) ) !== false)
+    {
+        $json = curl_exec($ch);
+        $resp = json_decode($json, true);
+        $return = $resp['display_name'];
+    }
 
-    $resp = json_decode($resp_json, true);
-
-    $return = $resp[0]['address']['house_number'] . ' ' . $resp[0]['address']['road'] . ', ' . $resp[0]['address']['town'];
-    $return .= ', ' . $resp[0]['address']['postcode'] . ', ' . $resp[0]['address']['country'];
+    // Close handle
+    curl_close($ch);
 
     return $return;
 }
