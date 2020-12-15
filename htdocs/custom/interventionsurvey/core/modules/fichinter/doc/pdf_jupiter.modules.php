@@ -1460,14 +1460,18 @@ class pdf_jupiter extends ModelePDFFicheinter
             $signature_info_hour = dol_print_date($signature_date, 'hour', false, $outputlangs);
             $signature_info_hour = !empty($signature_info_hour) ? $signature_info_hour : '...';
             $signature_info_user = $signature_info['user'];
-            $signature_info_localisation = $signature_info['user']['localisation'];
+            $signature_info_localisation = $signature_info['user']['position'];
+            $signature_info_latitude = $signature_info_localisation['coords']['latitude'];
+            $signature_info_longitude = $signature_info_localisation['coords']['longitude'];
+            dol_include_once('nominatim//nominatim-api.php');
 
             // Print texte
             $signature_title = $outputlangs->transnoentities('InterventionSurveyPdfCustomerSignature', $signature_info_day, $signature_info_hour);
             $signature_user = $signature_info_user['name'];
-            $signature_text = '<font size="17px">Client non présent</font> <br />';
+            $signature_address = reverseGeocoding($signature_info_latitude, $signature_info_longitude);
+            $signature_text = '<font size="17px">Client non présent</font><br />';
             $signature_text .= '<font size="' . $signature_font_size . '">' . $signature_title . '<br />';
-            $signature_text .= 'Fait à ' . ' par ' . $signature_user . '</font>';
+            $signature_text .= 'Fait à ' . $signature_address . ' par ' . $signature_user . '</font>';
             $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
             $end_y = max($end_y, $pdf->GetY());
         }
