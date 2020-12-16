@@ -257,12 +257,12 @@ class ExtendedInterventionQuota
 
         $effective_date = null;
         if (!empty($effective_date_t)) {
-            $effective_date = Carbon::createFromTimestamp($effective_date_t);
+            $effective_date = Carbon::parse($effective_date_t);
         }
 
         $termination_date = null;
         if (!empty($termination_date_t)) {
-            $termination_date = Carbon::createFromTimestamp($termination_date_t);
+            $termination_date = Carbon::parse($termination_date_t);
         }
 
         $contract_closed_date = null;
