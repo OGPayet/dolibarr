@@ -281,7 +281,8 @@ class ActionsDigitalSignatureManager
 			}
 		}
 		if ($result) {
-			$this->resprints = $result;
+			//$this->resprints = $result;
+			print $result;
 			return 1;
 		}
 		// }
