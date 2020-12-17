@@ -206,28 +206,30 @@ class DigitalSignatureRequest extends CommonObject
 		}
 
 		$this->status = self::STATUS_DRAFT;
-		$langs->load("digitalsignaturemanager@digitalsignaturemanager");
-		$this->labelStatus = array(
-			self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraft'),
-			self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgress'),
-			self::STATUS_CANCELED_BY_OPSY => $langs->trans('DigitalSignatureCanceledInOpsy'),
-			self::STATUS_CANCELED_BY_SIGNERS => $langs->trans('DigitalSignatureCanceledBySigners'),
-			self::STATUS_FAILED => $langs->trans('DigitalSignatureFailed'),
-			self::STATUS_EXPIRED => $langs->trans('DigitalSignatureExpired'),
-			self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccess'),
-			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureService')
-		);
+		if (is_object($langs)) {
+			$langs->load("digitalsignaturemanager@digitalsignaturemanager");
+			$this->labelStatus = array(
+				self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraft'),
+				self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgress'),
+				self::STATUS_CANCELED_BY_OPSY => $langs->trans('DigitalSignatureCanceledInOpsy'),
+				self::STATUS_CANCELED_BY_SIGNERS => $langs->trans('DigitalSignatureCanceledBySigners'),
+				self::STATUS_FAILED => $langs->trans('DigitalSignatureFailed'),
+				self::STATUS_EXPIRED => $langs->trans('DigitalSignatureExpired'),
+				self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccess'),
+				self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureService')
+			);
 
-		$this->labelStatusShort = array(
-			self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraftShort'),
-			self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgressShort'),
-			self::STATUS_CANCELED_BY_OPSY => $langs->trans('DigitalSignatureCanceledInOpsyShort'),
-			self::STATUS_CANCELED_BY_SIGNERS => $langs->trans('DigitalSignatureCanceledBySignersShort'),
-			self::STATUS_FAILED => $langs->trans('DigitalSignatureFailedShort'),
-			self::STATUS_EXPIRED => $langs->trans('DigitalSignatureExpired'),
-			self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccessShort'),
-			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureServiceShort')
-		);
+			$this->labelStatusShort = array(
+				self::STATUS_DRAFT => $langs->trans('DigitalSignatureDraftShort'),
+				self::STATUS_IN_PROGRESS => $langs->trans('DigitalSignatureInProgressShort'),
+				self::STATUS_CANCELED_BY_OPSY => $langs->trans('DigitalSignatureCanceledInOpsyShort'),
+				self::STATUS_CANCELED_BY_SIGNERS => $langs->trans('DigitalSignatureCanceledBySignersShort'),
+				self::STATUS_FAILED => $langs->trans('DigitalSignatureFailedShort'),
+				self::STATUS_EXPIRED => $langs->trans('DigitalSignatureExpired'),
+				self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccessShort'),
+				self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureServiceShort')
+			);
+		}
 
 		$this->statusType = array(
 			self::STATUS_DRAFT => 'status0',

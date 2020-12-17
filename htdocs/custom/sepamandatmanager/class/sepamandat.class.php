@@ -170,21 +170,34 @@ class SepaMandat extends CommonObject
 			}
 		}
 
-		$this->labelStatus = array(
-			self::STATUS_DRAFT => $langs->trans('SepaMandateDraft'),
-			self::STATUS_TOSIGN => $langs->trans('SepaMandateToSign'),
-			self::STATUS_SIGNED => $langs->trans('SepaMandateSigned'),
-			self::STATUS_CANCELED => $langs->trans('SepaMandateCanceled'),
-			self::STATUS_STALE => $langs->trans('SepaMandateStale')
-		);
+		if(is_object($langs))
+		{
+			$this->labelStatus = array(
+				self::STATUS_DRAFT => $langs->trans('SepaMandateDraft'),
+				self::STATUS_TOSIGN => $langs->trans('SepaMandateToSign'),
+				self::STATUS_SIGNED => $langs->trans('SepaMandateSigned'),
+				self::STATUS_CANCELED => $langs->trans('SepaMandateCanceled'),
+				self::STATUS_STALE => $langs->trans('SepaMandateStale')
+			);
 
-		$this->labelStatusShort = array(
-			self::STATUS_DRAFT => $langs->trans('SepaMandateDraftShort'),
-			self::STATUS_TOSIGN => $langs->trans('SepaMandateToSignShort'),
-			self::STATUS_SIGNED => $langs->trans('SepaMandateSignedShort'),
-			self::STATUS_CANCELED => $langs->trans('SepaMandateCanceledShort'),
-			self::STATUS_STALE => $langs->trans('SepaMandateStaleShort')
-		);
+			$this->labelStatusShort = array(
+				self::STATUS_DRAFT => $langs->trans('SepaMandateDraftShort'),
+				self::STATUS_TOSIGN => $langs->trans('SepaMandateToSignShort'),
+				self::STATUS_SIGNED => $langs->trans('SepaMandateSignedShort'),
+				self::STATUS_CANCELED => $langs->trans('SepaMandateCanceledShort'),
+				self::STATUS_STALE => $langs->trans('SepaMandateStaleShort')
+			);
+
+			$this->fields['ics']['label'] = $langs->trans("SepaMandateIcs");
+			$this->fields['rum']['label'] = $langs->trans("SepaMandateRum");
+			$this->fields['iban']['label'] = $langs->trans("SepaMandateIban");
+			$this->fields['bic']['label'] = $langs->trans("SepaMandateBic");
+			$this->fields['type']['label'] = $langs->trans("SepaMandateType");
+			$this->fields['type']['arrayofkeyval'] = array(
+				self::TYPE_RECURRENT => $langs->trans("SepaMandateRecurrentType"),
+				self::TYPE_PUNCTUAL => $langs->trans("SepaMandatePunctualType")
+			);
+		}
 
 		$this->statusType = array(
 			self::STATUS_DRAFT => 'status0',
@@ -195,15 +208,7 @@ class SepaMandat extends CommonObject
 		);
 
 		$this->fields['status']['arrayofkeyval'] = $this->labelStatus;
-		$this->fields['ics']['label'] = $langs->trans("SepaMandateIcs");
-		$this->fields['rum']['label'] = $langs->trans("SepaMandateRum");
-		$this->fields['iban']['label'] = $langs->trans("SepaMandateIban");
-		$this->fields['bic']['label'] = $langs->trans("SepaMandateBic");
-		$this->fields['type']['label'] = $langs->trans("SepaMandateType");
-		$this->fields['type']['arrayofkeyval'] = array(
-			self::TYPE_RECURRENT => $langs->trans("SepaMandateRecurrentType"),
-			self::TYPE_PUNCTUAL => $langs->trans("SepaMandatePunctualType")
-		);
+
 	}
 
 	/**
