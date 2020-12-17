@@ -320,7 +320,7 @@ class modSepaMandatManager extends DolibarrModules
 			'type' => 'left',
 			'titre' => 'ListOfSepaMandat',
 			'mainmenu' => 'bank',
-			'leftmenu' => 'sepamandatmanager_sepamandat',
+			'leftmenu' => 'sepamandatmanager',
 			'url' => '/sepamandatmanager/sepamandat_list.php',
 			// Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 			'langs' => 'sepamandatmanager@sepamandatmanager',
@@ -328,14 +328,14 @@ class modSepaMandatManager extends DolibarrModules
 			// Define condition to show or hide menu entry. Use '$conf->sepamandatmanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 			'enabled' => '$conf->sepamandatmanager->enabled',
 			// Use 'perms'=>'$user->rights->sepamandatmanager->level1->level2' if you want your menu with a permission rules
-			'perms' => '1',
+			'perms' => '$user->rights->sepamandatmanager->sepamandat->write',
 			'target' => '',
 			// 0=Menu for internal users, 1=external users, 2=both
-			'user' => 2,
+			'user' => 0,
 		);
 		$this->menu[$r++] = array(
 			// '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-			'fk_menu' => 'fk_mainmenu=bank,fk_leftmenu=sepamandatmanager_sepamandat',
+			'fk_menu' => 'fk_mainmenu=bank,fk_leftmenu=sepamandatmanager',
 			// This is a Left menu entry
 			'type' => 'left',
 			'titre' => 'NewSepaMandat',
@@ -348,10 +348,10 @@ class modSepaMandatManager extends DolibarrModules
 			// Define condition to show or hide menu entry. Use '$conf->sepamandatmanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
 			'enabled' => '$conf->sepamandatmanager->enabled',
 			// Use 'perms'=>'$user->rights->sepamandatmanager->level1->level2' if you want your menu with a permission rules
-			'perms' => '1',
+			'perms' => '$user->rights->sepamandatmanager->sepamandat->write',
 			'target' => '',
 			// 0=Menu for internal users, 1=external users, 2=both
-			'user' => 2
+			'user' => 0
 		);
 
 		/* END MODULEBUILDER LEFTMENU SEPAMANDAT */
