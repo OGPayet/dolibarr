@@ -103,7 +103,7 @@ class ActionsSynergiestechcontrat
 
 //
         echo '<hr><pre>';
-        var_dump($parameters['substitutionarray']);
+        //var_dump($parameters['substitutionarray']);
 //        error_log(var_export($parameters, true));
 //        die();
     }

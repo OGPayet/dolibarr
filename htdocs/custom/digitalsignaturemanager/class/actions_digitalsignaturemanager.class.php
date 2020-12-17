@@ -134,6 +134,12 @@ class ActionsDigitalSignatureManager
 		// Return the substring from the index substring_start of length size
 		$maskName = substr($fileName, $subtring_start, $size);
 		$this->updateEcmMetaData($fileFullPath, $maskName, $object);
+		//pdf file
+		$pathInfo = pathinfo($fileFullPath);
+		$pdfFilePath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . 'pdf';
+		if(file_exists($pdfFilePath)) {
+			$this->updateEcmMetaData($pdfFilePath, $maskName, $object);
+		}
 		return 0;
 	}
 
