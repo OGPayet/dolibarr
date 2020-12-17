@@ -136,7 +136,7 @@ class ActionsDigitalSignatureManager
 		$this->updateEcmMetaData($fileFullPath, $maskName, $object);
 		//pdf file
 		$pathInfo = pathinfo($fileFullPath);
-		$pdfFilePath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . 'pdf';
+		$pdfFilePath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '.pdf';
 		if(file_exists($pdfFilePath)) {
 			$this->updateEcmMetaData($pdfFilePath, $maskName, $object);
 		}
