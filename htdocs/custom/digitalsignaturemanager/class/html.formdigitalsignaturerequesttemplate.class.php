@@ -211,7 +211,7 @@ class FormDigitalSignatureRequestTemplate
 		);
 		$parameters = array('question' => $questions);
 		$reshook = $hookmanager->executeHooks('addMoreFormQuestion', $parameters, $object, $action);
-		if (count($filesToBeDisplayed) == 1 && ($reshook < 0 || ($reshook == 0 && count($hookmanager->resArray) > 0))) {
+		if (count($filesToBeDisplayed) == 1 && ($reshook < 0 || ($reshook == 0 && count($hookmanager->resArray) == 0))) {
 			$action = self::CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME;
 			return $this->displayCreateFromSelectedFiles($object, $filesToBeDisplayed, $action, $hookmanager);
 		} else {
