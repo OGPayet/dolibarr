@@ -229,6 +229,10 @@ class DigitalSignatureRequest extends CommonObject
 				self::STATUS_SUCCESS => $langs->trans('DigitalSignatureSuccessShort'),
 				self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureServiceShort')
 			);
+
+			$this->fields['externalId']['label'] = $langs->trans("DigitalSignatureRequestExternalId");
+			$this->fields['externalUrl']['label'] = $langs->trans("DigitalSignatureRequestExternalUrl");
+			$this->fields['last_update_from_provider']['label'] = $langs->trans("DigitalSignatureRequestLastUpdateFromProvider");
 		}
 
 		$this->statusType = array(
@@ -244,9 +248,6 @@ class DigitalSignatureRequest extends CommonObject
 
 		// Translate fields
 		$this->fields['status']['arrayofkeyval'] = $this->labelStatus;
-		$this->fields['externalId']['label'] = $langs->trans("DigitalSignatureRequestExternalId");
-		$this->fields['externalUrl']['label'] = $langs->trans("DigitalSignatureRequestExternalUrl");
-		$this->fields['last_update_from_provider']['label'] = $langs->trans("DigitalSignatureRequestLastUpdateFromProvider");
 
 		$this->externalProviderService = new DigitalSignatureManagerUniversign($this);
 	}
