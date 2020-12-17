@@ -209,34 +209,36 @@ class DigitalSignaturePeople extends CommonObject
 			}
 		}
 		$this->status = self::STATUS_DRAFT;
-		$langs->load("digitalsignaturemanager@digitalsignaturemanager");
-		$this->labelStatus = array(
-			self::STATUS_DRAFT => $langs->trans('DigitalSignaturePeopleDraft'),
-			self::STATUS_WAITING_TO_SIGN => $langs->trans('DigitalSignaturePeopleWaitingToSign'),
-			self::STATUS_SHOULD_SIGN => $langs->trans('DigitalSignaturePeopleShouldSign'),
-			self::STATUS_REFUSED => $langs->trans('DigitalSignaturePeopleRefusedToSign'),
-			self::STATUS_ACCESSED => $langs->trans('DigitalSignaturePeopleHasOpenFormToSign'),
-			self::STATUS_CODE => $langs->trans('DigitalSignaturePeopleCodeSent'),
-			self::STATUS_PENDING_ID_DOCS =>$langs->trans('DigitalSignaturePeopleSendingIdDocs'),
-			self::STATUS_PENDING_VALIDATION =>$langs->trans('DigitalSignaturePeopleValidatingIdDocs'),
-			self::STATUS_SUCCESS => $langs->trans('DigitalSignaturePeopleSuccessfullySigned'),
-			self::STATUS_FAILED => $langs->trans('DigitalSignaturePeopleFailed'),
-			self::STATUS_PROCESS_STOPPED_BEFORE =>$langs->trans('DigitalSignaturePeopleDontHaveBeenAskedToSign'),
-		);
+		if(is_object($langs)) {
+			$langs->load("digitalsignaturemanager@digitalsignaturemanager");
+			$this->labelStatus = array(
+				self::STATUS_DRAFT => $langs->trans('DigitalSignaturePeopleDraft'),
+				self::STATUS_WAITING_TO_SIGN => $langs->trans('DigitalSignaturePeopleWaitingToSign'),
+				self::STATUS_SHOULD_SIGN => $langs->trans('DigitalSignaturePeopleShouldSign'),
+				self::STATUS_REFUSED => $langs->trans('DigitalSignaturePeopleRefusedToSign'),
+				self::STATUS_ACCESSED => $langs->trans('DigitalSignaturePeopleHasOpenFormToSign'),
+				self::STATUS_CODE => $langs->trans('DigitalSignaturePeopleCodeSent'),
+				self::STATUS_PENDING_ID_DOCS =>$langs->trans('DigitalSignaturePeopleSendingIdDocs'),
+				self::STATUS_PENDING_VALIDATION =>$langs->trans('DigitalSignaturePeopleValidatingIdDocs'),
+				self::STATUS_SUCCESS => $langs->trans('DigitalSignaturePeopleSuccessfullySigned'),
+				self::STATUS_FAILED => $langs->trans('DigitalSignaturePeopleFailed'),
+				self::STATUS_PROCESS_STOPPED_BEFORE =>$langs->trans('DigitalSignaturePeopleDontHaveBeenAskedToSign'),
+			);
 
-		$this->labelStatusShort = array(
-			self::STATUS_DRAFT => $langs->trans('DigitalSignaturePeopleDraftShort'),
-			self::STATUS_WAITING_TO_SIGN => $langs->trans('DigitalSignaturePeopleWaitingToSignShort'),
-			self::STATUS_SHOULD_SIGN => $langs->trans('DigitalSignaturePeopleShouldSignShort'),
-			self::STATUS_REFUSED => $langs->trans('DigitalSignaturePeopleRefusedToSignShort'),
-			self::STATUS_ACCESSED => $langs->trans('DigitalSignaturePeopleHasOpenFormToSignShort'),
-			self::STATUS_CODE => $langs->trans('DigitalSignaturePeopleCodeSentShort'),
-			self::STATUS_PENDING_ID_DOCS =>$langs->trans('DigitalSignaturePeopleSendingIdDocsShort'),
-			self::STATUS_PENDING_VALIDATION =>$langs->trans('DigitalSignaturePeopleValidatingIdDocsShort'),
-			self::STATUS_SUCCESS => $langs->trans('DigitalSignaturePeopleSuccessfullySignedShort'),
-			self::STATUS_FAILED => $langs->trans('DigitalSignaturePeopleFailedShort'),
-			self::STATUS_PROCESS_STOPPED_BEFORE =>$langs->trans('DigitalSignaturePeopleDontHaveBeenAskedToSignShort'),
-		);
+			$this->labelStatusShort = array(
+				self::STATUS_DRAFT => $langs->trans('DigitalSignaturePeopleDraftShort'),
+				self::STATUS_WAITING_TO_SIGN => $langs->trans('DigitalSignaturePeopleWaitingToSignShort'),
+				self::STATUS_SHOULD_SIGN => $langs->trans('DigitalSignaturePeopleShouldSignShort'),
+				self::STATUS_REFUSED => $langs->trans('DigitalSignaturePeopleRefusedToSignShort'),
+				self::STATUS_ACCESSED => $langs->trans('DigitalSignaturePeopleHasOpenFormToSignShort'),
+				self::STATUS_CODE => $langs->trans('DigitalSignaturePeopleCodeSentShort'),
+				self::STATUS_PENDING_ID_DOCS =>$langs->trans('DigitalSignaturePeopleSendingIdDocsShort'),
+				self::STATUS_PENDING_VALIDATION =>$langs->trans('DigitalSignaturePeopleValidatingIdDocsShort'),
+				self::STATUS_SUCCESS => $langs->trans('DigitalSignaturePeopleSuccessfullySignedShort'),
+				self::STATUS_FAILED => $langs->trans('DigitalSignaturePeopleFailedShort'),
+				self::STATUS_PROCESS_STOPPED_BEFORE =>$langs->trans('DigitalSignaturePeopleDontHaveBeenAskedToSignShort'),
+			);
+		}
 
 		$this->statusType = array(
 			self::STATUS_DRAFT => 'status0',
