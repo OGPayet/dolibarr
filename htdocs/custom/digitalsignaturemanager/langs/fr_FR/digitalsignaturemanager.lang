@@ -418,6 +418,7 @@ DigitalSignatureRequestSuccesfullySignedDescription = La pièce commerciale a é
 DigitalSignatureManagerUniversignErrorSavingFileInServer = Une erreur est intervenue lors de la sauvegarde du document signé %s dans le serveur
 DigitalSignatureManagerErrorWhileDeletingFile = Erreur lors de la suppression du fichier %s de la demande %s
 DigitalSignatureRequestLinkAreProtected = Les liens des pièces commerciales avec les signatures électroniques sont protégés
+DigitalSignatureRequestCantFindFileForDoingSecurityCheck = Impossible de retrouver l'origine de ce fichier afin de s'assurer de votre légitimité à y accéder. L'accès est donc refusé par sécurité.
 #
 # Page À propos
 #

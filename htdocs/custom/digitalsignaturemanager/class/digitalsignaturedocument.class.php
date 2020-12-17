@@ -535,9 +535,7 @@ class DigitalSignatureDocument extends CommonObject
 	 */
 	public function getLinkedFileRelativePath()
 	{
-		$relativePathOfFileToDocumentDataRoot = $this->getLinkedEcmFile() ? $this->getLinkedEcmFile()->getFullRelativePath() : null;
-		return preg_replace('/^' . preg_quote($this->getLinkedDigitalSignatureRequest()->getRelativeModuleDirectoryToDocumentRootDirectory(), '/') . '/', '', $relativePathOfFileToDocumentDataRoot);
-		//return $this->ecmFile ? $this->ecmFile->getFullRelativePath() : null;
+		return $this->getLinkedEcmFile() ? $this->getLinkedEcmFile()->getRelativePathToModule('digitalsignaturemanager') : null;
 	}
 
 	/**

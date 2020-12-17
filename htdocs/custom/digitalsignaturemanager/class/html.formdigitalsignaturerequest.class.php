@@ -777,7 +777,7 @@ class FormDigitalSignatureRequest
 			0,
 			28,
 			0,
-			'',
+			'perm=request&subperm=read&',
 			$langs->trans('DigitalSignatureRequestListOfSignedFiles'),
 			'',
 			$langs->defaultlang,

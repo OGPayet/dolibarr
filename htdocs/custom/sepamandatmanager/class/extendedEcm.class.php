@@ -451,7 +451,7 @@ class ExtendedEcm extends EcmFiles
 	 */
 	public static function cleanEcmFileDatabase($db, $relativePathAccordingToDocumentFolder, $user)
 	{
-		$listOfFileOnDisk = dol_dir_list(DOL_DATA_ROOT . '/' . $relativePathAccordingToDocumentFolder, 'files');
+		$listOfFileOnDisk = dol_dir_list(DOL_DATA_ROOT . '/' . $relativePathAccordingToDocumentFolder, 'files', 0, null, null, null, null, 0, 1);
 		$staticEcm = new self($db);
 		$listOfFilesIntoDatabase = $staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $relativePathAccordingToDocumentFolder));
 		$errors = array();
@@ -548,5 +548,19 @@ class ExtendedEcm extends EcmFiles
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Function to get relative path to module of this file
+	 * @param string $modulePart name of the module of this file
+	 * @return string
+	 */
+	public function getRelativePathToModule($modulePart)
+	{
+		$relativePathToDolDataRoot = $this->getFullRelativePath();
+		$result = preg_replace('/^[\\/]/', '', $relativePathToDolDataRoot);
+		$result = preg_replace('/^' . preg_quote($modulePart, '/') . '/', '', $result);
+		$result = preg_replace('/^[\\/]/', '', $result);
+		return $result;
 	}
 }

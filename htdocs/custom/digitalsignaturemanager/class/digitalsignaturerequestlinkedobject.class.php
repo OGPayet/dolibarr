@@ -82,7 +82,7 @@ class DigitalSignatureRequestLinkedObject
 	 * @param DigitalSignatureRequest $b second element
 	 * @return int values for uasort
 	 */
-	private function sortLinkedDigitalSignatureRequestToAnObject($a, $b) {
+	public static function sortLinkedDigitalSignatureRequestToAnObject($a, $b) {
 		if (!isset($a) || !isset($a->date_creation) || is_null($a->date_creation)) {
 			$result = -1;
 		}
@@ -180,34 +180,43 @@ class DigitalSignatureRequestLinkedObject
 	/**
 	 * Function to know if an user is allowed to create a signature request
 	 * @param User $user user requesting to do an action
-	 * @param CommonObject $object object on which user wishes to create a signature request
 	 * @return bool
 	 */
 	public function isUserAbleToCreateRequest($user)
 	{
-		return true;
+		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->request->create);
 	}
 
 	/**
 	 * Function to know if an user is allowed to cancel a signature request
 	 * @param User $user user requesting to do an action
-	 * @param CommonObject $object object on which user wishes to cancel a signature request
 	 * @return bool
 	 */
 	public function isUserAbleToCancelRequest($user)
 	{
-		return true;
+		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->request->edit);
 	}
 
 	/**
 	 * Function to know if an user is allowed to refresh a signature request
 	 * @param User $user user requesting to do an action
-	 * @param CommonObject $object object on which user wishes to cancel a signature request
 	 * @return bool
 	 */
 	public function isUserAbleToRefreshRequest($user)
 	{
-		return true;
+		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->request->read);
+	}
+
+	/**
+	 * Function to know if user is allowed to reset a signature request
+	 * @param User $user user requesting to do an action
+	 * @return bool
+	 */
+	public function isUserAbleToResetRequest($user)
+	{
+		return !empty($this->object)
+		&& !empty($user->rights->digitalsignaturemanager->request->create)
+		&& !empty($user->rights->digitalsignaturemanager->request->delete);
 	}
 
 	/**

@@ -128,6 +128,6 @@ class InterfaceDigitalSignatureManagerManageRequestWhenLinkedObjectChange extend
 				break;
 		}
 		$this->errors = array_merge($this->errors, $errors);
-		return 0;
+		return empty($errors) ? 0 : -1;
 	}
 }

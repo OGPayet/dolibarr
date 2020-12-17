@@ -549,4 +549,18 @@ class ExtendedEcm extends EcmFiles
 			return null;
 		}
 	}
+
+	/**
+	 * Function to get relative path to module of this file
+	 * @param string $modulePart name of the module of this file
+	 * @return string
+	 */
+	public function getRelativePathToModule($modulePart)
+	{
+		$relativePathToDolDataRoot = $this->getFullRelativePath();
+		$result = preg_replace('/^[\\/]/', '', $relativePathToDolDataRoot);
+		$result = preg_replace('/^' . preg_quote($modulePart, '/') . '/', '', $result);
+		$result = preg_replace('/^[\\/]/', '', $result);
+		return $result;
+	}
 }

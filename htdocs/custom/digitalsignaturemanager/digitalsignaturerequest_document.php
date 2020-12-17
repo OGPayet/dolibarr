@@ -198,7 +198,7 @@ if ($object->id)
     $object->getListOfFilesToSign('files'),
     $object,
     $modulepart,
-    $param,
+    '&perm=request&subperm=read',
     0,
     $object->getRelativePathForFilesToSignToModuleDirectory() . "/",		// relative path with no file. For example "0/1"
     0,
@@ -222,7 +222,7 @@ if ($object->id)
     $object->getListOfSignedFiles('files'),
     $object,
     $modulepart,
-    $param,
+    '&perm=request&subperm=read',
     0,
     $object->getRelativePathForSignedFilesToModuleDirectory() . "/",		// relative path with no file. For example "0/1"
     0,

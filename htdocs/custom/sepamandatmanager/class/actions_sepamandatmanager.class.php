@@ -92,7 +92,11 @@ class ActionsSepaMandatManager
 				$action = null;
 			}
 		}
-		if ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME) {
+		global $user;
+		if (
+			$action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME
+			&& $this->isUserAllowedToAddSepaMandate($object, $user)
+		) {
 			$errors = $this->formSepaMandateDigitalSignatureRequest->checkSepaMandateInformationIntoPost();
 			if (!empty($errors)) {
 				$action = FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_REQUEST_SIGN_ACTION_NAME;
@@ -116,12 +120,15 @@ class ActionsSepaMandatManager
 	 */
 	public function addMoreFormQuestion($parameters, &$object, &$action, $hookmanager)
 	{
-		if ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_REQUEST_SIGN_ACTION_NAME) {
-			$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getFormConfirmQuestionsToCreateSepaMandate($object->socid ?? $object->fk_soc));
-		} elseif ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME) {
-			$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getHiddenQuestionToKeepSepaPostContent());
+		global $user;
+		if ($this->isUserAllowedToAddSepaMandate($object, $user)) {
+			if ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_REQUEST_SIGN_ACTION_NAME) {
+				$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getFormConfirmQuestionsToCreateSepaMandate($object->socid ?? $object->fk_soc));
+			} elseif ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME) {
+				$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getHiddenQuestionToKeepSepaPostContent());
+			}
+			return 0;
 		}
-		return 0;
 	}
 
 	/**
@@ -136,22 +143,23 @@ class ActionsSepaMandatManager
 	public function addMoreDocuments($parameters, &$object, &$action, $hookmanager)
 	{
 		global $user;
-		if (
-			$action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME
-			&& $this->formSepaMandateDigitalSignatureRequest->isThereSepaMandateInformationIntoPost()
-		) {
-			$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getFakeSepaMandateEcmDocuments());
-			return 0;
-		}
-		if ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_CONFIRM_SET_SIGNERS_ACTION_NAME) {
-			$documentsToAdd = $this->formSepaMandateDigitalSignatureRequest->manageCreateEcmSepaMandateToSign($user, $object->socid ?? $object->fk_soc);
-			$this->errors += $this->formSepaMandateDigitalSignatureRequest->errors;
-			if(is_array($documentsToAdd)) {
-				$this->results = array_merge($this->results ?? array(), $documentsToAdd);
+		if ($this->isUserAllowedToAddSepaMandate($object, $user)) {
+			if (
+				$action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME
+				&& $this->formSepaMandateDigitalSignatureRequest->isThereSepaMandateInformationIntoPost()
+			) {
+				$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getFakeSepaMandateEcmDocuments());
 				return 0;
 			}
-			else {
-				return -1;
+			if ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_CONFIRM_SET_SIGNERS_ACTION_NAME) {
+				$documentsToAdd = $this->formSepaMandateDigitalSignatureRequest->manageCreateEcmSepaMandateToSign($user, $object->socid ?? $object->fk_soc);
+				$this->errors += $this->formSepaMandateDigitalSignatureRequest->errors;
+				if (is_array($documentsToAdd)) {
+					$this->results = array_merge($this->results ?? array(), $documentsToAdd);
+					return 0;
+				} else {
+					return -1;
+				}
 			}
 		}
 	}
@@ -185,5 +193,16 @@ class ActionsSepaMandatManager
 				}
 			}
 		}
+	}
+
+	/**
+	 * Function to know if user is allowed to add a Sepa Mandate on an object
+	 * @param CommonObject $object object to check
+	 * @param User $user User to check
+	 * @return bool
+	 */
+	public function isUserAllowedToAddSepaMandate($object, $user)
+	{
+		return !empty($object) && !empty($user->rights->sepamandatmanager->sepamandat->write);
 	}
 }

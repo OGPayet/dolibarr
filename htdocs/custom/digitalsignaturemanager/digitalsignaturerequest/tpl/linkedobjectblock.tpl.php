@@ -36,14 +36,18 @@ if (empty($conf) || ! is_object($conf))
 
 <?php
 
-global $user;
+global $user, $db;
 
 $langs = $GLOBALS['langs'];
 global $linkedObjectBlock;
 
 $langs->load("digitalsignaturemanager@digitalsignaturemanager");
-
+dol_include_once('/digitalsignaturemanager/class/html.formdigitalsignaturemanager.class.php');
+$formDigitalSignatureManager = new FormDigitalSignatureManager($db);
 $var=true;
+$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
+uasort($linkedObjectBlock, array($digitalSignatureRequestLinkedObject, 'sortLinkedDigitalSignatureRequestToAnObject'));
+
 foreach($linkedObjectBlock as $key => $objectlink)
 {
 	$trclass=($var?'pair':'impair');
@@ -57,8 +61,8 @@ foreach($linkedObjectBlock as $key => $objectlink)
 	}
 ?>
     <tr class="<?php echo $trclass; ?>">
-        <td><?php echo $langs->trans("DigitalSignatureRequest"); ?></td>
-        <td><?php echo $objectlink->getNomUrl(1); ?></td>
+        <td><?php echo $langs->trans("DigitalSignatureRequest")  ?></td>
+        <td><?php echo $objectlink->getNomUrl(1) . $formDigitalSignatureManager->getWarningInfoBox($objectlink->is_staled_according_to_source_object, $langs->trans("DigitalSignatureManagerStaledData")); ?></td>
         <td colspan="3" align="center"><?php echo $labelStatus; ?></td>
         <td align="right"><?php echo $objectlink->getLibStatut(3); ?></td>
         <td align="right"></td>

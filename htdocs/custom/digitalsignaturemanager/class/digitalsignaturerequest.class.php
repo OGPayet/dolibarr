@@ -985,7 +985,8 @@ class DigitalSignatureRequest extends CommonObject
 	public function getRelativeModuleDirectoryToDocumentRootDirectory()
 	{
 		$absoluteModuleDirectory = $this->getAbsoluteModuleDirectory();
-		return preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $absoluteModuleDirectory);
+		$result = preg_replace('/^' . preg_quote(DOL_DATA_ROOT, '/') . '/', '', $absoluteModuleDirectory);
+		return preg_replace('/^[\\/]/', '', $result);
 	}
 
 	/**
