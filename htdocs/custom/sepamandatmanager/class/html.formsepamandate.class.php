@@ -815,4 +815,33 @@ class FormSepaMandate
 
 		return $formconfirm;
 	}
+
+	/**
+	 * Function to display select field into column
+	 * @param string $fieldName Input post field name
+	 * @param string $fieldValue value to be displayed
+	 * @param string[] $arrayOfItemIntoKeyArray array of string with values key=>displayValue
+	 * @return string html content
+	 */
+	public function getSelectComponent($fieldName, $fieldValue, $arrayOfItemIntoKeyArray)
+	{
+		return $this->form->selectarray($fieldName, $arrayOfItemIntoKeyArray, $fieldValue, 1, 0, 0, 'style="width: 95%;"', 0, 0, 0, '', '', 1);
+	}
+
+	/**
+	 * Function to get mandat type selection field
+	 * @param int $selectedType selected value
+	 * @param string $htmlFieldName html form name
+	 * @return string
+	 */
+	public function getMandatTypeSelect($selectedType, $htmlFieldName) {
+		global $langs;
+		if($selectedType) {
+			$selectedType = SepaMandat::TYPE_RECURRENT;
+		}
+		return $this->form->selectarray($htmlFieldName, array(
+			SepaMandat::TYPE_RECURRENT => $langs->trans("SepaMandateRecurrentType"),
+			SepaMandat::TYPE_PUNCTUAL => $langs->trans("SepaMandatePunctualType")
+		), $selectedType);
+	}
 }

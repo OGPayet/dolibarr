@@ -44,7 +44,6 @@ class ActionsSepaMandatManager
 	 */
 	public $errors = array();
 
-
 	/**
 	 * @var array Hook results. Propagated to $hookmanager->resArray for later reuse
 	 */
@@ -55,6 +54,10 @@ class ActionsSepaMandatManager
 	 */
 	public $resprints;
 
+	/**
+	 * @var FormSepaMandateDigitalSignatureRequest
+	 */
+	public $formSepaMandateDigitalSignatureRequest;
 
 	/**
 	 * Constructor
@@ -64,6 +67,8 @@ class ActionsSepaMandatManager
 	public function __construct($db)
 	{
 		$this->db = $db;
+		dol_include_once('/sepamandatmanager/class/html.formsepamandatedigitalsignaturerequest.class.php');
+		$this->formSepaMandateDigitalSignatureRequest = new FormSepaMandateDigitalSignatureRequest($db);
 	}
 
 	/**
@@ -82,19 +87,103 @@ class ActionsSepaMandatManager
 		$contexts = explode(':', $parameters['context']);
 		if (in_array('thirdpartybancard', $contexts) && ($action == 'edit' || $action == 'delete' || $action == 'confirm_delete')) {
 			$id = GETPOST('id');
-			if(SepaMandatCompanyBankAccountLink::isAMandateLinkedToThisCompanyAccountId($this->db, $id)) {
+			if (SepaMandatCompanyBankAccountLink::isAMandateLinkedToThisCompanyAccountId($this->db, $id)) {
 				$errors[] = $langs->trans('SepaMandateManagedByASepaMandate');
 				$action = null;
 			}
 		}
-
+		if ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME) {
+			$errors = $this->formSepaMandateDigitalSignatureRequest->checkSepaMandateInformationIntoPost();
+			if (!empty($errors)) {
+				$action = FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_REQUEST_SIGN_ACTION_NAME;
+			}
+		}
 		if (empty($errors)) {
-			// $this->results = array('myreturn' => 999);
-			// $this->resprints = 'A text to show';
-			return 0; // or return 1 to replace standard code
+			return 0;
 		} else {
-			$this->errors = array_merge($this->errors, $errors);
+			$this->errors += $errors;
 			return -1;
+		}
+	}
+	/**
+	 * Overloading the doActions function : replacing the parent's function with the one below
+	 *
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function addMoreFormQuestion($parameters, &$object, &$action, $hookmanager)
+	{
+		if ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_REQUEST_SIGN_ACTION_NAME) {
+			$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getFormConfirmQuestionsToCreateSepaMandate($object->socid ?? $object->fk_soc));
+		} elseif ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME) {
+			$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getHiddenQuestionToKeepSepaPostContent());
+		}
+		return 0;
+	}
+
+	/**
+	 * Overloading the addMoreDocuments function : replacing the parent's function with the one below
+	 *
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function addMoreDocuments($parameters, &$object, &$action, $hookmanager)
+	{
+		global $user;
+		if (
+			$action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME
+			&& $this->formSepaMandateDigitalSignatureRequest->isThereSepaMandateInformationIntoPost()
+		) {
+			$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getFakeSepaMandateEcmDocuments());
+			return 0;
+		}
+		if ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_CONFIRM_SET_SIGNERS_ACTION_NAME) {
+			$documentsToAdd = $this->formSepaMandateDigitalSignatureRequest->manageCreateEcmSepaMandateToSign($user, $object->socid ?? $object->fk_soc);
+			$this->errors += $this->formSepaMandateDigitalSignatureRequest->errors;
+			if(is_array($documentsToAdd)) {
+				$this->results = array_merge($this->results ?? array(), $documentsToAdd);
+				return 0;
+			}
+			else {
+				return -1;
+			}
+		}
+	}
+
+	/**
+	 * Overloading the afterPDFCreation function : replacing the parent's function with the one below
+	 *
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function afterPDFCreation($parameters, &$object, &$action, $hookmanager)
+	{
+		global $user;
+		$commonObject = $parameters['object'];
+
+		//We update sepa mandat manager
+		if ($commonObject && $commonObject->element == SepaMandat::$staticElement) {
+			$fileFullPath = $parameters['file'];
+			$extendedEcm = new ExtendedEcm($this->db);
+			$ecmFile = $extendedEcm->getInstanceFileFromItsAbsolutePath($fileFullPath);
+			if ($ecmFile) {
+				$commonObject->fk_generated_ecm = $ecmFile->id;
+				if ($commonObject->update($user) > 0) {
+					return 0;
+				} else {
+					$this->errors = $commonObject->errors;
+					return -1;
+				}
+			}
 		}
 	}
 }

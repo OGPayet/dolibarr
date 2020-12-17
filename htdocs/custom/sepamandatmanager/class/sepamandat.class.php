@@ -122,7 +122,8 @@ class SepaMandat extends CommonObject
 		'status' => array('type' => 'integer', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 1, 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Validé', '9' => 'Annulé'), 'noteditable' => 1),
 		'type' => array('type' => 'integer', 'label' => 'Type de mandat', 'enabled' => '1', 'position' => 115, 'notnull' => 1, 'visible' => 1, 'default' => self::TYPE_RECURRENT),
 		'date_rum' => array('type' => 'date', 'label' => 'Date du mandat', 'enabled' => '1', 'position' => 500, 'notnull' => 0, 'visible' => 1,),
-		'fk_companybankaccount'=> array('type' => 'integer:CompanyBankAccount:societe/class/companybankaccount.class.php', 'label' => 'Linked company bank account', 'enabled' => 1, 'visible' => 0, 'index' => 1)
+		'fk_companybankaccount'=> array('type' => 'integer:CompanyBankAccount:societe/class/companybankaccount.class.php', 'label' => 'Linked company bank account', 'enabled' => 1, 'visible' => 0, 'index' => 1),
+		'fk_generated_ecm' => array('type' => 'integer:ExtendedEcm:sepamandatmanager/class/extendedecm.class.php', 'label' => 'Last generated pdf file', 'enabled' => 1, 'visible' => 0)
 	);
 	public $rowid;
 	public $ref;
@@ -141,6 +142,7 @@ class SepaMandat extends CommonObject
 	public $type;
 	public $date_rum;
 	public $fk_companybankaccount;
+	public $fk_generated_ecm;
 	// END MODULEBUILDER PROPERTIES
 
 	/**
@@ -213,7 +215,12 @@ class SepaMandat extends CommonObject
 	 */
 	public function create(User $user, $notrigger = false)
 	{
-		return $this->createCommon($user, $notrigger);
+		$result = $this->createCommon($user, $notrigger);
+		if($result > 0)
+		{
+			$result = $this->fetch($this->id);
+		}
+		return $result;
 	}
 
 	/**

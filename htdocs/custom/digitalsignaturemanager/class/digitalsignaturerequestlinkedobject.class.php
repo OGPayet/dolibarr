@@ -63,10 +63,15 @@ class DigitalSignatureRequestLinkedObject
 	 */
 	public function getLinkedDigitalSignatureRequests($forceUpdateOfCache = false)
 	{
+		//We are looking for linked object on digital signature request
+		//Indeed it would be better to look for digital signature document relating to this common object
+		//And then get digital signature request
+		//Dolibarr linked elements should only be used for visual purpose and standard workflow
+
 		if(!$this->object->linkedObjects || $forceUpdateOfCache) {
 			$this->object->fetchObjectLinked();
 		}
-		$result = array_values($this->object->linkedObjects[DigitalSignatureRequest::$staticElement]);
+		$result = array_values($this->object->linkedObjects[DigitalSignatureRequest::$staticElement] ?? array());
 		uasort($result, array($this, 'sortLinkedDigitalSignatureRequestToAnObject'));
 		return array_values($result);
 	}
@@ -79,15 +84,18 @@ class DigitalSignatureRequestLinkedObject
 	 */
 	private function sortLinkedDigitalSignatureRequestToAnObject($a, $b) {
 		if (!isset($a) || !isset($a->date_creation) || is_null($a->date_creation)) {
-			return -1;
+			$result = -1;
 		}
-		if (!isset($b) || !isset($b->date_creation) || is_null($b->date_creation)) {
-			return 1;
+		else if (!isset($b) || !isset($b->date_creation) || is_null($b->date_creation)) {
+			$result = 1;
 		}
-		if ($a->date_creation == $b->date_creation) {
-			return 0;
+		else if ($a->date_creation == $b->date_creation) {
+			$result = 0;
 		}
-		return $a->date_creation < $b->date_creation ? 1 : -1;
+		else {
+			$result = $a->date_creation < $b->date_creation ? 1 : -1;
+		}
+		return $result;
 	}
 
 	/**
@@ -215,12 +223,10 @@ class DigitalSignatureRequestLinkedObject
 		global $langs;
 		$errors = array();
 		$digitalSignatureRequest = new DigitalSignatureRequest($this->db);
-		// $digitalSignatureRequest->elementtype = $this->object->table_element;
-		// $digitalSignatureRequest->fk_object = $this->object->id;
 		$digitalSignatureRequest->fk_soc = $this->object->socid;
 		$digitalSignatureRequest->fk_project = $this->object->fk_project;
 
-		if ($digitalSignatureRequest->create($user) < 0 || $digitalSignatureRequest->add_object_linked($this->object->table_element, $this->object->id) < 0) {
+		if ($digitalSignatureRequest->create($user) < 0) {
 			$errors = array_merge($errors, $digitalSignatureRequest->errors);
 		}
 
@@ -232,14 +238,15 @@ class DigitalSignatureRequestLinkedObject
 				$copyEcmFile = $ecmFile->copyFileTo($digitalSignatureRequest->getRelativePathToDolDataRootForFilesToSign());
 				if (!$copyEcmFile) {
 					$errors[] = $langs->trans("DigitalSignatureManagerErrorWhileCopyingFile", $ecmFile->filename);
+					$errors = array_merge($ecmFile->errors);
 				} else {
 					$arrayOfOriginalAndCopiedEcmFile[$copyEcmFile->id] = $ecmFile;
 					$digitalSignatureDocument->ecmFile = $copyEcmFile;
 					$digitalSignatureDocument->fk_ecm = $copyEcmFile->id;
 					$digitalSignatureDocument->fk_digitalsignaturerequest = $digitalSignatureRequest->id;
 					$digitalSignatureDocument->digitalSignatureRequest = $digitalSignatureRequest;
-					$digitalSignatureDocument->elementtype = $this->object->element;
-					$digitalSignatureDocument->fk_object = $this->object->id;
+					$digitalSignatureDocument->elementtype = $ecmFile->elementtype;
+					$digitalSignatureDocument->fk_object = $ecmFile->fk_object;
 					$digitalSignatureDocument->create($user);
 					$errors = array_merge($errors, $digitalSignatureDocument->errors);
 					$digitalSignatureRequest->documents[] = $digitalSignatureDocument;
@@ -251,9 +258,9 @@ class DigitalSignatureRequestLinkedObject
 		//We build digitalsignaturepeople array for this request
 		$listOfSignatoryByIdentifier = array();
 		$listOfSignatoryIdentifierByEcmFileAndSignatoryFieldDictionnaryId = array();
-		foreach ($selectedFiles as $ecmFile) {
+		foreach ($selectedFiles as $id => $ecmFile) {
 			foreach ($this->getSignatoryFieldsDictionaryLinesForFile($ecmFile) as $dictionaryItem) {
-				$signatorySelected = $signatoryInstancePerEcmFileAndDictionaryRowId[$ecmFile->id][$dictionaryItem->c_rowid];
+				$signatorySelected = $signatoryInstancePerEcmFileAndDictionaryRowId[$id][$dictionaryItem->c_rowid];
 				if ($signatorySelected && $signatorySelected->generateUniqueIdentifier()) {
 					$signatoryIdentifier = $signatorySelected->generateUniqueIdentifier();
 					if (!$listOfSignatoryByIdentifier[$signatoryIdentifier]) {
@@ -291,6 +298,23 @@ class DigitalSignatureRequestLinkedObject
 					$digitalSignatureSignatoryField->create($user);
 					$errors = array_merge($errors, $digitalSignatureSignatoryField->errors);
 					$digitalSignatureRequest->signatoryFields[] = $digitalSignatureSignatoryField;
+				}
+			}
+		}
+
+		//We linked dolibarr object to this request
+		$alreadyObjectLinkedTypeAndIds = array();
+		foreach($digitalSignatureRequest->documents as $document)
+		{
+			if(!empty($document->elementtype) && !empty($document->fk_object) && empty($alreadyObjectLinkedTypeAndIds[$document->elementtype][$document->fk_object]))
+			{
+				if($digitalSignatureRequest->add_object_linked($document->elementtype, $document->fk_object) < 0)
+				{
+					$errors[] = $digitalSignatureRequest->error;
+				}
+				else
+				{
+					$alreadyObjectLinkedTypeAndIds[$document->elementtype][$document->fk_object] = true;
 				}
 			}
 		}
@@ -371,10 +395,10 @@ class DigitalSignatureRequestLinkedObject
 	{
 		global $langs;
 		$errors = array();
-		foreach ($selectedFiles as $ecmFile) {
+		foreach ($selectedFiles as $id => $ecmFile) {
 			$dictionaryItems = $this->getSignatoryFieldsDictionaryLinesForFile($ecmFile);
 			foreach ($dictionaryItems as $dictionaryItem) {
-				$selectedSignatory = $signatoryInstancePerEcmFileAndDictionaryRowId[$ecmFile->id][$dictionaryItem->c_rowid];
+				$selectedSignatory = $signatoryInstancePerEcmFileAndDictionaryRowId[$id][$dictionaryItem->c_rowid];
 				$isFreeSignatoryAllowed = in_array(DigitalSignaturePeople::LINKED_OBJECT_FREE_TYPE, $dictionaryItem->linkedContactType);
 				$isContactOrUserSignatorySourceAllowed = in_array(DigitalSignaturePeople::LINKED_OBJECT_USER_TYPE, $dictionaryItem->linkedContactType) || in_array(DigitalSignaturePeople::LINKED_OBJECT_CONTACT_TYPE, $dictionaryItem->linkedContactType);
 				if (!$selectedSignatory && !$isFreeSignatoryAllowed) {
@@ -398,7 +422,7 @@ class DigitalSignatureRequestLinkedObject
 		$filesEffectivelyChosen = array();
 		foreach ($ecmFileIds as $id) {
 			if ($selectableFiles[$id]) {
-				$filesEffectivelyChosen[] = $selectableFiles[$id];
+				$filesEffectivelyChosen[$id] = $selectableFiles[$id];
 			}
 		}
 		return $filesEffectivelyChosen;

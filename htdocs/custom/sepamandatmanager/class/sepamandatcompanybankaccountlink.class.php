@@ -43,6 +43,11 @@ class SepaMandatCompanyBankAccountLink
 	public $object;
 
 	/**
+	 * @var string[] array of errors
+	 */
+	public $errors = array();
+
+	/**
 	 * Constructor
 	 *
 	 * @param   SepaMandat $object from dolibarr to be handle
@@ -143,7 +148,8 @@ class SepaMandatCompanyBankAccountLink
 	 * @param int $companyBankAccountId researched company bank account
 	 * @return SepaMandat|int
 	 */
-	public static function getSepaMandatesLinkToACompanyAccount($db, $companyBankAccountId) {
+	public static function getSepaMandatesLinkToACompanyAccount($db, $companyBankAccountId)
+	{
 		$element = new SepaMandat($db);
 		return $element->fetchAll("DESC", "rowid", null, null, array('fk_companybankaccount' => $companyBankAccountId));
 	}
@@ -157,5 +163,74 @@ class SepaMandatCompanyBankAccountLink
 	public static function isAMandateLinkedToThisCompanyAccountId($db, $companyBankAccountId) {
 		$sepaMandates = self::getSepaMandatesLinkToACompanyAccount($db, $companyBankAccountId);
 		return is_array($sepaMandates) && count($sepaMandates) > 0 ? true : false;
+	}
+
+	/**
+	 * Function to get a list of company bank account of a company
+	 * @param DoliDB $db database instance to use
+	 * @param int $companyId Company id to check
+	 * @return CompanyBankAccount[]|null
+	 */
+	public static function getCompanyBankAccounts($db, $companyId)
+	{
+		$company = new Societe($db);
+		$company->id = $companyId;
+		$listOfRib = $company->get_all_rib();
+		if(!is_array($listOfRib) || !empty($company->errors)) {
+			return null;
+		}
+		else {
+			return $listOfRib;
+		}
+	}
+
+	/**
+	 * Function to get list of unique iban - bic value for a company id
+	 * @param DoliDB $db database instance to use
+	 * @param int $companyId Company id to check
+	 * @return CompanyBankAccount[]|null
+	 */
+	public static function getIbanBicUniqueNumberForACompany($db, $companyId) {
+		$ibanCrudeList = array();
+		$listOfAccount = self::getCompanyBankAccounts($db, $companyId);
+		if($listOfAccount) {
+			foreach($listOfAccount as $account) {
+				if(empty(self::checkAccountInformation($db, $account->iban, $account->bic))) {
+					$ibanCrudeList[$account->id] = "IBAN : " . $account->iban . " - BIC : " . $account->bic;
+				}
+			}
+		}
+		else {
+			return null;
+		}
+		return array_unique($ibanCrudeList);
+	}
+
+	/**
+	 * Function to know if account information are valid
+	 * @param DoliDB $db database instance to use
+	 * @param string $iban iban value to check
+	 * @param string $bic bic value to check
+	 * @return string[] array of errors
+	 */
+	public static function checkAccountInformation($db, $iban, $bic)
+	{
+		$staticElement = new SepaMandat($db);
+				$staticElement->iban = $iban;
+				$staticElement->bic = $bic;
+				return array_merge($staticElement->checkIbanValue(), $staticElement->checkBicValue());
+	}
+
+	/**
+	 * Function to know if account information are valid into company bank account
+	 * @param DoliDB $db database instance to use
+	 * @param int $id id of the bank account to check
+	 * @return string[] array of errors
+	 */
+	public static function checkAccountInformationFromId($db, $id)
+	{
+		$staticElement = new CompanyBankAccount($db);
+		$staticElement->fetch($id);
+		return self::checkAccountInformation($db, $staticElement->iban, $staticElement->bic);
 	}
 }

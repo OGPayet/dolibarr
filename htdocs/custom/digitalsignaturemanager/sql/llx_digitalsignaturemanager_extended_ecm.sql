@@ -14,7 +14,9 @@
 -- along with this program.  If not, see https://www.gnu.org/licenses/.
 
 
-CREATE TABLE llx_digitalsignaturemanager_extended_ecm(
+CREATE TABLE llx_extended_ecm(
 	fk_ecm integer PRIMARY KEY NOT NULL,
-	mask varchar(255)
+	mask varchar(255),
+	elementtype varchar(255),
+	fk_object integer
 ) ENGINE=innodb;

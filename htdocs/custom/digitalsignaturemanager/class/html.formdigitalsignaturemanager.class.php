@@ -805,4 +805,49 @@ class FormDigitalSignatureManager
 		}
 		return $out;
 	}
+
+	/**
+	 *     Show a confirmation HTML form or AJAX popup.
+	 *     Easiest way to use this is with useajax=1.
+	 *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
+	 *     just after calling this method. For example:
+	 *       print '<script type="text/javascript">'."\n";
+	 *       print 'jQuery(document).ready(function() {'."\n";
+	 *       print 'jQuery(".xxxlink").click(function(e) { jQuery("#aparamid").val(jQuery(this).attr("rel")); jQuery("#dialog-confirm-xxx").dialog("open"); return false; });'."\n";
+	 *       print '});'."\n";
+	 *       print '</script>'."\n";
+	 * 		With use of hookmanager
+	 *     @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 *     @param   string          $action         Current action (if set). Generally create or edit or null
+	 *     @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 *     @param  	string		$page        	   	Url of page to call if confirmation is OK
+	 *     @param	string		$title       	   	Title
+	 *     @param	string		$question    	   	Question
+	 *     @param 	string		$confirmAction      	   	Action
+	 *	   @param  	array		$formquestions	   	An array with complementary inputs to add into forms: array(array('label'=> ,'type'=> , ))
+	 * 	   @param  	string		$selectedchoice  	"" or "no" or "yes"
+	 * 	   @param  	int			$useajax		   	0=No, 1=Yes, 2=Yes but submit page with &confirm=no if choice is No, 'xxx'=Yes and preoutput confirm box with div id=dialog-confirm-xxx
+	 *     @param  	int			$height          	Force height of box
+	 *     @param	int			$width				Force width of box ('999' or '90%'). Ignored and forced to 90% on smartphones.
+	 *     @param	int			$post				Send by form POST.
+	 *     @param	int			$resizable			Resizable box (0=no, 1=yes).
+	 *     @return 	string      	    			HTML ajax code if a confirm ajax popup is required, Pure HTML code if it's an html form
+	 */
+	public function formConfirmWithHook(&$object, &$action, &$hookmanager, $page, $title, $question, $confirmAction, $formquestions = array(), $selectedchoice = "", $useajax = 0, $height = 200, $width = 500, $post = 0, $resizable = 0)
+	{
+		$parameters = array('question' => $formquestions);
+		$reshook = $hookmanager->executeHooks('addMoreFormQuestion', $parameters, $object, $action);
+		if (empty($reshook)) {
+			$effectiveQuestions = array_merge($formquestions, is_array($hookmanager->resArray) ? $hookmanager->resArray : array());
+		} elseif($reshook > 0) {
+			$effectiveQuestions = is_array($hookmanager->resArray) ? $hookmanager->resArray : array();
+		}
+		else {
+			$effectiveQuestions = $formquestions;
+		}
+		return $this->formconfirm($page, $title, $question, $confirmAction, $effectiveQuestions, $selectedchoice, $useajax, $height, $width, $post, $resizable);
+	}
+
+
+
 }

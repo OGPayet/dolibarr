@@ -24,9 +24,14 @@ class DigitalSignatureDocumentTypeManager
 {
 
 	/**
-	 * @var string[] Module part managed by this dictionary
+	 * @var string[] Core Module part managed by this dictionary
 	 */
-	const MANAGED_MODULE_PART = array('propal');
+	const MANAGED_MODULE_PART = array('propal', 'sepamandatmanager_sepamandat');
+
+	/**
+	 * @var string[] Core Module part managed by this dictionary
+	 */
+	const MANAGED_CUSTOM_MODULE_PART = array('sepamandatmanager:sepamandat');
 
 	/**
 	 * @var string Linked document free type selected value
@@ -45,6 +50,14 @@ class DigitalSignatureDocumentTypeManager
 		$arrayOfMask = array();
 		foreach (self::MANAGED_MODULE_PART as $modulePart) {
 			$maskOfThisModulePart = DigitalSignatureManagerMaskGeneratorEnumerator::getAvailableModelsForCoreModulePart($db, $modulePart);
+			$displayedMaskOfThisModulePart = array();
+			foreach ($maskOfThisModulePart as $key => $displayName) {
+				$displayedMaskOfThisModulePart[$key] = $modulePart . ' - ' . $displayName;
+			}
+			$arrayOfMask = array_merge($arrayOfMask, $displayedMaskOfThisModulePart);
+		}
+		foreach (self::MANAGED_CUSTOM_MODULE_PART as $modulePart) {
+			$maskOfThisModulePart = DigitalSignatureManagerMaskGeneratorEnumerator::getAvailableModelsForCustomModulePart($db, $modulePart);
 			$displayedMaskOfThisModulePart = array();
 			foreach ($maskOfThisModulePart as $key => $displayName) {
 				$displayedMaskOfThisModulePart[$key] = $modulePart . ' - ' . $displayName;

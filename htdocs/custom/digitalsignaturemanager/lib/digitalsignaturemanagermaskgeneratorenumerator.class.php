@@ -179,10 +179,11 @@ class DigitalSignatureManagerMaskGeneratorEnumerator
 
 	/**
 	 * Function to get list of available pdf model generator for a custom module part
+	 * @param DoliDB $db Instance of database to use
 	 * @param string $modulePart Name of the custom module part with 'nameofmodule:nameofsubmodule' syntax if needed
 	 * @return array
 	 */
-	public function getAvailableModelsForCustomModulePart($modulePart)
+	public static function getAvailableModelsForCustomModulePart($db, $modulePart)
 	{
 		$result = array();
 		$subModulePart = $modulePart;
@@ -206,9 +207,9 @@ class DigitalSignatureManagerMaskGeneratorEnumerator
 		$class = 'ModelePDF' . ucfirst($subModulePart);
 
 		if (class_exists($class)) {
-			$result = call_user_func($class . '::liste_modeles', $this->db);
+			$result = call_user_func($class . '::liste_modeles', $db);
 		} else {
-			dol_print_error($this->db, "Bad value for modulepart '" . $modulePart . "' in showdocuments");
+			dol_print_error($db, "Bad value for modulepart '" . $modulePart . "' in showdocuments");
 		}
 		return $result;
 	}

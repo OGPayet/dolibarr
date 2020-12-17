@@ -21,6 +21,7 @@
 ModuleSepaMandatManagerName = Sepa Mandat Manager
 # Module description 'ModuleSepaMandatManagerDesc'
 SepaMandatManagerDescription = Gestionnaire avancé de mandat sepa
+SepaMandatLinkedObjectName = Mandat Sepa
 
 #
 # Page d'administration
@@ -157,6 +158,13 @@ SepaMandateNoTypeSet = Aucun type de mandat renseigné (ponctuel, récurrent)
 SepaMandateCompanyAccountName = Mandat SEPA %s
 SepaMandateManagedByASepaMandate = Modification interdite - ce compte bancaire est géré depuis son mandat sepa
 SepaMandatErrorWhenUpdatingCompanyBankAccount = Erreur lors de la mise à jour des données bancaires sur la fiche tiers
+
+#
+# Ajout sur digital signature manager
+#
+SepaMandateAddFromIban = Ajouter un mandant SEPA sur le compte bancaire suivant
+SepaMandateIbanNumber = Numéro IBAN d'un nouveau compte
+SepaMandateBicNumber = Numéro BIC d'un nouveau compte
 
 #
 # Page À propos

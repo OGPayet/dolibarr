@@ -32,12 +32,27 @@ class ExtendedEcm extends EcmFiles
 	/**
 	 * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management.
 	 */
-	public static $extended_table_element = 'digitalsignaturemanager_extended_ecm';
+	public static $extended_table_element = 'extended_ecm';
 
 	/**
 	 * @var string Name of the model used to generate file
 	 */
 	public $mask;
+
+	/**
+	 * @var string Name of the element_type of the object which create this file
+	 */
+	public $elementtype;
+
+	/**
+	 * @var string Id of the object which create this file
+	 */
+	public $fk_object;
+
+	/**
+	 * @var string[] Errors
+	 */
+	public $errors = array();
 
 	/**
 	 * Load object in memory from the database
@@ -90,7 +105,9 @@ class ExtendedEcm extends EcmFiles
 		$sql .= " t.fk_user_c as fk_user_c,";
 		$sql .= " t.fk_user_m as fk_user_m,";
 		$sql .= " t.acl as acl,";
-		$sql .= " et.mask as mask";
+		$sql .= " et.mask as mask,";
+		$sql .= " et.elementtype as elementtype,";
+		$sql .= " et.fk_object as fk_object";
 		$sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
 		$sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . self::$extended_table_element . ' as et ON (t.rowid = et.fk_ecm) ';
 
@@ -144,6 +161,8 @@ class ExtendedEcm extends EcmFiles
 				$line->fk_user_m = $obj->fk_user_m;
 				$line->acl = $obj->acl;
 				$line->mask = $obj->mask;
+				$line->elementtype = $obj->elementtype;
+				$line->fk_object = $obj->fk_object;
 				$result[] = $line;
 			}
 			$this->db->free($resql);
@@ -213,7 +232,7 @@ class ExtendedEcm extends EcmFiles
 	 */
 	public static function fetchAdditionalPropertyForInstance($db, &$instance)
 	{
-		$sql = "SELECT mask FROM " . MAIN_DB_PREFIX . self::$extended_table_element . " WHERE fk_ecm = " . $instance->id;
+		$sql = "SELECT mask, elementtype, fk_object FROM " . MAIN_DB_PREFIX . self::$extended_table_element . " WHERE fk_ecm = " . $instance->id;
 		$resql = $db->query($sql);
 		if ($resql) {
 			$result = 1;
@@ -221,6 +240,8 @@ class ExtendedEcm extends EcmFiles
 			if ($numrows) {
 				$obj = $db->fetch_object($resql);
 				$instance->mask = $obj->mask;
+				$instance->fk_object = $obj->fk_object;
+				$instance->elementtype = $obj->elementtype;
 			}
 		} else {
 			$result = -1;
@@ -238,10 +259,13 @@ class ExtendedEcm extends EcmFiles
 	public static function saveAdditionalPropertyForInstance($db, &$instance)
 	{
 		self::deleteAdditionalProperty($db, $instance->id);
-		$sql = "INSERT INTO " . MAIN_DB_PREFIX . self::$extended_table_element . " (fk_ecm, mask) VALUES ";
-		$sqlId = $instance->id ? $db->escape($instance->id) : "NULL";
-		$maskSql = $instance->mask ?  $db->escape($instance->mask) : "NULL";
-		$sql .= "(" . $sqlId . ',"' . $maskSql . '")';
+		$sql = "INSERT INTO " . MAIN_DB_PREFIX . self::$extended_table_element . " (fk_ecm, mask, elementtype, fk_object) VALUES ";
+		$values = array($instance->id, $instance->mask, $instance->elementtype, $instance->fk_object);
+		$sqlValues = array();
+		foreach($values as $value) {
+			$sqlValues[] = isset($value) ? '"' . $db->escape($value) . '"' : 'NULL';
+		}
+		$sql .= "(" . implode(',', $sqlValues) . ")";
 		$resql = $instance->db->query($sql);
 		if ($resql) {
 			$result = 1;
@@ -312,6 +336,7 @@ class ExtendedEcm extends EcmFiles
 			} else {
 				$result = $newEcm->create($user);
 			}
+			$this->errors = array_merge($this->errors, $newEcm->errors);
 			$copiedInstanceResult = $result > 0 ? $newEcm : null;
 		}
 		return $copiedInstanceResult;
@@ -426,7 +451,7 @@ class ExtendedEcm extends EcmFiles
 	 */
 	public static function cleanEcmFileDatabase($db, $relativePathAccordingToDocumentFolder, $user)
 	{
-		$listOfFileOnDisk = dol_dir_list(DOL_DATA_ROOT . '/' . $relativePathAccordingToDocumentFolder, 'files');
+		$listOfFileOnDisk = dol_dir_list(DOL_DATA_ROOT . '/' . $relativePathAccordingToDocumentFolder, 'files', 0, null, null, null, null, 0, 1);
 		$staticEcm = new self($db);
 		$listOfFilesIntoDatabase = $staticEcm->fetchAll('ASC', 'rowid', null, null, array('filepath' => $relativePathAccordingToDocumentFolder));
 		$errors = array();
@@ -505,5 +530,23 @@ class ExtendedEcm extends EcmFiles
 			}
 		}
 		return $result > 0 ? $newEcm : null;
+	}
+
+	/**
+	 * Function to get Extended Ecm of a file based on its absolute path
+	 * @param string $absolutePath absolute path of the file to find
+	 * @return ExtendedEcm|null
+	 */
+	public function getInstanceFileFromItsAbsolutePath($absolutePath)
+	{
+		$relativeDirectory = $this->getRelativeDirectoryOfAFile($absolutePath);
+		$fileName = basename($absolutePath);
+		$ecmfile = new ExtendedEcm($this->db);
+		$result = $ecmfile->fetch(0, '', $relativeDirectory . '/' . $fileName);
+		if ($result > 0 && $ecmfile->id > 0) {
+			return $ecmfile;
+		} else {
+			return null;
+		}
 	}
 }

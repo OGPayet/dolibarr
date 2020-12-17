@@ -41,7 +41,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 /**
  *	Class to manage PDF template standard_sepamandat
  */
-class pdf_standard_mercure extends ModelePDFSepamandat
+class pdf_mercure extends ModelePDFSepamandat
 {
 	var $emetteur;	// Objet societe qui emet
 	var $version = 'dolibarr';

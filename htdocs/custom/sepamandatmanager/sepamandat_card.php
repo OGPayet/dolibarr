@@ -159,6 +159,7 @@ if (empty($reshook)) {
 	include DOL_DOCUMENT_ROOT . '/core/actions_printing.inc.php';
 
 	// Action to build doc
+	$permissioncreate = $user->rights->sepamandatmanager->sepamandat->read && ($object->status == $object::STATUS_DRAFT || $object->status == $object::STATUS_TOSIGN);	// If you can read, you can build the PDF to read content
 	include DOL_DOCUMENT_ROOT . '/core/actions_builddoc.inc.php';
 
 	// Actions to send emails

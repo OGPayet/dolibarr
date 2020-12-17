@@ -33,7 +33,8 @@ CREATE TABLE llx_sepamandatmanager_sepamandat(
 	status integer NOT NULL,
 	type integer,
 	date_rum date,
-	fk_companybankaccount integer
+	fk_companybankaccount integer,
+	fk_generated_ecm integer
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;
 

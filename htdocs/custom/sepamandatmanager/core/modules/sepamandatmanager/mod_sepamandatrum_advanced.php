@@ -142,6 +142,9 @@ class mod_sepamandatrum_advanced extends ModeleNumRefSepamandat
 		}
 
 		$date = $object->date;
+		if(!$object->thirdparty) {
+			$object->fetch_thirdparty();
+		}
 		$numFinal = get_next_value($db, $mask, 'sepamandatmanager_sepamandat', 'rum', '', $object->thirdparty, $date);
 
 		return  $numFinal;
