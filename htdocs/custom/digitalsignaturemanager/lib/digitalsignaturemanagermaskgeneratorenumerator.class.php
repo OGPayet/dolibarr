@@ -167,9 +167,9 @@ class DigitalSignatureManagerMaskGeneratorEnumerator
 		foreach($result as $keyWithFullPath=>$displayName) {
 			$finalKey = $keyWithFullPath;
 			$splittedKey = explode(':', $finalKey);
-			if($splittedKey[0]) {
-				$finalKey = $splittedKey[0];
-			}
+			$keyOnWhichGetProperName = $splittedKey[1] ?? $splittedKey[0];
+			$pathInfo = pathinfo($keyOnWhichGetProperName);
+			$finalKey = $pathInfo['filename'];
 			$finalResult[$finalKey] = $displayName;
 		}
 
