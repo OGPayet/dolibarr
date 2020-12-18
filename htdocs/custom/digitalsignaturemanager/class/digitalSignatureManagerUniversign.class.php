@@ -196,6 +196,9 @@ Class DigitalSignatureManagerUniversign
 			->setLanguage($this->getUniversignLanguageCode())
 			->setCertificateType('simple')
 			->setCustomId((string) $this->digitalSignatureRequest->id);
+		if(!empty($this->digitalSignatureRequest->invitation_message)) {
+			$request->setInvitationMessage((string) $this->digitalSignatureRequest->invitation_message);
+		}
 
 		$requester = $this->getUniversignRequester();
 		try{

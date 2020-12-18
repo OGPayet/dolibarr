@@ -32,7 +32,8 @@ class TransactionRequest extends Base
         'handwrittenSignatureMode' => 'int',
         'chainingMode' => 'string',
         'signers' => 'array',
-        'documents' => 'array',
+		'documents' => 'array',
+		'invitationMessage' => 'string'
     ];
 
     public function addSigner(TransactionSigner $signer)

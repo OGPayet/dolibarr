@@ -97,6 +97,11 @@ class FormDigitalSignatureRequestTemplate
 	/**
 	 * @var string Files selection html name
 	 */
+	const INVITATION_MESSAGE_HTML_NAME = 'invitationMessage';
+
+	/**
+	 * @var string Files selection html name
+	 */
 	const CREATE_DRAFT_OPTION_FIELD_NAME = 'createInDraftMode';
 
 	/**
@@ -241,9 +246,10 @@ class FormDigitalSignatureRequestTemplate
 	 * @param CommonObject $object source object instance
 	 * @param User $user user requesting create from files
 	 * @param ExtendedEcm[] $selectedFiles Create request from these file
+	 * @param String $invitationMessage Message to use to invite users
 	 * @return DigitalSignatureRequest|null
 	 */
-	private function createRequestWithPostInformation(&$object, $user, $selectedFiles)
+	private function createRequestWithPostInformation(&$object, $user, $selectedFiles, $invitationMessage)
 	{
 		global $langs;
 		$this->db->begin();
@@ -256,7 +262,7 @@ class FormDigitalSignatureRequestTemplate
 		$formValidationErrors = $digitalSignatureRequestLinkedObject->checkContentFromSelectedFiles($selectedFiles, $requestedSignatoryInformation);
 		$errors += $formValidationErrors;
 		if (empty($errors)) {
-			$digitalSignatureRequest = $digitalSignatureRequestLinkedObject->createDigitalSignatureRequestFromLinkedObject($user, $selectedFiles, $requestedSignatoryInformation);
+			$digitalSignatureRequest = $digitalSignatureRequestLinkedObject->createDigitalSignatureRequestFromLinkedObject($user, $selectedFiles, $requestedSignatoryInformation, $invitationMessage);
 			$errors += $digitalSignatureRequestLinkedObject->errors;
 		}
 		if (empty($errors)) {
@@ -299,8 +305,9 @@ class FormDigitalSignatureRequestTemplate
 
 		$requestOptions = $this->getSelectedOptions();
 		$onlyCreateADraft = $requestOptions[self::CREATE_DRAFT_OPTION_FIELD_NAME];
+		$invitationMessage = $requestOptions[self::INVITATION_MESSAGE_HTML_NAME];
 
-		$digitalSignatureRequest = $this->createRequestWithPostInformation($object, $user, $selectedFiles);
+		$digitalSignatureRequest = $this->createRequestWithPostInformation($object, $user, $selectedFiles, $invitationMessage);
 		$errors += $this->errors;
 		if ($digitalSignatureRequest && !$onlyCreateADraft) {
 			$digitalSignatureRequest->validateAndCreateRequestOnTheProvider($user);
@@ -328,7 +335,8 @@ class FormDigitalSignatureRequestTemplate
 	public function getSelectedOptions()
 	{
 		return array(
-			self::CREATE_DRAFT_OPTION_FIELD_NAME => !empty(GETPOST(self::CREATE_DRAFT_OPTION_FIELD_NAME))
+			self::CREATE_DRAFT_OPTION_FIELD_NAME => !empty(GETPOST(self::CREATE_DRAFT_OPTION_FIELD_NAME)),
+			self::INVITATION_MESSAGE_HTML_NAME => $this->getInvitationMessage()
 		);
 	}
 
@@ -390,10 +398,23 @@ class FormDigitalSignatureRequestTemplate
 			'label' => $langs->trans("DigitalSignatureManagerCreateOnlyDraft"),
 			'value' => $displayedCheckboxState,
 		);
-		if($isThereMissingParameters) {
+		if ($isThereMissingParameters) {
 			$createOnlyADraftQuestion['disabled'] = true;
 		}
 		$formquestion[] = $createOnlyADraftQuestion;
+
+		$invitationMessageTitle = array(
+			'type' => 'other',
+			'label' => $langs->trans("DigitalSignatureInvitationMessage")
+		);
+		$invitationMessage = array(
+			'type' => 'onecolumn',
+			'name' => self::INVITATION_MESSAGE_HTML_NAME,
+			'value' => $this->formDigitalSignatureManager->getTextEditor(self::INVITATION_MESSAGE_HTML_NAME, $requestedOptions[self::INVITATION_MESSAGE_HTML_NAME])
+		);
+
+		$formquestion[] = $invitationMessageTitle;
+		$formquestion[] = $invitationMessage;
 
 		$destinationUrl = $this->formDigitalSignatureManager->buildActionUrlForLine($object->id);
 		$title = $langs->trans('DigitalSignatureManagerSelectSignatoryToSignTitle');
@@ -603,5 +624,15 @@ class FormDigitalSignatureRequestTemplate
 	{
 		$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
 		return $digitalSignatureRequestLinkedObject->getSignatoryFieldsDictionaryLinesForFile($ecmFile);
+	}
+
+	/**
+	 * Function to get invitation message set by user from post content
+	 * @return string|null
+	 */
+	public function getInvitationMessage()
+	{
+		$content = GETPOST(self::INVITATION_MESSAGE_HTML_NAME);
+		return empty($content) ? null : $content;
 	}
 }

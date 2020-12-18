@@ -215,6 +215,7 @@ DigitalSignaturePeopleStatus = Avancement
 DigitalSignatureRequestUniversignProcessLabel = Processus de signature %s
 DigitalSignatureManagerNotDeletable = La demande %s ne peux être supprimé, car elle a été créé chez le prestataire
 
+DigitalSignatureInvitationMessage = Message d'invitation
 DigitalSignatureRequestLastUpdateFromProvider = Date de la dernière mise à jour des données depuis le prestataire extérieur
 DigitalSignatureRequestLastUpdateFromProviderShort = Dernière synchronisation
 DigitalSignatureRequestExternalId = Id de la demande chez le prestataire

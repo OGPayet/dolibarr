@@ -137,7 +137,7 @@ class ActionsDigitalSignatureManager
 		//pdf file
 		$pathInfo = pathinfo($fileFullPath);
 		$pdfFilePath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '.pdf';
-		if(file_exists($pdfFilePath)) {
+		if (file_exists($pdfFilePath)) {
 			$this->updateEcmMetaData($pdfFilePath, $maskName, $object);
 		}
 		return 0;
@@ -205,7 +205,7 @@ class ActionsDigitalSignatureManager
 		if (in_array('propalcard', $contexts) && defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut == $object::STATUS_VALIDATED && !$isThereADigitalSignatureRequestInProgress && $digitalSignatureRequestLinkedObject->isUserAbleToCreateRequest($user, $object) && !$isThereADigitalSignatureRequestInDraft) {
 			print $this->formDigitalSignatureRequestTemplate->getCreateFromObjectButton($object->id);
 		}
-		if ($isThereADigitalSignatureRequestInProgress) {
+		if (!in_array('digitalsignaturerequestcard', $contexts) && $isThereADigitalSignatureRequestInProgress) {
 			//refresh button
 			print $this->formDigitalSignatureRequest->getRefreshButton($object->id, $digitalSignatureRequestLinkedObject->isUserAbleToRefreshRequest($user, $object));
 			//reset request button
@@ -230,68 +230,68 @@ class ActionsDigitalSignatureManager
 	public function formConfirm($parameters, &$object, &$action, $hookmanager)
 	{
 		global $langs, $user;
-		// $contexts = explode(':', $parameters['context']);
-		// if (in_array('propalcard', $contexts)) {
-		$doesUserAskToCreateFromObject = $action == FormDigitalSignatureRequestTemplate::CREATE_FROM_OBJECT_ACTION_NAME;
-		$doesUserAskToCreateFromSelectedFiles = $action == FormDigitalSignatureRequestTemplate::CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME;
-		$doesUserAskToCancelRequest = $action == FormDigitalSignatureRequest::CANCEL_REQUEST_ACTION_NAME;
-		$doesUserAskToResetRequest = $action == FormDigitalSignatureRequest::RESET_ACTION_NAME;
+		$contexts = explode(':', $parameters['context']);
+		if (!in_array('digitalsignaturerequestcard', $contexts)) {
+			$doesUserAskToCreateFromObject = $action == FormDigitalSignatureRequestTemplate::CREATE_FROM_OBJECT_ACTION_NAME;
+			$doesUserAskToCreateFromSelectedFiles = $action == FormDigitalSignatureRequestTemplate::CREATE_FROM_OBJECT_SIGNER_SELECTION_ACTION_NAME;
+			$doesUserAskToCancelRequest = $action == FormDigitalSignatureRequest::CANCEL_REQUEST_ACTION_NAME;
+			$doesUserAskToResetRequest = $action == FormDigitalSignatureRequest::RESET_ACTION_NAME;
 
-		$actionManagedHere = array($doesUserAskToCreateFromObject, $doesUserAskToCreateFromSelectedFiles, $doesUserAskToCancelRequest, $doesUserAskToResetRequest);
-		$isThereAnActionManageHere = array_filter($actionManagedHere);
-		if ($isThereAnActionManageHere) {
-			$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
-			//Create request from linked object
-			$isThereADigitalSignatureRequestInProgress = $digitalSignatureRequestLinkedObject->isThereADigitalSignatureInProgress($object);
-			$isThereADigitalSignatureRequestInDraft = $digitalSignatureRequestLinkedObject->isThereADigitalSignatureInDraft($object);
+			$actionManagedHere = array($doesUserAskToCreateFromObject, $doesUserAskToCreateFromSelectedFiles, $doesUserAskToCancelRequest, $doesUserAskToResetRequest);
+			$isThereAnActionManageHere = array_filter($actionManagedHere);
+			if ($isThereAnActionManageHere) {
+				$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
+				//Create request from linked object
+				$isThereADigitalSignatureRequestInProgress = $digitalSignatureRequestLinkedObject->isThereADigitalSignatureInProgress($object);
+				$isThereADigitalSignatureRequestInDraft = $digitalSignatureRequestLinkedObject->isThereADigitalSignatureInDraft($object);
 
 
-			if ($doesUserAskToCreateFromObject || $doesUserAskToCreateFromSelectedFiles) {
-				if (defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut != $object::STATUS_VALIDATED) {
-					setEventMessages($langs->trans("DigitalSignatureManagerObjectMustBeValidated"), array(), 'errors');
-				} elseif ($isThereADigitalSignatureRequestInProgress || $isThereADigitalSignatureRequestInDraft) {
-					setEventMessages($langs->trans("DigitalSignatureManagerAlreadyOneRequestInProgress"), array(), 'errors');
-				} elseif (!$digitalSignatureRequestLinkedObject->isUserAbleToCreateRequest($user, $object)) {
-					setEventMessages($langs->trans("DigitalSignatureManagerNotAllowedForUser"), array(), 'errors');
-				} else {
-					if ($doesUserAskToCreateFromObject) {
-						$result = $this->formDigitalSignatureRequestTemplate->displayCreateFromObject($object, $action, $hookmanager);
-					} elseif ($doesUserAskToCreateFromSelectedFiles) {
-						$result = $this->formDigitalSignatureRequestTemplate->displayCreateFromSelectedFiles($object, null, $action, $hookmanager);
+				if ($doesUserAskToCreateFromObject || $doesUserAskToCreateFromSelectedFiles) {
+					if (defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut != $object::STATUS_VALIDATED) {
+						setEventMessages($langs->trans("DigitalSignatureManagerObjectMustBeValidated"), array(), 'errors');
+					} elseif ($isThereADigitalSignatureRequestInProgress || $isThereADigitalSignatureRequestInDraft) {
+						setEventMessages($langs->trans("DigitalSignatureManagerAlreadyOneRequestInProgress"), array(), 'errors');
+					} elseif (!$digitalSignatureRequestLinkedObject->isUserAbleToCreateRequest($user, $object)) {
+						setEventMessages($langs->trans("DigitalSignatureManagerNotAllowedForUser"), array(), 'errors');
+					} else {
+						if ($doesUserAskToCreateFromObject) {
+							$result = $this->formDigitalSignatureRequestTemplate->displayCreateFromObject($object, $action, $hookmanager);
+						} elseif ($doesUserAskToCreateFromSelectedFiles) {
+							$result = $this->formDigitalSignatureRequestTemplate->displayCreateFromSelectedFiles($object, null, $action, $hookmanager);
+						}
+					}
+				}
+
+				//Cancel request from linked object
+				if ($doesUserAskToCancelRequest) {
+					if (!$isThereADigitalSignatureRequestInProgress) {
+						setEventMessages($langs->trans("DigitalSignatureManagerNoRequestInProgress"), array(), 'errors');
+					} elseif (!$digitalSignatureRequestLinkedObject->isUserAbleToCancelRequest($user, $object)) {
+						setEventMessages($langs->trans("DigitalSignatureManagerNotAllowedForUser"), array(), 'errors');
+					} else {
+						$result = $this->formDigitalSignatureRequest->getCancelFormConfirm($object->id);
+					}
+				}
+
+				//Reset request from linked object
+				if ($doesUserAskToResetRequest) {
+					if (defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut != $object::STATUS_VALIDATED) {
+						setEventMessages($langs->trans("DigitalSignatureManagerObjectMustBeValidated"), array(), 'errors');
+					} elseif (!$isThereADigitalSignatureRequestInProgress) {
+						setEventMessages($langs->trans("DigitalSignatureManagerNoRequestInProgress"), array(), 'errors');
+					} elseif (!$digitalSignatureRequestLinkedObject->isUserAbleToCancelRequest($user, $object) || !$digitalSignatureRequestLinkedObject->isUserAbleToCreateRequest($user, $object)) {
+						setEventMessages($langs->trans("DigitalSignatureManagerNotAllowedForUser"), array(), 'errors');
+					} else {
+						$result = $this->formDigitalSignatureRequest->getResetFormConfirm($object->id);
 					}
 				}
 			}
-
-			//Cancel request from linked object
-			if ($doesUserAskToCancelRequest) {
-				if (!$isThereADigitalSignatureRequestInProgress) {
-					setEventMessages($langs->trans("DigitalSignatureManagerNoRequestInProgress"), array(), 'errors');
-				} elseif (!$digitalSignatureRequestLinkedObject->isUserAbleToCancelRequest($user, $object)) {
-					setEventMessages($langs->trans("DigitalSignatureManagerNotAllowedForUser"), array(), 'errors');
-				} else {
-					$result = $this->formDigitalSignatureRequest->getCancelFormConfirm($object->id);
-				}
-			}
-
-			//Reset request from linked object
-			if ($doesUserAskToResetRequest) {
-				if (defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut != $object::STATUS_VALIDATED) {
-					setEventMessages($langs->trans("DigitalSignatureManagerObjectMustBeValidated"), array(), 'errors');
-				} elseif (!$isThereADigitalSignatureRequestInProgress) {
-					setEventMessages($langs->trans("DigitalSignatureManagerNoRequestInProgress"), array(), 'errors');
-				} elseif (!$digitalSignatureRequestLinkedObject->isUserAbleToCancelRequest($user, $object) || !$digitalSignatureRequestLinkedObject->isUserAbleToCreateRequest($user, $object)) {
-					setEventMessages($langs->trans("DigitalSignatureManagerNotAllowedForUser"), array(), 'errors');
-				} else {
-					$result = $this->formDigitalSignatureRequest->getResetFormConfirm($object->id);
-				}
+			if ($result) {
+				//$this->resprints = $result;
+				print $result;
+				return 1;
 			}
 		}
-		if ($result) {
-			//$this->resprints = $result;
-			print $result;
-			return 1;
-		}
-		// }
 		return 0;
 	}
 
@@ -458,7 +458,7 @@ class ActionsDigitalSignatureManager
 				$staticEcm = new ExtendedEcm($this->db);
 				$ecmFile = $staticEcm->getInstanceFileFromItsAbsolutePath($parameters['fullpath_original_file']);
 			}
-			if($ecmFile) {
+			if ($ecmFile) {
 				$ecmFileId = $ecmFile->id;
 				$digitalSignatureDocuments = array();
 				if ($ecmFileId > 0) {
@@ -475,8 +475,7 @@ class ActionsDigitalSignatureManager
 					}
 				}
 				return 1;
-			}
-			else {
+			} else {
 				$this->errors[] = $langs->trans("DigitalSignatureRequestCantFindFileForDoingSecurityCheck");
 				return -1;
 			}

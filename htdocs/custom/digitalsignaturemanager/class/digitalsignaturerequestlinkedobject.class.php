@@ -224,9 +224,10 @@ class DigitalSignatureRequestLinkedObject
 	 * @param User $user user requesting creation of request
 	 * @param ExtendedEcm[] $selectedFiles Array of files to sign
 	 * @param DigitalSignaturePeople[][] $signatoryInstancePerEcmFileAndDictionaryRowId array('ecmFileId'=>array('dictionnaryRowId'=>DigitalSignaturePeopleInstance))
+	 * @param String $invitationMessage Message to use to invite users
 	 * @return DigitalSignatureRequest|null
 	 */
-	public function createDigitalSignatureRequestFromLinkedObject($user, $selectedFiles, $signatoryInstancePerEcmFileAndDictionaryRowId)
+	public function createDigitalSignatureRequestFromLinkedObject($user, $selectedFiles, $signatoryInstancePerEcmFileAndDictionaryRowId, $invitationMessage = null)
 	{
 		$this->db->begin();
 		global $langs;
@@ -234,6 +235,7 @@ class DigitalSignatureRequestLinkedObject
 		$digitalSignatureRequest = new DigitalSignatureRequest($this->db);
 		$digitalSignatureRequest->fk_soc = $this->object->socid;
 		$digitalSignatureRequest->fk_project = $this->object->fk_project;
+		$digitalSignatureRequest->invitation_message = $invitationMessage;
 
 		if ($digitalSignatureRequest->create($user) < 0) {
 			$errors = array_merge($errors, $digitalSignatureRequest->errors);

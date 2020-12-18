@@ -135,6 +135,7 @@ class DigitalSignatureRequest extends CommonObject
 		'externalUrl' => array('type' => 'url', 'label' => 'Url given by universign after request have been created', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'is_staled_according_to_source_object' => array('type' => 'boolean', 'label' => 'Does this signature request contained staled information compare to linked object', 'visible' => -1, 'enabled' => 1, 'position' => 20),
 		'last_update_from_provider' => array('type' => 'datetime', 'label' => 'Last update from provider', 'enabled' => '1', 'position' => 500, 'visible' => -5,),
+		'invitation_message' => array('type' => 'text', 'label' => 'Invitation message on mail sent to signers', 'enabled' => '1', 'position' => 1100, 'visible' => 3)
 	);
 	public $rowid;
 	public $entity;
@@ -154,6 +155,7 @@ class DigitalSignatureRequest extends CommonObject
 	public $externalUrl;
 	public $is_staled_according_to_source_object;
 	public $last_update_from_provider;
+	public $invitation_message;
 	// END MODULEBUILDER PROPERTIES
 
 	/**
@@ -230,6 +232,7 @@ class DigitalSignatureRequest extends CommonObject
 				self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => $langs->trans('DigitalSignatureErrorDeletedInSignatureServiceShort')
 			);
 
+			$this->fields['invitation_message']['label'] = $langs->trans("DigitalSignatureInvitationMessage");
 			$this->fields['externalId']['label'] = $langs->trans("DigitalSignatureRequestExternalId");
 			$this->fields['externalUrl']['label'] = $langs->trans("DigitalSignatureRequestExternalUrl");
 			$this->fields['last_update_from_provider']['label'] = $langs->trans("DigitalSignatureRequestLastUpdateFromProvider");

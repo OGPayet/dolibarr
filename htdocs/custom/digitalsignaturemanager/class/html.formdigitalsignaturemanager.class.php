@@ -350,7 +350,7 @@ class FormDigitalSignatureManager
 	 */
 	public function getRowWithTextOnCenter($textToDisplay, $colspan = 1)
 	{
-		return '<tr style="text-align:center;"><td colspan="' .$colspan .'">' . $textToDisplay . '</tr>';
+		return '<tr style="text-align:center;"><td colspan="' . $colspan . '">' . $textToDisplay . '</tr>';
 	}
 
 
@@ -448,7 +448,7 @@ class FormDigitalSignatureManager
 		);
 	}
 
-		/**
+	/**
 	 *     Show a confirmation HTML form or AJAX popup.
 	 *     Easiest way to use this is with useajax=1.
 	 *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
@@ -772,15 +772,14 @@ class FormDigitalSignatureManager
 		$out .= '<td>' . $langs->trans("DigitalSignatureManagerRequestSign") . '</td>';
 		$out .= '<td style="text-align:right">' . $langs->trans("Statut") . '</td>';
 		$out .= '</tr>';
-		if(!empty($listOfDigitalSignatureRequest)) {
-			foreach($listOfDigitalSignatureRequest as $request) {
+		if (!empty($listOfDigitalSignatureRequest)) {
+			foreach ($listOfDigitalSignatureRequest as $request) {
 				$out .= '<tr>';
 				$out .= '<td>' . $request->getNomUrl(1) . $this->getWarningInfoBox($request->is_staled_according_to_source_object, $langs->trans("DigitalSignatureManagerStaledData")) . '</td>';
 				$out .= '<td style="text-align:right">' . $request->getLibStatut(5) . '</td>';
 				$out .= '</tr>';
 			}
-		}
-		else {
+		} else {
 			$out .= '<td colspan="2" style="text-align:center">' . $langs->trans("DigitalSignatureManagerNoneLinked") . '</td>';
 		}
 		$out .= '</table>';
@@ -839,15 +838,25 @@ class FormDigitalSignatureManager
 		$reshook = $hookmanager->executeHooks('addMoreFormQuestion', $parameters, $object, $action);
 		if (empty($reshook)) {
 			$effectiveQuestions = array_merge($formquestions, is_array($hookmanager->resArray) ? $hookmanager->resArray : array());
-		} elseif($reshook > 0) {
+		} elseif ($reshook > 0) {
 			$effectiveQuestions = is_array($hookmanager->resArray) ? $hookmanager->resArray : array();
-		}
-		else {
+		} else {
 			$effectiveQuestions = $formquestions;
 		}
 		return $this->formconfirm($page, $title, $question, $confirmAction, $effectiveQuestions, $selectedchoice, $useajax, $height, $width, $post, $resizable);
 	}
 
+	/**
+	 * Function to get Text editor
+	 * @param string $htmlName Html name of the input field
+	 * @param string $value Content of the input field
+	 * @return string
+	 */
+	public function getTextEditor($htmlName, $value)
+	{
+		require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
+		$doleditor = new DolEditor($htmlName, $value, 'auto', 100, 'dolibarr_notes', 'In', false, false, 0, ROWS_5, '90%');
+		return $doleditor->Create(1);
 
-
+	}
 }
