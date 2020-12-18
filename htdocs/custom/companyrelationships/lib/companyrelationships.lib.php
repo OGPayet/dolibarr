@@ -105,15 +105,20 @@ function companyrelationships_formconfirm_relation_thirdparty($db, $societe, Com
                     if (intval($publicSpaceAvailability[$relation_type_name]) > 0) {
                         $inputElementChecked = 'checked="checked"';
                     }
-                    $inputElements .= '<input type="checkbox" id="' . $inputElementName .'" ' . 'name="' . $inputElementName . '" value="1" '. $inputElementChecked . ' /> ' . $publicSpaceAvailability['label'] . '<br />';
-                    $inputElementsNameArray[] = $inputElementName;
+                    $value = '<input type="checkbox" id="' . $inputElementName .'" ' . 'name="' . $inputElementName . '" value="1" '. $inputElementChecked . ' /> ' . $publicSpaceAvailability['label'] . '<br />';
+                    //$inputElementsNameArray[] = $inputElementName;
+                    $formquestion[] = array(
+                        'name' => $inputElementName,
+                        'type' => 'onecolumn',
+                        'value' => $value
+                    );
                 }
 
-                $formquestion[] = array(
-                    'name' => $inputElementsNameArray,
-                    'type' => 'onecolumn',
-                    'value' => '<div id="publicspaceavailability">' . $inputElements . '</div>'
-                );
+                // $formquestion[] = array(
+                //     'name' => $inputElementsNameArray,
+                //     'type' => 'onecolumn',
+                //     'value' => '<div id="publicspaceavailability">' . $inputElements . '</div>'
+                // );
             }
         }
 
