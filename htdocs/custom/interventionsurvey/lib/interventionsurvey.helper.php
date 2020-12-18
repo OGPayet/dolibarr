@@ -73,7 +73,7 @@ if(!function_exists("getItemFromThisArray")) {
 }
 
 //Function to get object from an array having the same id field than the given parameter
-if(function_exists('getItemWithSameFieldsValue')) {
+if(!function_exists('getItemWithSameFieldsValue')) {
     function getItemWithSameFieldsValue(array &$array, &$object, array &$fieldName = array('id'), $returnPosition = false)
     {
         $parameters = array();
@@ -85,7 +85,7 @@ if(function_exists('getItemWithSameFieldsValue')) {
 }
 
 //Function to get missing item into the second array according to the first array identified by an array of field
-if(function_exists('getMissingItem')) {
+if(!function_exists('getMissingItem')) {
     function getMissingItem(array &$oldData, array &$newData, array &$arrayOfIdentifierField = array('id'))
     {
         $missingItems = array();
