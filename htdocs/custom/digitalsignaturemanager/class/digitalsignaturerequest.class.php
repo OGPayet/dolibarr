@@ -133,7 +133,7 @@ class DigitalSignatureRequest extends CommonObject
 		'status' => array('type' => 'smallint', 'label' => 'Status', 'enabled' => '1', 'position' => 1000, 'notnull' => 1, 'visible' => 1, 'noteditable' => '1', 'default' => '0', 'index' => 1, 'arrayofkeyval' => array('0' => 'Brouillon', '1' => 'Processus de signature en cours', '2' => 'Annul&eacute;', '3' => 'Signature termin&eacute;e', '9' => 'Erreur Technique'),),
 		'externalId' => array('type' => 'varchar(255)', 'label' => 'Id of the signature process at external provider', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
 		'externalUrl' => array('type' => 'url', 'label' => 'Url given by universign after request have been created', 'enabled' => '1', 'position' => 1002, 'notnull' => 0, 'visible' => -5, 'index' => 1,),
-		'is_staled_according_to_source_object' => array('type' => 'boolean', 'label' => 'Does this signature request contained staled information compare to linked object', 'visible' => -1, 'enabled' => 1, 'position' => 20),
+		'is_staled_according_to_source_object' => array('type' => 'boolean', 'label' => 'Does this signature request contained staled information compare to linked object', 'visible' => 0, 'enabled' => 1, 'position' => 20),
 		'last_update_from_provider' => array('type' => 'datetime', 'label' => 'Last update from provider', 'enabled' => '1', 'position' => 500, 'visible' => -5,),
 		'invitation_message' => array('type' => 'text', 'label' => 'Invitation message on mail sent to signers', 'enabled' => '1', 'position' => 1100, 'visible' => 3)
 	);

@@ -392,6 +392,8 @@ class DigitalSignatureRequestLinkedObject
 		$result = array();
 		if ($this->object->element == 'propal') {
 			$result = $this->getEcmListForDirectory($this->getPropalDirectory($this->object));
+		} elseif ($this->object->element == 'sepamandatmanager_sepamandat') {
+			$result = $this->getEcmListForDirectory($this->object->getAbsolutePath());
 		}
 		return $result;
 	}

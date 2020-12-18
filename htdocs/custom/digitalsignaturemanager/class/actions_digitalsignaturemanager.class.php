@@ -202,7 +202,7 @@ class ActionsDigitalSignatureManager
 		$isThereADigitalSignatureRequestInDraft = $digitalSignatureRequestLinkedObject->isThereADigitalSignatureInDraft();
 		//Create request button
 		$contexts = explode(':', $parameters['context']);
-		if (in_array('propalcard', $contexts) && defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut == $object::STATUS_VALIDATED && !$isThereADigitalSignatureRequestInProgress && $digitalSignatureRequestLinkedObject->isUserAbleToCreateRequest($user, $object) && !$isThereADigitalSignatureRequestInDraft) {
+		if ($this->canWeCreateDigitalSignatureRequestOnThisObject($contexts, $object) && !$isThereADigitalSignatureRequestInProgress && $digitalSignatureRequestLinkedObject->isUserAbleToCreateRequest($user, $object) && !$isThereADigitalSignatureRequestInDraft) {
 			print $this->formDigitalSignatureRequestTemplate->getCreateFromObjectButton($object->id);
 		}
 		if (!in_array('digitalsignaturerequestcard', $contexts) && $isThereADigitalSignatureRequestInProgress) {
@@ -480,5 +480,22 @@ class ActionsDigitalSignatureManager
 				return -1;
 			}
 		}
+	}
+
+	/**
+	 * Function to know if we can create a digital signature request on an object
+	 * @param string[] $contexts Array of context
+	 * @param CommonObject $object Object on which we check if we can create a digital signature request
+	 * @return bool
+	 */
+	public function canWeCreateDigitalSignatureRequestOnThisObject($contexts, $object)
+	{
+		$result = false;
+		if (in_array('propalcard', $contexts) && defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut == $object::STATUS_VALIDATED) {
+			$result = true;
+		} elseif (in_array('sepamandatcard', $contexts) && defined(get_class($object) . '::STATUS_TOSIGN') && $object->status == $object::STATUS_TOSIGN) {
+			$result = true;
+		}
+		return $result;
 	}
 }
