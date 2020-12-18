@@ -156,6 +156,7 @@ DigitalSignatureManagerSignatureSignatoryList = Liste des emplacement de signatu
 DigitalSignatureManagerSignatureSignatoryListHelperText = Si un champs de signature n'est pas défini pour chaque signataire sur chaque document, le signataire signera tout de même le document mais aucune inscription graphique ne sera inscrite sur le document. Ceci n'est que visuel, la signature reste valable juridiquement.
 DigitalSignatureSignatoryFieldLinkedSignatory = Signataire
 DigitalSignatureSignatoryFieldLinkedDocument = Document
+DigitalSignatureSignatoryFieldLabel = Libellé du champs de signature
 DigitalSignatureSignatoryFieldPage = Numéro de page
 DigitalSignatureSignatoryFieldPageInfoBox = Indiquer à quelle page du document se situe la zone de signature
 DigitalSignatureSignatoryFieldXAxis = Coordonné sur l'axe horizontale
