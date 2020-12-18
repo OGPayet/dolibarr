@@ -21,4 +21,5 @@ ALTER TABLE llx_digitalsignaturemanager_digitalsignaturerequest ADD last_update_
 ALTER TABLE llx_digitalsignaturemanager_digitalsignaturedocument ADD fk_ecm_signed integer;
 ALTER TABLE llx_digitalsignaturemanager_digitalsignaturedocument ADD elementtype varchar(128);
 ALTER TABLE llx_digitalsignaturemanager_digitalsignaturedocument ADD fk_object integer;
+ALTER TABLE llx_digitalsignaturemanager_digitalsignaturesignatoryfield ADD c_rowid integer;
 ALTER TABLE llx_societe_rib CHANGE `label` `label` VARCHAR(1000);
