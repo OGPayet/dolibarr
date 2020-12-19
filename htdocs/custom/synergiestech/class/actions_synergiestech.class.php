@@ -3497,7 +3497,9 @@ SCRIPT;
             if($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && !empty($propal->array_options['options_sitevalue'] && !$user->rights->synergiestech->propal->installation_value))
             {
                 accessforbidden();
+                return 1;
             }
         }
+        return 0;
     }
 }
