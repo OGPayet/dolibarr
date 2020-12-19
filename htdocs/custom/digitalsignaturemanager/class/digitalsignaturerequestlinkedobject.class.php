@@ -16,7 +16,7 @@
  */
 
 dol_include_once('/digitalsignaturemanager/class/extendedEcm.class.php');
-dol_include_once('/digitalsigaturemanager/class/digitalsignaturerequest.class.php');
+dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 
 /**
  *	\file       digitalsignaturemanager/class/digitalsignaturerequestlinkedobject.class.php
