@@ -182,7 +182,7 @@ class RequestManagerRequestTypeDictionary extends Dictionary
         ),
         2 => array(
             'fields' => array(
-                'statusWhenClotured' => 'a',
+           //     'statusWhenClotured' => 'a',
             )
         ),
     );
