@@ -76,6 +76,7 @@ $toselect = GETPOST('toselect', 'array');
 
 $search_name = GETPOST('search_name');
 $search_code_client = GETPOST('search_code_client');
+$search_address = GETPOST('search_address', 'alpha');
 $search_town = GETPOST('search_town', 'alpha');
 $search_zip = GETPOST('search_zip', 'alpha');
 $search_email = GETPOST('search_email', 'alpha');
@@ -154,6 +155,7 @@ $arrayfields = array(
     'c.ref_customer' => array('label' => $langs->trans("RefCustomer"), 'checked' => 0),
     'c.ref_supplier' => array('label' => $langs->trans("RefSupplier"), 'checked' => 0),
     's.nom' => array('label' => $langs->trans("ThirdParty"), 'checked' => 1),
+    's.address' => array('label' => $langs->trans('Address'), 'checked' => 1),
     's.code_client' => array('label' => $langs->trans("CustomerCode"), 'checked' => 0),
     's.town' => array('label' => $langs->trans("Town"), 'checked' => 0),
     's.zip' => array('label' => $langs->trans("Zip"), 'checked' => 0),
@@ -197,6 +199,7 @@ if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x'
     $year = '';
     $search_name = "";
     $search_code_client = "";
+    $search_address = "";
     $search_town = '';
     $search_zip = "";
     $search_email = "";
@@ -280,7 +283,7 @@ llxHeader('', $langs->trans('STCBillingContracts'));
 // Get list of contracts
 $sql = 'SELECT';
 $sql .= " c.rowid, c.ref, c.datec as date_creation, c.tms as date_update, c.date_contrat, c.statut, c.ref_customer, c.ref_supplier, c.note_private, c.note_public,";
-$sql .= ' s.rowid as socid, s.nom as name, s.town, s.zip, s.fk_pays, s.client, s.code_client, s.email, ';
+$sql .= ' s.rowid as socid, s.nom as name, s.town, s.zip, s.fk_pays, s.client, s.code_client, s.email, s.address, ';
 $sql .= " typent.code as typent_code,";
 $sql .= " state.code_departement as state_code, state.nom as state_name,";
 $sql .= ' SUM(' . $db->ifsql("cd.statut=0", 1, 0) . ') as nb_initial,';
@@ -345,6 +348,7 @@ if ($month > 0) {
 if ($search_name) $sql .= natural_search('s.nom', $search_name);
 if ($search_code_client != '') $sql .= natural_search('s.code_client', $search_code_client);
 if ($search_email != '') $sql .= natural_search('s.email', $search_email);
+if($search_address != '') $sql .= natural_search('s.address', $search_address);
 if ($search_contract) $sql .= natural_search(array('c.rowid', 'c.ref'), $search_contract);
 if (!empty($search_ref_supplier)) $sql .= natural_search(array('c.ref_supplier'), $search_ref_supplier);
 if ($search_sale > 0) {
@@ -607,6 +611,9 @@ if ($resql) {
         print '<input type="text" class="flat" size="8" name="search_code_client" value="' . dol_escape_htmltag($search_code_client) . '">';
         print '</td>';
     }
+     // Address
+     if (!empty($arrayfields['s.address']['checked'])) print '<td class="liste_titre"><input class="flat" type="text" name="search_address" value="' . $search_address . '"></td>';
+
     // Town
     if (!empty($arrayfields['s.town']['checked'])) print '<td class="liste_titre"><input class="flat" type="text" size="6" name="search_town" value="' . $search_town . '"></td>';
     // Zip
@@ -730,6 +737,7 @@ if ($resql) {
     if (!empty($arrayfields['c.ref_supplier']['checked']))      print_liste_field_titre($arrayfields['c.ref_supplier']['label'], $_SERVER["PHP_SELF"], "c.ref_supplier", "", "$param", '', $sortfield, $sortorder);
     if (!empty($arrayfields['s.nom']['checked']))               print_liste_field_titre($arrayfields['s.nom']['label'], $_SERVER["PHP_SELF"], "s.nom", "", "$param", '', $sortfield, $sortorder);
     if (!empty($arrayfields['s.code_client']['checked']))       print_liste_field_titre($arrayfields['s.code_client']['label'], $_SERVER["PHP_SELF"], "s.code_client", "", "$param", '', $sortfield, $sortorder);
+    if (!empty($arrayfields['s.address']['checked']))              print_liste_field_titre($arrayfields['s.address']['label'], $_SERVER["PHP_SELF"], 's.address', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['s.town']['checked']))              print_liste_field_titre($arrayfields['s.town']['label'], $_SERVER["PHP_SELF"], 's.town', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['s.zip']['checked']))               print_liste_field_titre($arrayfields['s.zip']['label'], $_SERVER["PHP_SELF"], 's.zip', '', $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['s.email']['checked']))             print_liste_field_titre($arrayfields['s.email']['label'], $_SERVER["PHP_SELF"], 's.email', '', $param, '', $sortfield, $sortorder);
@@ -808,6 +816,12 @@ if ($resql) {
         }
         if (!empty($arrayfields['s.code_client']['checked'])) {
             print '<td>' . $obj->code_client . '</td>';
+            if (!$i) $totalarray['nbfield']++;
+        }
+        if (!empty($arrayfields['s.address']['checked'])) {
+            print '<td class="nocellnopadd">';
+            print $obj->address;
+            print '</td>';
             if (!$i) $totalarray['nbfield']++;
         }
         // Town
