@@ -422,7 +422,8 @@ class FormDigitalSignatureRequest
 			'editSignatoryField' => $isALineBeingEdited ? 1 : null,
 			'addSignatoryField' => $userCanAddLine ? 1 : null,
 		);
-		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
+		$arrayOfActivatedAction = array_values(array_filter($numberOfActionColumnPerComponentsDisplayed));
+		$neededActionColumn = !empty($arrayOfActivatedAction) ? max($arrayOfActivatedAction) : 0;
 
 		print '<div class="div-table-responsive-no-min">';
 		//We print title
