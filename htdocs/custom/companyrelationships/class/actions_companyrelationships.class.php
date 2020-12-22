@@ -821,7 +821,7 @@ class ActionsCompanyRelationships
 
         return 0;
     }
-/**
+    /**
      * Overloading the printFieldPreListTitle function : replacing the parent's function with the one below
      *
      * @param   array()         $parameters     Hook metadatas (context, etc...)
@@ -830,7 +830,8 @@ class ActionsCompanyRelationships
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    public function ODTSubstitution(&$parameters, &$object, &$action, $hookmanager) {
+    public function ODTSubstitution(&$parameters, &$object, &$action, $hookmanager)
+    {
         $substitutionarray = &$parameters['substitutionarray'];
         $langs = &$parameters['outputlangs'];
         $commonObject = &$parameters['object'];
@@ -848,73 +849,73 @@ class ActionsCompanyRelationships
     }
 
     /**
- * Define array with couple subtitution key => subtitution value
- *
- * @param	Contact 		$object        	contact
- * @param	Translate 	$outputlangs   	object for output
- * @param   array_key	$array_key	    Name of the key for return array
- * @return	array of substitution key->code
- */
-private function thirdpartysubstitutionarray($db, $object, $outputlangs)
-{
-    if (empty($object->country) && !empty($object->country_code)) {
-        $object->country = $outputlangs->transnoentitiesnoconv("Country" . $object->country_code);
-    }
-    if (empty($object->state) && !empty($object->state_code)) {
-        $object->state = getState($object->state_code, 0);
-    }
-
-    $array_thirdparty = array(
-        'benefactor_company_name' => $object->name,
-        'benefactor_company_name_alias' => $object->name_alias,
-        'benefactor_company_email' => $object->email,
-        'benefactor_company_phone' => $object->phone,
-        'benefactor_company_fax' => $object->fax,
-        'benefactor_company_address' => $object->address,
-        'benefactor_company_zip' => $object->zip,
-        'benefactor_company_town' => $object->town,
-        'benefactor_company_country' => $object->country,
-        'benefactor_company_country_code' => $object->country_code,
-        'benefactor_company_state' => $object->state,
-        'benefactor_company_state_code' => $object->state_code,
-        'benefactor_company_web' => $object->url,
-        'benefactor_company_barcode' => $object->barcode,
-        'benefactor_company_vatnumber' => $object->tva_intra,
-        'benefactor_company_customercode' => $object->code_client,
-        'benefactor_company_suppliercode' => $object->code_fournisseur,
-        'benefactor_company_customeraccountancycode' => $object->code_compta,
-        'benefactor_company_supplieraccountancycode' => $object->code_compta_fournisseur,
-        'benefactor_company_juridicalstatus' => $object->forme_juridique,
-        'benefactor_company_outstanding_limit' => $object->outstanding_limit,
-        'benefactor_company_capital' => $object->capital,
-        'benefactor_company_idprof1' => $object->idprof1,
-        'benefactor_company_idprof2' => $object->idprof2,
-        'benefactor_company_idprof3' => $object->idprof3,
-        'benefactor_company_idprof4' => $object->idprof4,
-        'benefactor_company_idprof5' => $object->idprof5,
-        'benefactor_company_idprof6' => $object->idprof6,
-        'benefactor_company_note_public' => $object->note_public,
-        'benefactor_company_note_private' => $object->note_private,
-        'benefactor_company_default_bank_iban' => $object->bank_account->iban,
-        'benefactor_company_default_bank_bic' => $object->bank_account->bic
-    );
-
-    // Retrieve extrafields
-    if (is_array($object->array_options) && count($object->array_options)) {
-        require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
-        $extrafields = new ExtraFields($db);
-        $extralabels = $extrafields->fetch_name_optionals_label('societe', true);
-        $object->fetch_optionals($object->id, $extralabels);
-
-        foreach ($extrafields->attribute_label as $key => $label) {
-            if ($extrafields->attribute_type[$key] == 'price') {
-                $object->array_options['options_' . $key] = price($object->array_options['options_' . $key], 0, $outputlangs, 0, 0, -1, $conf->currency);
-            } else if ($extrafields->attribute_type[$key] == 'select' || $extrafields->attribute_type[$key] == 'checkbox') {
-                $object->array_options['options_' . $key] = $extrafields->attribute_param[$key]['options'][$object->array_options['options_' . $key]];
-            }
-            $array_thirdparty = array_merge($array_thirdparty, array('benefactor_company_options_' . $key => $object->array_options['options_' . $key]));
+     * Define array with couple subtitution key => subtitution value
+     *
+     * @param	Contact 		$object        	contact
+     * @param	Translate 	$outputlangs   	object for output
+     * @param   array_key	$array_key	    Name of the key for return array
+     * @return	array of substitution key->code
+     */
+    private function thirdpartysubstitutionarray($db, $object, $outputlangs)
+    {
+        if (empty($object->country) && !empty($object->country_code)) {
+            $object->country = $outputlangs->transnoentitiesnoconv("Country" . $object->country_code);
         }
+        if (empty($object->state) && !empty($object->state_code)) {
+            $object->state = getState($object->state_code, 0);
+        }
+
+        $array_thirdparty = array(
+            'benefactor_company_name' => $object->name,
+            'benefactor_company_name_alias' => $object->name_alias,
+            'benefactor_company_email' => $object->email,
+            'benefactor_company_phone' => $object->phone,
+            'benefactor_company_fax' => $object->fax,
+            'benefactor_company_address' => $object->address,
+            'benefactor_company_zip' => $object->zip,
+            'benefactor_company_town' => $object->town,
+            'benefactor_company_country' => $object->country,
+            'benefactor_company_country_code' => $object->country_code,
+            'benefactor_company_state' => $object->state,
+            'benefactor_company_state_code' => $object->state_code,
+            'benefactor_company_web' => $object->url,
+            'benefactor_company_barcode' => $object->barcode,
+            'benefactor_company_vatnumber' => $object->tva_intra,
+            'benefactor_company_customercode' => $object->code_client,
+            'benefactor_company_suppliercode' => $object->code_fournisseur,
+            'benefactor_company_customeraccountancycode' => $object->code_compta,
+            'benefactor_company_supplieraccountancycode' => $object->code_compta_fournisseur,
+            'benefactor_company_juridicalstatus' => $object->forme_juridique,
+            'benefactor_company_outstanding_limit' => $object->outstanding_limit,
+            'benefactor_company_capital' => $object->capital,
+            'benefactor_company_idprof1' => $object->idprof1,
+            'benefactor_company_idprof2' => $object->idprof2,
+            'benefactor_company_idprof3' => $object->idprof3,
+            'benefactor_company_idprof4' => $object->idprof4,
+            'benefactor_company_idprof5' => $object->idprof5,
+            'benefactor_company_idprof6' => $object->idprof6,
+            'benefactor_company_note_public' => $object->note_public,
+            'benefactor_company_note_private' => $object->note_private,
+            'benefactor_company_default_bank_iban' => $object->bank_account->iban,
+            'benefactor_company_default_bank_bic' => $object->bank_account->bic
+        );
+
+        // Retrieve extrafields
+        if (is_array($object->array_options) && count($object->array_options)) {
+            require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+            $extrafields = new ExtraFields($db);
+            $extralabels = $extrafields->fetch_name_optionals_label('societe', true);
+            $object->fetch_optionals($object->id, $extralabels);
+
+            foreach ($extrafields->attribute_label as $key => $label) {
+                if ($extrafields->attribute_type[$key] == 'price') {
+                    $object->array_options['options_' . $key] = price($object->array_options['options_' . $key], 0, $outputlangs, 0, 0, -1, $conf->currency);
+                } else if ($extrafields->attribute_type[$key] == 'select' || $extrafields->attribute_type[$key] == 'checkbox') {
+                    $object->array_options['options_' . $key] = $extrafields->attribute_param[$key]['options'][$object->array_options['options_' . $key]];
+                }
+                $array_thirdparty = array_merge($array_thirdparty, array('benefactor_company_options_' . $key => $object->array_options['options_' . $key]));
+            }
+        }
+        return $array_thirdparty;
     }
-    return $array_thirdparty;
-}
 }
