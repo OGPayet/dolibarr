@@ -21,12 +21,13 @@
  * 	\ingroup	companyrelationships
  */
 
-function companyrelationships_completesubstitutionarray(&$substitutionarray, $langs, $object, $parameters) {
+function companyrelationships_completesubstitutionarray(&$substitutionarray, $langs, $object, $parameters)
+{
     global $conf, $db, $langs;
 
     if ($object->element == 'societe' && $parameters['needforkey'] == 'SUBSTITUTION_COMPANIESRELATIONSHIPLABEL') {
         $nbmaincompanies = 0;
-        $sql = "SELECT COUNT(cr.rowid) as nb FROM ".MAIN_DB_PREFIX."companyrelationships as cr WHERE cr.fk_soc_benefactor = {$object->id}";
+        $sql = "SELECT COUNT(cr.rowid) as nb FROM " . MAIN_DB_PREFIX . "companyrelationships as cr WHERE cr.fk_soc_benefactor = {$object->id}";
         $resql = $db->query($sql);
         if ($resql) {
             if ($obj = $db->fetch_object($resql)) {
@@ -37,7 +38,7 @@ function companyrelationships_completesubstitutionarray(&$substitutionarray, $la
         }
 
         $nbbenefactorcompanies = 0;
-        $sql = "SELECT COUNT(cr.rowid) as nb FROM ".MAIN_DB_PREFIX."companyrelationships as cr WHERE cr.fk_soc = {$object->id}";
+        $sql = "SELECT COUNT(cr.rowid) as nb FROM " . MAIN_DB_PREFIX . "companyrelationships as cr WHERE cr.fk_soc = {$object->id}";
         $resql = $db->query($sql);
         if ($resql) {
             if ($obj = $db->fetch_object($resql)) {
