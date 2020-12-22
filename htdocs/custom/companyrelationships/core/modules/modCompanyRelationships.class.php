@@ -412,16 +412,16 @@ class modCompanyRelationships extends DolibarrModules
             $extrafieldName = $extrafieldToKeepArray[4];
             $result = $extrafields->addExtraField($extrafieldName, $langs->trans('CompanyRelationshipsPublicSpaceAvailabilityWatcher'), 'boolean', $extrafieldToKeepList[$extrafieldName]['pos'],  '', $elementType,   0, 0, '', '', 1, '$user->rights->companyrelationships->update_md->element', 0, 0, ''); // For >= v7: ", '', 'companyrelationships@companyrelationships', '$conf->companyrelationships->enabled');"
 
-            $sql[] = 'UPDATE llx_'.$elementTable.'_extrafields
-                        INNER JOIN llx_'.$elementTable.' AS t ON (llx_'.$elementTable.'_extrafields.fk_object = t.rowid)
-                        SET llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = t.fk_soc
-                        WHERE llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor IS NULL
-                        OR llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = \'\';';
-            $sql[] = 'INSERT INTO llx_'.$elementTable.'_extrafields(fk_object, companyrelationships_fk_soc_benefactor)
-                        SELECT t.rowid, t.fk_soc
-                        FROM llx_'.$elementTable.' AS t
-                        LEFT JOIN llx_'.$elementTable.'_extrafields AS ef ON (ef.fk_object = t.rowid)
-                        WHERE ef.rowid IS NULL;';
+            // $sql[] = 'UPDATE llx_'.$elementTable.'_extrafields
+            //             INNER JOIN llx_'.$elementTable.' AS t ON (llx_'.$elementTable.'_extrafields.fk_object = t.rowid)
+            //             SET llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = t.fk_soc
+            //             WHERE llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor IS NULL
+            //             OR llx_'.$elementTable.'_extrafields.companyrelationships_fk_soc_benefactor = \'\';';
+            // $sql[] = 'INSERT INTO llx_'.$elementTable.'_extrafields(fk_object, companyrelationships_fk_soc_benefactor)
+            //             SELECT t.rowid, t.fk_soc
+            //             FROM llx_'.$elementTable.' AS t
+            //             LEFT JOIN llx_'.$elementTable.'_extrafields AS ef ON (ef.fk_object = t.rowid)
+            //             WHERE ef.rowid IS NULL;';
         }
 
         return $this->_init($sql, $options);
