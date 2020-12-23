@@ -857,6 +857,89 @@ class FormDigitalSignatureManager
 		require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 		$doleditor = new DolEditor($htmlName, $value, 'auto', 100, 'dolibarr_notes', 'In', false, false, 0, ROWS_5, '90%');
 		return $doleditor->Create(1);
+	}
 
+	/**
+	 *	Show a multiselect form from an array with order.
+	 *
+	 *	@param	string	$htmlname		Name of select
+	 *	@param	array	$array			Array with key+value
+	 *	@param	array	$selected		Array with key+value preselected
+	 *	@param	int		$key_in_label   1 pour afficher la key dans la valeur "[key] value"
+	 *	@param	int		$value_as_key   1 to use value as key
+	 *	@param  string	$morecss        Add more css style
+	 *	@param  int		$translate		Translate and encode value
+	 *  @param	int		$width			Force width of select box. May be used only when using jquery couch. Example: 250, 95%
+	 *  @param	string	$moreattrib		Add more options on select component. Example: 'disabled'
+	 *  @param	string	$elemtype		Type of element we show ('category', ...)
+	 *	@return	string					HTML multiselect string
+	 *  @see selectarray
+	 */
+	public static function multiSelectArrayWithOrder($htmlname, $array, $selected = array(), $key_in_label = 0, $value_as_key = 0, $morecss = '', $translate = 0, $width = 0, $moreattrib = '', $elemtype = '')
+	{
+		global $conf, $langs;
+
+		$out = '';
+
+		// Add code for jquery to use multiselect
+		if (!empty($conf->global->MAIN_USE_JQUERY_MULTISELECT) || defined('REQUIRE_JQUERY_MULTISELECT')) {
+			//$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
+			$tmpplugin = "select2Sortable";
+			$out .= '<!-- JS CODE TO ENABLE ' . $tmpplugin . ' for id ' . $htmlname . ' -->
+			<script type="text/javascript">
+				function formatResult(record) {' . "\n";
+			if ($elemtype == 'category') {
+				$out .= '	//return \'<span><img src="' . DOL_URL_ROOT . '/theme/eldy/img/object_category.png' . '"> <a href="' . DOL_URL_ROOT . '/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+									return \'<span><img src="' . DOL_URL_ROOT . '/theme/eldy/img/object_category.png' . '"> \'+record.text+\'</span>\';';
+			} else {
+				$out .= 'return record.text;';
+			}
+			$out .= '	};
+				function formatSelection(record) {' . "\n";
+			if ($elemtype == 'category') {
+				$out .= '	//return \'<span><img src="' . DOL_URL_ROOT . '/theme/eldy/img/object_category.png' . '"> <a href="' . DOL_URL_ROOT . '/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+									return \'<span><img src="' . DOL_URL_ROOT . '/theme/eldy/img/object_category.png' . '"> \'+record.text+\'</span>\';';
+			} else {
+				$out .= 'return record.text;';
+			}
+			$out .= '	};
+				$(document).ready(function () {
+					$(\'#' . $htmlname . '\').' . $tmpplugin . '({
+						dir: \'ltr\',
+							// Specify format function for dropdown item
+							formatResult: formatResult,
+						templateResult: formatResult,		/* For 4.0 */
+							// Specify format function for selected item
+							formatSelection: formatSelection,
+						templateResult: formatSelection		/* For 4.0 */
+					});
+				});
+			</script>';
+		}
+
+		// Try also magic suggest
+
+		$out .= '<select id="' . $htmlname . '" class="multiselect' . ($morecss ? ' ' . $morecss : '') . '" multiple name="' . $htmlname . '[]"' . ($moreattrib ? ' ' . $moreattrib : '') . ($width ? ' style="width: ' . (preg_match('/%/', $width) ? $width : $width . 'px') . '"' : '') . '>' . "\n";
+		if (is_array($array) && !empty($array)) {
+			if ($value_as_key) $array = array_combine($array, $array);
+
+			if (!empty($array)) {
+				foreach ($array as $key => $value) {
+					$out .= '<option value="' . $key . '"';
+					if (is_array($selected) && !empty($selected) && in_array($key, $selected) && !empty($key)) {
+						$out .= ' selected';
+					}
+					$out .= '>';
+
+					$newval = ($translate ? $langs->trans($value) : $value);
+					$newval = ($key_in_label ? $key . ' - ' . $newval : $newval);
+					$out .= dol_htmlentitiesbr($newval);
+					$out .= '</option>' . "\n";
+				}
+			}
+		}
+		$out .= '</select>' . "\n";
+
+		return $out;
 	}
 }
