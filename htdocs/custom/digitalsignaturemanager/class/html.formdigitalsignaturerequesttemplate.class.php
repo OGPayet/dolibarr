@@ -286,7 +286,6 @@ class FormDigitalSignatureRequestTemplate
 	 * @param string $action action name
 	 * @param CommonObject $object source object instance
 	 * @param User $user user requesting create from files
-	 * @param bool $createOnlyADraft We should not send request to provider
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
 	 * @return void
 	 */
@@ -298,6 +297,9 @@ class FormDigitalSignatureRequestTemplate
 		$selectedFiles = $this->getSelectedFiles($object);
 		if (empty($selectedFiles) || empty($this->getSelectedFileIds())) {
 			$errors[] = $langs->trans('DigitalSignatureManagerNoDocumentSelected');
+			$this->db->rollback();
+			$action = self::CREATE_FROM_OBJECT_ACTION_NAME;
+			return;
 		}
 
 		$parameters = array('selectedFiles' => $selectedFiles);
