@@ -123,7 +123,7 @@ class FormSepaMandateDigitalSignatureRequest
 		$questions[self::FREE_IBAN_FIELD_NAME] = array(
 			'type' => 'other',
 			'label' => $langs->trans('SepaMandateIbanNumber'),
-			'value' => '<input type="text" class="minwidth300" id="freeIbanValue" name="' . self::FREE_IBAN_FIELD_NAME . '" value="' . ($this->getFreeIban() ?? '') . '" />',
+			'value' => '<input type="text" class="minwidth300" id="' . self::FREE_IBAN_FIELD_NAME . '" name="' . self::FREE_IBAN_FIELD_NAME . '" value="' . $this->getFreeIban() . '" />',
 			'name' => self::FREE_IBAN_FIELD_NAME,
 			'css' => 'minwidth300'
 		);
@@ -131,7 +131,8 @@ class FormSepaMandateDigitalSignatureRequest
 			'type' => 'text',
 			'label' => $langs->trans('SepaMandateBicNumber'),
 			'name' => self::FREE_BIC_FIELD_NAME,
-			'css' => 'minwidth300'
+			'css' => 'minwidth300',
+			'value' => $this->getFreeBic()
 		);
 		$questions[self::MANDATE_TYPE_FIELD_NAME] = array(
 			'type' => 'other',
