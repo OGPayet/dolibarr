@@ -17,7 +17,7 @@
 
 ALTER TABLE llx_digitalsignaturemanager_digitalsignaturerequest ADD invitation_message TEXT;
 ALTER TABLE llx_digitalsignaturemanager_digitalsignaturerequest ADD is_staled_according_to_source_object Boolean;
-ALTER TABLE llx_digitalsignaturemanager_digitalsignaturerequest ADD last_update_from_provider date;
+ALTER TABLE llx_digitalsignaturemanager_digitalsignaturerequest ADD last_update_from_provider datetime;
 ALTER TABLE llx_digitalsignaturemanager_digitalsignaturedocument ADD fk_ecm_signed integer;
 ALTER TABLE llx_digitalsignaturemanager_digitalsignaturedocument ADD elementtype varchar(128);
 ALTER TABLE llx_digitalsignaturemanager_digitalsignaturedocument ADD fk_object integer;
