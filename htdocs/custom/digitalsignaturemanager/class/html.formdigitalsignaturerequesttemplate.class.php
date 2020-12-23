@@ -212,7 +212,13 @@ class FormDigitalSignatureRequestTemplate
 			$selectedFileIds[] = array_keys($filesToBeDisplayed)[0];
 		}
 		$questions = array(
-			self::SELECTED_FILES_HTML_NAME => array('name' => self::SELECTED_FILES_HTML_NAME, 'type' => 'other', 'label' => $langs->trans("DigitalSignatureManagerSelectFilesToSign"), 'value' => $this->getHtmlMultipleFileSelect($selectedFileIds, $filesToBeDisplayed))
+			self::SELECTED_FILES_HTML_NAME =>
+			array(
+				'name' => self::SELECTED_FILES_HTML_NAME,
+				'type' => 'other',
+				'label' => $langs->trans("DigitalSignatureManagerSelectFilesToSign"),
+				'value' => '<div style="max-width:500px">' . $this->getHtmlMultipleFileSelect($selectedFileIds, $filesToBeDisplayed) . '</div>'
+				)
 		);
 		$parameters = array('question' => $questions);
 		$reshook = $hookmanager->executeHooks('addMoreFormQuestion', $parameters, $object, $action);

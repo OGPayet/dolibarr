@@ -508,7 +508,7 @@ class FormDigitalSignatureManager
 			}
 
 			// Now add questions
-			$more .= '<table class="paddingtopbottomonly" width="100%">' . "\n";
+			$more .= '<table class="paddingtopbottomonly" width="100%; max-height:600px">' . "\n";
 			$more .= '<tr><td colspan="3">' . (!empty($formquestion['text']) ? $formquestion['text'] : '') . '</td></tr>' . "\n";
 			foreach ($formquestion as $key => $input) {
 				if (is_array($input) && !empty($input)) {
@@ -607,7 +607,7 @@ class FormDigitalSignatureManager
 			// Show JQuery confirm box. Note that global var $useglobalvars is used inside this template
 			$formconfirm .= '<div id="' . $dialogconfirm . '" title="' . dol_escape_htmltag($title) . '" style="display: none;">';
 			if (!empty($more)) {
-				$formconfirm .= '<div class="confirmquestions">' . $more . '</div>';
+				$formconfirm .= '<div class="confirmquestions" style="max-height:600px">' . $more . '</div>';
 			}
 			$formconfirm .= ($question ? '<div class="confirmmessage">' . img_help('', '') . ' ' . $question . '</div>' : '');
 			$formconfirm .= '</div>' . "\n";
