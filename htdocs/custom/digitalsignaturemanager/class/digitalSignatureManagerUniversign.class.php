@@ -169,9 +169,6 @@ Class DigitalSignatureManagerUniversign
 			foreach($document->getCheckBoxes() as $checkBox) {
 				$checkBoxTexts[] = $checkBox->getDisplayNameAccordingToDocument($document);
 			}
-			// if(!empty($conf->global->DIGITALSIGNATUREMANAGER_CHECKBOX_ADDNUMBEROFPAGE)) {
-			// 	$checkBoxTexts[] = $langs->trans('DigitalSignatureManagerPageNumberCheckBox', $document->getNumberOfPage());
-			// }
 			if(!empty($checkBoxTexts)) {
 				$universignDocument->setCheckBoxTexts($checkBoxTexts);
 			}

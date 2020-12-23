@@ -964,7 +964,10 @@ class DigitalSignatureRequest extends CommonObject
 	 */
 	public function doScheduledJob()
 	{
-		global $langs, $user;
+		global $langs, $user, $conf;
+		$langs = new Translate("", $conf);
+		$langs->setDefaultLang(!empty($user->lang) ? $user->lang : 'fr_FR');
+		$langs->load("digitalsignaturemanager@digitalsignaturemanager");
 		$error = 0;
 		$this->output = '';
 
