@@ -127,8 +127,8 @@ class ActionsSepaMandatManager
 			} elseif ($action == FormSepaMandateDigitalSignatureRequest::DIGITAL_SIGNATURE_REQUEST_SET_SIGNERS_ACTION_NAME) {
 				$this->results = array_merge($this->results ?? array(), $this->formSepaMandateDigitalSignatureRequest->getHiddenQuestionToKeepSepaPostContent());
 			}
-			return 0;
 		}
+		return 0;
 	}
 
 	/**
@@ -173,11 +173,10 @@ class ActionsSepaMandatManager
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
 	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
 	 */
-	public function afterPDFCreation($parameters, &$object, &$action, $hookmanager)
+	public function afterPDFCreation(&$parameters, &$object, &$action, $hookmanager)
 	{
 		global $user;
-		$commonObject = $parameters['object'];
-
+		$commonObject = &$parameters['object'];
 		//We update sepa mandat manager
 		if ($commonObject && $commonObject->element == SepaMandat::$staticElement) {
 			$fileFullPath = $parameters['file'];
@@ -193,6 +192,7 @@ class ActionsSepaMandatManager
 				}
 			}
 		}
+		return 0;
 	}
 
 	/**

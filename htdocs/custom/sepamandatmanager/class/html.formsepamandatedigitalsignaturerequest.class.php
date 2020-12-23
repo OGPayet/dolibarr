@@ -235,6 +235,7 @@ class FormSepaMandateDigitalSignatureRequest
 	 */
 	public function manageCreateEcmSepaMandateToSign($user, $companyId)
 	{
+		global $langs;
 		$errors = array();
 		$bankAccountId = $this->getSelectedBankAccountId();
 		$freeIban = $this->getFreeIban();
@@ -257,7 +258,10 @@ class FormSepaMandateDigitalSignatureRequest
 		$sepaMandat->type = $mandatType;
 		if (empty($errors) && $sepaMandat->create($user) > 0 && $sepaMandat->setToSign($user)) {
 			$extendedEcm = new ExtendedEcm($this->db);
-			$extendedEcm->fetch($sepaMandat->fk_generated_ecm);
+			if($extendedEcm->fetch($sepaMandat->fk_generated_ecm) < 0) {
+				$errors[] = $langs->trans("SepaMandatManagerErrorWhileCreatingMandate");
+				$errors += $extendedEcm->errors;
+			}
 		}
 		$errors += $sepaMandat->errors;
 		$this->errors += $errors;

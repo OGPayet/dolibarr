@@ -183,6 +183,7 @@ class ActionsDigitalSignatureManager
 				}
 			}
 		}
+		return 0;
 	}
 
 	/**
@@ -415,6 +416,7 @@ class ActionsDigitalSignatureManager
 				setEventMessages("DigitalSignatureRequestLinkAreProtected", array(), 'errors');
 			}
 		}
+		return 0;
 	}
 
 	/**
@@ -438,9 +440,10 @@ class ActionsDigitalSignatureManager
 			}
 			//print $this->formDigitalSignatureManager->showLinkedDigitalSignatureBlock($linkedDigitalSignatureRequests);
 		}
+		return 0;
 	}
 	/**
-	 * Overloading the showLinkedObjectBlock function : replacing the parent's function with the one below
+	 * Overloading the downloadDocument function : replacing the parent's function with the one below
 	 *
 	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
@@ -480,6 +483,7 @@ class ActionsDigitalSignatureManager
 				return -1;
 			}
 		}
+		return 0;
 	}
 
 	/**
