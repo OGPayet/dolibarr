@@ -308,6 +308,10 @@ class FormDigitalSignatureRequestTemplate
 		} elseif ($reshook > 0) {
 			$selectedFiles = is_array($hookmanager->resArray) ? $hookmanager->resArray : array();
 		}
+		else {
+			$errors[] = $langs->trans("DigitalSignatureManagerErrorIntoHookAddMoreDocuments");
+			$errors += is_array($hookmanager->errors) ? $hookmanager->errors : array();
+		}
 
 		$requestOptions = $this->getSelectedOptions();
 		$onlyCreateADraft = $requestOptions[self::CREATE_DRAFT_OPTION_FIELD_NAME];
@@ -369,6 +373,8 @@ class FormDigitalSignatureRequestTemplate
 			$selectedFiles += is_array($hookmanager->resArray) ? $hookmanager->resArray : array();
 		} elseif ($reshook > 0) {
 			$selectedFiles = is_array($hookmanager->resArray) ? $hookmanager->resArray : array();
+		} else {
+			setEventMessages($langs->trans("DigitalSignatureManagerErrorIntoHookAddMoreDocuments"), $hookmanager->errors, 'errors');
 		}
 
 		$isThereMissingParameters = false;
