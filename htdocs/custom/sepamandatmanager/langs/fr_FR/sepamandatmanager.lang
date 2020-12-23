@@ -151,7 +151,7 @@ SepaMandateIbanNotValid = Iban non valide
 SepaMandateNoBic = Aucun BIC renseigné
 SepaMandateBicNotValid = Bic non valide
 SepaMandateNoTypeSet = Aucun type de mandat renseigné (ponctuel, récurrent)
-
+SepaMandateInvalidMandatInformationIntoBankAccount = Information bancaire renseigné dans le compte client incorrecte
 #
 # Liaison avec CompanyBankAccount
 #

@@ -508,7 +508,6 @@ class SepaMandat extends CommonObject
 	{
 		global $langs;
 		$result = array();
-		require_once DOL_DOCUMENT_ROOT . '/includes/php-iban/oophp-iban.php';
 		if (empty($this->bic)) {
 			$result[] = $langs->trans("SepaMandateNoBic");
 		} elseif (!(bool) (preg_match('/^[a-z]{6}[0-9a-z]{2}([0-9a-z]{3})?\z/i', $this->bic) == 1)) {

@@ -123,7 +123,7 @@ class FormSepaMandateDigitalSignatureRequest
 		$questions[self::FREE_IBAN_FIELD_NAME] = array(
 			'type' => 'other',
 			'label' => $langs->trans('SepaMandateIbanNumber'),
-			'value' => '<input type="text" class="minwidth300" id="freeIbanValue" name="freeIbanValue" value="' . ($this->getFreeIban() ?? '') . '" />',
+			'value' => '<input type="text" class="minwidth300" id="freeIbanValue" name="' . self::FREE_IBAN_FIELD_NAME . '" value="' . ($this->getFreeIban() ?? '') . '" />',
 			'name' => self::FREE_IBAN_FIELD_NAME,
 			'css' => 'minwidth300'
 		);
@@ -274,10 +274,12 @@ class FormSepaMandateDigitalSignatureRequest
 	public function checkSepaMandateInformationIntoPost()
 	{
 		global $langs;
+		$errors = array();
 		if ($this->getSelectedBankAccountId() > 0 && !empty(SepaMandatCompanyBankAccountLink::checkAccountInformationFromId($this->db, $this->getSelectedBankAccountId()))) {
 			$errors[] = $langs->trans('SepaMandateInvalidMandatInformationIntoBankAccount');
+			$errors += SepaMandatCompanyBankAccountLink::checkAccountInformationFromId($this->db, $this->getSelectedBankAccountId());
 		} elseif ($this->getSelectedBankAccountId() <= 0 && (!empty($this->getFreeIban()) || !empty($this->getFreeBic())) && !empty(SepaMandatCompanyBankAccountLink::checkAccountInformation($this->db, $this->getFreeIban(), $this->getFreeBic()))) {
-			$errors[] = $langs->trans('SepaMandateInvalidFreeMandatInformation');
+			$errors += SepaMandatCompanyBankAccountLink::checkAccountInformation($this->db, $this->getFreeIban(), $this->getFreeBic());
 		}
 		return $errors;
 	}

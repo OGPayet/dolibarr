@@ -77,20 +77,17 @@ class SepaMandatCompanyBankAccountLink
 		$companyAccount->label = $this->object->getNomUrl(1, null, 1);
 		$companyAccount->bank = $langs->trans("SepaMandateCompanyAccountName", $this->object->ref);
 		$companyAccount->rum = $this->object->rum;
-		if($companyAccount->create($user) > 0 && $companyAccount->update($user) > 0)
-		{
+		if ($companyAccount->create($user) > 0 && $companyAccount->update($user) > 0) {
 			$this->object->fk_companybankaccount = $companyAccount->id;
 			$this->object->update($user, true);
-		}
-		else {
+		} else {
 			$errors[] = $langs->trans('SepaMandatErrorWhenUpdatingCompanyBankAccount');
 		}
 		$errors = array_merge($errors, $companyAccount->errors, $this->object->errors);
-		if(empty($errors)) {
+		if (empty($errors)) {
 			$this->db->commit();
 			return $companyAccount;
-		}
-		else {
+		} else {
 			$this->db->rollback();
 			return null;
 		}
@@ -115,28 +112,26 @@ class SepaMandatCompanyBankAccountLink
 	{
 		$result = false;
 		$companyAccount = new CompanyBankAccount($this->db);
-		if($this->object->fk_companybankaccount > 0 && $companyAccount->fetch($this->object->fk_companybankaccount) > 0 && $companyAccount->id > 0) {
-			if($companyAccount->delete($user) > 0) {
+		if ($this->object->fk_companybankaccount > 0 && $companyAccount->fetch($this->object->fk_companybankaccount) > 0 && $companyAccount->id > 0) {
+			if ($companyAccount->delete($user) > 0) {
 				$this->object->fk_companybankaccount = null;
-				if($this->object->update($user) > 0) {
+				if ($this->object->update($user) > 0) {
 					//We try to find a sepa mandat for this company if we delete default rib for this company
-					if(!$companyAccount->default_rib) {
+					if (!$companyAccount->default_rib) {
 						$result = true;
-					}
-					else {
+					} else {
 						//mandates for this company
 						$otherMandates = $this->getSignedSepaMandatesOfThisCompany($companyAccount->socid);
-						if(is_array($otherMandates)) {
+						if (is_array($otherMandates)) {
 							$firstElement = array_shift($otherMandates);
-							if($firstElement) {
+							if ($firstElement) {
 								$result = $companyAccount->setAsDefault($firstElement->fk_companybankaccount) > 0;
 							}
 						}
 					}
 				}
 			}
-		}
-		else {
+		} else {
 			$result = true; //nothing to delete
 		}
 		return $result;
@@ -160,7 +155,8 @@ class SepaMandatCompanyBankAccountLink
 	 * @param int $companyBankAccountId researched company bank account
 	 * @return bool
 	 */
-	public static function isAMandateLinkedToThisCompanyAccountId($db, $companyBankAccountId) {
+	public static function isAMandateLinkedToThisCompanyAccountId($db, $companyBankAccountId)
+	{
 		$sepaMandates = self::getSepaMandatesLinkToACompanyAccount($db, $companyBankAccountId);
 		return is_array($sepaMandates) && count($sepaMandates) > 0 ? true : false;
 	}
@@ -176,10 +172,9 @@ class SepaMandatCompanyBankAccountLink
 		$company = new Societe($db);
 		$company->id = $companyId;
 		$listOfRib = $company->get_all_rib();
-		if(!is_array($listOfRib) || !empty($company->errors)) {
+		if (!is_array($listOfRib) || !empty($company->errors)) {
 			return null;
-		}
-		else {
+		} else {
 			return $listOfRib;
 		}
 	}
@@ -190,17 +185,17 @@ class SepaMandatCompanyBankAccountLink
 	 * @param int $companyId Company id to check
 	 * @return CompanyBankAccount[]|null
 	 */
-	public static function getIbanBicUniqueNumberForACompany($db, $companyId) {
+	public static function getIbanBicUniqueNumberForACompany($db, $companyId)
+	{
 		$ibanCrudeList = array();
 		$listOfAccount = self::getCompanyBankAccounts($db, $companyId);
-		if($listOfAccount) {
-			foreach($listOfAccount as $account) {
-				if(empty(self::checkAccountInformation($db, $account->iban, $account->bic))) {
+		if ($listOfAccount) {
+			foreach ($listOfAccount as $account) {
+				if (empty(self::checkAccountInformation($db, $account->iban, $account->bic))) {
 					$ibanCrudeList[$account->id] = "IBAN : " . $account->iban . " - BIC : " . $account->bic;
 				}
 			}
-		}
-		else {
+		} else {
 			return null;
 		}
 		return array_unique($ibanCrudeList);
@@ -216,9 +211,9 @@ class SepaMandatCompanyBankAccountLink
 	public static function checkAccountInformation($db, $iban, $bic)
 	{
 		$staticElement = new SepaMandat($db);
-				$staticElement->iban = $iban;
-				$staticElement->bic = $bic;
-				return array_merge($staticElement->checkIbanValue(), $staticElement->checkBicValue());
+		$staticElement->iban = $iban;
+		$staticElement->bic = $bic;
+		return array_merge($staticElement->checkIbanValue(), $staticElement->checkBicValue());
 	}
 
 	/**
