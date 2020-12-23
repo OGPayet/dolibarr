@@ -15,5 +15,5 @@
 -- along with this program. If not, see <http://www.gnu.org/licenses/>.
 -- ===========================================================================
 
-ALTER TABLE llx_element_element CHANGE sourcetype sourcetype VARCHAR(64);
-ALTER TABLE llx_element_element CHANGE targettype targettype VARCHAR(64);
+-- ALTER TABLE llx_element_element CHANGE sourcetype sourcetype VARCHAR(64);
+-- ALTER TABLE llx_element_element CHANGE targettype targettype VARCHAR(64);
