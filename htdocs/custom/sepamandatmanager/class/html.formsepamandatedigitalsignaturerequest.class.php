@@ -197,7 +197,7 @@ class FormSepaMandateDigitalSignatureRequest
 			$questions[self::ACCOUNT_ID_FIELD_NAME] = array('type' => 'hidden', 'name' => self::ACCOUNT_ID_FIELD_NAME, 'value' => $bankAccountId);
 			$questions[self::MANDATE_TYPE_FIELD_NAME] = array('type' => 'hidden', 'name' => self::MANDATE_TYPE_FIELD_NAME, 'value' => $sepaMandateType);
 		} elseif (!empty($freeIban) || !empty($freeBic)) {
-			$questions[self::FREE_IBAN_FIELD_NAME] = array('type' => 'hidden', 'name' => self::FREE_IBAN_FIELD_NAME, 'value' => $freeBic);
+			$questions[self::FREE_IBAN_FIELD_NAME] = array('type' => 'hidden', 'name' => self::FREE_IBAN_FIELD_NAME, 'value' => $freeIban);
 			$questions[self::FREE_BIC_FIELD_NAME] = array('type' => 'hidden', 'name' => self::FREE_BIC_FIELD_NAME, 'value' => $freeBic);
 			$questions[self::MANDATE_TYPE_FIELD_NAME] = array('type' => 'hidden', 'name' => self::MANDATE_TYPE_FIELD_NAME, 'value' => $sepaMandateType);
 		}
@@ -256,7 +256,7 @@ class FormSepaMandateDigitalSignatureRequest
 		$sepaMandat->iban = $iban;
 		$sepaMandat->bic = $bic;
 		$sepaMandat->type = $mandatType;
-		if (empty($errors) && $sepaMandat->create($user) > 0 && $sepaMandat->setToSign($user)) {
+		if (empty($errors) && $sepaMandat->create($user) > 0 && $sepaMandat->setToSign($user) > 0) {
 			$extendedEcm = new ExtendedEcm($this->db);
 			if($extendedEcm->fetch($sepaMandat->fk_generated_ecm) < 0) {
 				$errors[] = $langs->trans("SepaMandatManagerErrorWhileCreatingMandate");
