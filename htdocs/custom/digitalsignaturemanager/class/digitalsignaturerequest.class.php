@@ -1136,8 +1136,15 @@ class DigitalSignatureRequest extends CommonObject
 	private function getPeopleThatShouldDoAnAction()
 	{
 		$result = null;
+		$arrayOfResearchedPeopleStatus = array(
+			DigitalSignaturePeople::STATUS_PENDING_ID_DOCS,
+			DigitalSignaturePeople::STATUS_ACCESSED,
+			DigitalSignaturePeople::STATUS_CODE,
+			DigitalSignaturePeople::STATUS_PENDING_VALIDATION,
+			DigitalSignaturePeople::STATUS_SHOULD_SIGN
+		);
 		foreach ($this->people as &$people) {
-			if ($people->status != $people::STATUS_WAITING_TO_SIGN && $people->status != $people::STATUS_DRAFT) {
+			if (in_array($people->status, $arrayOfResearchedPeopleStatus)) {
 				$result = $people;
 				break;
 			}
@@ -1153,7 +1160,7 @@ class DigitalSignatureRequest extends CommonObject
 	{
 		$result = null;
 		foreach (array_reverse($this->people) as &$people) {
-			if ($people->status == $people::STATUS_SUCCESS || $people->status == $people::STATUS_REFUSED) {
+			if ($people->status == $people::STATUS_SUCCESS || $people->status == $people::STATUS_REFUSED || $people->status == $people::STATUS_FAILED) {
 				$result = $people;
 				break;
 			}
