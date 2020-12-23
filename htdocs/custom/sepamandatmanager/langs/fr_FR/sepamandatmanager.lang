@@ -152,6 +152,8 @@ SepaMandateNoBic = Aucun BIC renseigné
 SepaMandateBicNotValid = Bic non valide
 SepaMandateNoTypeSet = Aucun type de mandat renseigné (ponctuel, récurrent)
 SepaMandateInvalidMandatInformationIntoBankAccount = Information bancaire renseigné dans le compte client incorrecte
+SepaMandateIcsNotSet = Le numéro ICS de l'entreprise n'est pas renseigné dans le module prélèvement
+
 #
 # Liaison avec CompanyBankAccount
 #
