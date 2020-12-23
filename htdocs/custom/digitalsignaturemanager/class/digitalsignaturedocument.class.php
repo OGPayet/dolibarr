@@ -242,6 +242,7 @@ class DigitalSignatureDocument extends CommonObject
 							if ($checkBox->id > 0) {
 								$id = $checkBox->id;
 								$this->check_box_ids[$index] = (int) $id;
+								$this->digitalSignatureRequest->availableCheckBox[$checkBox->id] = $checkBox;
 							}
 						}
 						break;
