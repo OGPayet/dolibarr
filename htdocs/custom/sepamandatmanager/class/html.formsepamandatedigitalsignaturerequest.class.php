@@ -241,34 +241,40 @@ class FormSepaMandateDigitalSignatureRequest
 		$freeIban = $this->getFreeIban();
 		$freeBic = $this->getFreeBic();
 		$mandatType = $this->getMandateType();
-		if ($bankAccountId > 0) {
-			$bankAccount = new CompanyBankAccount($this->db);
-			$bankAccount->fetch($bankAccountId);
-			$errors += $bankAccount->errors;
-			$iban = $bankAccount->iban;
-			$bic = $bankAccount->bic;
-		} elseif (!empty($freeIban) || !empty($freeBic)) {
-			$iban = $freeIban;
-			$bic = $freeBic;
-		}
-		$sepaMandat = new SepaMandat($this->db);
-		$sepaMandat->fk_soc = $companyId;
-		$sepaMandat->iban = $iban;
-		$sepaMandat->bic = $bic;
-		$sepaMandat->type = $mandatType;
-		if (empty($errors) && $sepaMandat->create($user) > 0 && $sepaMandat->setToSign($user) > 0) {
-			$extendedEcm = new ExtendedEcm($this->db);
-			if($extendedEcm->fetch($sepaMandat->fk_generated_ecm) < 0) {
-				$errors[] = $langs->trans("SepaMandatManagerErrorWhileCreatingMandate");
-				$errors += $extendedEcm->errors;
+		if($bankAccountId > 0 || !empty($freeIban) || !empty($freeBic))
+		 {
+			if ($bankAccountId > 0) {
+				$bankAccount = new CompanyBankAccount($this->db);
+				$bankAccount->fetch($bankAccountId);
+				$errors += $bankAccount->errors;
+				$iban = $bankAccount->iban;
+				$bic = $bankAccount->bic;
+			} elseif (!empty($freeIban) || !empty($freeBic)) {
+				$iban = $freeIban;
+				$bic = $freeBic;
+			}
+			$sepaMandat = new SepaMandat($this->db);
+			$sepaMandat->fk_soc = $companyId;
+			$sepaMandat->iban = $iban;
+			$sepaMandat->bic = $bic;
+			$sepaMandat->type = $mandatType;
+			if (empty($errors) && $sepaMandat->create($user) > 0 && $sepaMandat->setToSign($user) > 0) {
+				$extendedEcm = new ExtendedEcm($this->db);
+				if($extendedEcm->fetch($sepaMandat->fk_generated_ecm) < 0) {
+					$errors[] = $langs->trans("SepaMandatManagerErrorWhileCreatingMandate");
+					$errors += $extendedEcm->errors;
+				}
+			}
+			$errors += $sepaMandat->errors;
+			$this->errors += $errors;
+			if (empty($errors)) {
+				return array(self::SEPA_MANDATE_TEMPORARY_ECM_ID => $extendedEcm);
+			} else {
+				return null;
 			}
 		}
-		$errors += $sepaMandat->errors;
-		$this->errors += $errors;
-		if (empty($errors)) {
-			return array(self::SEPA_MANDATE_TEMPORARY_ECM_ID => $extendedEcm);
-		} else {
-			return null;
+		else {
+			return array();
 		}
 	}
 
