@@ -1,0 +1,239 @@
+parcautomobileSetup=Parking module configuration
+parcautomobilecheckInterventionsMails=Send intervention alerts by email
+Before_Validity_Date=Before the validity date
+Send_Mail_Before=Send email
+StepToFollowParcInterventionEmail=Steps to get email sending to work
+ActivateTravauxPlanifModule=Activate the module <b> "Scheduled jobs" </b>
+
+Gotothe=Browse to
+ConfigurationPageTravPlan=Scheduled job management setup
+GenerateKeySecurity=and generate the security key
+
+VerifyThatEmailSentInYourPlateform=Test the sending of email in your Dolibarr platform <b> "Configuration - Emails" </b>
+
+CopyTheLinkBelowToTheFile=Add the line below in the configuration file
+
+TheLinkTheFileToMakeInYourServerToBeExecute=Configure a <b> scheduled task </b> on your server to run the following file
+
+Everydays=everyday
+
+PSSecurityKeyNotGenerated=Before proceeding to step (3.) you must generate the security key
+StepThreeNotYet=Step (3.) not yet processed
+DesacAndActivModule=Please <b> Deactivate </b> then <b> Activate </b> the module
+essence=Essence
+diesel=Diesel
+lpg=LPG
+electric=Electrique
+hybrid=Hybride
+
+
+parcautomobile_permis_type = Type of license
+parcautomobile_permis = License
+
+
+
+ModuleName = Parking
+
+parcautomobile_Setup = Parking
+ModuleDesc1909680988parcautomobile = Managemenet of parking
+
+
+logo = photo
+erreur_calcul = Fill the quantity of the liters
+
+
+# DROITS
+Permission_label=To consult
+
+# MENU
+parcautomobile = Parking
+list_vehicules = List of vehicules
+vehicules = Vehicules
+configuration = Configuration
+marque_model = Model of the vehicle mark
+typeintervention = Types of intervention
+typecontrat = Types of contract
+statut = Vehicle status
+etiquettes = Vehicle labels
+kilometrage = Mileage
+suivi_intervention = Follow-up of interventions on vehicles
+suivi_essence = Follow-up of gasoline level
+parc = Park
+add_parc = New park
+add_vehicule=New vehicule
+modeles_vehicule = Vehicles Model
+info_suplm = Additional Information
+contrats = Contracts
+analyse = Analyse
+couts = Costs
+releve_kilometrique = Kilometer readings of vehicles
+vehiculecontrat = Vehicle contracts
+detail_contrat = Contract Details
+detail_inter = Details of interventions
+detail_kilom = Kilometer detail
+detail_vehicul = Vehicle detail
+sevice_inclu = Services included
+couts_estime = Estimated cost
+couts_estimes = Estimated costs
+cout_recur = Recurring costs generated
+add_lign = Add line
+service = Service
+remarques = Remarks
+
+#vehicule
+model = Model
+plaque = Numberplate
+conducteur = Driver
+num_chassi =Chassis number
+anne_model = Model year
+dernier_kilo =Last mileage record
+date_immatriculation = Date of registration
+date_contrat =First Contract Date
+valeur_catalogue = Value Catalog (TVA incl.)
+type_carburant = Type of fuel
+transmission = Transmission
+emission_co2 = CO2 Emission
+nb_chevaux = Number of horses
+tax = Power tax (In fiscal horses)
+nb_place = Number of places
+nb_port = Number of doors
+color = Color
+etat = Statut
+value_residuelle = Residual value
+kilometrage_vehicule = Last mileage record
+propriete = Properties
+options = Options
+
+#status
+
+annuler=Cancel
+active=Active
+inshop=In shop (en vente)
+inactive=Inactive
+sold=Sold (Vendu)
+
+#transmission
+automatic = Automatic
+manual = Manual
+
+#vehicule_costs
+notes = Description of the cost
+date = Date
+prix_inter = Total price
+vehicule = Vehicule
+acheteur =Buyer
+fournisseur =Supplier
+prixT = Total price
+prix_T = Total price
+prix = Price
+unite = Unit
+litre = Liters
+ref_facture = Invoice reference
+kilometrique = 	Kilometer readings
+detail_contrat =Contract Details
+detail_cost =Expenditure Details
+total_costs = Total vehicle costs :
+
+
+#contrat
+list_contrats = Contracts vehicules
+fermer = Close the contract
+renouveler = Renew the contract
+passer_encours = Pass the contract to 'In progress'
+contrat_parc =Contract
+date_d = Start date of the contract
+date_f = Expiration date of the contract
+date_fac =Billing date
+ref_contrat = Contract reference
+activation_cout = Cost of the contract
+montant_recurrent = Recurring amount
+responsable = Responsible
+reception = Reception
+expire = Expired
+expire_bientot = Expires soon
+ferme = close
+encours = In progress
+conditions = Terms and conditions
+kilometr_contrat = Initial mileage record
+detail_carb = Details of fueling
+cout_recurrent =Recurring costs generated
+services_inclus = Services included
+montant = Amount
+type_montant = Frequency of recurrence of cost
+statut_contrat = Statut
+puissance = Power
+
+#costsvehicule
+costsvehicule = Vehicules Costs
+
+#typeintervention
+label_typeintervention = Type of intervention
+
+#marques
+marques = Marks
+marque = Mark
+label_marque = Mark
+label_model = Name of model
+
+photo_ = Photo
+
+#modeles
+modeles = Models
+
+#typecontrat
+label_typecontrat = Type of Contract
+
+#statut
+label_statut = Statut
+etiquettes_parc = Labels
+
+label_type = Type
+
+#types_montant
+non = No
+quotidien = Daily
+hebdomadaire = Weekly
+mensuel = Monthly
+annuel = Annual
+
+label_etiquette = Name of label
+
+
+#charts
+analyse_cout_estime = Analysis of the estimated cost of the vehicle (Contracts / Interventions)
+analyse_couts = Cost Analysis (Costs vehicles)
+interventions = Interventions
+
+kilometers = kilometers
+miles = Miles
+estimated cost
+
+# CARD
+msgconfirmdelet=Are you sure you want to continue deleting?
+Export=Export PDF
+Export_pdf = Export pdf
+Export_doc = Export Word
+
+#export
+
+lignes_intervention = The last 5 interventions of the vehicle
+lignes_niveau_essence =The last 5 fuel level monitoring of the vehicle
+detail_intervention = 	Follow-up of interventions on the vehicle
+
+datevalidate=Validity date
+
+test_sendmail_vehicul = Activate the validity of the date of their interventions
+Champs_kilomtr = Complementary attributes (Mileage)
+Champs_suivi_essenc = Complementary attributes (Follow-up of gasoline)
+Champs_vehicule = Complementary attributes (Vehicules)
+Champs_contrat = Complementary attributes (Contrats)
+Champs_costs = Complementary attributes (Costs)
+Champs_intervention = Complementary attributes (Interventions)
+
+
+
+champs_add = Complementary attributes
+NewChamp = New Attribut
+export = Export
+
+ravitaillement = Refueling

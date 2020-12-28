@@ -1,0 +1,247 @@
+parcautomobileSetup=Configuration du module Parc automobile
+parcautomobilecheckInterventionsMails=Envoyer des alertes d'interventions par e-mails
+Before_Validity_Date=avant la date de validité
+Send_Mail_Before=Envoyer l'email
+StepToFollowParcInterventionEmail=Étapes à suivre pour que l'envoie d'email fonctionnent
+ActivateTravauxPlanifModule=Activer le module <b>"Travaux planifiés"</b>
+
+Gotothe=Aller à la
+ConfigurationPageTravPlan=Page de configuration du module - Gestion des travaux programmés
+GenerateKeySecurity=et générer la clé de sécurité
+
+VerifyThatEmailSentInYourPlateform=Tester l'envoie d'email dans votre plateforme Dolibarr <b>"Configuration - Emails"</b>
+
+CopyTheLinkBelowToTheFile=Ajouter la ligne ci-dessous dans le fichier de configuration
+
+TheLinkTheFileToMakeInYourServerToBeExecute=Configurer une <b>tâche planifiée</b> dans votre serveur afin d'exécuter le fichier suivant
+
+Everydays=tous les jours
+
+SendMailEvryDayBefore=Envoyer l'email chaque jours depuis __NBRDAYS__ jours avant la date validité
+SendMailEvryDayAfter=Envoyer l'email chaque jours après le dépassement de la date validité
+
+PSSecurityKeyNotGenerated=Avant de passer vers l'étape (3.) vous devez générer la clé de sécurité
+StepThreeNotYet=Étape (3.) pas encore traité
+DesacAndActivModule=Merci de <b>Désactiver</b> puis <b>Activer</b> le module
+essence=Essence
+diesel=Diesel
+lpg=LPG
+electric=Electrique
+hybrid=Hybride
+
+
+
+parcautomobile_permis_type=Type de permis
+parcautomobile_permis=Permis
+
+
+Module1909680988Name = Parc automobile
+
+parcautomobile_Setup = Parc automobile
+ModuleDesc1909680988parcautomobile = Gestion de parc automobile
+
+
+logo = photo
+erreur_calcul = Remplire la quantité des litres
+
+
+# DROITS
+Permission_label=Consulter
+
+# MENU
+parcautomobile = Parc automobile
+list_vehicules = Liste des véhicules
+vehicules = Véhicules
+configuration = Configuration
+marque_model = Modèle de la marque du véhicule
+typeintervention = Types d'intervention
+typecontrat = Types de contrat
+statut = Statut du véhicule
+etiquettes = Étiquettes de véhicule
+kilometrage = Kilométrage
+suivi_intervention = Suivi des interventions sur les véhicules
+suivi_essence = Suivi du niveau d'essence
+parc = Parc
+add_parc = Nouveau parc
+add_vehicule=Nouveau véhicule
+modeles_vehicule = Modèles de Véhicule
+info_suplm = Informations supplémentaires
+contrats = Contrats
+analyse = Analyse
+couts = Coûts
+releve_kilometrique = Relevés kilomètrique des véhicules
+vehiculecontrat = Contrats des véhicules
+detail_contrat = Détails du contrat
+detail_inter = Détails des interventions
+detail_kilom = Détail kilométrique
+detail_vehicul = Détail du véhicule
+sevice_inclu = Services inclus
+couts_estime = Coût estimé
+couts_estimes = Coûts estimés
+cout_recur = Coûts récurrents générés
+add_lign = Ajouter une ligne
+service = Service
+remarques = Remarques
+puissance = Puissance
+
+
+#vehicule
+model = Modèle
+plaque = Plaque d'immatriculatin
+conducteur = Conducteur
+num_chassi = Numéro de chassis
+anne_model = Année du modèle
+dernier_kilo = Dernier relevé kilomètrique
+date_immatriculation = Date d'immatriculation
+date_contrat = Première Date de Contrat
+valeur_catalogue = Valeur Catalogue (TVA incl.)
+type_carburant = Type de carburant
+transmission = Transmission
+emission_co2 = Emission de CO2
+nb_chevaux = Nombre de chevaux
+tax = Taxe sur la puissance (en chevaux fiscaux)
+nb_place = Nombre de places
+nb_port = Nombre de portes
+color = Couleur
+etat = Statut
+value_residuelle = Valeur résiduelle
+kilometrage_vehicule = Dernier relevé kilomètrique
+propriete = Propriétés
+options = Options
+
+#status
+
+annuler=Annuler
+active=Active
+inshop=In shop (en vente)
+inactive=Inactive
+sold=Sold (Vendu)
+
+#transmission
+automatic = Automatique
+manual = Manuel
+
+#vehicule_costs
+notes = Description du coût
+date = Date
+prix_inter = Prix total
+vehicule = Véhicule
+acheteur =Acheteur
+fournisseur =Fournisseur
+prixT = Prix total
+prix_T = Prix total
+prix = Prix
+unite = Unité
+litre = Litres
+ref_facture = Référence de la facture
+kilometrique = 	Relevé kilomètrique
+detail_contrat = Détails du contrat
+detail_cost = Détails des dépenses
+total_costs = Totale des costs de vehicule :
+
+
+#contrat
+list_contrats = Contrats des véhicules
+fermer = Fermer le contrat
+renouveler = Renouveler le contrat
+passer_encours = Passer le contrat à l'état 'En cours'
+contrat_parc =Contrat
+date_d = Date de début du contrat
+date_f = Date d'expiration du contrat
+date_fac = Date de facturation
+ref_contrat = Référence du contrat
+activation_cout = Coût du contrat
+montant_recurrent = Montant récurrent
+responsable = Responsable
+reception = Réception
+expire = Expiré
+expire_bientot = Expire bientôt
+ferme = Fermé
+encours = En cours
+conditions = Conditions générales
+kilometr_contrat = Relevé kilométrique initial
+detail_carb = Détails du ravitaillement en carburant
+cout_recurrent = Coûts récurrents générés
+services_inclus = Services inclus
+montant = Montant
+type_montant = Fréquence de récurrence du coût
+statut_contrat = Statut
+
+
+#costsvehicule
+costsvehicule = Véhicules Costs
+
+#typeintervention
+label_typeintervention = Type d'intervention
+
+#marques
+marques = Marques
+marque = Marque
+label_marque = Marque
+label_model = Nom du modèle
+
+photo_ = Photo
+
+#modeles
+modeles = Modèles
+
+#typecontrat
+label_typecontrat = Type de contrat
+
+#statut
+label_statut = Statut
+etiquettes_parc = Étiquettes
+
+label_type = Type
+
+#types_montant
+non = Non
+quotidien = Quotidien
+hebdomadaire = Hebdomadaire
+mensuel = Mensuel
+annuel = Annuel
+
+label_etiquette = Nom du étiquette
+
+
+#charts
+analyse_cout_estime = Analyse des coût estimés du vehicule (Contrats/Interventions)
+analyse_couts = Analyse des dépenses (Costs vehicules)
+interventions = Interventions
+
+kilometers = kilomètres
+miles = Miles
+
+
+# CARD
+msgconfirmdelet=Êtes-vous sûr de vouloir continuer la suppression?
+Export=Export PDF
+Export_pdf = Exporter pdf
+Export_doc = Exporter Word
+
+#export
+
+lignes_intervention = Les 5 dernières interventions en véhicule
+lignes_niveau_essence = Les 5 dernières suivi de niveau d'essence du véhicule
+detail_intervention = 	Suivi d'interventions sur la véhicule
+
+datevalidate=Date de validité
+
+test_sendmail_vehicul = Activer la validité de la date de leurs interventions
+Champs_kilomtr = Attributs supplémentaires (Kilomètrages)
+Champs_suivi_essenc = Attributs supplémentaires (Ravitaillement)
+Champs_vehicule = Attributs supplémentaires (Vehicules)
+Champs_contrat = Attributs supplémentaires (Contrats)
+Champs_costs = Attributs supplémentaires (Côuts)
+Champs_intervention = Attributs supplémentaires (Interventions)
+
+
+etat_export = Etat résumé
+
+export = Export
+NewChamp = Nouvel Attribut
+
+ravitaillement = Ravitaillement
+
+
+champs_add = Attributs supplémentaires

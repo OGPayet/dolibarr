@@ -1,0 +1,921 @@
+.setepparcauto .divlink{
+    background-color: #d6d6dc;
+    display: inline-block;
+    padding: 4px;
+}
+.setepparcauto ol.parclist li {
+    padding: 6px;
+}
+.setepparcauto .pserrorcls {
+    color: #da1919;
+}
+div.mainmenu.parcautomobile {
+    background-image: url(../../parcautomobile/img/parcautomobile.png);
+    background-size: 19px;
+}
+
+#tab_couts>table{
+	width: 100%;
+}
+#sevices_inclus .tabactive,#sevices_inclus a.tab#active{
+	border-top: 2px solid rgb(10, 100, 140) !important;
+    background: rgb(255,255,255) !important;
+}
+#sevices_inclus div.tabs .tab{
+    padding: 10px 10px 10px;
+    background: #dcdcdc;
+}
+/*table#table-1 td>div.select2-container {
+    width: 164px;
+}
+table.nc_table_ td>div.select2-container {
+    width: 164px;
+}
+
+td input[name="color"]{
+    width: 55px
+}
+#id-right table.noborder td div.select2-container{
+    width: 164px;
+}*/
+
+
+/* css index */
+div.parcautomobilecardfile{
+    background: #fff;
+    padding: 3px;
+}
+
+.index_parc #logo{
+    height: 25px;
+}
+.index_parc #add{
+    float: right;
+}
+.index_parc #list{
+    background-color:rgba(0, 0, 0, 0.15);
+}
+.index_parc .etat{
+    padding-left: 40px !important;
+}
+.index_parc .statusdetailcolorsback{
+    float:left;
+    width: 70%;
+    text-align: center;
+    display: none;
+}
+.index_parc .statusdetailcolorsback .statusname {
+    line-height: 15px;
+    padding: 0 15px;
+}
+.index_parc .statusdetailcolorsback .colorstatus {
+    height: 12px;
+    width: 41px;
+    display: inline-block;
+    border: 0.1px dashed #a9a9a9;
+    margin-right: 3px;
+}
+.index_parc .div_h{
+    width: 100%;
+}
+.index_parc .statusdetailcolorsback .counteleme {
+    /*margin-right: 2px;*/
+    font-weight: bold;
+}
+
+.index_parc .statusdetailcolorsback .statusname {
+    line-height: 15px;
+    padding: 0 15px;
+}
+.index_parc .refuse{
+    color:#e01212f2;
+    font-size: 11px;
+}
+.index_parc .color_etat{
+    border:0.1px dashed #a9a9a9;
+    padding:0 15px;
+}
+.index_parc .etat{
+    white-space: nowrap;
+}
+
+.index_parc .sp_color{
+    height: 16px;
+    width: 16px;
+    display: inline-block;
+    border-radius: 50px;
+    margin-right: 3px;
+    white-space: pre;
+}
+
+
+/* css kanban  */
+
+#kanban .jqx-kanban-column{
+    /*width: 20% !important;*/
+}
+#kanban{
+    width: 100% !important;
+}
+.kanban_parc #add{
+    float: right;
+}
+.kanban_parc #grid{
+    background-color:rgba(0, 0, 0, 0.15);
+}
+#kanban .jqx-kanban-column-container .jqx-widget-content .jqx-widget .jqx-sortable .jqx-disableselect{
+    background-color: gainsboro !important;
+}
+.kanban_parc .icon_list{
+    cursor: pointer;
+    /*text-decoration: none;*/
+    display: inline-block;
+}
+.kanban_parc .icon_list:hover{
+    text-decoration: none;
+    /*padding: 0 1px;*/
+}
+
+.kanban_parc .icon_list:hover img{
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.kanban_parc .statusdetailcolorsback{
+    float:left;
+    width: 70%;
+    text-align: center;
+    /*display: none;*/
+    display: block;width:70%;float:left;
+}
+.kanban_parc .statusdetailcolorsback .statusname {
+    line-height: 15px;
+    padding: 0 15px;
+}
+.kanban_parc .statusdetailcolorsback .colorstatus {
+    height: 12px;
+    width: 41px;
+    display: inline-block;
+    border: 0.1px dashed #a9a9a9;
+    margin-right: 3px;
+}
+.kanban_parc  .div_h{
+    width: 100%;
+}
+.kanban_parc  .statusdetailcolorsback .counteleme {
+    /*margin-right: 2px;*/
+    font-weight: bold;
+}
+
+.kanban_parc  .statusdetailcolorsback .statusname {
+    line-height: 15px;
+    padding: 0 15px;
+}
+.kanban_parc  .refuse{
+    color:#e01212f2;
+    font-size: 11px;
+}
+#kanban .jqx-kanban-item-text b:hover{
+    cursor: pointer;
+}
+
+
+/* css card_parc  */
+
+.card_parc table.nc_table_ tr td:first-child {
+    width: 30%;
+}
+.card_parc .modele_cv:hover{
+    cursor: pointer;
+}
+.card_parc .valider{
+    background-color:green;
+    color:white !important;
+    padding:5px;
+    border-radius:3px;
+    font-size:16px;
+}
+.card_parc .valider:hover{
+    cursor: pointer;
+    color:white;
+    text-decoration: none;
+    padding: 8px;
+}
+
+.card_parc #deconstruction{
+    background-color:#b30000;
+    color:white;
+    padding:5px;
+    border-radius:3px;
+    font-size:16px;
+}
+.card_parc #deconstruction:hover{
+    cursor: pointer;
+    text-decoration: none;
+    padding: 8px;
+}
+.card_parc .table_ td{
+    border: 1px solid rgb(169, 169, 169);
+    padding:5px;"
+}
+
+.card_parc #importer{
+    background-color: rgb(60,70,100);
+    color: white;
+}
+.card_parc .model .select2{
+    width: 100% !important;
+}
+.card_parc #div_1 , #div_2{
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/*.div_left , .div_right{
+    width:49%;
+    float:left;
+    border-top:5px solid #dcdcdf;
+}
+.card_parc .div_left{
+    margin-right: 25px;
+}*/
+
+@media only screen and (min-width: 1000px){
+    .div_left, .div_right {
+        width: 49%;
+        float: left
+    }
+    .div_left{
+        margin-right: 1%;
+    }
+}
+
+
+.card_parc select#type_carburant{
+    width: 100%;
+}
+.card_parc #logo {
+    display: none;
+}
+.card_parc #importer{
+    font-size: 12px;
+}
+.card_parc #div_1 th,.card_parc #div_1 td:first-child{
+    width: 20%;
+}
+.card_parc #name{
+    display: none;
+}
+.card_parc .title_div{
+    padding: 10px;
+    background-color: #dcdcdf;
+    margin-bottom: 10px;
+}
+.card_parc .etiquette{
+    padding: 5px;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+}
+.card_parc .model{
+
+}
+.card_parc .info_vehicule img{
+    padding: 4px;
+    height: 80px !important;
+    float: left;
+    width: auto !important;
+}
+.card_parc .div_logo{
+    float: left;
+}
+.card_parc .div_model{
+    float: left;
+}
+.card_parc div.info_vehicule{
+    width: 100%;
+}
+.card_parc .info_vehicule h1{
+    line-height: 3;
+}
+
+.card_parc #img img{
+    height: 80px !important;
+    width: auto !important;
+}
+
+.card_parc .etapes {
+    /*display: block;*/
+    position: relative;
+    padding-left: 28px;
+    margin-left: 13px;
+    margin-bottom: 12px;
+    /*font-size: 22px;*/
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.card_parc .etapes input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Create a custom radio button */
+.card_parc .radio {
+    position: absolute;
+    top: -4px;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+    border-radius: 50%;
+}
+
+/* On mouse-over, add a grey background color */
+
+
+/* When the radio button is checked, add a blue background */
+.card_parc .etapes input:checked ~ .radio {
+    background-color: #2196F3;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.card_parc .radio:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.card_parc .etapes input:checked ~ .radio:after {
+    display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.card_parc .etapes .radio:after {
+    top: 9px;
+    left: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+}
+.card_parc .rating{
+    /*width: 25% !important;*/
+    float: left;
+}
+
+.card_parc .td_h{
+    background-color: #d3d3d3b5;
+    padding: 8px !important;
+    float: left;
+    width: 100%;
+}
+.card_parc .alletapesrecru{
+  line-height: 2;
+  text-align: right;
+  width: 67%;
+ float: left;
+}
+.card_parc .label_vehicule{
+    font-weight: bold;
+    font-size: 18px;
+}
+.card_parc .info_vehicule{
+    width: 0.1% !important;
+    padding: 0px !important;
+}
+
+.card_parc .div_right th {
+    width: 50% !important;
+}
+.card_parc td.plaque{
+    width: 30% !important;
+}
+.card_parc td#img{
+    width: 10% !important;
+}
+
+
+/* css card_contrat  */
+
+    .card_contract #conditions{
+        width: 100%;
+    }
+    .card_contract .etapes {
+        position: relative;
+        padding-left: 28px;
+        margin-left: 13px;
+        margin-bottom: 12px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    /* Hide the browser's default radio button */
+    .card_contract .etapes input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    /* Create a custom radio button */
+    .card_contract .radio {
+        position: absolute;
+        top: -4px;
+        left: 0;
+        height: 25px;
+        width: 25px;
+        background-color: #eee;
+        border-radius: 50%;
+    }
+
+    /* On mouse-over, add a grey background color */
+
+
+    /* When the radio button is checked, add a blue background */
+    .card_contract .etapes input:checked ~ .radio {
+        background-color: #2196F3;
+    }
+
+    /* Create the indicator (the dot/circle - hidden when not checked) */
+    .card_contract .radio:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+
+    /* Show the indicator (dot/circle) when checked */
+    .card_contract .etapes input:checked ~ .radio:after {
+        display: block;
+    }
+
+    /* Style the indicator (dot/circle) */
+    .card_contract .etapes .radio:after {
+        top: 9px;
+        left: 9px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: white;
+    }
+    .card_contract .rating{
+        /*width: 25% !important;*/
+        float: left;
+    }
+
+    .card_contract #montant_recurrent{
+        display: none;
+        float: left;
+    }
+    .card_contract .butEtat{
+        text-decoration: none;
+        font-weight: bold;
+        margin-right: 0.9em !important;
+        padding: 4px 10px 4px;
+        display: inline-block;
+        text-align: center;
+        cursor: pointer;
+        background: #2196f3;
+        color: #fff;
+        border-radius: 5px;
+        line-height: 2;
+    }
+    .card_contract .butEtat:hover{
+        text-decoration: none;
+        -webkit-box-shadow: 0px 0px 6px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
+        font-weight: bold;
+        color: #fff;
+        box-shadow: 0px 0px 6px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);;
+    }
+    .card_contract .td_h{
+          background-color: #d3d3d3b5;
+          padding: 8px !important;
+    }
+    .card_contract .alletapesrecru{
+        line-height: 2;
+        float: right;
+    }
+    .card_contract #passer_encours{
+        display: none;
+    }
+    .card_contract div.left{
+        float:left;
+        margin-right: 16px;
+        width: 48%;
+    }
+
+    .card_contract div.d_right{
+        float:right;
+        width: 48%;
+    }
+    .card_contract .cl_parent{
+        width: 100%;
+        margin: 30px 0 30px;
+    }
+    .card_contract .left ,.card_contract .d_right{
+        border: 1px solid #e0e0e0;
+        border-top: 5px solid #e0e0e0;
+        padding-left: 10px
+    }
+
+    .card_contract #conditions{
+        margin-top: 20px;
+        width: 100%;
+        float: left;
+    }
+  .card_contract .conditions{
+    width: 100%;
+  }
+  .card_contract .txt_condition{
+    border: 1px solid #e0e0e0;
+    width: 99%;
+    padding: 8px;
+  }
+  .card_contract .cnd{
+     width: 6%;
+     float: left;
+     padding: 8px;
+     font-size: 14px;
+     font-weight: bold;
+     padding: 9px;
+     background-color: #dcdcdf;
+     width: 99%;
+  }
+    .card_contract  .tab {
+        cursor: pointer;
+        padding: 10px 10px 0;
+    }
+    .card_contract div.tabs{
+      padding-top: 40px;
+      padding-left:0px !important;
+    }
+    .card_contract #add_lign_service{
+        cursor: pointer;
+    }
+    .card_contract  .note_service input{
+        width: 100% !important;
+    }
+
+    .card_contract .prix_service{
+        text-align: right;
+    }
+    .card_contract .note_service{
+        width: 60%;
+    }
+    .card_contract .type_service{
+        width: 20%;
+    }
+    .card_contract .type_service select{
+        width: 100%;
+    }
+    .card_contract #add_lign_cout , .delete{
+        cursor: pointer;
+    }
+    .card_contract #type_montant_ .select2{
+        width: 45% !important;
+    }
+
+    .card_contract div.cl_parent .select2{
+        width: 90% !important;
+    }
+
+   .card_contract #tab_services table, #tab_couts table{
+        padding: 2px 2px 0;
+    }
+    .card_contract #tab_services, #tab_couts{
+        border: 1px solid #ced4da !important;
+    }
+    .card_contract .text_right {
+        text-align: right;
+    }
+    .card_contract .text_right a{
+        text-decoration: none;
+        margin:0em 0.6em 0.6em !important;
+        padding: 0.4em 0.6em;
+        font-family: roboto,arial,tahoma,verdana,helvetica;
+        display: inline-block;
+        text-align: center;
+        cursor: pointer;
+        color: #fff;
+        border-radius: 5px;
+        background-color: #3c4664;
+    }
+    .card_contract #total_services{
+        width: 98%;
+    }
+    .card_contract #total_services div{
+        float: right;
+    }
+    .card_contract .date_cout {
+        width: 80%;
+    }
+
+     .card_contract .etapes:hover input ~ .radio {
+        background-color: #ccc;
+    }
+    .card_contract .etapes{
+        cursor: pointer;
+    }
+
+
+
+/*  css card_costvehicul  */
+
+    .card_costvehicul #notes{
+        width: 100%;
+    }
+    .card_costvehicul .noborder th,.card_costvehicul .noborder td:first-child{
+        width: 20% !important;
+    }
+    .card_costvehicul .noborder .select2{
+        width: 30% !important;
+    }
+
+/* css indexcostvehicul  */
+
+    .indexcostvehicul .hide{
+        display: none;
+    }
+    .indexcostvehicul .show{
+        display: block;
+    }
+    .indexcostvehicul #total{
+        font-weight: bold;
+        background-color: rgb(220,220,223);
+        padding: 10px;
+    }
+    .indexcostvehicul #total div{
+        float: right;
+        width: 40%;
+    }
+
+
+    /*  css card_ettiquet  */
+
+    .card_ettiquet .color_etq{
+        color: #fff;;
+        border-radius: 2px;
+    }
+
+    .index_ettiquet .color_etq{
+        color: #fff;
+        border-radius: 2px;
+    }
+
+/*  css card_interv */
+
+
+    .card_interv #notes{
+        width: 100%;
+    }
+    .card_interv .tab {
+        cursor: pointer;
+        padding: 10px 10px 0;
+    }
+    .card_interv div.tabs{
+        /*border-bottom: 1px solid #ced4da !important;*/
+        padding-top: 40px;
+        padding-left:0px !important;
+    }
+    .card_interv #add_lign_service{
+        cursor: pointer;
+    }
+    .card_interv .note_service input{
+        width: 100% !important;
+    }
+    .card_interv .prix_service{
+        text-align: right;
+    }
+    .card_interv  .note_service{
+        width: 60%;
+    }
+    .card_interv .type_service{
+        width: 20%;
+    }
+    .card_interv .type_service select{
+        width: 100%;
+    }
+    .card_interv #add_lign_cout , .card_interv .delete{
+        cursor: pointer;
+        float: right;
+    }
+    .card_interv .title_div{
+        padding: 10px;
+        background-color: #dcdcdf;
+        margin-bottom: 10px;
+    }
+    .card_interv table.noborder .select2 {
+        width: 100% !important;
+    }
+    .card_interv input#ref_facture {
+        width: 100%;
+    }
+    .card_interv #div_1 , #div_2{
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .card_interv .div_left, .card_interv .div_right{
+        width:49%;
+        float:left;
+        /*border-top:5px solid #dcdcdf;*/
+    }
+
+    .card_interv #notes{
+        margin-top: 20px;
+        width: 100%;
+        float: left;
+    }
+    .card_interv .notes{
+        width: 100%;
+    }
+    .card_interv #tab_services table, .card_interv #tab_couts table{
+        padding: 2px 2px 0;
+    }
+    .card_interv #tab_services, .card_interv #tab_couts{
+        border: 1px solid #ced4da !important;
+        border-top: 0px !important;
+    }
+    .card_interv .text_right{
+        text-align: right;
+    }
+
+    .card_interv .text_right a{
+        text-decoration: none;
+        margin:0em 0.6em 0.6em !important;
+        padding: 0.4em 0.6em;
+        font-family: roboto,arial,tahoma,verdana,helvetica;
+        display: inline-block;
+        text-align: center;
+        cursor: pointer;
+        color: #fff;
+        border-radius: 5px;
+        background-color: #3c4664;
+    }
+
+    .card_interv #total_services{
+        width: 98%;
+    }
+    .card_interv #total_services div{
+        float: right;
+    }
+
+    .card_interv table.noborder th, .card_interv table.noborder td:first-child {
+        width: 200px !important;
+    }
+
+    .card_interv .div_left{
+        width: 50% !important;
+    }
+
+    .card_interv .txt_condition {
+        border: solid 1px rgba(0,0,0,.2);
+        padding: 10px;
+    }
+
+   /* css card_suiviessenc */
+
+    .card_suiviessenc .error{
+        display: none;
+        color: #d61313 !important;
+    }
+    .card_suiviessenc .div_1, .div_2{
+        width: 100%;
+    }
+    .card_suiviessenc .div_left{
+        float:left;
+        margin-right: 16px;
+        width: 48%;
+    }
+
+    .card_suiviessenc .div_right{
+        float:left;
+        width: 50%;
+    }
+    .card_suiviessenc .title_div {
+        padding: 10px;
+        background-color: #dcdcdf;
+        margin-bottom: 10px;
+    }
+
+    .card_suiviessenc #remarques{
+        margin-top: 20px;
+        width: 100%;
+        float: left;
+
+    }
+    .card_suiviessenc #remarques textarea{
+        border: solid 1px rgba(0,0,0,.2);
+        padding: 10px;
+        width: 100%;
+    }
+    .card_suiviessenc .div_1 th, .card_suiviessenc .div_2 th {
+        width: 30% !important;
+    }
+    .card_suiviessenc .div_1 input, .card_suiviessenc .div_2 input {
+        width: 80%;
+    }
+    .card_suiviessenc .div_1 .select2, .card_suiviessenc .div_2 .select2 {
+        width: 80% !important;
+    }
+    .card_suiviessenc input#date{
+        width: 20% !important;
+    }
+    .card_suiviessenc .txt_condition.in_show{
+        border: solid 1px rgba(0,0,0,.2);
+        padding: 10px;
+    }
+    .card_suiviessenc .txt_condition textarea{
+        width: 98% !important;
+    }
+
+.parcautomobilemarques #wrapper ul{
+    padding: 0;
+    list-style: none;
+}
+.parcautomobilemarques #wrapper ul li{
+    display: inline-block;
+    padding: 6px;
+    position: relative;
+}
+.parcautomobilemarques #wrapper ul li img{
+    width: auto !important;
+    height: 80px;
+    border: solid 1px #ccc;
+    background: #fff;
+}
+.parcautomobilemarques #wrapper ul li span{
+    position: absolute;
+    width: 100%;
+    height: 83px;
+    top: 0;
+    left: 0;
+    text-align: center;
+    line-height: 75px;
+    border: solid 1px #ccc;
+    background: #fff;
+    display: none;
+    font-size: 13px;
+}
+.parcautomobilemarques #wrapper ul li:hover span{
+    display: block;
+}
+
+.parcautomobilemarques #lightbox {
+    position:fixed; /* keeps the lightbox window in the current viewport */
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background-color: rgba(0,0,0,0.5);
+    text-align:center;
+    //padding-top: 3%;
+z-index: 5000;
+        overflow: auto;
+}
+.parcautomobilemarques #lightbox p {
+    text-align:right;
+    color:#fff;
+    margin-right:20px;
+    font-size: 2em;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: cursive;
+}
+.parcautomobilemarques #lightbox img {
+    box-shadow:0 0 25px #111;
+    -webkit-box-shadow:0 0 25px #111;
+    -moz-box-shadow:0 0 25px #111;
+    max-width:800px;
+    background: #fff;
+}
+
+
+form#tab_marque span.select2{
+    width: 100% !important;
+}
+
+.card_suiviessenc .div_1 tr td:first-child, .card_suiviessenc .div_2 tr td:first-child{
+    width: 25% !important;
+}
+
+
+/* 17/06/2020 */
+
+
+.test_sendmail{
+    float: left;
+    text-align: center;
+    padding-top: 6px;
+    width: 33%;
+    text-align: left;
+}
+
+#notes_txt {
+    width: 100%;
+}
