@@ -25,7 +25,7 @@ function sepamandatmanager_completesubstitutionarray(&$substitutionarray, $langs
     global $db, $langs;
 
     if ($object->element == 'societe' && $parameters['needforkey'] == 'SUBSTITUTION_SEPAMANDATTABLABEL') {
-		$nbOfMandat = 1;
+		$nbOfMandat = 0;
 		$result =  $langs->trans("SepaMandatTab");
 		if($nbOfMandat > 0) {
 			$result .=  ' <span class="badge">' . ($nbOfMandat) . '</span>';
