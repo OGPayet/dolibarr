@@ -23,15 +23,15 @@
  */
 
 // Change this following line to use the correct relative path (../, ../../, etc)
-$res=0;
-if (! $res && file_exists("../main.inc.php")) $res=@include '../main.inc.php';					// to work if your module directory is into dolibarr root htdocs directory
-if (! $res && file_exists("../../main.inc.php")) $res=@include '../../main.inc.php';			// to work if your module directory is into a subdir of root htdocs directory
-if (! $res && file_exists("../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../dolibarr/htdocs/main.inc.php';     // Used on dev env only
-if (! $res && file_exists("../../../../dolibarr/htdocs/main.inc.php")) $res=@include '../../../../dolibarr/htdocs/main.inc.php';   // Used on dev env only
-if (! $res) die("Include of main fails");
-require_once DOL_DOCUMENT_ROOT.'/core/lib/fichinter.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
-require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+$res = 0;
+if (!$res && file_exists("../main.inc.php")) $res = @include '../main.inc.php';                    // to work if your module directory is into dolibarr root htdocs directory
+if (!$res && file_exists("../../main.inc.php")) $res = @include '../../main.inc.php';            // to work if your module directory is into a subdir of root htdocs directory
+if (!$res && file_exists("../../../dolibarr/htdocs/main.inc.php")) $res = @include '../../../dolibarr/htdocs/main.inc.php';     // Used on dev env only
+if (!$res && file_exists("../../../../dolibarr/htdocs/main.inc.php")) $res = @include '../../../../dolibarr/htdocs/main.inc.php';   // Used on dev env only
+if (!$res) die("Include of main fails");
+require_once DOL_DOCUMENT_ROOT . '/core/lib/fichinter.lib.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/html.formprojet.class.php';
+require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
@@ -40,17 +40,17 @@ dol_include_once('/interventionsurvey/class/html.forminterventionsurvey.class.ph
 $langs->load("interventions");
 $langs->load("interventionsurvey@interventionsurvey");
 
-$id = GETPOST('id','int');
+$id = GETPOST('id', 'int');
 $ref = GETPOST('ref', 'alpha');
-$survey_bloc_question_id = GETPOST('survey_bloc_question_id','int');
-$action = GETPOST('action','alpha');
-$confirm = GETPOST('confirm','alpha');
-$backtopage = GETPOST('backtopage','alpha');
+$survey_bloc_question_id = GETPOST('survey_bloc_question_id', 'int');
+$action = GETPOST('action', 'alpha');
+$confirm = GETPOST('confirm', 'alpha');
+$backtopage = GETPOST('backtopage', 'alpha');
 
 // Security check
-if ($user->societe_id) $socid=$user->societe_id;
+if ($user->societe_id) $socid = $user->societe_id;
 
-if(empty($user->rights->interventionsurvey->survey->read) || !$id) accessforbidden();
+if (empty($user->rights->interventionsurvey->survey->read) || !$id) accessforbidden();
 
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $hookmanager->initHooks(array('interventionsurvey'));
@@ -65,33 +65,32 @@ $readOnlySurvey = true;
 if ($id > 0 || !empty($ref)) {
     $ret = $object->fetch($id, $ref, true, true);
     $object->fetch_thirdparty();
-    if(!$object->checkUserAccess($user)){
+    if (!$object->checkUserAccess($user)) {
         accessforbidden();
     }
     if ($ret == -1 && $object->id == 0) {
         setEventMessages($langs->trans('NoRecordFound'), array(), 'errors');
-    } else if($ret < 0) {
+    } else if ($ret < 0) {
         setEventMessages("", $object->errors, 'errors');
     }
-
 }
 
 $readOnlySurvey = $object->statut == $object::STATUS_DONE;
 $form = new Form($db);
 $formextendedintervention = new FormInterventionSurvey($db);
-$formproject=new FormProjets($db);
+$formproject = new FormProjets($db);
 
 /*
  * Actions
  */
 
-$parameters=array();
-$reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action); // Note that $action and $object may have been modified by some hooks
+$parameters = array();
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
 //$survey_bloc_question is the object used to perform actions on bloc and display some informations in confirm action
 
-if($survey_bloc_question_id){
+if ($survey_bloc_question_id) {
     $survey_bloc_question = new SurveyBlocQuestion($db);
     $survey_bloc_question->errors = array();
     $result = $survey_bloc_question->fetch($survey_bloc_question_id) > 0;
@@ -102,82 +101,73 @@ if (empty($reshook) && $object->id > 0 && $action && !$readOnlySurvey) {
     if ($user->rights->interventionsurvey->survey->write && $action == 'save_question_bloc') {
         if ($result > 0) {
             $survey_bloc_question = $formextendedintervention->updateBlocObjectFromPOST($survey_bloc_question);
-            $survey_bloc_question->attached_files = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"attached_files",$formextendedintervention::BLOC_FORM_PREFIX, array());
-            $survey_bloc_question->private = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question,"private",$formextendedintervention::BLOC_FORM_PREFIX, 0);
+            $survey_bloc_question->attached_files = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question, "attached_files", $formextendedintervention::BLOC_FORM_PREFIX, array());
+            $survey_bloc_question->private = $formextendedintervention->updateFieldFromGETPOST($survey_bloc_question, "private", $formextendedintervention::BLOC_FORM_PREFIX, 0);
             //We set extrafields
             $survey_bloc_question->array_options = $survey_bloc_question::$extrafields_cache->getOptionalsFromPost($survey_bloc_question::$extrafields_label_cache, '_intervention_survey_question_bloc_' . $survey_bloc_question->id . '_');
-            foreach($survey_bloc_question->questions as $question){
+            foreach ($survey_bloc_question->questions as $question) {
                 $question->array_options = $question::$extrafields_cache->getOptionalsFromPost($question::$extrafields_label_cache, '_intervention_survey_question_' . $question->id . '_');
             }
             $result = $survey_bloc_question->save($user);
             if ($result < 0 || $survey_bloc_question->errors) {
-                setEventMessages("",$survey_bloc_question->errors, 'errors');
+                setEventMessages("", $survey_bloc_question->errors, 'errors');
                 $action = "edit_question_bloc";
             }
         }
-    }
-    else if($user->rights->interventionsurvey->survey->write && ($action == 'confirm_delete_bloc' && $confirm=='yes')){
-        if($result > 0 && $survey_bloc_question->deletable){
+    } else if ($user->rights->interventionsurvey->survey->write && ($action == 'confirm_delete_bloc' && $confirm == 'yes')) {
+        if ($result > 0 && $survey_bloc_question->deletable) {
             $result = $survey_bloc_question->delete($user);
-            if($result>0){
+            if ($result > 0) {
                 $object->cleanSurvey($user);
             }
         }
         if ($result < 0 || $survey_bloc_question->errors) {
             $survey_bloc_question->errors[] = $langs->trans('InterventionSurveyCantDeleteBloc', $survey_bloc_question_id);
-            setEventMessages("",$survey_bloc_question->errors, 'errors');
+            setEventMessages("", $survey_bloc_question->errors, 'errors');
         }
-    }
-    else if($action == 'confirm_soft_regeneration' && $confirm=='yes'){
+    } else if ($action == 'confirm_soft_regeneration' && $confirm == 'yes') {
         $result = $object->softUpdateOfSurveyFromDictionary($user);
         if ($result < 0 || $survey_bloc_question->errors) {
-            setEventMessages("",$survey_bloc_question->errors, 'errors');
+            setEventMessages("", $survey_bloc_question->errors, 'errors');
         }
-    }
-    else if($action == 'confirm_add_missing_part_only' && $confirm=='yes'){
+    } else if ($action == 'confirm_add_missing_part_only' && $confirm == 'yes') {
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, true, false, false);
         if ($result < 0 || $survey_bloc_question->errors) {
-            setEventMessages("",$survey_bloc_question->errors, 'errors');
+            setEventMessages("", $survey_bloc_question->errors, 'errors');
         }
-    }
-    else if($action == 'confirm_add_missing_bloc_in_general_part' && $confirm=='yes'){
+    } else if ($action == 'confirm_add_missing_bloc_in_general_part' && $confirm == 'yes') {
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, true, false);
         if ($result < 0 || $survey_bloc_question->errors) {
-            setEventMessages("",$survey_bloc_question->errors, 'errors');
+            setEventMessages("", $survey_bloc_question->errors, 'errors');
         }
-    }
-    else if($action == 'confirm_add_missing_bloc_in_other_part' && $confirm=='yes'){
+    } else if ($action == 'confirm_add_missing_bloc_in_other_part' && $confirm == 'yes') {
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, false, true);
         if ($result < 0 || $survey_bloc_question->errors) {
-            setEventMessages("",$survey_bloc_question->errors, 'errors');
+            setEventMessages("", $survey_bloc_question->errors, 'errors');
         }
-    }
-    else if($action == 'confirm_add_missing_bloc' && $confirm=='yes'){
+    } else if ($action == 'confirm_add_missing_bloc' && $confirm == 'yes') {
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, false, false, false, true, true);
         if ($result < 0 || $survey_bloc_question->errors) {
-            setEventMessages("",$survey_bloc_question->errors, 'errors');
+            setEventMessages("", $survey_bloc_question->errors, 'errors');
         }
-    }
-    else if($action == 'confirm_hard_regeneration' && $confirm=='yes'){
+    } else if ($action == 'confirm_hard_regeneration' && $confirm == 'yes') {
         $result = $object->mergeCurrentSurveyWithDictionaryData($user, true, true, true, true, true);
         if ($result < 0 || $survey_bloc_question->errors) {
-            setEventMessages("",$survey_bloc_question->errors, 'errors');
+            setEventMessages("", $survey_bloc_question->errors, 'errors');
         }
-    }
-    else if($action == 'confirm_reset_survey' && $confirm=='yes'){
+    } else if ($action == 'confirm_reset_survey' && $confirm == 'yes') {
         $result = $object->deleteSurvey($user);
-        if($result > 0) {
+        if ($result > 0) {
             $object->survey = array();
             $result = $object->mergeCurrentSurveyWithDictionaryData($user, true, true, true, true, true);
         }
         if ($result < 0 || $survey_bloc_question->errors) {
-            setEventMessages("",$survey_bloc_question->errors, 'errors');
+            setEventMessages("", $survey_bloc_question->errors, 'errors');
         }
-    }
-    else if($action == 'confirm_autocomplete_survey' && $confirm=='yes'){
+    } else if ($action == 'confirm_autocomplete_survey' && $confirm == 'yes') {
         $result = $object->autoComplete();
         if ($result < 0 || $survey_bloc_question->errors) {
-            setEventMessages("",$object->errors, 'errors');
+            setEventMessages("", $object->errors, 'errors');
         }
     }
 }
@@ -187,7 +177,7 @@ if (empty($reshook) && $object->id > 0 && $action && !$readOnlySurvey) {
  * View
  */
 
-llxHeader('',$langs->trans("Intervention"));
+llxHeader('', $langs->trans("Intervention"));
 
 // Confirmation to delete bloc
 if ($action == 'delete_bloc') {
@@ -311,7 +301,7 @@ if ($object->id > 0) {
 
     //Prepare needed data for following form
     $object->fetch_attached_files();
-    $object->fetch($id, $ref, true);
+    $object->fetch($id, $ref, true, true);
 
     if (!empty($object->errors)) {
         setEventMessages("", $object->errors, 'errors');
@@ -323,107 +313,105 @@ if ($object->id > 0) {
     //         print '<br>';
     //     }
 
-        if ($readOnlySurvey) {
-            print $langs->trans('InterventionSurveyReadOnlyMode');
-            print '<br>';
-        }
+    if ($readOnlySurvey) {
+        print $langs->trans('InterventionSurveyReadOnlyMode');
+        print '<br>';
+    }
 
-        if(empty($object->survey)){
-            print $langs->trans('InterventionSurveyEmptySurvey');
-            print '<br>';
-        }
-        // Print left question bloc of the survey
-        else {
-                foreach ($object->survey as $survey_part) {
-                    print load_fiche_titre('<b>'. $survey_part->label .'</b>', '', '');
-                    $idx = 1;
-                    foreach ($survey_part->blocs as $bloc) {
-                        if ($idx % 2 == 1) {
-                            print '<div class="fichecenter border">';
-                        }
-                        $blocPrefix = $formextendedintervention::BLOC_FORM_PREFIX;
-                        $questionPrefix = $formextendedintervention::QUESTION_FORM_PREFIX;
-                        if ($user->rights->interventionsurvey->survey->write && $action == 'edit_question_bloc' && $bloc->id == $survey_bloc_question_id && !$readOnlySurvey) {
-                            $bloc = $formextendedintervention->updateBlocObjectFromPOST($bloc);
-                            @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_edit.tpl.php');
-                        } else {
-                            @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_view.tpl.php');
-                        }
-                        if ($idx % 2 == 0) {
-                            print '</div>';
-                        }
-                        $idx++;
-                    }
-                    if ($idx % 2 != 1) {
-                        print '</div>';
-                    }
+    if (empty($object->survey)) {
+        print $langs->trans('InterventionSurveyEmptySurvey');
+        print '<br>';
+    }
+    // Print left question bloc of the survey
+    else {
+        foreach ($object->survey as $survey_part) {
+            print load_fiche_titre('<b>' . $survey_part->label . '</b>', '', '');
+            $idx = 1;
+            foreach ($survey_part->blocs as $bloc) {
+                if ($idx % 2 == 1) {
+                    print '<div class="fichecenter border">';
                 }
-    dol_fiche_end();
-}
+                $blocPrefix = $formextendedintervention::BLOC_FORM_PREFIX;
+                $questionPrefix = $formextendedintervention::QUESTION_FORM_PREFIX;
+                if ($user->rights->interventionsurvey->survey->write && $action == 'edit_question_bloc' && $bloc->id == $survey_bloc_question_id && !$readOnlySurvey) {
+                    $bloc = $formextendedintervention->updateBlocObjectFromPOST($bloc);
+                    @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_edit.tpl.php');
+                } else {
+                    @include dol_buildpath('interventionsurvey/tpl/intervention_survey_bloc_question_view.tpl.php');
+                }
+                if ($idx % 2 == 0) {
+                    print '</div>';
+                }
+                $idx++;
+            }
+            if ($idx % 2 != 1) {
+                print '</div>';
+            }
+        }
+        dol_fiche_end();
+    }
 
 
-	/*
+    /*
 	 * Actions buttons
 	 */
 
-	print '<div class="tabsAction">';
+    print '<div class="tabsAction">';
 
-	$parameters = array();
-	$reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action); // Note that $action and $object may have been
-		                                                                                          // modified by hook
-	if (empty($reshook) &&  ($user->rights->interventionsurvey->survey->manage || $user->rights->interventionsurvey->survey->manage_more) && !$readOnlySurvey)
-	{
-            print '<div class="inline-block divButAction">';
-            if($user->rights->interventionsurvey->survey->autocomplete){
-                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=autocomplete_survey">'
-                .$langs->trans("InterventionSurveyAutoCompleteButton"). ' ' .
+    $parameters = array();
+    $reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action); // Note that $action and $object may have been
+    // modified by hook
+    if (empty($reshook) &&  ($user->rights->interventionsurvey->survey->manage || $user->rights->interventionsurvey->survey->manage_more) && !$readOnlySurvey) {
+        print '<div class="inline-block divButAction">';
+        if ($user->rights->interventionsurvey->survey->autocomplete) {
+            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=autocomplete_survey">'
+                . $langs->trans("InterventionSurveyAutoCompleteButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAutocompleteDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-            }
+        }
 
-            if($user->rights->interventionsurvey->survey->manage){
-                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=soft_regeneration">'
-                .$langs->trans("InterventionSurveyConfirmSoftRegenerationButton"). ' ' .
+        if ($user->rights->interventionsurvey->survey->manage) {
+            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=soft_regeneration">'
+                . $langs->trans("InterventionSurveyConfirmSoftRegenerationButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmSoftRegenerationDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=add_missing_part_only">'
-                .$langs->trans("InterventionSurveyConfirmAddMissingPartButton"). ' ' .
+            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_part_only">'
+                . $langs->trans("InterventionSurveyConfirmAddMissingPartButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingPartDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=add_missing_bloc_in_general_part">'
-                .$langs->trans("InterventionSurveyConfirmAddMissingBlocInGeneralPartButton"). ' ' .
+            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc_in_general_part">'
+                . $langs->trans("InterventionSurveyConfirmAddMissingBlocInGeneralPartButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocInGeneralPartDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=add_missing_bloc_in_other_part">'
-                .$langs->trans("InterventionSurveyConfirmAddMissingBlocInOtherPartButton"). ' ' .
+            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc_in_other_part">'
+                . $langs->trans("InterventionSurveyConfirmAddMissingBlocInOtherPartButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocInOtherPartDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=add_missing_bloc">'
-                .$langs->trans("InterventionSurveyConfirmAddMissingBlocButton"). ' ' .
+            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc">'
+                . $langs->trans("InterventionSurveyConfirmAddMissingBlocButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-            }
+        }
 
-            if($user->rights->interventionsurvey->survey->manageMore){
-                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=hard_regeneration">'
-                .$langs->trans("InterventionSurveyConfirmHardRegenerationButton"). ' ' .
+        if ($user->rights->interventionsurvey->survey->manageMore) {
+            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=hard_regeneration">'
+                . $langs->trans("InterventionSurveyConfirmHardRegenerationButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmHardRegenerationDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
 
-                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reset_survey">'
-                .$langs->trans("InterventionSurveyConfirmResetButton"). ' ' .
+            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=reset_survey">'
+                . $langs->trans("InterventionSurveyConfirmResetButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmResetDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-            }
-
-
-
-
-            print '</div>';
         }
 
-	print '</div>';
 
+
+
+        print '</div>';
+    }
+
+    print '</div>';
 }
 
 llxFooter();
