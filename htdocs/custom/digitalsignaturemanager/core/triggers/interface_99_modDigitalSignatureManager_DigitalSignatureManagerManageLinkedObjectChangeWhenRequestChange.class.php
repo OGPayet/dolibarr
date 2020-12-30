@@ -105,12 +105,12 @@ class InterfaceDigitalSignatureManagerManageLinkedObjectChangeWhenRequestChange 
 		}
 
 		$linkedObjectsInDolibarr = $object->getLinkedObjects();
-		if(!$linkedObjectsInDolibarr) {
+		if (!$linkedObjectsInDolibarr) {
 			return 0;
 		}
 		$errors = array();
 
-		foreach($linkedObjectsInDolibarr as $linkedObjectInDolibarr) {
+		foreach ($linkedObjectsInDolibarr as $linkedObjectInDolibarr) {
 			switch ($action) {
 				case 'DIGITALSIGNATUREREQUEST_INPROGRESS':
 					$label = $langs->trans("DigitalSignatureRequestStartAndSendByMail", $object->ref);
@@ -119,6 +119,11 @@ class InterfaceDigitalSignatureManagerManageLinkedObjectChangeWhenRequestChange 
 				case 'DIGITALSIGNATUREREQUEST_CANCELEDBYSIGNERS':
 					$label = $langs->trans("DigitalSignatureRequestCanceledBySigners", $object->ref);
 					$description = $langs->trans("DigitalSignatureRequestCanceledBySignersDescription", $object->getNomUrl(1, '', 1));
+					$this->manageRefusedLinkedSignature($object, $linkedObjectInDolibarr, $user);
+					break;
+				case 'DIGITALSIGNATUREREQUEST_EXPIRED':
+					$label = $langs->trans("DigitalSignatureRequestExpired", $object->ref);
+					$description = $langs->trans("DigitalSignatureRequestDescription", $object->getNomUrl(1, '', 1));
 					$this->manageRefusedLinkedSignature($object, $linkedObjectInDolibarr, $user);
 					break;
 				case 'DIGITALSIGNATUREREQUEST_CANCELEDBYOPSY':
@@ -142,14 +147,13 @@ class InterfaceDigitalSignatureManagerManageLinkedObjectChangeWhenRequestChange 
 					break;
 			}
 
-			if(!empty($label))
-			{
+			if (!empty($label)) {
 				// Insertion action
 				$now = dol_now();
 				dol_include_once('/comm/action/class/actioncomm.class.php');
 				$actioncomm = new ActionComm($this->db);
 				$actioncomm->type_code   = "AC_OTH_AUTO";		// Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
-				$actioncomm->code        = 'AC_'.$action;
+				$actioncomm->code        = 'AC_' . $action;
 				$actioncomm->label       = $label;
 				$actioncomm->note        = $description . "<br>" . $langs->trans('DigitalSignatureManagerEventAuthor', $user->login);
 				$actioncomm->fk_project  = $object->fk_project;
@@ -180,7 +184,7 @@ class InterfaceDigitalSignatureManagerManageLinkedObjectChangeWhenRequestChange 
 	private function manageSuccessLinkedSignature($digitalSignatureRequest, $linkedObject, $user)
 	{
 		global $langs;
-		if($linkedObject->element == 'propal') {
+		if ($linkedObject->element == 'propal') {
 			$linkedObject->cloture($user, $linkedObject::STATUS_SIGNED, $langs->trans("DigitalSignatureRequestSuccesfullySignedDescription", $digitalSignatureRequest->ref));
 		}
 	}
@@ -195,7 +199,7 @@ class InterfaceDigitalSignatureManagerManageLinkedObjectChangeWhenRequestChange 
 	private function manageRefusedLinkedSignature($digitalSignatureRequest, $linkedObject, $user)
 	{
 		global $langs;
-		if($linkedObject->element == 'propal') {
+		if ($linkedObject->element == 'propal') {
 			$linkedObject->cloture($user, $linkedObject::STATUS_NOTSIGNED, $langs->trans("DigitalSignatureRequestCanceledByOpsyDescription", $digitalSignatureRequest->ref));
 		}
 	}

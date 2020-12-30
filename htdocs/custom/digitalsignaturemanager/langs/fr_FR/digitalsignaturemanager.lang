@@ -413,7 +413,8 @@ DigitalSignatureRequestCanceledByOpsy = Le processus de signature %s de la pièc
 DigitalSignatureRequestCanceledByOpsyDescription = Un utilisateur a annulée le processus de signature %s  de la pièce commerciale courante
 DigitalSignatureRequestSuccesfullySigned = Pièce commerciale signé avec succès - signature %s
 DigitalSignatureRequestSuccesfullySignedDescription = La pièce commerciale a été signée avec succès lors de la signature électronique %s
-
+DigitalSignatureRequestExpired = Le processus de signature %s a expiré
+DigitalSignatureRequestExpiredDescription = Le processus de signature électronique %s associé a cette pièce commerciale a expiré. Un processus de signature électronique ne peut durer plus de 14 jours.
 #
 # Erreurs
 #
