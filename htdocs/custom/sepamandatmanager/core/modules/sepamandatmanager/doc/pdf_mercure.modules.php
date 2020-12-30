@@ -325,7 +325,7 @@ class pdf_mercure extends ModelePDFSepamandat
 				$pdf->SetXY(86, $posY);
 				$txt = $langs->transnoentitiesnoconv("ModeFRST");
 				$pdf->MultiCell($this->page_largeur - $this->marge_gauche - $this->marge_droite, 3, $txt, 0, 'L');
-				if (empty($object->frstrecur)) {
+				if (empty($object->type)) {
 					$posY += 6;
 					$pdf->SetXY(80, $posY);
 					$txt = '(' . $langs->transnoentitiesnoconv("PleaseCheckOne") . ')';
