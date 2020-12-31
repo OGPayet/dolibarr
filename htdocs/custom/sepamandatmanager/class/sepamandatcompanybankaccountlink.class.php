@@ -123,8 +123,10 @@ class SepaMandatCompanyBankAccountLink
 						//mandates for this company
 						$otherMandates = $this->getSignedSepaMandatesOfThisCompany($companyAccount->socid);
 						if (is_array($otherMandates)) {
-							$firstElement = array_shift($otherMandates);
-							if ($firstElement) {
+							if (empty($otherMandates)) {
+								$result = true;
+							} else {
+								$firstElement = array_shift($otherMandates);
 								$result = $companyAccount->setAsDefault($firstElement->fk_companybankaccount) > 0;
 							}
 						}
