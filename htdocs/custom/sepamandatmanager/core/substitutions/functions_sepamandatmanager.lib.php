@@ -14,22 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+dol_include_once('/sepamandatmanager/class/sepamandat.class.php');
 /**
  *	\file       htdocs/companyrelationships/lib/functions_companyrelationships.lib.php
  *	\brief      Ensemble de fonctions de substitutions pour le module Company Relationships
  * 	\ingroup	companyrelationships
  */
+function sepamandatmanager_completesubstitutionarray(&$substitutionarray, $langs, $object, $parameters)
+{
+	global $db, $langs;
 
-function sepamandatmanager_completesubstitutionarray(&$substitutionarray, $langs, $object, $parameters) {
-    global $db, $langs;
+	if ($object->element == 'societe' && $parameters['needforkey'] == 'SUBSTITUTION_SEPAMANDATTABLABEL') {
 
-    if ($object->element == 'societe' && $parameters['needforkey'] == 'SUBSTITUTION_SEPAMANDATTABLABEL') {
-		$nbOfMandat = 0;
+		$staticObject = new SepaMandat($db);
+		$mandatesOfThisThirdparty = $staticObject->fetchAll('', '', 0, 0, array('fk_soc' => $object->id), 'AND');
+		$nbOfMandat = count($mandatesOfThisThirdparty);
 		$result =  $langs->trans("SepaMandatTab");
-		if($nbOfMandat > 0) {
+		if ($nbOfMandat > 0) {
 			$result .=  ' <span class="badge">' . ($nbOfMandat) . '</span>';
 		}
-        $substitutionarray['SEPAMANDATTABLABEL'] = $result;
-    }
+		$substitutionarray['SEPAMANDATTABLABEL'] = $result;
+	}
 }
