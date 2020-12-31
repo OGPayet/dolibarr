@@ -102,33 +102,36 @@ class InterfaceSepaMandatManagerDigitalSignatureDocumentSignedTriggers extends D
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 	{
-		if (empty($conf->sepamandatmanager->enabled))
-		{
+		if (empty($conf->sepamandatmanager->enabled)) {
 			return 0; // If module is not enabled, we do nothing
 		}
 
-		if($object->element != self::DIGITAL_SIGNATURE_DOCUMENT_VALUE
-		|| ($object->elementtype != SepaMandat::$staticElement && !empty($object->fk_object)))
-		{
-			return 0; //We manage only triggers for digital signature document events based on a sepa mandat
-		}
-
-		$sepaMandateToUpdate = new SepaMandat($this->db);
-		if($sepaMandateToUpdate->fetch($object->fk_object) > 0) {
-			switch ($action) {
-				case 'DIGITALSIGNATUREDOCUMENT_SIGNED':
-					$sepaMandateToUpdate->setSigned($user);
-					break;
-				case 'DIGITALSIGNATUREDOCUMENT_REFUSED':
-					$sepaMandateToUpdate->setCanceled($user);
-					break;
-				default:
-					dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
-					break;
+		if (
+			$object->element == self::DIGITAL_SIGNATURE_DOCUMENT_VALUE
+			&& $object->elementtype == SepaMandat::$staticElement
+			&& !empty($object->fk_object)
+		) {
+			$sepaMandateToUpdate = new SepaMandat($this->db);
+			if ($sepaMandateToUpdate->fetch($object->fk_object) > 0) {
+				switch ($action) {
+					case 'DIGITALSIGNATUREDOCUMENT_SIGNED':
+						$sepaMandateToUpdate->setSigned($user);
+						break;
+					case 'DIGITALSIGNATUREDOCUMENT_REFUSED':
+					case 'DIGITALSIGNATUREDOCUMENT_CANCELED':
+					case 'DIGITALSIGNATUREDOCUMENT_FAILED':
+					case 'DIGITALSIGNATUREDOCUMENT_EXPIRED':
+					case 'DIGITALSIGNATUREDOCUMENT_DELETEDINPROVIDER':
+						$sepaMandateToUpdate->setCanceled($user);
+						break;
+					default:
+						dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+						break;
+				}
 			}
+			$this->errors = $sepaMandateToUpdate->errors;
+			return empty($sepaMandateToUpdate->errors) ? 1 : -1;
 		}
-
-		$this->errors = $sepaMandateToUpdate->errors;
-		return empty($sepaMandateToUpdate->errors) ? 1 : -1;
+		return 0;
 	}
 }

@@ -679,21 +679,28 @@ class DigitalSignatureRequest extends CommonObject
 			self::STATUS_EXPIRED => 'DIGITALSIGNATUREREQUEST_EXPIRED',
 			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER'
 		);
+		$statusAndTriggerCodeForDocument = array(
+			self::STATUS_IN_PROGRESS => 'DIGITALSIGNATUREDOCUMENT_INPROGRESS',
+			self::STATUS_CANCELED_BY_OPSY => 'DIGITALSIGNATUREDOCUMENT_CANCELED',
+			self::STATUS_CANCELED_BY_SIGNERS => 'DIGITALSIGNATUREDOCUMENT_REFUSED',
+			self::STATUS_SUCCESS => 'DIGITALSIGNATUREDOCUMENT_SIGNED',
+			self::STATUS_FAILED => 'DIGITALSIGNATUREDOCUMENT_FAILED',
+			self::STATUS_EXPIRED => 'DIGITALSIGNATUREDOCUMENT_EXPIRED',
+			self::STATUS_DELETED_FROM_SIGNATURE_SERVICE => 'DIGITALSIGNATUREDOCUMENT_DELETEDINPROVIDER'
+		);
 		if ($statusValue != $this->status) {
 			$result = $this->setStatusCommon($user, $statusValue, $notrigger, $statusAndTriggerCode[$statusValue]);
 		} else {
 			return 0;
 		}
-		if ($result > 0 && !$notrigger && ($statusValue == self::STATUS_SUCCESS || $statusValue == self::STATUS_CANCELED_BY_SIGNERS)) {
-			if ($statusValue == self::STATUS_SUCCESS) {
-				$triggerName = 'DIGITALSIGNATUREDOCUMENT_SIGNED';
-			} elseif ($statusValue == self::STATUS_CANCELED_BY_SIGNERS) {
-				$triggerName = 'DIGITALSIGNATUREDOCUMENT_REFUSED';
-			}
-			foreach ($this->documents as $document) {
-				$result = $document->call_trigger($triggerName, $user);
-				if ($result < 0) {
-					break;
+		if ($result > 0 && !$notrigger) {
+			$documentTriggerName = $statusAndTriggerCodeForDocument[$statusValue];
+			if (!empty($documentTriggerName)) {
+				foreach ($this->documents as $document) {
+					$result = $document->call_trigger($documentTriggerName, $user);
+					if ($result < 0) {
+						break;
+					}
 				}
 			}
 		}
