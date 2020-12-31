@@ -302,7 +302,7 @@ class ExtendedInterventionQuota
                     //We save data
                     $periods[$idx] = array('begin' => $b_date, 'end' => $last_period ? $end_date->timestamp : $e_date, 'in_period' => $in_period, 'last_period' => $last_period);
                     $idx++;
-                } while (!$in_period && !$last_period);
+                } while (!$in_period && !$last_period && $idx < 1000);
             }
         }
 
