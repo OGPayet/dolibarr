@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  * -----
  *
@@ -250,11 +250,11 @@ foreach($filesToProcess as $fileToProcess)
 	{
 		if ( ! $oh = fopen($output, 'w') )
 		{
-			print "ERROR in writing to file $output\n";
+			print "ERROR in writing to file ".$output."\n";
 			exit;
 		}
 
-		print "Read Primary File $lPrimaryFile and write ".$output.":\n";
+		print "Read Primary File ".$lPrimaryFile." and write ".$output.":\n";
 
 		fwrite($oh, "# Dolibarr language file - Source file is en_US - ".(preg_replace('/\.lang$/', '', $fileToProcess))."\n");
 

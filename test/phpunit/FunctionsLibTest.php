@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * or see http://www.gnu.org/
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * or see https://www.gnu.org/
  */
 
 /**
@@ -77,7 +77,11 @@ class FunctionsLibTest extends PHPUnit\Framework\TestCase
         print "\n";
     }
 
-    // Static methods
+    /**
+     * setUpBeforeClass
+     *
+     * @return void
+     */
     public static function setUpBeforeClass()
     {
         global $conf,$user,$langs,$db;
@@ -88,7 +92,11 @@ class FunctionsLibTest extends PHPUnit\Framework\TestCase
         print __METHOD__."\n";
     }
 
-    // tear down after class
+    /**
+     * tearDownAfterClass
+     *
+     * @return	void
+     */
     public static function tearDownAfterClass()
     {
         global $conf,$user,$langs,$db;
@@ -680,6 +688,26 @@ class FunctionsLibTest extends PHPUnit\Framework\TestCase
     }
 
     /**
+     * testDolAsciiCheck
+     *
+     * @return void
+     */
+    public function testDolAsciiCheck()
+    {
+    	// True
+    	$result=ascii_check('azerty');
+    	$this->assertTrue($result);
+
+    	$result=ascii_check('é');
+    	$this->assertFalse($result);
+
+    	$file=dirname(__FILE__).'/textutf8.txt';
+    	$filecontent=file_get_contents($file);
+    	$result=ascii_check($filecontent);
+    	$this->assertFalse($result);
+    }
+
+    /**
      * testDolTrunc
      *
      * @return boolean
@@ -905,7 +933,7 @@ class FunctionsLibTest extends PHPUnit\Framework\TestCase
     {
         $s=img_picto('title', 'user');
         print __METHOD__." s=".$s."\n";
-        $this->assertContains('theme', $s, 'testImgPicto1');
+        $this->assertContains('fa-user', $s, 'testImgPicto1');
 
         $s=img_picto('title', 'img.png', 'style="float: right"', 0);
         print __METHOD__." s=".$s."\n";
@@ -1197,7 +1225,18 @@ class FunctionsLibTest extends PHPUnit\Framework\TestCase
      */
     public function testDolPrice2Num()
     {
-        $this->assertEquals(1000, price2num('1 000.0'));
+    	global $langs, $conf;
+
+    	$oldlangs = $langs;
+
+    	$newlangs = new Translate('', $conf);
+    	$newlangs->setDefaultLang('en_US');
+    	$newlangs->load("main");
+    	$langs = $newlangs;
+
+    	$this->assertEquals(150, price2num('(SELECT/**/CASE/**/WHEN/**/(0<1)/**/THEN/**/SLEEP(5)/**/ELSE/**/SLEEP(0)/**/END)'));
+
+    	$this->assertEquals(1000, price2num('1 000.0'));
         $this->assertEquals(1000, price2num('1 000', 'MT'));
         $this->assertEquals(1000, price2num('1 000', 'MU'));
 
@@ -1211,9 +1250,58 @@ class FunctionsLibTest extends PHPUnit\Framework\TestCase
         $this->assertEquals(1000.13, price2num('1 000.125456', 'MT'));
         $this->assertEquals(1000.12546, price2num('1 000.125456', 'MU'), "Test MU");
 
+        $this->assertEquals(1, price2num('1.000'), 'Test 1.000 give 1 with english language');
+
         // Text can't be converted
         $this->assertEquals('12.4$', price2num('12.4$'));
-        $this->assertEquals('12r.4$', price2num('12r.4$'));
+        $this->assertEquals('12.4$', price2num('12r.4$'));
+
+        // For spanish language
+        $newlangs2 = new Translate('', $conf);
+        $newlangs2->setDefaultLang('es_ES');
+        $newlangs2->load("main");
+        $langs = $newlangs2;
+
+        // Test with 3 chars after . or ,
+        // If a . is used and there is 3 digits after, it is a thousand separator
+        $this->assertEquals(1234, price2num('1.234', '', 2), 'Test 1.234 give 1234 with spanish language if user input');
+        $this->assertEquals(1.234, price2num('1,234', '', 2), 'Test 1,234 give 1234 with spanish language if user input');
+        $this->assertEquals(1234, price2num('1 234', '', 2), 'Test 1 234 give 1234 with spanish language if user input');
+        $this->assertEquals(-1.234, price2num('-1.234'), 'Test 1.234 give 1.234 with spanish language');
+        $this->assertEquals(-1.234, price2num('-1,234'), 'Test 1,234 give 1234 with spanish language');
+        $this->assertEquals(-1234, price2num('-1 234'), 'Test 1 234 give 1234 with spanish language');
+        $this->assertEquals(21500123, price2num('21.500.123'), 'Test 21.500.123 give 21500123 with spanish language');
+        $this->assertEquals(21500123, price2num('21500.123', 0, 2), 'Test 21500.123 give 21500123 with spanish language if user input');
+        $this->assertEquals(21500.123, price2num('21500.123'), 'Test 21500.123 give 21500123 with spanish language');
+        $this->assertEquals(21500.123, price2num('21500,123'), 'Test 21500,123 give 21500.123 with spanish language');
+        // Test with 2 digits
+        $this->assertEquals(21500.12, price2num('21500.12'), 'Test 21500.12 give 21500.12 with spanish language');
+        $this->assertEquals(21500.12, price2num('21500,12'), 'Test 21500,12 give 21500.12 with spanish language');
+        // Test with 3 digits
+        $this->assertEquals(12123, price2num('12.123', '', 2), 'Test 12.123 give 12123 with spanish language if user input');
+        $this->assertEquals(12.123, price2num('12,123', '', 2), 'Test 12,123 give 12.123 with spanish language if user input');
+        $this->assertEquals(12.123, price2num('12.123'), 'Test 12.123 give 12.123 with spanish language');
+        $this->assertEquals(12.123, price2num('12,123'), 'Test 12,123 give 12.123 with spanish language');
+
+        // For french language
+        $newlangs3 = new Translate('', $conf);
+        $newlangs3->setDefaultLang('fr_FR');
+        $newlangs3->load("main");
+        $langs = $newlangs3;
+
+        $this->assertEquals(1, price2num('1.000', '', 2), 'Test 1.000 give 1 with french language if user input');
+        $this->assertEquals(1, price2num('1.000'), 'Test 1.000 give 1 with french language');
+        $this->assertEquals(1000, price2num('1 000'), 'Test 1.000 give 1 with french language');
+        $this->assertEquals(1.234, price2num('1.234', '', 2), 'Test 1.234 give 1.234 with french language if user input');
+        $this->assertEquals(1.234, price2num('1.234'), 'Test 1.234 give 1.234 with french language');
+        $this->assertEquals(1.234, price2num('1,234', '', 2), 'Test 1,234 give 1.234 with french language if user input');
+        $this->assertEquals(1.234, price2num('1,234'), 'Test 1,234 give 1.234 with french language');
+        $this->assertEquals(21500000, price2num('21500 000'), 'Test 21500 000 give 21500000 with french language');
+        $this->assertEquals(21500000, price2num('21 500 000'), 'Test 21 500 000 give 21500000 with french language');
+        $this->assertEquals(21500, price2num('21500.00'), 'Test 21500.00 give 21500 with french language');
+        $this->assertEquals(21500, price2num('21500,00'), 'Test 21500,00 give 21500 with french language');
+
+        $langs = $oldlangs;
 
         return true;
     }

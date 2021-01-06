@@ -12,8 +12,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * or see http://www.gnu.org/
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * or see https://www.gnu.org/
  */
 
 /**
@@ -86,7 +86,11 @@ class CodingSqlTest extends PHPUnit\Framework\TestCase
         print "\n";
     }
 
-    // Static methods
+    /**
+     * setUpBeforeClass
+     *
+     * @return void
+     */
     public static function setUpBeforeClass()
     {
         global $conf,$user,$langs,$db;
@@ -95,7 +99,11 @@ class CodingSqlTest extends PHPUnit\Framework\TestCase
         print __METHOD__."\n";
     }
 
-    // tear down after class
+    /**
+     * tearDownAfterClass
+     *
+     * @return	void
+     */
     public static function tearDownAfterClass()
     {
         global $conf,$user,$langs,$db;
@@ -156,7 +164,10 @@ class CodingSqlTest extends PHPUnit\Framework\TestCase
                     continue;
 
                 print 'Check sql file '.$file."\n";
-                $filecontent=file_get_contents($dir.'/'.$file);
+                $filecontent = file_get_contents($dir.'/'.$file);
+
+                // Allow ` for 'rank' column name
+                $filecontent = str_replace('`rank`', '_rank_', $filecontent);
 
                 $result=strpos($filecontent, '`');
                 print __METHOD__." Result for checking we don't have back quote = ".$result."\n";
@@ -181,6 +192,10 @@ class CodingSqlTest extends PHPUnit\Framework\TestCase
                 $result=strpos($filecontent, 'NUMERIC(');
                 print __METHOD__." Result for checking we don't have 'NUMERIC(' = ".$result."\n";
                 $this->assertTrue($result===false, 'Found NUMERIC( into '.$file.'. Bad.');
+
+                $result=strpos($filecontent, 'NUMERIC(');
+                print __METHOD__." Result for checking we don't have 'curdate(' = ".$result."\n";
+                $this->assertTrue($result===false, 'Found curdate( into '.$file.'. Bad. Current date must be generated with PHP.');
 
                 $result=strpos($filecontent, 'integer(');
                 print __METHOD__." Result for checking we don't have 'integer(' = ".$result."\n";
