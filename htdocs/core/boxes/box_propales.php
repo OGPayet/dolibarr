@@ -3,6 +3,7 @@
  * Copyright (C) 2004-2007 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2005-2009 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2015      Frederic France      <frederic.france@free.fr>
+ * Copyright (C) 2020      Pierre Ardoin      <mapiolca@me.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,20 +33,20 @@ include_once DOL_DOCUMENT_ROOT.'/core/boxes/modules_boxes.php';
  */
 class box_propales extends ModeleBoxes
 {
-    var $boxcode="lastpropals";
-    var $boximg="object_propal";
-    var $boxlabel="BoxLastProposals";
-    var $depends = array("propal");	// conf->propal->enabled
+    public $boxcode="lastpropals";
+    public $boximg="object_propal";
+    public $boxlabel="BoxLastProposals";
+    public $depends = array("propal");	// conf->propal->enabled
 
     /**
      * @var DoliDB Database handler.
      */
     public $db;
-    
-    var $param;
 
-    var $info_box_head = array();
-    var $info_box_contents = array();
+    public $param;
+
+    public $info_box_head = array();
+    public $info_box_contents = array();
 
 
     /**
@@ -54,7 +55,7 @@ class box_propales extends ModeleBoxes
      *  @param  DoliDB  $db         Database handler
      *  @param  string  $param      More parameters
      */
-    function __construct($db,$param)
+    public function __construct($db, $param)
     {
         global $user;
 
@@ -69,7 +70,7 @@ class box_propales extends ModeleBoxes
 	 *  @param	int		$max        Maximum number of records to load
      *  @return	void
      */
-    function loadBox($max=5)
+    public function loadBox($max = 5)
     {
     	global $user, $langs, $db, $conf;
 
@@ -80,17 +81,17 @@ class box_propales extends ModeleBoxes
     	$propalstatic=new Propal($db);
         $societestatic = new Societe($db);
 
-        $this->info_box_head = array('text' => $langs->trans("BoxTitleLast".($conf->global->MAIN_LASTBOX_ON_OBJECT_DATE?"":"Modified")."Propals",$max));
+        $this->info_box_head = array('text' => $langs->trans("BoxTitleLast".($conf->global->MAIN_LASTBOX_ON_OBJECT_DATE?"":"Modified")."Propals", $max));
 
     	if ($user->rights->propale->lire)
     	{
-    		$sql = "SELECT s.nom as name, s.rowid as socid, s.code_client, s.logo,";
+    		$sql = "SELECT s.nom as name, s.rowid as socid, s.code_client, s.logo, s.entity, s.email,";
     		$sql.= " p.rowid, p.ref, p.fk_statut, p.datep as dp, p.datec, p.fin_validite, p.date_cloture, p.total_ht, p.tva as total_tva, p.total as total_ttc, p.tms";
     		$sql.= " FROM ".MAIN_DB_PREFIX."societe as s";
     		$sql.= ", ".MAIN_DB_PREFIX."propal as p";
     		if (!$user->rights->societe->client->voir && !$user->societe_id) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
     		$sql.= " WHERE p.fk_soc = s.rowid";
-    		$sql.= " AND p.entity = ".$conf->entity;
+    		$sql .= " AND p.entity IN (".getEntity('propal').")";
     		if (!$user->rights->societe->client->voir && !$user->societe_id) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = " .$user->id;
     		if($user->societe_id) $sql.= " AND s.rowid = ".$user->societe_id;
             if ($conf->global->MAIN_LASTBOX_ON_OBJECT_DATE) $sql.= " ORDER BY p.datep DESC, p.ref DESC ";
@@ -121,6 +122,8 @@ class box_propales extends ModeleBoxes
                     $societestatic->name = $objp->name;
                     $societestatic->code_client = $objp->code_client;
                     $societestatic->logo = $objp->logo;
+					$societestatic->entity = $objp->entity;
+					$societestatic->email = $objp->email;
 
     				$late = '';
     				if ($objp->fk_statut == 1 && $dateterm < ($now - $conf->propal->cloture->warning_delay)) {
@@ -147,12 +150,12 @@ class box_propales extends ModeleBoxes
 
                     $this->info_box_contents[$line][] = array(
                         'td' => 'class="right"',
-                        'text' => dol_print_date($date,'day'),
+                        'text' => dol_print_date($date, 'day'),
                     );
 
                     $this->info_box_contents[$line][] = array(
-                        'td' => 'align="right" width="18"',
-                        'text' => $propalstatic->LibStatut($objp->fk_statut,3),
+                        'td' => 'class="right" width="18"',
+                        'text' => $propalstatic->LibStatut($objp->fk_statut, 3),
                     );
 
                     $line++;
@@ -160,7 +163,7 @@ class box_propales extends ModeleBoxes
 
                 if ($num==0)
                     $this->info_box_contents[$line][0] = array(
-                        'td' => 'align="center"',
+                        'td' => 'class="center"',
                         'text'=>$langs->trans("NoRecordedProposals"),
                     );
 
@@ -174,23 +177,22 @@ class box_propales extends ModeleBoxes
             }
         } else {
             $this->info_box_contents[0][0] = array(
-                'td' => 'align="left" class="nohover opacitymedium"',
+                'td' => 'class="nohover opacitymedium left"',
                 'text' => $langs->trans("ReadPermissionNotAllowed")
             );
         }
     }
 
 	/**
-	 *	Method to show box
+	 *  Method to show box
 	 *
-	 *	@param	array	$head       Array with properties of box title
+	 *	@param  array	$head       Array with properties of box title
 	 *	@param  array	$contents   Array with properties of box lines
 	 *  @param	int		$nooutput	No print, only return string
 	 *	@return	string
 	 */
-    function showBox($head = null, $contents = null, $nooutput=0)
+    public function showBox($head = null, $contents = null, $nooutput = 0)
     {
         return parent::showBox($this->info_box_head, $this->info_box_contents, $nooutput);
     }
 }
-

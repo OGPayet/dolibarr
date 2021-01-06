@@ -2,7 +2,7 @@
 /* Copyright (C) 2004-2006 Destailleur Laurent  <eldy@users.sourceforge.net>
  * Copyright (C) 2005-2009 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2012      Raphaël Doursenaud   <rdoursenaud@gpcsolutions.fr>
- * Copyright (C) 2015      Frederic France      <frederic.france@free.fr>
+ * Copyright (C) 2015-2019 Frederic France      <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,19 +31,19 @@ include_once DOL_DOCUMENT_ROOT.'/core/boxes/modules_boxes.php';
 class box_supplier_orders extends ModeleBoxes
 {
 
-    var $boxcode = "latestsupplierorders";
-    var $boximg = "object_order";
-    var $boxlabel="BoxLatestSupplierOrders";
-    var $depends = array("fournisseur");
+    public $boxcode = "latestsupplierorders";
+    public $boximg = "object_order";
+    public $boxlabel="BoxLatestSupplierOrders";
+    public $depends = array("fournisseur");
 
     /**
      * @var DoliDB Database handler.
      */
     public $db;
-    
-    var $param;
-    var $info_box_head = array();
-    var $info_box_contents = array();
+
+    public $param;
+    public $info_box_head = array();
+    public $info_box_contents = array();
 
 
     /**
@@ -52,7 +52,7 @@ class box_supplier_orders extends ModeleBoxes
      *  @param  DoliDB  $db         Database handler
      *  @param  string  $param      More parameters
      */
-    function __construct($db,$param)
+    public function __construct($db, $param)
     {
         global $user;
 
@@ -67,7 +67,7 @@ class box_supplier_orders extends ModeleBoxes
      *  @param	int		$max        Maximum number of records to load
      *  @return	void
      */
-    function loadBox($max = 5)
+    public function loadBox($max = 5)
     {
         global $conf, $user, $langs, $db;
         $langs->load("boxes");
@@ -85,7 +85,7 @@ class box_supplier_orders extends ModeleBoxes
         {
             $sql = "SELECT s.nom as name, s.rowid as socid,";
             $sql.= " s.code_client, s.code_fournisseur,";
-            $sql.= " s.logo,";
+            $sql.= " s.logo, s.email,";
             $sql.= " c.rowid, c.ref, c.tms, c.date_commande,";
             $sql.= " c.total_ht,";
             $sql.= " c.tva as total_tva,";
@@ -95,7 +95,7 @@ class box_supplier_orders extends ModeleBoxes
             $sql.= ", ".MAIN_DB_PREFIX."commande_fournisseur as c";
             if (!$user->rights->societe->client->voir && !$user->societe_id) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
             $sql.= " WHERE c.fk_soc = s.rowid";
-            $sql.= " AND c.entity = ".$conf->entity;
+            $sql.= " AND c.entity IN (".getEntity('supplier_order').")";
             if (!$user->rights->societe->client->voir && !$user->societe_id) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = " .$user->id;
             if ($user->societe_id) $sql.= " AND s.rowid = ".$user->societe_id;
             if ($conf->global->MAIN_LASTBOX_ON_OBJECT_DATE) $sql.= " ORDER BY c.date_commande DESC, c.ref DESC ";
@@ -118,6 +118,7 @@ class box_supplier_orders extends ModeleBoxes
 
 					$thirdpartytmp->id = $objp->socid;
                     $thirdpartytmp->name = $objp->name;
+                    $thirdpartytmp->email = $objp->email;
                     $thirdpartytmp->fournisseur = 1;
                     $thirdpartytmp->code_fournisseur = $objp->code_fournisseur;
                     $thirdpartytmp->logo = $objp->logo;
@@ -135,18 +136,18 @@ class box_supplier_orders extends ModeleBoxes
                     );
 
                     $this->info_box_contents[$line][] = array(
-                        'td' => 'class="right"',
+                        'td' => 'class="right nowrap"',
                         'text' => price($objp->total_ht, 0, $langs, 0, -1, -1, $conf->currency),
                     );
 
 					$this->info_box_contents[$line][] = array(
                         'td' => 'class="right"',
-                        'text' => dol_print_date($date,'day'),
+                        'text' => dol_print_date($date, 'day'),
                     );
 
                     $this->info_box_contents[$line][] = array(
-                        'td' => 'align="right" width="18"',
-                        'text' => $supplierorderstatic->LibStatut($objp->fk_statut,3),
+                        'td' => 'class="right" width="18"',
+                        'text' => $supplierorderstatic->LibStatut($objp->fk_statut, 3),
                     );
 
                     $line++;
@@ -154,7 +155,7 @@ class box_supplier_orders extends ModeleBoxes
 
                 if ($num == 0)
                     $this->info_box_contents[$line][] = array(
-                        'td' => 'align="center"',
+                        'td' => 'class="center"',
                         'text' => $langs->trans("NoSupplierOrder"),
                     );
 
@@ -170,23 +171,22 @@ class box_supplier_orders extends ModeleBoxes
         else
         {
             $this->info_box_contents[0][] = array(
-                'td' => 'align="left" class="nohover opacitymedium"',
+                'td' => 'class="nohover opacitymedium left"',
                 'text' => $langs->trans("ReadPermissionNotAllowed")
             );
         }
     }
 
     /**
-     * 	Method to show box
+     *  Method to show box
      *
-     * 	@param	array	$head       Array with properties of box title
-     * 	@param  array	$contents   Array with properties of box lines
-	 *  @param	int		$nooutput	No print, only return string
-	 *	@return	string
-	 */
-    function showBox($head = null, $contents = null, $nooutput=0)
+     *  @param  array   $head       Array with properties of box title
+     *  @param  array   $contents   Array with properties of box lines
+     *  @param  int     $nooutput   No print, only return string
+     *  @return string
+     */
+    public function showBox($head = null, $contents = null, $nooutput = 0)
     {
         return parent::showBox($this->info_box_head, $this->info_box_contents, $nooutput);
     }
 }
-

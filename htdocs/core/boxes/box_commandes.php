@@ -32,20 +32,20 @@ include_once DOL_DOCUMENT_ROOT.'/core/boxes/modules_boxes.php';
  */
 class box_commandes extends ModeleBoxes
 {
-    var $boxcode="lastcustomerorders";
-    var $boximg="object_order";
-    var $boxlabel="BoxLastCustomerOrders";
-    var $depends = array("commande");
+    public $boxcode="lastcustomerorders";
+    public $boximg="object_order";
+    public $boxlabel="BoxLastCustomerOrders";
+    public $depends = array("commande");
 
 	/**
      * @var DoliDB Database handler.
      */
     public $db;
-    
-	var $param;
 
-    var $info_box_head = array();
-    var $info_box_contents = array();
+    public $param;
+
+    public $info_box_head = array();
+    public $info_box_contents = array();
 
 
     /**
@@ -54,7 +54,7 @@ class box_commandes extends ModeleBoxes
      *  @param  DoliDB  $db         Database handler
      *  @param  string  $param      More parameters
      */
-    function __construct($db,$param)
+    public function __construct($db, $param)
     {
         global $user;
 
@@ -69,9 +69,10 @@ class box_commandes extends ModeleBoxes
      *  @param	int		$max        Maximum number of records to load
      *  @return	void
      */
-    function loadBox($max=5)
+    public function loadBox($max = 5)
     {
         global $user, $langs, $db, $conf;
+        $langs->load('orders');
 
         $this->max = $max;
 
@@ -82,14 +83,14 @@ class box_commandes extends ModeleBoxes
         $societestatic = new Societe($db);
         $userstatic = new User($db);
 
-        $this->info_box_head = array('text' => $langs->trans("BoxTitleLast".($conf->global->MAIN_LASTBOX_ON_OBJECT_DATE?"":"Modified")."CustomerOrders",$max));
+        $this->info_box_head = array('text' => $langs->trans("BoxTitleLast".($conf->global->MAIN_LASTBOX_ON_OBJECT_DATE?"":"Modified")."CustomerOrders", $max));
 
         if ($user->rights->commande->lire)
         {
             $sql = "SELECT s.nom as name";
             $sql.= ", s.rowid as socid";
             $sql.= ", s.code_client";
-            $sql.= ", s.logo";
+            $sql.= ", s.logo, s.email";
             $sql.= ", c.ref, c.tms";
             $sql.= ", c.rowid";
             $sql.= ", c.date_commande";
@@ -104,7 +105,7 @@ class box_commandes extends ModeleBoxes
             $sql.= ", ".MAIN_DB_PREFIX."commande as c";
             if (!$user->rights->societe->client->voir && !$user->societe_id) $sql.= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
             $sql.= " WHERE c.fk_soc = s.rowid";
-            $sql.= " AND c.entity = ".$conf->entity;
+            $sql.= " AND c.entity IN (".getEntity('commande').")";
             if (! empty($conf->global->ORDER_BOX_LAST_ORDERS_VALIDATED_ONLY)) $sql.=" AND c.fk_statut = 1";
             if (!$user->rights->societe->client->voir && !$user->societe_id) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = " .$user->id;
             if ($user->societe_id) $sql.= " AND s.rowid = ".$user->societe_id;
@@ -130,6 +131,7 @@ class box_commandes extends ModeleBoxes
                     $commandestatic->total_ttc = $objp->total_ttc;
                     $societestatic->id = $objp->socid;
                     $societestatic->name = $objp->name;
+                    $societestatic->email = $objp->email;
                     $societestatic->code_client = $objp->code_client;
                     $societestatic->logo = $objp->logo;
 
@@ -146,7 +148,7 @@ class box_commandes extends ModeleBoxes
                     );
 
                     $this->info_box_contents[$line][] = array(
-                        'td' => 'class="right"',
+                        'td' => 'class="nowrap right"',
                         'text' => price($objp->total_ht, 0, $langs, 0, -1, -1, $conf->currency),
                     );
 
@@ -161,18 +163,18 @@ class box_commandes extends ModeleBoxes
 
                     $this->info_box_contents[$line][] = array(
                         'td' => 'class="right"',
-                        'text' => dol_print_date($date,'day'),
+                        'text' => dol_print_date($date, 'day'),
                     );
 
                     $this->info_box_contents[$line][] = array(
-                        'td' => 'align="right" width="18"',
-                        'text' => $commandestatic->LibStatut($objp->fk_statut,$objp->facture,3),
+                        'td' => 'class="right" width="18"',
+                        'text' => $commandestatic->LibStatut($objp->fk_statut, $objp->facture, 3),
                     );
 
                     $line++;
                 }
 
-                if ($num==0) $this->info_box_contents[$line][0] = array('td' => 'align="center"','text'=>$langs->trans("NoRecordedOrders"));
+                if ($num==0) $this->info_box_contents[$line][0] = array('td' => 'class="center"','text'=>$langs->trans("NoRecordedOrders"));
 
                 $db->free($result);
             } else {
@@ -184,7 +186,7 @@ class box_commandes extends ModeleBoxes
             }
         } else {
             $this->info_box_contents[0][0] = array(
-                'td' => 'align="left" class="nohover opacitymedium"',
+                'td' => 'class="nohover opacitymedium left"',
                 'text' => $langs->trans("ReadPermissionNotAllowed")
             );
         }
@@ -198,9 +200,8 @@ class box_commandes extends ModeleBoxes
 	 *  @param	int		$nooutput	No print, only return string
 	 *	@return	string
 	 */
-    function showBox($head = null, $contents = null, $nooutput=0)
+    public function showBox($head = null, $contents = null, $nooutput = 0)
     {
         return parent::showBox($this->info_box_head, $this->info_box_contents, $nooutput);
     }
 }
-

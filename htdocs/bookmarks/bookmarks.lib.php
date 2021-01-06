@@ -61,7 +61,7 @@ function printBookmarksList($aDb, $aLangs)
 		    {
 	    	    foreach($_POST as $key => $val)
 	    	    {
-	                if ((preg_match('/^search_/', $key) || in_array($key, array('viewstatut')) ) && $val != '') $tmpurl.=($tmpurl?'&':'').$key.'='.$val;
+	                if (preg_match('/^search_/', $key) && $val != '') $tmpurl.=($tmpurl?'&':'').$key.'='.$val;
 	    	    }
 		    }
 		    $url.=($tmpurl?'?'.$tmpurl:'');
@@ -117,7 +117,7 @@ function printBookmarksList($aDb, $aLangs)
 
 		$ret.=ajax_combobox('boxbookmark');
 
-		$ret.='<script type="text/javascript">
+		$ret.='<script>
 	        	$(document).ready(function () {';
 		$ret.='    jQuery("#boxbookmark").change(function() {
 		            var urlselected = jQuery("#boxbookmark option:selected").attr("rel");
@@ -151,4 +151,3 @@ function printBookmarksList($aDb, $aLangs)
 
 	return $ret;
 }
-

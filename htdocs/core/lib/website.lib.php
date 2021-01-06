@@ -22,7 +22,6 @@
  */
 
 
-
 /**
  * Convert a page content to have correct links (based on DOL_URL_ROOT) into an html content.
  * Used to ouput the page on the Preview from backoffice.
@@ -33,9 +32,11 @@
  * @return	boolean							True if OK
  * @see dolWebsiteOutput() for function used to replace content in a web server context
  */
-function dolWebsiteReplacementOfLinks($website, $content, $removephppart=0)
+function dolWebsiteReplacementOfLinks($website, $content, $removephppart = 0)
 {
 	$nbrep = 0;
+
+	dol_syslog('dolWebsiteReplacementOfLinks start', LOG_DEBUG);
 
 	// Replace php code. Note $content may come from database and does not contains body tags.
 	$replacewith='...php...';
@@ -80,7 +81,7 @@ function dolWebsiteReplacementOfLinks($website, $content, $removephppart=0)
 	// <img src="medias/image.png... => <img src="dolibarr/viewimage.php/modulepart=medias&file=image.png...
 	$content = preg_replace('/(<img[^>]*src=")(medias\/)/', '\1'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file=', $content, -1, $nbrep);
 	// <img src="image.png... => <img src="dolibarr/viewimage.php/modulepart=medias&file=image.png...
-	$content = preg_replace('/(<img[^>]*src=")(?!(http|\/?viewimage|'.preg_quote(DOL_URL_ROOT,'/').'\/viewimage))/', '\1'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file=', $content, -1, $nbrep);
+	$content = preg_replace('/(<img[^>]*src=")(?!(http|\/?viewimage|'.preg_quote(DOL_URL_ROOT, '/').'\/viewimage))/', '\1'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file=', $content, -1, $nbrep);
 	// <img src="viewimage.php/modulepart=medias&file=image.png" => <img src="dolibarr/viewimage.php/modulepart=medias&file=image.png"
 	$content = preg_replace('/(<img[^>]*src=")(\/?viewimage\.php)/', '\1'.DOL_URL_ROOT.'/viewimage.php', $content, -1, $nbrep);
 
@@ -90,6 +91,11 @@ function dolWebsiteReplacementOfLinks($website, $content, $removephppart=0)
 	// Fix relative link /document.php with correct URL after the DOL_URL_ROOT:  ...href="/document.php?modulepart="
 	$content=preg_replace('/(href=")(\/?document\.php\?[^\"]*modulepart=[^\"]*)(\")/', '\1'.DOL_URL_ROOT.'\2\3', $content, -1, $nbrep);
 	$content=preg_replace('/(src=")(\/?document\.php\?[^\"]*modulepart=[^\"]*)(\")/', '\1'.DOL_URL_ROOT.'\2\3', $content, -1, $nbrep);
+
+	// Fix relative link /viewimage.php with correct URL after the DOL_URL_ROOT:  ...href="/viewimage.php?modulepart="
+	$content=preg_replace('/(url\(")(\/?viewimage\.php\?[^\"]*modulepart=[^\"]*)(\")/', '\1'.DOL_URL_ROOT.'\2\3', $content, -1, $nbrep);
+
+	dol_syslog('dolWebsiteReplacementOfLinks end', LOG_DEBUG);
 
 	return $content;
 }
@@ -103,12 +109,12 @@ function dolWebsiteReplacementOfLinks($website, $content, $removephppart=0)
  * @return 	string					Result string without php code
  * @see dolKeepOnlyPhpCode()
  */
-function dolStripPhpCode($str, $replacewith='')
+function dolStripPhpCode($str, $replacewith = '')
 {
 	$newstr = '';
 
 	//split on each opening tag
-	$parts = explode('<?php',$str);
+	$parts = explode('<?php', $str);
 	if (!empty($parts))
 	{
 		$i=0;
@@ -127,7 +133,7 @@ function dolStripPhpCode($str, $replacewith='')
 				//remove content before closing tag
 				if (count($partlings) > 1) $partlings[0] = '';
 				//append to out string
-				$newstr .= $replacewith.implode('',$partlings);
+				$newstr .= $replacewith.implode('', $partlings);
 			}
 		}
 	}
@@ -146,7 +152,7 @@ function dolKeepOnlyPhpCode($str)
     $newstr = '';
 
     //split on each opening tag
-    $parts = explode('<?php',$str);
+    $parts = explode('<?php', $str);
     if (!empty($parts))
     {
         $i=0;
@@ -177,28 +183,32 @@ function dolKeepOnlyPhpCode($str)
  * Render a string of an HTML content and output it.
  * Used to ouput the page when viewed from server (Dolibarr or Apache).
  *
- * @param   string  $content    Content string
+ * @param   string  $content    	Content string
+ * @param	string	$contenttype	Content type
  * @return  void
- * @see	dolWebsiteReplacementOfLinks()  for function used to replace content in the backoffice context when USEDOLIBARREDITOR is not on
+ * @see	dolWebsiteReplacementOfLinks()  for function used to replace content in the backoffice context.
  */
-function dolWebsiteOutput($content)
+function dolWebsiteOutput($content, $contenttype = 'html')
 {
 	global $db, $langs, $conf, $user;
 	global $dolibarr_main_url_root, $dolibarr_main_data_root;
 
-	dol_syslog("dolWebsiteOutput start (USEDOLIBARRSERVER=".(defined('USEDOLIBARRSERVER')?'1':'')." (USEDOLIBARREDITOR=".(defined('USEDOLIBARREDITOR')?'1':'').')');
+	dol_syslog("dolWebsiteOutput start (contenttype=".$contenttype." USEDOLIBARRSERVER=".(defined('USEDOLIBARRSERVER')?'1':'')." USEDOLIBARREDITOR=".(defined('USEDOLIBARREDITOR')?'1':'').')');
 
 	// Define $urlwithroot
-	$urlwithouturlroot=preg_replace('/'.preg_quote(DOL_URL_ROOT,'/').'$/i','',trim($dolibarr_main_url_root));
+	$urlwithouturlroot=preg_replace('/'.preg_quote(DOL_URL_ROOT, '/').'$/i', '', trim($dolibarr_main_url_root));
 	$urlwithroot=$urlwithouturlroot.DOL_URL_ROOT;		// This is to use external domain name found into config file
 	//$urlwithroot=DOL_MAIN_URL_ROOT;					// This is to use same domain name than current
 
 	if (defined('USEDOLIBARREDITOR'))		// REPLACEMENT OF LINKS When page called from Dolibarr editor
 	{
 		// We remove the <head> part of content
-		$content = preg_replace('/<head>.*<\/head>/ims', '', $content);
-		$content = preg_replace('/^.*<body(\s[^>]*)*>/ims', '', $content);
-		$content = preg_replace('/<\/body(\s[^>]*)*>.*$/ims', '', $content);
+		if ($contenttype == 'html')
+		{
+			$content = preg_replace('/<head>.*<\/head>/ims', '', $content);
+			$content = preg_replace('/^.*<body(\s[^>]*)*>/ims', '', $content);
+			$content = preg_replace('/<\/body(\s[^>]*)*>.*$/ims', '', $content);
+		}
 	}
 	elseif (defined('USEDOLIBARRSERVER'))	// REPLACEMENT OF LINKS When page called from Dolibarr server
 	{
@@ -219,6 +229,7 @@ function dolWebsiteOutput($content)
 		// Fix relative link /viewimage.php with correct URL after the DOL_URL_ROOT: href="/viewimage.php?modulepart=" => href="/dolibarr/viewimage.php?modulepart="
 		$content=preg_replace('/(href=")(\/?viewimage\.php\?[^\"]*modulepart=[^\"]*)(\")/', '\1'.DOL_URL_ROOT.'\2\3', $content, -1, $nbrep);
 		$content=preg_replace('/(src=")(\/?viewimage\.php\?[^\"]*modulepart=[^\"]*)(\")/', '\1'.DOL_URL_ROOT.'\2\3', $content, -1, $nbrep);
+		$content=preg_replace('/(url\(")(\/?viewimage\.php\?[^\"]*modulepart=[^\"]*)(\")/', '\1'.DOL_URL_ROOT.'\2\3', $content, -1, $nbrep);
 
 		// Fix relative link into medias with correct URL after the DOL_URL_ROOT: ../url("medias/
 		$content=preg_replace('/url\((["\']?)medias\//', 'url(\1'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file=', $content, -1, $nbrep);
@@ -227,7 +238,7 @@ function dolWebsiteOutput($content)
 		// <img src="medias/image.png... => <img src="dolibarr/viewimage.php/modulepart=medias&file=image.png...
 		$content = preg_replace('/(<img[^>]*src=")(medias\/)/', '\1'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file=', $content, -1, $nbrep);
 		// <img src="image.png... => <img src="dolibarr/viewimage.php/modulepart=medias&file=image.png...
-		$content = preg_replace('/(<img[^>]*src=")(?!(http|\/?viewimage|'.preg_quote(DOL_URL_ROOT,'/').'\/viewimage))/', '\1'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file=', $content, -1, $nbrep);
+		$content = preg_replace('/(<img[^>]*src=")(?!(http|\/?viewimage|'.preg_quote(DOL_URL_ROOT, '/').'\/viewimage))/', '\1'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file=', $content, -1, $nbrep);
 		// <img src="viewimage.php/modulepart=medias&file=image.png" => <img src="dolibarr/viewimage.php/modulepart=medias&file=image.png"
 		$content = preg_replace('/(<img[^>]*src=")(\/?viewimage\.php)/', '\1'.DOL_URL_ROOT.'/viewimage.php', $content, -1, $nbrep);
 
@@ -249,11 +260,11 @@ function dolWebsiteOutput($content)
 
 			$content=preg_replace('/(<a[^>]*href=")[^\"]*viewimage\.php([^\"]*)modulepart=medias([^\"]*)file=([^\"]*)("[^>]*>)/', '\1/wrapper.php\2modulepart=medias\3file=\4\5', $content, -1, $nbrep);
 			$content=preg_replace('/(<img[^>]*src=")[^\"]*viewimage\.php([^\"]*)modulepart=medias([^\"]*)file=([^\"]*)("[^>]*>)/', '\1/wrapper.php\2modulepart=medias\3file=\4\5', $content, -1, $nbrep);
-			$content=preg_replace('/(url\(["\']?)[^\)]*viewimage\.php([^\)]*)modulepart=medias([^\)]*)file=([^\)]*)(["\']?\))/',  '\1/wrapper.php\2modulepart=medias\3file=\4\5', $content, -1, $nbrep);
+			$content=preg_replace('/(url\(["\']?)[^\)]*viewimage\.php([^\)]*)modulepart=medias([^\)]*)file=([^\)]*)(["\']?\))/', '\1/wrapper.php\2modulepart=medias\3file=\4\5', $content, -1, $nbrep);
 
 			$content=preg_replace('/(<a[^>]*href=")[^\"]*viewimage\.php([^\"]*)hashp=([^\"]*)("[^>]*>)/', '\1/wrapper.php\2hashp=\3\4', $content, -1, $nbrep);
 			$content=preg_replace('/(<img[^>]*src=")[^\"]*viewimage\.php([^\"]*)hashp=([^\"]*)("[^>]*>)/', '\1/wrapper.php\2hashp=\3\4', $content, -1, $nbrep);
-			$content=preg_replace('/(url\(["\']?)[^\)]*viewimage\.php([^\)]*)hashp=([^\)]*)(["\']?\))/',  '\1/wrapper.php\2hashp\3\4', $content, -1, $nbrep);
+			$content=preg_replace('/(url\(["\']?)[^\)]*viewimage\.php([^\)]*)hashp=([^\)]*)(["\']?\))/', '\1/wrapper.php\2hashp\3\4', $content, -1, $nbrep);
 
 			$content=preg_replace('/(<img[^>]*src=")[^\"]*viewimage\.php([^\"]*)modulepart=mycompany([^\"]*)file=([^\"]*)("[^>]*>)/', '\1/wrapper.php\2modulepart=mycompany\3file=\4\5', $content, -1, $nbrep);
 		}
@@ -316,7 +327,7 @@ function dolWebsiteSaveContent($content)
  * @param 	int		$containerid		Id of container.
  * @return  void
  */
-function redirectToContainer($containerref, $containeraliasalt='',$containerid=0)
+function redirectToContainer($containerref, $containeraliasalt = '', $containerid = 0)
 {
 	global $db, $website;
 
@@ -451,7 +462,7 @@ function includeContainer($containerref)
  * @param	string		$grabimagesinto	'root' or 'subpage'
  * @return	void
  */
-function getAllImages($object, $objectpage, $urltograb, &$tmp, &$action, $modifylinks=0, $grabimages=1, $grabimagesinto='subpage')
+function getAllImages($object, $objectpage, $urltograb, &$tmp, &$action, $modifylinks = 0, $grabimages = 1, $grabimagesinto = 'subpage')
 {
 	global $conf;
 
@@ -537,7 +548,7 @@ function getAllImages($object, $objectpage, $urltograb, &$tmp, &$action, $modify
 
 		if ($modifylinks)
 		{
-			$tmp = preg_replace('/'.preg_quote($regs[0][$key],'/').'/i', '<img'.$regs[1][$key].'src="'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file='.$filename.'"'.$regs[3][$key].'>', $tmp);
+			$tmp = preg_replace('/'.preg_quote($regs[0][$key], '/').'/i', '<img'.$regs[1][$key].'src="'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file='.$filename.'"'.$regs[3][$key].'>', $tmp);
 		}
 	}
 
@@ -616,7 +627,7 @@ function getAllImages($object, $objectpage, $urltograb, &$tmp, &$action, $modify
 
 		if ($modifylinks)
 		{
-			$tmp = preg_replace('/'.preg_quote($regs[0][$key],'/').'/i', 'background'.$regs[1][$key].'url("'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file='.$filename.'")', $tmp);
+			$tmp = preg_replace('/'.preg_quote($regs[0][$key], '/').'/i', 'background'.$regs[1][$key].'url("'.DOL_URL_ROOT.'/viewimage.php?modulepart=medias&file='.$filename.'")', $tmp);
 		}
 	}
 }
@@ -700,7 +711,7 @@ function dolSavePageContent($filetpl, $object, $objectpage)
 
 	$tplcontent ='';
 	$tplcontent.= "<?php // BEGIN PHP\n";
-	$tplcontent.= '$websitekey=basename(dirname(__FILE__)); if (empty($websitepagefile)) $websitepagefile=__FILE__;'."\n";
+	$tplcontent.= '$websitekey=basename(__DIR__); if (empty($websitepagefile)) $websitepagefile=__FILE__;'."\n";
 	$tplcontent.= "if (! defined('USEDOLIBARRSERVER') && ! defined('USEDOLIBARREDITOR')) { require_once './master.inc.php'; } // Not already loaded"."\n";
 	$tplcontent.= "require_once DOL_DOCUMENT_ROOT.'/core/lib/website.lib.php';\n";
 	$tplcontent.= "require_once DOL_DOCUMENT_ROOT.'/core/website.inc.php';\n";
@@ -721,6 +732,7 @@ function dolSavePageContent($filetpl, $object, $objectpage)
 	$tplcontent.= '<meta name="title" content="'.dol_string_nohtmltag($objectpage->title, 0, 'UTF-8').'" />'."\n";
 	$tplcontent.= '<meta name="description" content="'.dol_string_nohtmltag($objectpage->description, 0, 'UTF-8').'" />'."\n";
 	$tplcontent.= '<meta name="generator" content="'.DOL_APPLICATION_TITLE.' '.DOL_VERSION.' (https://www.dolibarr.org)" />'."\n";
+	$tplcontent.= '<meta name="dolibarr:pageid" content="'.dol_string_nohtmltag($objectpage->id).'" />'."\n";
 	$tplcontent.= '<link href="/'.(($objectpage->id == $object->fk_default_home) ? '' : ($objectpage->pageurl.'.php')).'" rel="canonical" />'."\n";
 	$tplcontent.= '<!-- Include link to CSS file -->'."\n";
 	$tplcontent.= '<link rel="stylesheet" href="styles.css.php?website=<?php echo $websitekey; ?>" type="text/css" />'."\n";
@@ -770,7 +782,7 @@ function dolSaveIndexPage($pathofwebsite, $fileindex, $filetpl, $filewrapper)
 	dol_delete_file($fileindex);
 	$indexcontent = '<?php'."\n";
 	$indexcontent.= "// BEGIN PHP File generated to provide an index.php as Home Page or alias redirector - DO NOT MODIFY - It is just a generated wrapper.\n";
-	$indexcontent.= '$websitekey=basename(dirname(__FILE__)); if (empty($websitepagefile)) $websitepagefile=__FILE__;'."\n";
+	$indexcontent.= '$websitekey=basename(__DIR__); if (empty($websitepagefile)) $websitepagefile=__FILE__;'."\n";
 	$indexcontent.= "if (! defined('USEDOLIBARRSERVER') && ! defined('USEDOLIBARREDITOR')) { require_once './master.inc.php'; } // Load master if not already loaded\n";
 	$indexcontent.= 'if (! empty($_GET[\'pageref\']) || ! empty($_GET[\'pagealiasalt\']) || ! empty($_GET[\'pageid\'])) {'."\n";
 	$indexcontent.= "	require_once DOL_DOCUMENT_ROOT.'/core/lib/website.lib.php';\n";
