@@ -493,15 +493,24 @@ class ImportCsv extends ModeleImports
 							if (! empty($objimport->array_import_regex[0][$val]) && ($newval != ''))
 							{
 								// If test is "Must exist in a field@table"
-								if (preg_match('/^(.*)@(.*)$/',$objimport->array_import_regex[0][$val],$reg))
+								if (preg_match('/^(.+)@([^:]+)(:.+)?$/',$objimport->array_import_regex[0][$val],$reg))
 								{
 									$field=$reg[1];
 									$table=$reg[2];
+									$filter=!empty($reg[3])?substr($reg[3], 1):'';
+
+									$cachekey = $field.'@'.$table;
+									if(! empty($filter)) $cachekey.= ':'.$filter;
 
 									// Load content of field@table into cache array
-									if (! is_array($this->cachefieldtable[$field.'@'.$table])) // If content of field@table not already loaded into cache
+									if (! is_array($this->cachefieldtable[$cachekey])) // If content of field@table not already loaded into cache
 									{
 										$sql="SELECT ".$field." as aliasfield FROM ".$table;
+										if(! empty($filter))
+										{
+											$sql.= ' WHERE ' . $filter;
+										}
+
 										$resql=$this->db->query($sql);
 										if ($resql)
 										{
@@ -510,7 +519,7 @@ class ImportCsv extends ModeleImports
 											while ($i < $num)
 											{
 												$obj=$this->db->fetch_object($resql);
-												if ($obj) $this->cachefieldtable[$field.'@'.$table][]=$obj->aliasfield;
+												if ($obj) $this->cachefieldtable[$cachekey][]=$obj->aliasfield;
 												$i++;
 											}
 										}
@@ -521,9 +530,11 @@ class ImportCsv extends ModeleImports
 									}
 
 									// Now we check cache is not empty (should not) and key is into cache
-									if (! is_array($this->cachefieldtable[$field.'@'.$table]) || ! in_array($newval,$this->cachefieldtable[$field.'@'.$table]))
+									if (! is_array($this->cachefieldtable[$cachekey]) || ! in_array($newval,$this->cachefieldtable[$cachekey]))
 									{
-										$this->errors[$error]['lib']=$langs->transnoentitiesnoconv('ErrorFieldValueNotIn',$key,$newval,$field,$table);
+										$tableforerror = $table;
+										if(! empty($filter)) $tableforerror.= ':'.$filter;
+										$this->errors[$error]['lib']=$langs->transnoentitiesnoconv('ErrorFieldValueNotIn',$key,$newval,$field,$tableforerror);
 										$this->errors[$error]['type']='FOREIGNKEY';
 									    $errorforthistable++;
 										$error++;
@@ -591,6 +602,7 @@ class ImportCsv extends ModeleImports
 
 						if (!empty($updatekeys)) {
 							// We do SELECT to get the rowid, if we already have the rowid, it's to be used below for related tables (extrafields)
+
 							if (empty($lastinsertid)) {
 								$sqlSelect = 'SELECT rowid FROM '.$tablename;
 
@@ -617,6 +629,34 @@ class ImportCsv extends ModeleImports
 										$error++;
 									} else {
 										// No record found with filters, insert will be tried below
+									}
+								}
+								else
+								{
+									//print 'E';
+									$this->errors[$error]['lib']=$this->db->lasterror();
+									$this->errors[$error]['type']='SQL';
+									$error++;
+								}
+							} else {
+								// We have a last INSERT ID. Check if we have a row referencing this foreign key.
+								// This is required when updating table with some extrafields. When inserting a record in parent table, we can make 
+								// a direct insert into subtable extrafields, but when me wake an update, the insertid is defined and the child record 
+								// may already exists. So we rescan the extrafield table to be know if record exists or not for the rowid.
+								$sqlSelect = 'SELECT rowid FROM '.$tablename;
+
+								if(empty($keyfield)) $keyfield = 'rowid';
+								$sqlSelect .= ' WHERE '.$keyfield.' = '.$lastinsertid;
+
+								$resql=$this->db->query($sqlSelect);
+								if($resql) {
+									$res = $this->db->fetch_object($resql);
+									if($resql->num_rows == 1) {
+										// We have a row referencing this last foreign key, continue with UPDATE.
+									} else {
+										// No record found referencing this last foreign key,
+										// force $lastinsertid to 0 so we INSERT below.
+										$lastinsertid = 0;
 									}
 								}
 								else

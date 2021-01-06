@@ -80,7 +80,6 @@ class Export
 
 		dol_syslog(get_class($this)."::load_arrays user=".$user->id." filter=".$filter);
 
-        $var=true;
         $i=0;
 
         // Define list of modules directories into modulesdir
@@ -412,7 +411,9 @@ class Export
 				// 1 : Nom de la table
 				// 2 : Nom du champ contenant le libelle
 				// 3 : Name of field with key (if it is not "rowid"). Used this field as key for combo list.
-				if (count($InfoFieldList)==4)
+				// 4 : Name of element for getEntity().
+
+				if (! empty($InfoFieldList[3]))
 					$keyList=$InfoFieldList[3];
 				else
 					$keyList='rowid';
@@ -420,6 +421,9 @@ class Export
 				if ($InfoFieldList[1] == 'c_stcomm') $sql = 'SELECT id as id, '.$keyList.' as rowid, '.$InfoFieldList[2].' as label'.(empty($InfoFieldList[3])?'':', '.$InfoFieldList[3].' as code');
 				if ($InfoFieldList[1] == 'c_country') $sql = 'SELECT '.$keyList.' as rowid, '.$InfoFieldList[2].' as label, code as code';
 				$sql.= ' FROM '.MAIN_DB_PREFIX .$InfoFieldList[1];
+				if (! empty($InfoFieldList[4])) {
+					$sql.= ' WHERE entity IN ('.getEntity($InfoFieldList[4]).')';
+				}
 
 				$resql = $this->db->query($sql);
 				if ($resql)
@@ -595,8 +599,6 @@ class Export
 				// Genere ligne de titre
 				$objmodel->write_title($this->array_export_fields[$indice],$array_selected,$outputlangs,$this->array_export_TypeFields[$indice]);
 
-				$var=true;
-
 				while ($obj = $this->db->fetch_object($resql))
 				{
 					// Process special operations
@@ -697,11 +699,13 @@ class Export
 		$sql.= 'label,';
 		$sql.= 'type,';
 		$sql.= 'field,';
+		$sql.= 'fk_user,';
 		$sql.= 'filter';
 		$sql.= ') VALUES (';
 		$sql.= "'".$this->db->escape($this->model_name)."',";
 		$sql.= "'".$this->db->escape($this->datatoexport)."',";
 		$sql.= "'".$this->db->escape($this->hexa)."',";
+		$sql.= "'".$user->id."',";
 		$sql.= "'".$this->db->escape($this->hexafiltervalue)."'";
 		$sql.= ")";
 

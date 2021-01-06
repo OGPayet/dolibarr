@@ -70,7 +70,7 @@ if (empty($conf) || ! is_object($conf))
 		{
 			print '<td class="fieldrequired">'.$langs->trans("Warehouse").'</td>';
 			print '<td>';
-			print $formproduct->selectWarehouses((GETPOST("dwid")?GETPOST("dwid",'int'):(GETPOST('id_entrepot')?GETPOST('id_entrepot','int'):'ifone')), 'id_entrepot', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, null, 'minwidth100');
+			print $formproduct->selectWarehouses((GETPOST("dwid")?GETPOST("dwid",'int'):(GETPOST('id_entrepot')?GETPOST('id_entrepot','int'):($object->element=='product' && $object->fk_default_warehouse?$object->fk_default_warehouse:'ifone'))), 'id_entrepot', 'warehouseopen,warehouseinternal', 1, 0, 0, '', 0, 0, null, 'minwidth100');
     		print ' &nbsp; <select name="mouvement" id="mouvement">';
     		print '<option value="0">'.$langs->trans("Add").'</option>';
     		print '<option value="1"'.(GETPOST('mouvement')?' selected="selected"':'').'>'.$langs->trans("Delete").'</option>';
@@ -100,7 +100,7 @@ if (empty($conf) || ! is_object($conf))
 		{
 			print '<td>'.$langs->trans('Project').'</td>';
 			print '<td>';
-			$formproject->select_projects(0, '', 'projectid', 0, 0, 1, 0, 0, 0, 0, '', 0, 0, 'maxwidth300');
+			$formproject->select_projects(-1, '', 'projectid', 0, 0, 1, 0, 0, 0, 0, '', 0, 0, 'maxwidth300');
 			print '</td>';
 		}
 		print '</tr>';

@@ -199,7 +199,6 @@ if ($socid > 0)
 
     	if ($num > 0)
     	{
-    		$var=True;
     		while ($i < $num /*&& $i < $conf->liste_limit*/)
     		{
     			$objp = $db->fetch_object($result);
@@ -208,7 +207,7 @@ if ($socid > 0)
     			$markRate = ($objp->selling_price != 0)?(100 * $objp->marge / $objp->selling_price):'' ;
 
     			$sign = '';
-    			if($objp->type == Facture::TYPE_CREDIT_NOTE){
+    			if ($objp->type == Facture::TYPE_CREDIT_NOTE){
     			    $sign = '-';
     			}
 

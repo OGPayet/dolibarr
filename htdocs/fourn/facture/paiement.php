@@ -66,12 +66,12 @@ if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, 
 $offset = $conf->liste_limit * $page;
 $pageprev = $page - 1;
 $pagenext = $page + 1;
-$limit = GETPOST('limit')?GETPOST('limit','int'):$conf->liste_limit;
+$limit = GETPOST('limit','int')?GETPOST('limit','int'):$conf->liste_limit;
 if (! $sortorder) $sortorder="DESC";
 if (! $sortfield) $sortfield="p.rowid";
 $optioncss = GETPOST('optioncss','alpha');
 
-$amounts = array();array();
+$amounts = array();
 $amountsresttopay=array();
 $addwarning=0;
 
@@ -250,6 +250,22 @@ if (empty($reshook))
 	    $error=0;
 
 	    $datepaye = dol_mktime(12, 0, 0, GETPOST('remonth'), GETPOST('reday'), GETPOST('reyear'));
+
+        // Clean parameters amount if payment is for a credit note
+        if (GETPOST('type') == FactureFournisseur::TYPE_CREDIT_NOTE)
+        {
+            foreach ($amounts as $key => $value)	// How payment is dispatch
+            {
+                $newvalue = price2num($value,'MT');
+                $amounts[$key] = -$newvalue;
+            }
+
+            foreach ($multicurrency_amounts as $key => $value)	// How payment is dispatch
+            {
+                $newvalue = price2num($value,'MT');
+                $multicurrency_amounts[$key] = -$newvalue;
+            }
+        }
 
 	    if (! $error)
 	    {
@@ -431,6 +447,7 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
             print '<input type="hidden" name="facid" value="'.$facid.'">';
             print '<input type="hidden" name="ref_supplier" value="'.$obj->ref_supplier.'">';
             print '<input type="hidden" name="socid" value="'.$obj->socid.'">';
+            print '<input type="hidden" name="type" id="invoice_type" value="'.$object->type.'">';
             print '<input type="hidden" name="societe" value="'.$obj->name.'">';
 
             dol_fiche_head(null);
@@ -524,7 +541,6 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
 						if (!empty($conf->multicurrency->enabled)) print '<td align="center">'.$langs->trans('MulticurrencyPaymentAmount').'</td>';
 	                    print '</tr>';
 
-	                    $var=True;
 	                    $total=0;
 	                    $total_ttc=0;
 	                    $totalrecu=0;
@@ -601,11 +617,14 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
 							    print '</td>';
 	                        }
 
-	                        print '<td align="right">'.price($objp->total_ttc).'</td>';
+	                        print '<td align="right">'.price($sign * $objp->total_ttc).'</td>';
 
-	                        print '<td align="right">'.price($objp->am).'</td>';
+	                        print '<td align="right">'.price($sign * $objp->am);
+							if ($creditnotes) print '+'.price($creditnotes);
+							if ($deposits) print '+'.price($deposits);	
+							print '</td>';
 
-	                        print '<td align="right">'.price($remaintopay).'</td>';
+	                        print '<td align="right">'.price($sign * $remaintopay).'</td>';
 
 	                        // Amount
 	                        print '<td align="center">';
@@ -658,6 +677,8 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
 	                        $total+=$objp->total_ht;
 	                        $total_ttc+=$objp->total_ttc;
 	                        $totalrecu+=$objp->am;
+							$totalrecucreditnote+=$creditnotes;
+							$totalrecudeposits+=$deposits;
 	                        $i++;
 	                    }
 	                    if ($i > 1)
@@ -670,8 +691,11 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
 							if (!empty($conf->multicurrency->enabled)) print '<td>&nbsp;</td>';
 							if (!empty($conf->multicurrency->enabled)) print '<td>&nbsp;</td>';
 	                        print '<td align="right"><b>'.price($total_ttc).'</b></td>';
-							print '<td align="right"><b>'.price($totalrecu).'</b></td>';
-	                        print '<td align="right"><b>'.price($total_ttc - $totalrecu).'</b></td>';
+							print '<td align="right"><b>'.price($totalrecu);
+							if ($totalrecucreditnote) print '+'.price($totalrecucreditnote);
+							if ($totalrecudeposits) print '+'.price($totalrecudeposits);
+							print	'</b></td>';
+	                        print '<td align="right"><b>'.price(price2num($total_ttc - $totalrecu - $totalrecucreditnote - $totalrecudeposits,'MT')).'</b></td>';
 	                        print '<td align="center" id="result" style="font-weight: bold;"></td>';		// Autofilled
 							if (!empty($conf->multicurrency->enabled)) print '<td align="right" id="multicurrency_result" style="font-weight: bold;"></td>';
 	                        print "</tr>\n";
@@ -725,11 +749,11 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
  */
 if (empty($action))
 {
-    $limit = GETPOST('limit')?GETPOST('limit','int'):$conf->liste_limit;
+    $limit = GETPOST('limit','int')?GETPOST('limit','int'):$conf->liste_limit;
     $sortfield = GETPOST("sortfield",'alpha');
     $sortorder = GETPOST("sortorder",'alpha');
     $page=GETPOST("page",'int');
-    if ($page == -1 || $page == null) { $page = 0 ; }
+    if (empty($page) || $page == -1) { $page = 0 ; }
     $offset = $limit * $page ;
     $pageprev = $page - 1;
     $pagenext = $page + 1;
@@ -745,7 +769,7 @@ if (empty($action))
     $sql.= ' FROM '.MAIN_DB_PREFIX.'paiementfourn AS p';
     $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'paiementfourn_facturefourn AS pf ON p.rowid=pf.fk_paiementfourn';
     $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'facture_fourn AS f ON f.rowid=pf.fk_facturefourn';
-    $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'c_paiement AS c ON p.fk_paiement = c.id AND c.entity IN ('.getEntity('c_paiement').')';
+    $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'c_paiement AS c ON p.fk_paiement = c.id';
     $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe AS s ON s.rowid = f.fk_soc';
     $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'bank as b ON p.fk_bank = b.rowid';
     $sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'bank_account as ba ON b.fk_account = ba.rowid';
@@ -785,6 +809,11 @@ if (empty($action))
     {
         $result = $db->query($sql);
         $nbtotalofrecords = $db->num_rows($result);
+        if (($page * $limit) > $nbtotalofrecords)	// if total resultset is smaller then paging size (filtering), goto and load page 0
+        {
+        	$page = 0;
+        	$offset = 0;
+        }
     }
 
     $sql.= $db->plimit($limit+1, $offset);
@@ -794,7 +823,6 @@ if (empty($action))
     {
         $num = $db->num_rows($resql);
         $i = 0;
-        $var=True;
 
         $param='';
         if (! empty($contextpage) && $contextpage != $_SERVER["PHP_SELF"]) $param.='&contextpage='.$contextpage;
@@ -848,8 +876,8 @@ if (empty($action))
         print '<input class="flat" type="text" size="4" name="search_ref" value="'.dol_escape_htmltag($search_ref).'">';
         print '</td>';
         print '<td class="liste_titre" align="center">';
-        if (! empty($conf->global->MAIN_LIST_FILTER_ON_DAY)) print '<input class="flat" type="text" size="1" maxlength="2" name="day" value="'.$day.'">';
-        print '<input class="flat" type="text" size="1" maxlength="2" name="month" value="'.$month.'">';
+        if (! empty($conf->global->MAIN_LIST_FILTER_ON_DAY)) print '<input class="flat width25 valignmiddle" type="text" maxlength="2" name="day" value="'.dol_escape_htmltag($day).'">';
+        print '<input class="flat width25 valignmiddle" type="text" maxlength="2" name="month" value="'.dol_escape_htmltag($month).'">';
         $formother->select_year($year?$year:-1,'year',1, 20, 5);
         print '</td>';
         print '<td class="liste_titre" align="left">';

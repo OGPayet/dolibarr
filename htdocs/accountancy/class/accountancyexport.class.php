@@ -1,14 +1,14 @@
 <?php
 /*
- * Copyright (C) 2007-2012	Laurent Destailleur	<eldy@users.sourceforge.net>
- * Copyright (C) 2014		Juanjo Menent		<jmenent@2byte.es>
- * Copyright (C) 2015		Florian Henry		<florian.henry@open-concept.pro>
- * Copyright (C) 2015		Raphaël Doursenaud	<rdoursenaud@gpcsolutions.fr>
- * Copyright (C) 2016		Pierre-Henry Favre	<phf@atm-consulting.fr>
- * Copyright (C) 2016-2017	Alexandre Spangaro	<aspangaro@zendsi.com>
- * Copyright (C) 2013-2017  Olivier Geffroy		<jeff@jeffinfo.com>
- * Copyright (C) 2017       Elarifr. Ari Elbaz	<github@accedinfo.com>
- * Copyright (C) 2017		Frédéric France     <frederic.france@netlogic.fr>
+ * Copyright (C) 2007-2012  Laurent Destailleur <eldy@users.sourceforge.net>
+ * Copyright (C) 2014       Juanjo Menent       <jmenent@2byte.es>
+ * Copyright (C) 2015       Florian Henry       <florian.henry@open-concept.pro>
+ * Copyright (C) 2015       Raphaël Doursenaud  <rdoursenaud@gpcsolutions.fr>
+ * Copyright (C) 2016       Pierre-Henry Favre  <phf@atm-consulting.fr>
+ * Copyright (C) 2016-2018  Alexandre Spangaro  <aspangaro@zendsi.com>
+ * Copyright (C) 2013-2017  Olivier Geffroy     <jeff@jeffinfo.com>
+ * Copyright (C) 2017       Elarifr. Ari Elbaz  <github@accedinfo.com>
+ * Copyright (C) 2017       Frédéric France     <frederic.france@netlogic.fr>
 
  *
  * This program is free software; you can redistribute it and/or modify
@@ -177,7 +177,7 @@ class AccountancyExport
 	 */
 	public static function downloadFile() {
 		global $conf;
-		$journal = 'bookkepping';
+		$filename = 'general_ledger';
 		include DOL_DOCUMENT_ROOT . '/accountancy/tpl/export_journal.tpl.php';
 	}
 
@@ -517,14 +517,19 @@ class AccountancyExport
 			print $line->id . $separator;
 			print $date . $separator;
 			print $line->code_journal . $separator;
-			print length_accountg($line->numero_compte) . $separator;
-			print substr(length_accountg($line->numero_compte),0,2) . $separator;
+
+			if (empty($line->subledger_account)) {
+                print $line->numero_compte . $separator;
+            } else {
+                print $line->subledger_account . $separator;
+            }
+			//print substr(length_accountg($line->numero_compte),0,2) . $separator;
 			print '"'.dol_trunc($line->label_operation,40,'right','UTF-8',1).'"' . $separator;
 			print '"'.dol_trunc($line->piece_num,15,'right','UTF-8',1).'"'.$separator;
 			print price2num($line->montant).$separator;
 			print $line->sens.$separator;
 			print $date . $separator;
-			print 'EUR';
+			//print 'EUR';
 			print $end_line;
 		}
 	}

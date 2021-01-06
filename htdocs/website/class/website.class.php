@@ -44,7 +44,7 @@ class Website extends CommonObject
 	 */
 	public $table_element = 'website';
 	/**
-	 * @var array  Does websiteaccount support multicompany module ? 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
+	 * @var array  Does website support multicompany module ? 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 	 */
 	public $ismultientitymanaged = 1;
 	/**
@@ -612,17 +612,11 @@ class Website extends CommonObject
 
 		    if (! $error)
 		    {
-		        dol_delete_file($fileindex);
-
 		    	$filetpl=$pathofwebsitenew.'/page'.$newidforhome.'.tpl.php';
 
-		    	$indexcontent = '<?php'."\n";
-		        $indexcontent.= '// File generated to provide a shortcut to the Home Page - DO NOT MODIFY - It is just an include.'."\n";
-		        $indexcontent.= "include_once './".basename($filetpl)."'\n";
-		        $indexcontent.= '?>'."\n";
-		        $result = file_put_contents($fileindex, $indexcontent);
-		        if (! empty($conf->global->MAIN_UMASK))
-		            @chmod($fileindex, octdec($conf->global->MAIN_UMASK));
+		    	// Generate the index.php page to be the home page
+		    	//-------------------------------------------------
+		    	$result = dolSaveIndexPage($pathofwebsitenew, $fileindex, $filetpl);
 		    }
 		}
 
@@ -850,8 +844,10 @@ class Website extends CommonObject
 		}
 		foreach($listofpages as $pageid => $objectpageold)
 		{
-			$line = 'INSERT INTO '.MAIN_DB_PREFIX.'website_page(rowid, fk_page, fk_website, pageurl, title, description, keyword, status, date_creation, tms, lang, import_key, grabbed_from, content)';
-			$line.= " VALUES(";
+		    // Warning: We must keep llx_ here. It is a generic SQL.
+		    $line = 'INSERT INTO llx_website_page(rowid, fk_page, fk_website, pageurl, title, description, keyword, status, date_creation, tms, lang, import_key, grabbed_from, content)';
+
+		    $line.= " VALUES(";
 			$line.= $objectpageold->newid."+__MAXROWID__, ";
 			$line.= ($objectpageold->newfk_page ? $this->db->escape($objectpageold->newfk_page)."+__MAXROWID__" : "null").", ";
 			$line.= "__WEBSITE_ID__, ";
