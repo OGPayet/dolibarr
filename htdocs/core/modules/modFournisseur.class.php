@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2003      Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2015 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2012      Juanjo Menent		<jmenent@2byte.es>
  * Copyright (C) 2013-2015 Philippe Grand	    <philippe.grand@atoo-net.com>
  *
@@ -20,11 +20,10 @@
  */
 
 /**
- * 		\defgroup   fournisseur     suppliers Module
- *		\brief      Module to manage companies and contacts of supplier type
+ * 		\defgroup   fournisseur     Module suppliers
  *		\file       htdocs/core/modules/modFournisseur.class.php
  *		\ingroup    fournisseur
- *		\brief      Description and activation file for module Fournisseur
+ *		\brief      Description and activation file for module Supplier
  */
 include_once DOL_DOCUMENT_ROOT .'/core/modules/DolibarrModules.class.php';
 
@@ -50,7 +49,7 @@ class modFournisseur extends DolibarrModules
 		// Family can be 'crm','financial','hr','projects','product','ecm','technic','other'
 		// It is used to group modules in module setup page
 		$this->family = "srm";
-		$this->module_position = 10;
+		$this->module_position = '10';
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		$this->description = "Gestion des fournisseurs";

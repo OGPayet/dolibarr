@@ -1,10 +1,11 @@
 <?php
 /* Copyright (C) 2011		Dimitri Mouillard	<dmouillard@teclib.com>
  * Copyright (C) 2012-2016	Laurent Destailleur	<eldy@users.sourceforge.net>
- * Copyright (C) 2012-2016	Regis Houssin		<regis.houssin@capnetworks.com>
+ * Copyright (C) 2012-2016	Regis Houssin		<regis.houssin@inodbox.com>
  * Copyright (C) 2013		Juanjo Menent		<jmenent@2byte.es>
  * Copyright (C) 2017		Alexandre Spangaro	<aspangaro@zendsi.com>
- * Copyright (C) 2014-2017	Ferran Marcet		<fmarcet@2byte.es>
+ * Copyright (C) 2014-2017  Ferran Marcet		<fmarcet@2byte.es>
+ * Copyright (C) 2018       Frédéric France     <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +27,7 @@
  *		\brief      Form and file creation of paid holiday.
  */
 
-require('../main.inc.php');
+require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
@@ -40,6 +41,7 @@ require_once DOL_DOCUMENT_ROOT.'/holiday/common.inc.php';
 // Get parameters
 $action=GETPOST('action', 'alpha');
 $id=GETPOST('id', 'int');
+$ref=GETPOST('ref', 'alpha');
 $fuserid = (GETPOST('fuserid','int')?GETPOST('fuserid','int'):$user->id);
 
 // Protection if external user
@@ -62,6 +64,8 @@ if (! empty($user->rights->holiday->delete)) $candelete=1;
 $morefilter = 'AND employee = 1';
 if (! empty($conf->global->HOLIDAY_FOR_NON_SALARIES_TOO)) $morefilter = '';
 
+$error = 0;
+
 $object = new Holiday($db);
 if ($id > 0)
 {
@@ -76,7 +80,6 @@ if ($id > 0)
         accessforbidden();
     }
 }
-
 
 
 /*
@@ -261,7 +264,7 @@ if ($action == 'update' && ! GETPOSTISSET('savevalidator'))
     $object->fetch($id);
 
 	// If under validation
-    if ($object->statut == 1)
+    if ($object->statut == Holiday::STATUS_DRAFT)
     {
         // If this is the requestor or has read/write rights
         if ($cancreate)
@@ -344,7 +347,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' && $user->rights-
 	$object->fetch($id);
 
     // If this is a rough draft, approved, canceled or refused
-	if ($object->statut == 1 || $object->statut == 4 || $object->statut == 5)
+	if ($object->statut == Holiday::STATUS_DRAFT || $object->statut == Holiday::STATUS_CANCELED || $object->statut == Holiday::STATUS_REFUSED)
 	{
 		// Si l'utilisateur à le droit de lire cette demande, il peut la supprimer
 		if ($candelete)
@@ -371,17 +374,19 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' && $user->rights-
 	}
 }
 
-// Si envoi de la demande
+// Action validate (+ send email for approval)
 if ($action == 'confirm_send')
 {
     $object->fetch($id);
 
     // Si brouillon et créateur
-    if($object->statut == 1 && $cancreate)
+    if ($object->statut == Holiday::STATUS_DRAFT && $cancreate)
     {
-        $object->statut = 2;
+    	$object->oldcopy = dol_clone($object);
 
-        $verif = $object->update($user);
+    	$object->statut = Holiday::STATUS_VALIDATED;
+
+        $verif = $object->validate($user);
 
         // Si pas d'erreur SQL on redirige vers la fiche de la demande
         if ($verif > 0)
@@ -420,7 +425,7 @@ if ($action == 'confirm_send')
             $nextMonth = dol_time_plus_duree($now, $delayForRequest, 'd');
 
             // Si l'option pour avertir le valideur en cas de délai trop court
-            if($object->getConfCP('AlertValidatorDelay'))
+            if ($object->getConfCP('AlertValidatorDelay'))
             {
                 if($object->date_debut < $nextMonth)
                 {
@@ -473,40 +478,56 @@ if ($action == 'confirm_send')
 }
 
 
-// Si Validation de la demande
+// Approve leave request
 if ($action == 'confirm_valid')
 {
     $object->fetch($id);
 
     // Si statut en attente de validation et valideur = utilisateur
-    if ($object->statut == 2 && $user->id == $object->fk_validator)
+    if ($object->statut == Holiday::STATUS_VALIDATED && $user->id == $object->fk_validator)
     {
+    	$object->oldcopy = dol_clone($object);
+
         $object->date_valid = dol_now();
         $object->fk_user_valid = $user->id;
-        $object->statut = 3;
+        $object->statut = Holiday::STATUS_APPROVED;
 
-        $verif = $object->update($user);
+        $db->begin();
+
+        $verif = $object->approve($user);
+        if ($verif <= 0)
+        {
+            setEventMessages($object->error, $object->errors, 'errors');
+            $error++;
+        }
 
         // Si pas d'erreur SQL on redirige vers la fiche de la demande
-        if ($verif > 0)
+        if (! $error)
         {
             // Calculcate number of days consummed
-            $nbopenedday=num_open_day($object->date_debut_gmt,$object->date_fin_gmt,0,1,$object->halfday);
-
+            $nbopenedday=num_open_day($object->date_debut_gmt, $object->date_fin_gmt, 0, 1, $object->halfday);
             $soldeActuel = $object->getCpforUser($object->fk_user, $object->fk_type);
-            $newSolde = $soldeActuel - ($nbopenedday * $object->getConfCP('nbHolidayDeducted'));
+            $newSolde = ($soldeActuel - $nbopenedday);
 
             // On ajoute la modification dans le LOG
             $result=$object->addLogCP($user->id, $object->fk_user, $langs->transnoentitiesnoconv("Holidays"), $newSolde, $object->fk_type);
-            if ($result<0) {
-            	setEventMessages(null, $object->errors,'errors');
-            }
-            // Mise à jour du solde
-            $result=$object->updateSoldeCP($object->fk_user, $newSolde, $object->fk_type);
-            if ($result<0) {
-            	setEventMessages(null, $object->errors,'errors');
+            if ($result < 0)
+            {
+                $error++;
+            	setEventMessages(null, $object->errors, 'errors');
             }
 
+            //Update balance
+            $result=$object->updateSoldeCP($object->fk_user, $newSolde, $object->fk_type);
+            if ($result < 0)
+            {
+                $error++;
+            	setEventMessages(null, $object->errors, 'errors');
+            }
+        }
+
+        if (! $error)
+        {
             // To
             $destinataire = new User($db);
             $destinataire->fetch($object->fk_user);
@@ -515,52 +536,55 @@ if ($action == 'confirm_valid')
             if (!$emailTo)
             {
                 dol_syslog("User that request leave has no email, so we redirect directly to finished page without sending email");
-                header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-                exit;
-            }
-
-            // From
-            $expediteur = new User($db);
-            $expediteur->fetch($object->fk_validator);
-            $emailFrom = $expediteur->email;
-
-            // Subject
-			$societeName = $conf->global->MAIN_INFO_SOCIETE_NOM;
-            if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $societeName = $conf->global->MAIN_APPLICATION_TITLE;
-
-            $subject = $societeName." - ".$langs->transnoentitiesnoconv("HolidaysValidated");
-
-            // Content
-            $message = $langs->transnoentitiesnoconv("Hello")." ".$destinataire->firstname.",\n";
-            $message.= "\n";
-            $message.=  $langs->transnoentities("HolidaysValidatedBody", dol_print_date($object->date_debut,'day'),dol_print_date($object->date_fin,'day'))."\n";
-
-            $message.= "- ".$langs->transnoentitiesnoconv("ValidatedBy")." : ".dolGetFirstLastname($expediteur->firstname, $expediteur->lastname)."\n";
-
-            $message.= "- ".$langs->transnoentitiesnoconv("Link")." : ".$dolibarr_main_url_root."/holiday/card.php?id=".$object->id."\n\n";
-            $message.= "\n";
-
-            $trackid='leav'.$object->id;
-
-            $mail = new CMailFile($subject, $emailTo, $emailFrom, $message, array(), array(), array(), '', '', 0, 0, '', '', $trackid);
-
-            // Envoi du mail
-            $result=$mail->sendfile();
-
-            if (!$result)
-            {
-            	setEventMessages($mail->error, $mail->errors, 'warnings');
-            	$action='';
             }
             else
             {
-            	header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-            	exit;
+                // From
+                $expediteur = new User($db);
+                $expediteur->fetch($object->fk_validator);
+                $emailFrom = $expediteur->email;
+
+                // Subject
+    			$societeName = $conf->global->MAIN_INFO_SOCIETE_NOM;
+                if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $societeName = $conf->global->MAIN_APPLICATION_TITLE;
+
+                $subject = $societeName." - ".$langs->transnoentitiesnoconv("HolidaysValidated");
+
+                // Content
+                $message = $langs->transnoentitiesnoconv("Hello")." ".$destinataire->firstname.",\n";
+                $message.= "\n";
+                $message.=  $langs->transnoentities("HolidaysValidatedBody", dol_print_date($object->date_debut, 'day'), dol_print_date($object->date_fin, 'day'))."\n";
+
+                $message.= "- ".$langs->transnoentitiesnoconv("ValidatedBy")." : ".dolGetFirstLastname($expediteur->firstname, $expediteur->lastname)."\n";
+
+                $message.= "- ".$langs->transnoentitiesnoconv("Link")." : ".$dolibarr_main_url_root."/holiday/card.php?id=".$object->id."\n\n";
+                $message.= "\n";
+
+                $trackid='leav'.$object->id;
+
+                $mail = new CMailFile($subject, $emailTo, $emailFrom, $message, array(), array(), array(), '', '', 0, 0, '', '', $trackid);
+
+                // Envoi du mail
+                $result=$mail->sendfile();
+
+                if (!$result)
+                {
+                	setEventMessages($mail->error, $mail->errors, 'warnings'); // Show error, but do no make rollback, so $error is not set to 1
+                	$action='';
+                }
             }
+        }
+
+        if (! $error)
+        {
+            $db->commit();
+
+           	header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
+           	exit;
         }
         else
         {
-        	setEventMessages($object->error, $object->errors, 'errors');
+            $db->rollback();
         	$action='';
         }
     }
@@ -573,17 +597,24 @@ if ($action == 'confirm_refuse' && GETPOST('confirm','alpha') == 'yes')
         $object->fetch($id);
 
         // Si statut en attente de validation et valideur = utilisateur
-        if ($object->statut == 2 && $user->id == $object->fk_validator)
+        if ($object->statut == Holiday::STATUS_VALIDATED && $user->id == $object->fk_validator)
         {
             $object->date_refuse = dol_print_date('dayhour', dol_now());
             $object->fk_user_refuse = $user->id;
-            $object->statut = 5;
+            $object->statut = Holiday::STATUS_REFUSED;
             $object->detail_refuse = GETPOST('detail_refuse','alphanohtml');
 
+            $db->begin();
+
             $verif = $object->update($user);
+            if ($verif <= 0)
+            {
+                $error++;
+                setEventMessages($object->error, $object->errors, 'errors');
+            }
 
             // Si pas d'erreur SQL on redirige vers la fiche de la demande
-            if ($verif > 0)
+            if (! $error)
             {
                 // To
                 $destinataire = new User($db);
@@ -592,54 +623,62 @@ if ($action == 'confirm_refuse' && GETPOST('confirm','alpha') == 'yes')
 
                 if (!$emailTo)
                 {
-                    header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-                    exit;
-                }
-
-                // From
-                $expediteur = new User($db);
-                $expediteur->fetch($object->fk_validator);
-                $emailFrom = $expediteur->email;
-
-	            // Subject
-				$societeName = $conf->global->MAIN_INFO_SOCIETE_NOM;
-	            if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $societeName = $conf->global->MAIN_APPLICATION_TITLE;
-
-	            $subject = $societeName." - ".$langs->transnoentitiesnoconv("HolidaysRefused");
-
-                // Content
-            	$message = $langs->transnoentitiesnoconv("Hello")." ".$destinataire->firstname.",\n";
-	            $message.= "\n";
-                $message.= $langs->transnoentities("HolidaysRefusedBody", dol_print_date($object->date_debut,'day'), dol_print_date($object->date_fin,'day'))."\n";
-                $message.= GETPOST('detail_refuse','alpha')."\n\n";
-
-	            $message.= "- ".$langs->transnoentitiesnoconv("ModifiedBy")." : ".dolGetFirstLastname($expediteur->firstname, $expediteur->lastname)."\n";
-
-	            $message.= "- ".$langs->transnoentitiesnoconv("Link")." : ".$dolibarr_main_url_root."/holiday/card.php?id=".$object->id."\n\n";
-                $message.= "\n";
-
-	            $trackid='leav'.$object->id;
-
-	            $mail = new CMailFile($subject, $emailTo, $emailFrom, $message, array(), array(), array(), '', '', 0, 0, '', '', $trackid);
-
-                // Envoi du mail
-                $result=$mail->sendfile();
-
-                if (!$result)
-                {
-                	setEventMessages($mail->error, $mail->errors, 'warnings');
-                	$action='';
+                    dol_syslog("User that request leave has no email, so we redirect directly to finished page without sending email");
                 }
                 else
                 {
-                	header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-                	exit;
+                    // From
+                    $expediteur = new User($db);
+                    $expediteur->fetch($object->fk_validator);
+                    $emailFrom = $expediteur->email;
+
+    	            // Subject
+    				$societeName = $conf->global->MAIN_INFO_SOCIETE_NOM;
+    	            if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $societeName = $conf->global->MAIN_APPLICATION_TITLE;
+
+    	            $subject = $societeName." - ".$langs->transnoentitiesnoconv("HolidaysRefused");
+
+                    // Content
+                	$message = $langs->transnoentitiesnoconv("Hello")." ".$destinataire->firstname.",\n";
+    	            $message.= "\n";
+                    $message.= $langs->transnoentities("HolidaysRefusedBody", dol_print_date($object->date_debut, 'day'), dol_print_date($object->date_fin, 'day'))."\n";
+                    $message.= GETPOST('detail_refuse','alpha')."\n\n";
+
+    	            $message.= "- ".$langs->transnoentitiesnoconv("ModifiedBy")." : ".dolGetFirstLastname($expediteur->firstname, $expediteur->lastname)."\n";
+
+    	            $message.= "- ".$langs->transnoentitiesnoconv("Link")." : ".$dolibarr_main_url_root."/holiday/card.php?id=".$object->id."\n\n";
+                    $message.= "\n";
+
+    	            $trackid='leav'.$object->id;
+
+    	            $mail = new CMailFile($subject, $emailTo, $emailFrom, $message, array(), array(), array(), '', '', 0, 0, '', '', $trackid);
+
+                    // Envoi du mail
+                    $result=$mail->sendfile();
+
+                    if (! $result)
+                    {
+                        setEventMessages($mail->error, $mail->errors, 'warnings'); // Show error, but do no make rollback, so $error is not set to 1
+                    	$action='';
+                    }
                 }
             }
             else
             {
-            	setEventMessages($object->error, $object->errors, 'errors');
             	$action='';
+            }
+
+            if (! $error)
+            {
+                $db->commit();
+
+                header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
+                exit;
+            }
+            else
+            {
+                $db->rollback();
+                $action='';
             }
         }
     } else {
@@ -657,7 +696,7 @@ if ($action == 'confirm_draft' && GETPOST('confirm') == 'yes')
     $object->fetch($id);
 
     $oldstatus = $object->statut;
-    $object->statut = 1;
+    $object->statut = Holiday::STATUS_DRAFT;
 
     $result = $object->update($user);
     if ($result < 0)
@@ -679,7 +718,7 @@ if ($action == 'confirm_draft' && GETPOST('confirm') == 'yes')
     }
 }
 
-// Si Validation de la demande
+// Si confirmation of cancellation
 if ($action == 'confirm_cancel' && GETPOST('confirm') == 'yes')
 {
 	$error = 0;
@@ -687,24 +726,24 @@ if ($action == 'confirm_cancel' && GETPOST('confirm') == 'yes')
     $object->fetch($id);
 
     // Si statut en attente de validation et valideur = valideur ou utilisateur, ou droits de faire pour les autres
-    if (($object->statut == 2 || $object->statut == 3) && ($user->id == $object->fk_validator || in_array($object->fk_user, $childids) || ! empty($user->rights->holiday->write_all)))
+    if (($object->statut == Holiday::STATUS_VALIDATED || $object->statut == Holiday::STATUS_APPROVED) && ($user->id == $object->fk_validator || in_array($object->fk_user, $childids) || ! empty($user->rights->holiday->write_all)))
     {
     	$db->begin();
 
     	$oldstatus = $object->statut;
         $object->date_cancel = dol_now();
         $object->fk_user_cancel = $user->id;
-        $object->statut = 4;
+        $object->statut = Holiday::STATUS_CANCELED;
 
         $result = $object->update($user);
 
-        if ($result >= 0 && $oldstatus == 3)	// holiday was already validated, status 3, so we must increase back sold
+        if ($result >= 0 && $oldstatus == Holiday::STATUS_APPROVED)	// holiday was already validated, status 3, so we must increase back the balance
         {
         	// Calculcate number of days consummed
         	$nbopenedday=num_open_day($object->date_debut_gmt,$object->date_fin_gmt,0,1,$object->halfday);
 
         	$soldeActuel = $object->getCpforUser($object->fk_user, $object->fk_type);
-        	$newSolde = $soldeActuel + ($nbopenedday * $object->getConfCP('nbHolidayDeducted'));
+        	$newSolde = ($soldeActuel + $nbopenedday);
 
         	// On ajoute la modification dans le LOG
         	$result1=$object->addLogCP($user->id, $object->fk_user, $langs->transnoentitiesnoconv("HolidaysCancelation"), $newSolde, $object->fk_type);
@@ -782,7 +821,6 @@ if ($action == 'confirm_cancel' && GETPOST('confirm') == 'yes')
             }
         }
     }
-
 }
 
 
@@ -798,7 +836,7 @@ $listhalfday=array('morning'=>$langs->trans("Morning"),"afternoon"=>$langs->tran
 
 llxHeader('', $langs->trans('CPTitreMenu'));
 
-if (empty($id) || $action == 'add' || $action == 'request' || $action == 'create')
+if ((empty($id) && empty($ref)) || $action == 'add' || $action == 'request' || $action == 'create')
 {
     // Si l'utilisateur n'a pas le droit de faire une demande
     if (($fuserid == $user->id && empty($user->rights->holiday->write)) || ($fuserid != $user->id && empty($user->rights->holiday->write_all)))
@@ -880,6 +918,7 @@ if (empty($id) || $action == 'add' || $action == 'request' || $action == 'create
 
         // Formulaire de demande
         print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'" onsubmit="return valider()" name="demandeCP">'."\n";
+        print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />'."\n";
         print '<input type="hidden" name="action" value="create" />'."\n";
 
         if (empty($conf->global->HOLIDAY_HIDE_BALANCE))
@@ -951,10 +990,10 @@ if (empty($id) || $action == 'add' || $action == 'request' || $action == 'create
         print '<td>';
         // Si la demande ne vient pas de l'agenda
         if (! GETPOST('date_debut_')) {
-            $form->select_date(-1, 'date_debut_', 0, 0, 0, '', 1, 1);
+            print $form->selectDate(-1, 'date_debut_', 0, 0, 0, '', 1, 1);
         } else {
             $tmpdate = dol_mktime(0, 0, 0, GETPOST('date_debut_month','int'), GETPOST('date_debut_day','int'), GETPOST('date_debut_year','int'));
-            $form->select_date($tmpdate, 'date_debut_', 0, 0, 0, '', 1, 1);
+            print $form->selectDate($tmpdate, 'date_debut_', 0, 0, 0, '', 1, 1);
         }
         print ' &nbsp; &nbsp; ';
         print $form->selectarray('starthalfday', $listhalfday, (GETPOST('starthalfday','alpha')?GETPOST('starthalfday','alpha'):'morning'));
@@ -970,10 +1009,10 @@ if (empty($id) || $action == 'add' || $action == 'request' || $action == 'create
         print '<td>';
         // Si la demande ne vient pas de l'agenda
         if (! GETPOST('date_fin_')) {
-            $form->select_date(-1,'date_fin_', 0, 0, 0, '', 1, 1);
+            print $form->selectDate(-1, 'date_fin_', 0, 0, 0, '', 1, 1);
         } else {
             $tmpdate = dol_mktime(0, 0, 0, GETPOST('date_fin_month','int'), GETPOST('date_fin_day','int'), GETPOST('date_fin_year','int'));
-            $form->select_date($tmpdate,'date_fin_', 0, 0, 0, '', 1, 1);
+            print $form->selectDate($tmpdate, 'date_fin_', 0, 0, 0, '', 1, 1);
         }
         print ' &nbsp; &nbsp; ';
         print $form->selectarray('endhalfday', $listhalfday, (GETPOST('endhalfday','alpha')?GETPOST('endhalfday','alpha'):'afternoon'));
@@ -1035,9 +1074,9 @@ else
     else
     {
         // Affichage de la fiche d'une demande de congés payés
-        if ($id > 0)
+        if (($id > 0) || $ref)
         {
-            $object->fetch($id);
+        	$result = $object->fetch($id, $ref);
 
             $valideur = new User($db);
             $valideur->fetch($object->fk_validator);
@@ -1101,7 +1140,7 @@ else
 
                 $linkback='<a href="'.DOL_URL_ROOT.'/holiday/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
 
-                dol_banner_tab($object, 'id', $linkback, 1, 'rowid', 'ref');
+                dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref');
 
 
                 print '<div class="fichecenter">';
@@ -1146,9 +1185,9 @@ else
                     print '<tr>';
                     print '<td class="nowrap">'.$langs->trans('DateDebCP').' ('.$langs->trans("FirstDayOfHoliday").')</td>';
                     print '<td>';
-                    $form->select_date($object->date_debut,'date_debut_');
-			        print ' &nbsp; &nbsp; ';
-        			print $form->selectarray('starthalfday', $listhalfday, (GETPOST('starthalfday')?GETPOST('starthalfday'):$starthalfday));
+                    print $form->selectDate($object->date_debut, 'date_debut_');
+                    print ' &nbsp; &nbsp; ';
+                    print $form->selectarray('starthalfday', $listhalfday, (GETPOST('starthalfday')?GETPOST('starthalfday'):$starthalfday));
                     print '</td>';
                     print '</tr>';
                 }
@@ -1168,9 +1207,9 @@ else
                     print '<tr>';
                     print '<td class="nowrap">'.$langs->trans('DateFinCP').' ('.$langs->trans("LastDayOfHoliday").')</td>';
                     print '<td>';
-                    $form->select_date($object->date_fin,'date_fin_');
-			        print ' &nbsp; &nbsp; ';
-        			print $form->selectarray('endhalfday', $listhalfday, (GETPOST('endhalfday')?GETPOST('endhalfday'):$endhalfday));
+                    print $form->selectDate($object->date_fin, 'date_fin_');
+                    print ' &nbsp; &nbsp; ';
+                    print $form->selectarray('endhalfday', $listhalfday, (GETPOST('endhalfday')?GETPOST('endhalfday'):$endhalfday));
                     print '</td>';
                     print '</tr>';
                 }
@@ -1312,7 +1351,7 @@ else
                 }
 
                 // Si envoi en validation
-                if ($action == 'sendToValidate' && $object->statut == 1)
+                if ($action == 'sendToValidate' && $object->statut == Holiday::STATUS_DRAFT)
                 {
                 	print $form->formconfirm($_SERVER["PHP_SELF"]."?id=".$object->id,$langs->trans("TitleToValidCP"),$langs->trans("ConfirmToValidCP"),"confirm_send", '', 1, 1);
                 }
@@ -1342,12 +1381,12 @@ else
                 	print $form->formconfirm($_SERVER["PHP_SELF"]."?id=".$object->id,$langs->trans("TitleSetToDraft"),$langs->trans("ConfirmSetToDraft"),"confirm_draft", '', 1, 1);
                 }
 
-                if (($action == 'edit' && $object->statut == 1) || ($action == 'editvalidator'))
+                if (($action == 'edit' && $object->statut == Holiday::STATUS_DRAFT) || ($action == 'editvalidator'))
                 {
-                    if ($action == 'edit' && $object->statut == 1)
+                    if ($action == 'edit' && $object->statut == Holiday::STATUS_DRAFT)
                     {
                         print '<div align="center">';
-                        if ($cancreate && $object->statut == 1)
+                        if ($cancreate && $object->statut == Holiday::STATUS_DRAFT)
                         {
                             print '<input type="submit" value="'.$langs->trans("Save").'" class="button">';
                         }
@@ -1399,23 +1438,19 @@ else
 
                     print '</div>';
                 }
-
             } else {
                 print '<div class="tabBar">';
                 print $langs->trans('ErrorUserViewCP');
                 print '<br><br><input type="button" value="'.$langs->trans("ReturnCP").'" class="button" onclick="history.go(-1)" />';
                 print '</div>';
             }
-
         } else {
             print '<div class="tabBar">';
             print $langs->trans('ErrorIDFicheCP');
             print '<br><br><input type="button" value="'.$langs->trans("ReturnCP").'" class="button" onclick="history.go(-1)" />';
             print '</div>';
         }
-
     }
-
 }
 
 // End of page

@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2003-2006 Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2008 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2005-2009 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2009 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2012	   Juanjo Menent        <jmenent@2byte.es>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,7 +48,7 @@ class modStock extends DolibarrModules
 		$this->numero = 52;
 
 		$this->family = "products";
-		$this->module_position = 40;
+		$this->module_position = '40';
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		$this->description = "Gestion des stocks";
@@ -65,8 +65,11 @@ class modStock extends DolibarrModules
 		$this->config_page_url = array("stock.php");
 
 		// Dependencies
-		$this->depends = array("modProduct");
-		$this->requiredby = array("modProductBatch");
+		$this->hidden = false;			// A condition to hide module
+		$this->depends = array("modProduct");		// List of module class names as string that must be enabled if this module is enabled
+		$this->requiredby = array("modProductBatch");	// List of module ids to disable if this one is disabled
+		$this->conflictwith = array();	// List of module class names as string this module is in conflict with
+		$this->phpmin = array(5,4);		// Minimum version of PHP required by module
 		$this->langfiles = array("stocks");
 
 		// Constants
@@ -145,32 +148,31 @@ class modStock extends DolibarrModules
 		$this->rights[4][4] = 'mouvement';
 		$this->rights[4][5] = 'creer';
 
-		if ($conf->global->MAIN_FEATURES_LEVEL >= 2) {
+		if ($conf->global->MAIN_FEATURES_LEVEL >= 2)
+		{
+    		$this->rights[5][0] = 1011;
+    		$this->rights[5][1] = 'inventoryReadPermission';	// Permission label
+    		$this->rights[5][3] = 0; 					// Permission by default for new user (0/1)
+    		$this->rights[5][4] = 'inventory_advance';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+    		$this->rights[5][5] = 'read';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 
-		$this->rights[5][0] = 1011;
-		$this->rights[5][1] = 'inventoryReadPermission';	// Permission label
-		$this->rights[5][3] = 0; 					// Permission by default for new user (0/1)
-		$this->rights[5][4] = 'inventory_advance';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-		$this->rights[5][5] = 'read';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+    		$this->rights[6][0] = 1012;
+    		$this->rights[6][1] = 'inventoryCreatePermission';	// Permission label
+    		$this->rights[6][3] = 0; 					// Permission by default for new user (0/1)
+    		$this->rights[6][4] = 'inventory_advance';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+    		$this->rights[6][5] = 'write';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 
-		$this->rights[6][0] = 1012;
-		$this->rights[6][1] = 'inventoryCreatePermission';	// Permission label
-		$this->rights[6][3] = 0; 					// Permission by default for new user (0/1)
-		$this->rights[6][4] = 'inventory_advance';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-		$this->rights[6][5] = 'write';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+    		$this->rights[8][0] = 1014;
+    		$this->rights[8][1] = 'inventoryValidatePermission';	// Permission label
+    		$this->rights[8][3] = 0; 					// Permission by default for new user (0/1)
+    		$this->rights[8][4] = 'inventory_advance';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+    		$this->rights[8][5] = 'validate';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 
-		$this->rights[8][0] = 1014;
-		$this->rights[8][1] = 'inventoryValidatePermission';	// Permission label
-		$this->rights[8][3] = 0; 					// Permission by default for new user (0/1)
-		$this->rights[8][4] = 'inventory_advance';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-		$this->rights[8][5] = 'validate';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-
-		$this->rights[9][0] = 1015;
-		$this->rights[9][1] = 'inventoryChangePMPPermission';	// Permission label
-		$this->rights[9][3] = 0; 					// Permission by default for new user (0/1)
-		$this->rights[9][4] = 'inventory_advance';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-		$this->rights[9][5] = 'changePMP';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
-
+    		$this->rights[9][0] = 1015;
+    		$this->rights[9][1] = 'inventoryChangePMPPermission';	// Permission label
+    		$this->rights[9][3] = 0; 					// Permission by default for new user (0/1)
+    		$this->rights[9][4] = 'inventory_advance';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
+    		$this->rights[9][5] = 'changePMP';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		}
 
 		// Main menu entries
@@ -209,7 +211,7 @@ class modStock extends DolibarrModules
 			'p.datec'=>'product','p.tms'=>'product','p.pmp'=>'product','p.cost_price'=>'product','ps.reel'=>'stock'
 		);
 		$this->export_aggregate_array[$r]=array('ps.reel'=>'SUM');    // TODO Not used yet
-		$this->export_dependencies_array[$r]=array('stock'=>array('p.rowid','e.rowid')); // We must keep this until the aggregate_array is used. To add unique key if we ask a field of a child to avoid the DISTINCT to discard them.
+		$this->export_dependencies_array[$r]=array('stock'=>array('p.rowid','e.rowid')); // We must keep this until the aggregate_array is used. To have a unique key, if we ask a field of a child, to avoid the DISTINCT to discard them.
 		$keyforselect='product'; $keyforelement='product'; $keyforaliasextra='extra';
 		include DOL_DOCUMENT_ROOT.'/core/extrafieldsinexport.inc.php';
 		$this->export_fields_array[$r]=array_merge($this->export_fields_array[$r],array('ps.reel'=>'Stock'));
@@ -270,7 +272,7 @@ class modStock extends DolibarrModules
 			'e.rowid'=>'IdWarehouse','e.ref'=>'LocationSummary','e.description'=>'DescWareHouse','e.lieu'=>'LieuWareHouse','e.address'=>'Address','e.zip'=>'Zip',
 			'e.town'=>'Town','p.rowid'=>"ProductId",'p.ref'=>"Ref",'p.fk_product_type'=>"Type",'p.label'=>"Label",'p.description'=>"Description",'p.note'=>"Note",
 			'p.price'=>"Price",'p.tva_tx'=>'VAT','p.tosell'=>"OnSell",'p.tobuy'=>'OnBuy','p.duration'=>"Duration",'p.datec'=>'DateCreation',
-			'p.tms'=>'DateModification','sm.rowid'=>'MovementId','sm.value'=>'Qty','sm.datem'=>'DateMovement','sm.label'=>'LabelMovement',
+			'p.tms'=>'DateModification','sm.rowid'=>'MovementId','sm.value'=>'Qty','sm.datem'=>'DateMovement','sm.label'=>'MovementLabel',
 			'sm.inventorycode'=>'InventoryCode'
 		);
 		$this->export_TypeFields_array[$r]=array(
@@ -345,7 +347,6 @@ class modStock extends DolibarrModules
 		$this->import_run_sql_after_array[$r]=array(    // Because we may change data that are denormalized, we must update dernormalized data after.
 		    'UPDATE '.MAIN_DB_PREFIX.'product p SET p.stock= (SELECT SUM(ps.reel) FROM '.MAIN_DB_PREFIX.'product_stock ps WHERE ps.fk_product = p.rowid);'
 		);
-
 	}
 
 

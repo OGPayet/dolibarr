@@ -1,6 +1,6 @@
 <?php
 /* Copyright (C) 2008-2012	Laurent Destailleur	<eldy@users.sourceforge.net>
- * Copyright (C) 2012		Regis Houssin		<regis.houssin@capnetworks.com>
+ * Copyright (C) 2012		Regis Houssin		<regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ function shipping_prepare_head($object)
 {
 	global $db, $langs, $conf, $user;
 
-	$langs->load("sendings");
-	$langs->load("deliveries");
+	// Load translation files required by the page
+    $langs->loadLangs(array("sendings","deliveries"));
 
 	$h = 0;
 	$head = array();
@@ -51,7 +51,7 @@ function shipping_prepare_head($object)
 	{
 		// delivery link
 		$object->fetchObjectLinked($object->id,$object->element);
-		if (count($object->linkedObjectsIds['delivery']) >  0)		// If there is a delivery
+		if (is_array($object->linkedObjectsIds['delivery']) && count($object->linkedObjectsIds['delivery']) > 0)        // If there is a delivery
 		{
 		    // Take first one element of array
 		    $tmp = reset($object->linkedObjectsIds['delivery']);
@@ -121,8 +121,8 @@ function delivery_prepare_head($object)
 {
 	global $langs, $conf, $user;
 
-	$langs->load("sendings");
-	$langs->load("deliveries");
+	// Load translation files required by the page
+    $langs->loadLangs(array("sendings","deliveries"));
 
 	$h = 0;
 	$head = array();
@@ -388,7 +388,7 @@ function show_list_sending_receive($origin,$origin_id,$filter='')
 					//var_dump($expedition->linkedObjects);
 
 					$receiving='';
-					if (count($expedition->linkedObjects['delivery']) > 0) $receiving=reset($expedition->linkedObjects['delivery']);   // Take first link
+					if (!empty($expedition->linkedObjects['delivery'])) $receiving=reset($expedition->linkedObjects['delivery']);   // Take first link
 
 					if (! empty($receiving))
 					{

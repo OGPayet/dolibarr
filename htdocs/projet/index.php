@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2001-2005 Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2016 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2005-2010 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2010 Regis Houssin        <regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -246,6 +246,9 @@ if ($resql)
 else dol_print_error($db);
 
 
+$companystatic=new Societe($db);    // We need a clean new object for next loop because current one has some properties set.
+
+
 // Open project per thirdparty
 print '<div class="div-table-responsive-no-min">';
 print '<table class="noborder" width="100%">';
@@ -318,7 +321,6 @@ if (! empty($conf->global->PROJECT_SHOW_PROJECT_LIST_ON_PROJECT_AREA))
 
 print '</div></div></div>';
 
-
+// End of page
 llxFooter();
-
 $db->close();

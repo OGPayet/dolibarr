@@ -21,9 +21,9 @@
  *	\brief      Home page of opensurvey area
  */
 
-require_once('../main.inc.php');
-require_once(DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php");
-require_once(DOL_DOCUMENT_ROOT."/core/lib/files.lib.php");
+require '../main.inc.php';
+require_once DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php";
+require_once DOL_DOCUMENT_ROOT."/core/lib/files.lib.php";
 
 // Security check
 if (!$user->rights->opensurvey->read) accessforbidden();
@@ -37,18 +37,6 @@ $langs->load("opensurvey");
 
 llxHeader();
 
-$nbsondages=0;
-$sql='SELECT COUNT(*) as nb FROM '.MAIN_DB_PREFIX.'opensurvey_sondage';
-$resql=$db->query($sql);
-if ($resql)
-{
-	$obj=$db->fetch_object($resql);
-	$nbsondages=$obj->nb;
-}
-else dol_print_error($db,'');
-
-
-
 print load_fiche_titre($langs->trans("OpenSurveyArea"));
 
 
@@ -56,7 +44,9 @@ print '<div class="fichecenter"><div class="fichethirdleft">';
 
 
 $nbsondages=0;
-$sql='SELECT COUNT(*) as nb FROM '.MAIN_DB_PREFIX.'opensurvey_sondage';
+$sql = 'SELECT COUNT(*) as nb';
+$sql.= ' FROM '.MAIN_DB_PREFIX.'opensurvey_sondage';
+$sql.= ' WHERE entity IN ('.getEntity('survey').')';
 $resql=$db->query($sql);
 if ($resql)
 {
@@ -78,8 +68,6 @@ print '</table>';
 
 print '</div></div></div>';
 
-
-
+// End of page
 llxFooter();
-
 $db->close();

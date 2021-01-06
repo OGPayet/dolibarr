@@ -42,13 +42,19 @@ if (! defined('NOCSRFCHECK'))    define("NOCSRFCHECK",1);	// We accept to go on 
  *
  * @return	void
  */
-function llxHeaderVierge() { print '<html><title>Export agenda cal</title><body>'; }
+function llxHeaderVierge()
+{
+    print '<html><title>Export agenda cal</title><body>';
+}
 /**
  * Footer function
  *
  * @return	void
  */
-function llxFooterVierge() { print '</body></html>'; }
+function llxFooterVierge()
+{
+    print '</body></html>';
+}
 
 require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
@@ -100,6 +106,8 @@ if (empty($_GET["exportkey"]) || $conf->global->MAIN_AGENDA_XCAL_EXPORTKEY != $_
 	exit;
 }
 
+// Initialize technical object to manage hooks. Note that conf->hooks_modules contains array of hooks
+$hookmanager->initHooks(array('agendaexport'));
 
 // Define filename with prefix on filters predica (each predica set must have on cache file)
 $shortfilename='dolibarrcalendar';

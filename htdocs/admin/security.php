@@ -1,6 +1,6 @@
 <?php
 /* Copyright (C) 2004-2009 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2005-2007 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2007 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2013-2015 Juanjo Menent		<jmenent@2byte.es>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -212,7 +212,7 @@ if (is_resource($handle))
 {
     while (($file = readdir($handle))!==false)
     {
-        if (preg_match('/(modGeneratePass[a-z]+)\.class\.php/i',$file,$reg))
+        if (preg_match('/(modGeneratePass[a-z]+)\.class\.php$/i',$file,$reg))
         {
             // Charging the numbering class
             $classname = $reg[1];
@@ -500,7 +500,6 @@ print '</form>';
 
 print '</div>';
 
-
+// End of page
 llxFooter();
-
 $db->close();

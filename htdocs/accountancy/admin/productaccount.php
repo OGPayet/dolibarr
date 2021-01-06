@@ -45,7 +45,7 @@ if (! $user->rights->accounting->bind->write)
     accessforbidden();
 
 // search & action GETPOST
-$action = GETPOST('action', 'alpha');
+$action = GETPOST('action', 'aZ09');
 $codeventil_buy = GETPOST('codeventil_buy', 'array');
 $codeventil_sell = GETPOST('codeventil_sell', 'array');
 $chk_prod = GETPOST('chk_prod', 'array');
@@ -62,8 +62,10 @@ $search_current_account_valid = GETPOST('search_current_account_valid', 'alpha')
 if ($search_current_account_valid == '') $search_current_account_valid='withoutvalidaccount';
 
 $accounting_product_mode = GETPOST('accounting_product_mode', 'alpha');
-$btn_changeaccount = GETPOST('changeaccount');
-$btn_changetype = GETPOST('changetype');
+$btn_changeaccount = GETPOST('changeaccount', 'alpha');
+$btn_changetype = GETPOST('changetype', 'alpha');
+
+if (empty($accounting_product_mode)) $accounting_product_mode='ACCOUNTANCY_SELL';
 
 $limit = GETPOST('limit','int')?GETPOST('limit','int'):(empty($conf->global->ACCOUNTING_LIMIT_LIST_VENTILATION)?$conf->liste_limit:$conf->global->ACCOUNTING_LIMIT_LIST_VENTILATION);
 $sortfield = GETPOST("sortfield",'alpha');
@@ -111,8 +113,6 @@ if ($action == 'update') {
 				'ACCOUNTANCY_SELL',
 				'ACCOUNTANCY_BUY'
 		);
-
-		$accounting_product_mode = GETPOST('accounting_product_mode', 'alpha');
 
 		if (in_array($accounting_product_mode, $accounting_product_modes)) {
 
@@ -173,7 +173,6 @@ if ($action == 'update') {
 
 				$cpt++;
 			}
-
 		}
 
 		if ($ko) setEventMessages($langs->trans("XLineFailedToBeBinded", $ko), null, 'errors');
@@ -280,7 +279,8 @@ if ($result)
     if ($search_desc > 0) $param.="&search_desc=".urlencode($search_desc);
     if ($search_current_account > 0) $param.="&search_current_account=".urlencode($search_current_account);
     if ($search_current_account_valid && $search_current_account_valid != '-1') $param.="&search_current_account_valid=".urlencode($search_current_account_valid);
-
+    if ($accounting_product_mode) $param.="&accounting_product_mode=".urlencode($accounting_product_mode);
+    
     print '<form action="' . $_SERVER["PHP_SELF"] . '" method="post">';
     if ($optioncss != '') print '<input type="hidden" name="optioncss" value="'.$optioncss.'">';
     print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
@@ -495,5 +495,6 @@ if ($result)
 	dol_print_error($db);
 }
 
+// End of page
 llxFooter();
 $db->close();

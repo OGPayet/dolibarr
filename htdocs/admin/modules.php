@@ -3,10 +3,11 @@
  * Copyright (C) 2003		Jean-Louis Bergamo		<jlb@j1b.org>
  * Copyright (C) 2004-2017	Laurent Destailleur		<eldy@users.sourceforge.net>
  * Copyright (C) 2004		Eric Seigne				<eric.seigne@ryxeo.com>
- * Copyright (C) 2005-2017	Regis Houssin			<regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2017	Regis Houssin			<regis.houssin@inodbox.com>
  * Copyright (C) 2011		Juanjo Menent			<jmenent@2byte.es>
  * Copyright (C) 2015		Jean-François Ferry		<jfefe@aternatik.fr>
  * Copyright (C) 2015		Raphaël Doursenaud		<rdoursenaud@gpcsolutions.fr>
+ * Copyright (C) 2018		Nicolas ZABOURI 		<info@inovea-conseil.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -129,13 +130,13 @@ if ($action=='install')
     }
     else
     {
-        if (! preg_match('/\.zip$/i',$original_file))
+        if (! $error && ! preg_match('/\.zip$/i', $original_file))
         {
             $langs->load("errors");
             setEventMessages($langs->trans("ErrorFileMustBeADolibarrPackage",$original_file), null, 'errors');
             $error++;
         }
-    	if (! preg_match('/module_.*\-[\d]+\.[\d]+.*$/i',$original_file))
+    	if (! $error && ! preg_match('/^(module[a-zA-Z0-9]*|theme)_.*\-([0-9][0-9\.]*)\.zip$/i', $original_file))
 		{
 			$langs->load("errors");
 			setEventMessages($langs->trans("ErrorFilenameDosNotMatchDolibarrPackageRules",$original_file, 'module_*-x.y*.zip'), null, 'errors');
@@ -179,13 +180,13 @@ if ($action=='install')
             {
                 // Now we move the dir of the module
                 $modulename=preg_replace('/module_/', '', $original_file);
-                $modulename=preg_replace('/\-[\d]+\.[\d]+.*$/', '', $modulename);
+                $modulename=preg_replace('/\-([0-9][0-9\.]*)\.zip$/i', '', $modulename);
                 // Search dir $modulename
-                $modulenamedir=$conf->admin->dir_temp.'/'.$tmpdir.'/'.$modulename;
+                $modulenamedir=$conf->admin->dir_temp.'/'.$tmpdir.'/'.$modulename;		// Example .../mymodule
                 //var_dump($modulenamedir);
                 if (! dol_is_dir($modulenamedir))
                 {
-                    $modulenamedir=$conf->admin->dir_temp.'/'.$tmpdir.'/htdocs/'.$modulename;
+                	$modulenamedir=$conf->admin->dir_temp.'/'.$tmpdir.'/htdocs/'.$modulename;	// Example .../htdocs/mymodule
                     //var_dump($modulenamedir);
                     if (! dol_is_dir($modulenamedir))
                     {
@@ -196,8 +197,14 @@ if ($action=='install')
 
                 if (! $error)
                 {
+                	// TODO Make more test
+                }
+
+                // Now we install the module
+                if (! $error)
+                {
                     //var_dump($dirins);
-                    @dol_delete_dir_recursive($dirins.'/'.$modulename);
+                    @dol_delete_dir_recursive($dirins.'/'.$modulename);	// delete the zip file
                     dol_syslog("Uncompress of module file is a success. We copy it from ".$modulenamedir." into target dir ".$dirins.'/'.$modulename);
                     $result=dolCopyDir($modulenamedir, $dirins.'/'.$modulename, '0444', 1);
                     if ($result <= 0)
@@ -279,14 +286,13 @@ $dirins_ok=(dol_is_dir($dirins));
 $help_url='EN:First_setup|FR:Premiers_paramétrages|ES:Primeras_configuraciones';
 llxHeader('',$langs->trans("Setup"),$help_url, '', '', '', $morejs, $morecss, 0, 0);
 
-$arrayofnatures=array('core'=>$langs->transnoentitiesnoconv("Core"), 'external'=>$langs->transnoentitiesnoconv("External").' - '.$langs->trans("AllPublishers"));
-$arrayofwarnings=array();    // Array of warning each module want to show when activated
-$arrayofwarningsext=array();    // Array of warning each module want to show when we activate an external module
 
 // Search modules dirs
 $modulesdir = dolGetModulesDirs();
 
-
+$arrayofnatures=array('core'=>$langs->transnoentitiesnoconv("Core"), 'external'=>$langs->transnoentitiesnoconv("External").' - ['.$langs->trans("AllPublishers").']');
+$arrayofwarnings=array();    // Array of warning each module want to show when activated
+$arrayofwarningsext=array();    // Array of warning each module want to show when we activate an external module
 $filename = array();
 $modules = array();
 $orders = array();
@@ -378,10 +384,10 @@ foreach ($modulesdir as $dir)
 		    			            	$familykey = $objMod->family;
 		    			            }
 
-		    			            $moduleposition = ($objMod->module_position?$objMod->module_position:'500');
-		    			            if ($moduleposition == 500 && ($objMod->isCoreOrExternalModule() == 'external'))
+		    			            $moduleposition = ($objMod->module_position?$objMod->module_position:'50');
+		    			            if ($moduleposition == '50' && ($objMod->isCoreOrExternalModule() == 'external'))
 		    			            {
-		    			                $moduleposition = 800;
+		    			            	$moduleposition = '80';		// External modules at end by default
 		    			            }
 
 		    			            // Add list of warnings to show into arrayofwarnings and arrayofwarningsext
@@ -441,9 +447,7 @@ if ($action == 'reset_confirm' && $user->admin)
 
 		$form = new Form($db);
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?value='.$value.'&mode='.$mode.$param, $langs->trans('ConfirmUnactivation'), $langs->trans(GETPOST('confirm_message_code')), 'reset', '', 'no', 1);
-
 	}
-
 }
 
 print $formconfirm;
@@ -605,17 +609,18 @@ if ($mode == 'common')
         }
 
         // Print a separator if we change family
-        if ($familykey!=$oldfamily)
-        {
-        	if ($oldfamily) print '</table></div><br>';
+        if ($familykey != $oldfamily) {
+            if ($oldfamily) {
+                print '</table></div><br>';
+            }
 
-            $familytext=empty($familyinfo[$familykey]['label'])?$familykey:$familyinfo[$familykey]['label'];
-            print_fiche_titre($familytext, '', '');
+            $familytext = empty($familyinfo[$familykey]['label'])?$familykey:$familyinfo[$familykey]['label'];
+            print load_fiche_titre($familytext, '', '');
 
             print '<div class="div-table-responsive">';
-        	print '<table class="tagtable liste" summary="list_of_modules">'."\n";
+            print '<table class="tagtable liste" summary="list_of_modules">'."\n";
 
-        	$atleastoneforfamily=0;
+            $atleastoneforfamily=0;
         }
 
         $atleastoneforfamily++;
@@ -645,6 +650,7 @@ if ($mode == 'common')
         }
 
         print '<tr class="oddeven">'."\n";
+        if (!empty($conf->global->MAIN_MODULES_SHOW_LINENUMBERS)) print '<td width="20px">'.++$linenum.'</td>';
 
         // Picto + Name of module
         print '  <td width="200px">';
@@ -677,6 +683,17 @@ if ($mode == 'common')
         // Version
         print '<td class="center nowrap" width="120px">';
         print $versiontrans;
+        if(!empty($conf->global->CHECKLASTVERSION_EXTERNALMODULE)){
+            require_once DOL_DOCUMENT_ROOT.'/core/lib/geturl.lib.php';
+            if (!empty($objMod->url_last_version)) {
+                $newversion = getURLContent($objMod->url_last_version);
+                if(isset($newversion['content'])){
+                    if (version_compare($newversion['content'], $versiontrans) > 0) {
+                        print "&nbsp;<span class='butAction' title='" . $langs->trans('LastStableVersion') . "'>".$newversion['content']."</span>";
+                    }
+                }
+            }
+        }
         print "</td>\n";
 
         // Activate/Disable and Setup (2 columns)
@@ -697,7 +714,10 @@ if ($mode == 'common')
         	else if (! empty($objMod->always_enabled) || ((! empty($conf->multicompany->enabled) && $objMod->core_enabled) && ($user->entity || $conf->entity!=1)))
         	{
         		if (method_exists($objMod, 'alreadyUsed') && $objMod->alreadyUsed()) print $langs->trans("Used");
-        		else print $langs->trans("Required");
+        		else {
+        			print img_picto($langs->trans("Required"),'switch_on');
+        			print $langs->trans("Required");
+        		}
         		if (! empty($conf->multicompany->enabled) && $user->entity) $disableSetup++;
         	}
         	else
@@ -706,16 +726,13 @@ if ($mode == 'common')
         			print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?id='.$objMod->numero.'&amp;module_position='.$module_position.'&amp;action=reset_confirm&amp;confirm_message_code='.$objMod->warnings_unactivation[$mysoc->country_code].'&amp;value=' . $modName . '&amp;mode=' . $mode . $param . '">';
         			print img_picto($langs->trans("Activated"),'switch_on');
         			print '</a>';
-
         		}
         		else {
 
         			print '<a class="reposition" href="'.$_SERVER["PHP_SELF"].'?id='.$objMod->numero.'&amp;module_position='.$module_position.'&amp;action=reset&amp;value=' . $modName . '&amp;mode=' . $mode .'&amp;confirm=yes' . $param . '">';
         			print img_picto($langs->trans("Activated"),'switch_on');
         			print '</a>';
-
         		}
-
         	}
         	print '</td>'."\n";
 
@@ -770,7 +787,6 @@ if ($mode == 'common')
         	{
         		print '<td class="tdsetuppicto right valignmiddle" width="60px">'.img_picto($langs->trans("NothingToSetup"),"setup",'class="opacitytransp" style="padding-right: 6px"').'</td>';
         	}
-
         }
         else	// Module not yet activated
 		{
@@ -806,7 +822,7 @@ if ($mode == 'common')
 	        	        {
         	        	    foreach ($arrayofwarningsextbycountry as $keycountry => $cursorwarningmessage)
         	        	    {
-        	        	        if ($keycountry == 'always' || $keycountry == $mysoc->country_code)
+        	        	    	if (preg_match('/^always/', $keycountry) || ($mysoc->country_code && preg_match('/^'.$mysoc->country_code.'/', $keycountry)))
         	        	        {
         	        	            $warningmessage .= ($warningmessage?"\n":"").$langs->trans($cursorwarningmessage, $objMod->getName(), $mysoc->country_code, $modules[$keymodule]->getName());
         	        	            $warningmessage .= ($warningmessage?"\n":"").($warningmessage?"\n":"").$langs->trans("Module").' : '.$objMod->getName();
@@ -1027,11 +1043,21 @@ if ($mode == 'deploy')
 
 			if ($maxmin > 0)
 			{
+				print '<script type="text/javascript">
+				$(document).ready(function() {
+					jQuery("#fileinstall").on("change", function() {
+						if(this.files[0].size > '.($maxmin*1024).'){
+							alert("'.dol_escape_js($langs->trans("ErrorFileSizeTooLarge")).'");
+							this.value = "";
+						};
+					});
+				});
+				</script>'."\n";
 				// MAX_FILE_SIZE doit précéder le champ input de type file
 				print '<input type="hidden" name="max_file_size" value="'.($maxmin*1024).'">';
 			}
 
-			print '<input class="flat minwidth400" type="file" name="fileinstall"> ';
+			print '<input class="flat minwidth400" type="file" name="fileinstall" id="fileinstall"> ';
 
 			print '<input type="submit" name="send" value="'.dol_escape_htmltag($langs->trans("Send")).'" class="button">';
 
@@ -1095,7 +1121,7 @@ if ($mode == 'develop')
 	//print '<img border="0" class="imgautosize imgmaxwidth180" src="'.DOL_URL_ROOT.'/theme/dolibarr_preferred_partner_int.png">';
 	print '<div class="imgmaxheight50 logo_setup"></div>';
 	print '</td>';
-	print '<td>'.$langs->trans("TryToUseTheModuleBuilder").'</td>';
+	print '<td>'.$langs->trans("TryToUseTheModuleBuilder", $langs->transnoentitiesnoconv("ModuleBuilder")).'</td>';
 	print '<td>'.$langs->trans("SeeTopRightMenu").'</td>';
 	print '</tr>';
 
@@ -1113,8 +1139,6 @@ if ($mode == 'develop')
 	dol_fiche_end();
 }
 
-
-
+// End of page
 llxFooter();
-
 $db->close();

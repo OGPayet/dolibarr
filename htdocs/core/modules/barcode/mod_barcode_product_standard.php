@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2004      Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2006-2014 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2007-2012 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2007-2012 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2011      Juanjo Menent	    <jmenent@2byte.es>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,17 +33,29 @@ require_once DOL_DOCUMENT_ROOT.'/core/modules/barcode/modules_barcode.class.php'
  */
 class mod_barcode_product_standard extends ModeleNumRefBarCode
 {
-	var $name='Standard';				// Model Name
-	var $code_modifiable;				// Editable code
-	var $code_modifiable_invalide;		// Modified code if it is invalid
-	var $code_modifiable_null;			// Modified code if it is null
-	var $code_null;						// Optional code
-	var $version='dolibarr';    		// 'development', 'experimental', 'dolibarr'
-	var $code_auto;                     // Automatic Numbering
+	public $name='Standard';				// Model Name
 
-	var $searchcode; // Search string
-	var $numbitcounter; // Number of digits the counter
-	var $prefixIsRequired; // The prefix field of third party must be filled when using {pre}
+	public $code_modifiable;				// Editable code
+
+	public $code_modifiable_invalide;		// Modified code if it is invalid
+
+	public $code_modifiable_null;			// Modified code if it is null
+
+	public $code_null;						// Optional code
+
+	/**
+     * Dolibarr version of the loaded document
+     * @public string
+     */
+	public $version = 'dolibarr';    		// 'development', 'experimental', 'dolibarr'
+
+	public $code_auto;                     // Automatic Numbering
+
+	public $searchcode; // Search string
+
+	public $numbitcounter; // Number of digits the counter
+
+	public $prefixIsRequired; // The prefix field of third party must be filled when using {pre}
 
 
 	/**
@@ -83,8 +95,11 @@ class mod_barcode_product_standard extends ModeleNumRefBarCode
 
 		$tooltip=$langs->trans("GenericMaskCodes",$langs->transnoentities("BarCode"),$langs->transnoentities("BarCode"));
 		$tooltip.=$langs->trans("GenericMaskCodes3");
-		$tooltip.=$langs->trans("GenericMaskCodes4c");
-		$tooltip.=$langs->trans("GenericMaskCodes5");
+		$tooltip.='<strong>'.$langs->trans("Example").':</strong><br>';
+		$tooltip.='020{000000000} (for internal use)<br>';
+		$tooltip.='9771234{00000} (example of ISSN code with prefix 1234)<br>';
+		$tooltip.='9791234{00000} (example of ISMN code with prefix 1234)<br>';
+		//$tooltip.=$langs->trans("GenericMaskCodes5");
 
 		// Mask parameter
 		//$texte.= '<tr><td>'.$langs->trans("Mask").' ('.$langs->trans("BarCodeModel").'):</td>';
@@ -223,16 +238,18 @@ class mod_barcode_product_standard extends ModeleNumRefBarCode
 	}
 
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
-	 *		Return if a code is used (by other element)
+	 *	Return if a code is used (by other element)
 	 *
-	 *		@param	DoliDB		$db			Handler acces base
-	 *		@param	string		$code		Code to check
-	 *		@param	Product		$product	Objet product
-	 *		@return	int						0 if available, <0 if KO
+	 *	@param	DoliDB		$db			Handler acces base
+	 *	@param	string		$code		Code to check
+	 *	@param	Product		$product	Objet product
+	 *	@return	int						0 if available, <0 if KO
 	 */
 	function verif_dispo($db, $code, $product)
 	{
+        // phpcs:enable
 		$sql = "SELECT barcode FROM ".MAIN_DB_PREFIX."product";
 		$sql.= " WHERE barcode = '".$code."'";
 		if ($product->id > 0) $sql.= " AND rowid <> ".$product->id;
@@ -253,9 +270,9 @@ class mod_barcode_product_standard extends ModeleNumRefBarCode
 		{
 			return -2;
 		}
-
 	}
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 *	Return if a barcode value match syntax
 	 *
@@ -265,6 +282,7 @@ class mod_barcode_product_standard extends ModeleNumRefBarCode
 	 */
 	function verif_syntax($codefortest, $typefortest)
 	{
+        // phpcs:enable
 		global $conf;
 
 		$result = 0;
@@ -300,6 +318,4 @@ class mod_barcode_product_standard extends ModeleNumRefBarCode
 
 		return $result;
 	}
-
 }
-
