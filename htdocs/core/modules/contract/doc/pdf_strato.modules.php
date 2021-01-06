@@ -83,6 +83,7 @@ class pdf_strato extends ModelePDFContract
 		// Dimension page pour format A4
 		$this->type = 'pdf';
 		$formatarray=pdf_getFormat();
+
 		$this->page_largeur = $formatarray['width'];
 		$this->page_hauteur = $formatarray['height'];
 		$this->format = array($this->page_largeur,$this->page_hauteur);
@@ -175,6 +176,7 @@ class pdf_strato extends ModelePDFContract
                 $heightforinfotot = 50;	// Height reserved to output the info and total part
 		        $heightforfreetext= (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT)?$conf->global->MAIN_PDF_FREETEXT_HEIGHT:5);	// Height reserved to output the free text on last page
 	            $heightforfooter = $this->marge_basse + 8;	// Height reserved to output the footer (value include bottom margin)
+	            if ($conf->global->MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS >0) $heightforfooter+= 6;
                 $pdf->SetAutoPageBreak(1,0);
 
                 if (class_exists('TCPDF'))
@@ -312,10 +314,43 @@ class pdf_strato extends ModelePDFContract
                         $txt.=$outputlangs->transnoentities("DateStartRealShort")." : <strong>".$daters.'</strong>';
 						if ($objectligne->date_cloture) $txt.=" - ".$outputlangs->transnoentities("DateEndRealShort")." : '<strong>'".$datere.'</strong>';
 
+						$pdf->startTransaction();
 						$pdf->writeHTMLCell(0, 0, $curX, $curY, dol_concatdesc($txtpredefinedservice, dol_concatdesc($txt, $desc)), 0, 1, 0);
+						$pageposafter=$pdf->getPage();
+						if ($pageposafter > $pageposbefore)	// There is a pagebreak
+						{
+							$pdf->rollbackTransaction(true);
+							$pageposafter=$pageposbefore;
+							//print $pageposafter.'-'.$pageposbefore;exit;
+							$pdf->setPageOrientation('', 1, $heightforfooter);	// The only function to edit the bottom margin of current page to set it.
+							$pdf->writeHTMLCell(0, 0, $curX, $curY, dol_concatdesc($txtpredefinedservice, dol_concatdesc($txt, $desc)), 0, 1, 0);
+							$pageposafter=$pdf->getPage();
+							$posyafter=$pdf->GetY();
+							
+							if ($posyafter > ($this->page_hauteur - ($heightforfooter+$heightforfreetext+$heightforinfotot)))	// There is no space left for total+free text
+							{
+								if ($i == ($nblines-1))	// No more lines, and no space left to show total, so we create a new page
+								{
+									$pdf->AddPage('','',true);
+									if (! empty($tplidx)) $pdf->useTemplate($tplidx);
+									if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
+									$pdf->setPage($pageposafter+1);
+								}
+							}
+							else
+							{
+								// We found a page break
+								$showpricebeforepagebreak=0;
+							}
+						}
+						else	// No pagebreak
+						{
+							$pdf->commitTransaction();
+						}
 
 						$nexY = $pdf->GetY() + 2;
 						$pageposafter=$pdf->getPage();
+						
 						$pdf->setPage($pageposbefore);
 						$pdf->setTopMargin($this->marge_haute);
 						$pdf->setPageOrientation('', 1, 0);	// The only function to edit the bottom margin of current page to set it.
@@ -333,26 +368,27 @@ class pdf_strato extends ModelePDFContract
 							$pdf->setPage($pagenb);
 							if ($pagenb == 1)
 							{
-								$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, 0, $outputlangs, 0, 1);
+								$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter - $heightforfreetext, 0, $outputlangs, 0, 1);
 							}
 							else
 							{
-								$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, 0, $outputlangs, 1, 1);
+								$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter - $heightforfreetext, 0, $outputlangs, 1, 1);
 							}
 							$this->_pagefoot($pdf,$object,$outputlangs,1);
 							$pagenb++;
 							$pdf->setPage($pagenb);
 							$pdf->setPageOrientation('', 1, 0);	// The only function to edit the bottom margin of current page to set it.
 						}
+						
 						if (isset($object->lines[$i+1]->pagebreak) && $object->lines[$i+1]->pagebreak)
 						{
 							if ($pagenb == 1)
 							{
-								$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter, 0, $outputlangs, 0, 1);
+								$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforfooter - $heightforfreetext, 0, $outputlangs, 0, 1);
 							}
 							else
 							{
-								$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter, 0, $outputlangs, 1, 1);
+								$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforfooter - $heightforfreetext, 0, $outputlangs, 1, 1);
 							}
 							$this->_pagefoot($pdf,$object,$outputlangs,1);
 							// New page
@@ -367,14 +403,16 @@ class pdf_strato extends ModelePDFContract
 				if ($pagenb == 1)
 				{
 					$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforinfotot - $heightforfreetext - $heightforfooter, 0, $outputlangs, 0, 0);
+					$this->_tab_signature($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforinfotot - $heightforfreetext - $heightforfooter, $outputlangs);
 					$bottomlasttab=$this->page_hauteur - $heightforfooter - $heightforfooter + 1;
 				}
 				else
 				{
-					$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforinfotot - $heightforfreetext - $heightforfooter, 0, $outputlangs, 1, 0);
+					$this->_tableau($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforinfotot - $heightforfreetext - $heightforfooter, 0, $outputlangs, 0, 0);
+					$this->_tab_signature($pdf, $tab_top_newpage, $this->page_hauteur - $tab_top_newpage - $heightforinfotot - $heightforfreetext - $heightforfooter, $outputlangs);
 					$bottomlasttab=$this->page_hauteur - $heightforfooter - $heightforfooter + 1;
 				}
-
+				
 				$this->_pagefoot($pdf,$object,$outputlangs);
 				if (method_exists($pdf,'AliasNbPages')) $pdf->AliasNbPages();
 
@@ -395,6 +433,8 @@ class pdf_strato extends ModelePDFContract
 
 				if (! empty($conf->global->MAIN_UMASK))
 				@chmod($file, octdec($conf->global->MAIN_UMASK));
+
+				$this->result = array('fullpath'=>$file);
 
 				return 1;
 			}
@@ -459,25 +499,25 @@ class pdf_strato extends ModelePDFContract
 */
 
 		// Output Rect
-		$this->printRect($pdf, $this->marge_gauche, $tab_top, $this->page_largeur-$this->marge_gauche-$this->marge_droite, $tab_height+3, $hidetop, $hidebottom);	// Rect prend une longueur en 3eme param et 4eme param
+		$this->printRect($pdf, $this->marge_gauche, $tab_top, $this->page_largeur-$this->marge_gauche-$this->marge_droite, $tab_height+3);	// Rect prend une longueur en 3eme param et 4eme param
+	}
 
-		if (empty($hidebottom))
-		{
-			$posmiddle = $this->marge_gauche + round(($this->page_largeur - $this->marge_gauche - $this->marge_droite)/2);
-			$posy = $tab_top + $tab_height + 3 + 3;
+	function _tab_signature(&$pdf, $tab_top, $tab_height, $outputlangs) {
+		$pdf->SetDrawColor(128,128,128);
+		$posmiddle = $this->marge_gauche + round(($this->page_largeur - $this->marge_gauche - $this->marge_droite)/2);
+		$posy = $tab_top + $tab_height + 3 + 3;
 
-			$pdf->SetXY($this->marge_gauche, $posy);
-			$pdf->MultiCell($posmiddle - $this->marge_gauche - 5, 5, $outputlangs->transnoentities("ContactNameAndSignature", $this->emetteur->name),0,'L',0);
+		$pdf->SetXY($this->marge_gauche, $posy);
+		$pdf->MultiCell($posmiddle - $this->marge_gauche - 5, 5, $outputlangs->transnoentities("ContactNameAndSignature", $this->emetteur->name),0,'L',0);
 
-			$pdf->SetXY($this->marge_gauche, $posy + 5);
-			$pdf->MultiCell($posmiddle - $this->marge_gauche - 5, 20, '', 1);
+		$pdf->SetXY($this->marge_gauche, $posy + 5);
+		$pdf->MultiCell($posmiddle - $this->marge_gauche - 5, 20, '', 1);
 
-			$pdf->SetXY($posmiddle + 5, $posy);
-			$pdf->MultiCell($this->page_largeur-$this->marge_droite - $posmiddle - 5, 5, $outputlangs->transnoentities("ContactNameAndSignature", $this->recipient->name),0,'L',0);
+		$pdf->SetXY($posmiddle + 5, $posy);
+		$pdf->MultiCell($this->page_largeur-$this->marge_droite - $posmiddle - 5, 5, $outputlangs->transnoentities("ContactNameAndSignature", $this->recipient->name),0,'L',0);
 
-			$pdf->SetXY($posmiddle + 5, $posy + 5);
-			$pdf->MultiCell($this->page_largeur-$this->marge_droite - $posmiddle - 5, 20, '', 1);
-		}
+		$pdf->SetXY($posmiddle + 5, $posy + 5);
+		$pdf->MultiCell($this->page_largeur-$this->marge_droite - $posmiddle - 5, 20, '', 1);
 	}
 
 	/**

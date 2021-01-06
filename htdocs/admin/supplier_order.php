@@ -179,24 +179,30 @@ else if ($action == 'set_SUPPLIER_ORDER_OTHER')
     // TODO We add/delete permission here until permission can have a condition on a global var
     include_once DOL_DOCUMENT_ROOT.'/core/modules/modFournisseur.class.php';
     $newmodule=new modFournisseur($db);
-	// clear default rights array
-    $newmodule->rights=array();
-    // add new right
-    $r=0;
-    $newmodule->rights[$r][0] = 1190;
-	$newmodule->rights[$r][1] = $langs->trans("Permission1190");
-	$newmodule->rights[$r][2] = 'w';
-	$newmodule->rights[$r][3] = 0;
-	$newmodule->rights[$r][4] = 'commande';
-	$newmodule->rights[$r][5] = 'approve2';
-
+    
     if ($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED)
     {
+    	// clear default rights array
+    	$newmodule->rights=array();
+    	// add new right
+    	$r=0;
+    	$newmodule->rights[$r][0] = 1190;
+    	$newmodule->rights[$r][1] = $langs->trans("Permission1190");
+    	$newmodule->rights[$r][2] = 'w';
+    	$newmodule->rights[$r][3] = 0;
+    	$newmodule->rights[$r][4] = 'commande';
+    	$newmodule->rights[$r][5] = 'approve2';
+    	
+    	// Insert
     	$newmodule->insert_permissions(1);
     }
     else
     {
+    	// Remove all rights with Permission1190
     	$newmodule->delete_permissions();
+    	
+    	// Add all right without Permission1190
+    	$newmodule->insert_permissions(1);
     }
 }
 
@@ -228,7 +234,7 @@ $dirmodels=array_merge(array('/'),(array) $conf->modules_parts['models']);
 
 llxHeader("","");
 
-$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
+$linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans("BackToModuleList").'</a>';
 print load_fiche_titre($langs->trans("SuppliersSetup"),$linkback,'title_setup');
 
 print "<br>";
@@ -537,14 +543,14 @@ else
 }
 */
 
-$substitutionarray=pdf_getSubstitutionArray($langs);
+$substitutionarray=pdf_getSubstitutionArray($langs, null, null, 2);
 $substitutionarray['__(AnyTranslationKey)__']=$langs->trans("Translation");
 $htmltext = '<i>'.$langs->trans("AvailableVariables").':<br>';
 foreach($substitutionarray as $key => $val)	$htmltext.=$key.'<br>';
 $htmltext.='</i>';
 
 print '<tr class="oddeven"><td colspan="2">';
-print $form->textwithpicto($langs->trans("FreeLegalTextOnOrders"), $langs->trans("AddCRIfTooLong").'<br><br>'.$htmltext).'<br>';
+print $form->textwithpicto($langs->trans("FreeLegalTextOnOrders"), $langs->trans("AddCRIfTooLong").'<br><br>'.$htmltext, 1, 'help', '', 0, 2, 'freetexttooltip').'<br>';
 $variablename='SUPPLIER_ORDER_FREE_TEXT';
 if (empty($conf->global->PDF_ALLOW_HTML_FOR_FREE_TEXT))
 {

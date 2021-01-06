@@ -62,7 +62,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
 
 $action=GETPOST('action','alpha');
-$original_file=GETPOST("file",'alpha');
+$original_file=GETPOST('file','alphanohtml');		// Do not use urldecode here ($_GET are already decoded by PHP).
 $modulepart=GETPOST('modulepart','alpha');
 $urlsource=GETPOST("urlsource",'alpha');
 $entity=GETPOST('entity','int')?GETPOST('entity','int'):$conf->entity;
@@ -136,7 +136,7 @@ if (preg_match('/\.\./',$fullpath_original_file) || preg_match('/[<>|]/',$fullpa
 if ($modulepart == 'barcode')
 {
     $generator=GETPOST("generator","alpha");
-    $code=GETPOST("code",'alpha');
+    $code=GETPOST("code",'none');							// This can be rich content (qrcode, datamatrix, ...)
     $encoding=GETPOST("encoding","alpha");
     $readable=GETPOST("readable",'alpha')?GETPOST("readable","alpha"):"Y";
 
