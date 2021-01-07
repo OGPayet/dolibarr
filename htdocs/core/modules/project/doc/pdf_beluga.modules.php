@@ -64,10 +64,9 @@ class pdf_beluga extends ModelePDFProjects
 	function __construct($db)
 	{
 		global $conf,$langs,$mysoc;
-
-		$langs->load("main");
-		$langs->load("projects");
-		$langs->load("companies");
+		
+		// Translations
+		$langs->loadLangs(array("main", "projects", "companies"));
 
 		$this->db = $db;
 		$this->name = "beluga";
@@ -181,7 +180,7 @@ class pdf_beluga extends ModelePDFProjects
                 }
                 $pdf->SetFont(pdf_getPDFFont($outputlangs));
                 // Set path to the background PDF File
-                if (empty($conf->global->MAIN_DISABLE_FPDI) && ! empty($conf->global->MAIN_ADD_PDF_BACKGROUND))
+                if (! empty($conf->global->MAIN_ADD_PDF_BACKGROUND))
                 {
                     $pagecount = $pdf->setSourceFile($conf->mycompany->dir_output.'/'.$conf->global->MAIN_ADD_PDF_BACKGROUND);
                     $tplidx = $pdf->importPage(1);
@@ -274,7 +273,7 @@ class pdf_beluga extends ModelePDFProjects
                     	'table'=>'commande',
                     	'datefieldname'=>'date_commande',
                     	'test'=>$conf->commande->enabled && $user->rights->commande->lire,
-                        'lang'=>'order'),
+                        'lang'=>'orders'),
                     'invoice'=>array(
                     	'name'=>"CustomersInvoices",
                     	'title'=>"ListInvoicesAssociatedProject",

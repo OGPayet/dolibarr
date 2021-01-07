@@ -60,6 +60,7 @@ class Paiement extends CommonObject
 	// de llx_paiement qui est lie aux types de
 	//paiement de llx_c_paiement
 	var $num_paiement;	// Numero du CHQ, VIR, etc...
+	var $num_payment;	// Numero du CHQ, VIR, etc...
 	var $bank_account;	// Id compte bancaire du paiement
 	var $bank_line;     // Id de la ligne d'ecriture bancaire
 	// fk_paiement dans llx_paiement est l'id du type de paiement (7 pour CHQ, ...)
@@ -89,7 +90,7 @@ class Paiement extends CommonObject
 	{
 		$sql = 'SELECT p.rowid, p.ref, p.datep as dp, p.amount, p.statut, p.fk_bank,';
 		$sql.= ' c.code as type_code, c.libelle as type_libelle,';
-		$sql.= ' p.num_paiement, p.note,';
+		$sql.= ' p.num_paiement as num_payment, p.note,';
 		$sql.= ' b.fk_account';
 		$sql.= ' FROM '.MAIN_DB_PREFIX.'paiement as p LEFT JOIN '.MAIN_DB_PREFIX.'c_paiement as c ON p.fk_paiement = c.id';
 		$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'bank as b ON p.fk_bank = b.rowid';
@@ -111,7 +112,9 @@ class Paiement extends CommonObject
 				$this->ref            = $obj->ref?$obj->ref:$obj->rowid;
 				$this->date           = $this->db->jdate($obj->dp);
 				$this->datepaye       = $this->db->jdate($obj->dp);
-				$this->numero         = $obj->num_paiement;
+				$this->numero         = $obj->num_payment;	// deprecated
+				$this->num_paiement   = $obj->num_payment;	// deprecated
+				$this->num_payment    = $obj->num_payment;
 				$this->montant        = $obj->amount;   // deprecated
 				$this->amount         = $obj->amount;
 				$this->note           = $obj->note;
@@ -210,9 +213,10 @@ class Paiement extends CommonObject
 			$total = $totalamount_converted; // Maybe use price2num with MT for the converted value
 			$mtotal = $totalamount;
 		}
+		$note = ($this->note_public?$this->note_public:$this->note);
 
 		$sql = "INSERT INTO ".MAIN_DB_PREFIX."paiement (entity, ref, datec, datep, amount, multicurrency_amount, fk_paiement, num_paiement, note, fk_user_creat)";
-		$sql.= " VALUES (".$conf->entity.", '".$this->ref."', '". $this->db->idate($now)."', '".$this->db->idate($this->datepaye)."', '".$total."', '".$mtotal."', ".$this->paiementid.", '".$this->num_paiement."', '".$this->db->escape($this->note)."', ".$user->id.")";
+		$sql.= " VALUES (".$conf->entity.", '".$this->ref."', '". $this->db->idate($now)."', '".$this->db->idate($this->datepaye)."', '".$total."', '".$mtotal."', ".$this->paiementid.", '".$this->num_paiement."', '".$this->db->escape($note)."', ".$user->id.")";
 
 		dol_syslog(get_class($this)."::Create insert paiement", LOG_DEBUG);
 		$resql = $this->db->query($sql);
@@ -288,6 +292,7 @@ class Paiement extends CommonObject
                                 if ($invoice->type == Facture::TYPE_DEPOSIT)
                                 {
 			                        $amount_ht = $amount_tva = $amount_ttc = array();
+			                        $multicurrency_amount_ht = $multicurrency_amount_tva = $multicurrency_amount_ttc = array();
 
 									// Insert one discount by VAT rate category
 									$discount = new DiscountAbsolute($this->db);
@@ -306,6 +311,9 @@ class Paiement extends CommonObject
 												$amount_ht[$line->tva_tx] += $line->total_ht;
 												$amount_tva[$line->tva_tx] += $line->total_tva;
 												$amount_ttc[$line->tva_tx] += $line->total_ttc;
+												$multicurrency_amount_ht[$line->tva_tx] += $line->multicurrency_total_ht;
+												$multicurrency_amount_tva[$line->tva_tx] += $line->multicurrency_total_tva;
+												$multicurrency_amount_ttc[$line->tva_tx] += $line->multicurrency_total_ttc;
 												$i++;
 											}
 										}
@@ -314,6 +322,9 @@ class Paiement extends CommonObject
 											$discount->amount_ht = abs($amount_ht[$tva_tx]);
 											$discount->amount_tva = abs($amount_tva[$tva_tx]);
 											$discount->amount_ttc = abs($amount_ttc[$tva_tx]);
+											$discount->multicurrency_amount_ht = abs($multicurrency_amount_ht[$tva_tx]);
+											$discount->multicurrency_amount_tva = abs($multicurrency_amount_tva[$tva_tx]);
+											$discount->multicurrency_amount_ttc = abs($multicurrency_amount_ttc[$tva_tx]);
 											$discount->tva_tx = abs($tva_tx);
 
 											$result = $discount->create($user);
@@ -532,7 +543,7 @@ class Paiement extends CommonObject
         {
         	if ($accountid <= 0)
         	{
-        		$this->error='Bad value for parameter accountid';
+        		$this->error='Bad value for parameter accountid='.$accountid;
         		dol_syslog(get_class($this).'::addPaymentToBank '.$this->error, LOG_ERR);
         		return -1;
         	}
@@ -991,7 +1002,7 @@ class Paiement extends CommonObject
 	/**
 	 * 	get the right way of payment
 	 *
-	 * 	@return 	string 	'dolibarr' if standard comportment or paid in dolibarr currency, 'customer' if payment received from multicurrency inputs
+	 * 	@return 	string 	'dolibarr' if standard comportment or paid in main currency, 'customer' if payment received from multicurrency inputs
 	 */
 	function getWay()
 	{

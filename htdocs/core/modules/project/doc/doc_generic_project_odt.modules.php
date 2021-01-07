@@ -68,8 +68,8 @@ class doc_generic_project_odt extends ModelePDFProjects
 	{
 		global $conf,$langs,$mysoc;
 
-		$langs->load("main");
-		$langs->load("companies");
+		// Load traductions files requiredby by page
+		$langs->loadLangs(array("companies", "main"));
 
 		$this->db = $db;
 		$this->name = "ODT templates";
@@ -133,7 +133,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 		require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 		$extrafields = new ExtraFields($this->db);
 		$extralabels = $extrafields->fetch_name_optionals_label($object->table_element,true);
-		$object->fetch_optionals($object->id,$extralabels);
+		$object->fetch_optionals();
 
 		$resarray = $this->fill_substitutionarray_with_extrafields($object,$resarray,$extrafields,$array_key,$outputlangs);
 
@@ -217,7 +217,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 			require_once(DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php');
 			$extrafields=new ExtraFields($this->db);
 			$extralabels=$extrafields->fetch_name_optionals_label($ct->table_element, true);
-			$extrafields_num = $ct->fetch_optionals($ct->id, $extralabels);
+			$extrafields_num = $ct->fetch_optionals();
 			//dol_syslog(get_class($this)."::get_substitutionarray_project_contacts: ===== Number of Extrafields found: ".$extrafields_num, LOG_DEBUG);
 			foreach($ct->array_options as $efkey => $efval) {
 				dol_syslog(get_class($this)."::get_substitutionarray_project_contacts: +++++ Extrafield ".$efkey." => ".$efval, LOG_DEBUG);
@@ -464,10 +464,8 @@ class doc_generic_project_odt extends ModelePDFProjects
 		$sav_charset_output=$outputlangs->charset_output;
 		$outputlangs->charset_output='UTF-8';
 
-		$outputlangs->load("main");
-		$outputlangs->load("dict");
-		$outputlangs->load("companies");
-		$outputlangs->load("projects");
+		// Load translation files required by the page
+		$outputlangs->loadLangs(array("main", "dict", "companies", "projects"));
 
 		if ($conf->projet->dir_output)
 		{
@@ -537,6 +535,7 @@ class doc_generic_project_odt extends ModelePDFProjects
 				}
 
 				// Recipient name
+				$contactobject=null;
 				if (! empty($usecontact))
 				{
         			// if we have a PROJECTLEADER contact and we dont use it as recipient we store the contact object for later use
@@ -580,23 +579,25 @@ class doc_generic_project_odt extends ModelePDFProjects
 				//print exit;
 
 
-
-
-				// Make substitutions into odt of user info
+				// Define substitution array
+				$substitutionarray = getCommonSubstitutionArray($outputlangs, 0, null, $object);
+				$array_object_from_properties = $this->get_substitutionarray_each_var_object($object, $outputlangs);
+				$array_objet=$this->get_substitutionarray_object($object,$outputlangs);
 				$array_user=$this->get_substitutionarray_user($user,$outputlangs);
 				$array_soc=$this->get_substitutionarray_mysoc($mysoc,$outputlangs);
 				$array_thirdparty=$this->get_substitutionarray_thirdparty($socobject,$outputlangs);
-				$array_objet=$this->get_substitutionarray_object($object,$outputlangs);
 				$array_other=$this->get_substitutionarray_other($outputlangs);
 				// retrieve contact information for use in object as contact_xxx tags
 				$array_project_contact = array();
 				if ($usecontact && is_object($contactobject)) $array_project_contact=$this->get_substitutionarray_contact($contactobject,$outputlangs,'contact');
 
-				$tmparray = array_merge($array_user,$array_soc,$array_thirdparty,$array_objet,$array_other,$array_project_contact);
+				$tmparray = array_merge($substitutionarray,$array_object_from_properties,$array_user,$array_soc,$array_thirdparty,$array_objet,$array_other,$array_project_contact);
 				complete_substitutions_array($tmparray, $outputlangs, $object);
+
 				// Call the ODTSubstitution hook
 				$parameters=array('odfHandler'=>&$odfHandler,'file'=>$file,'object'=>$object,'outputlangs'=>$outputlangs,'substitutionarray'=>&$tmparray);
 				$reshook=$hookmanager->executeHooks('ODTSubstitution',$parameters,$this,$action);    // Note that $action and $object may have been modified by some hooks
+
 				foreach($tmparray as $key=>$value)
 				{
 					try {
@@ -1052,7 +1053,6 @@ class doc_generic_project_odt extends ModelePDFProjects
 							$elementarray = $object->get_element_list($keyref, $tablename);
 							if (count($elementarray)>0 && is_array($elementarray))
 							{
-								$var=true;
 								$total_ht = 0;
 								$total_ttc = 0;
 								$num=count($elementarray);

@@ -4,6 +4,7 @@
  * Copyright (C) 2005-2014  Regis Houssin           <regis.houssin@capnetworks.com>
  * Copyright (C) 2014-2016  Charlie BENKE           <charlie@patas-monkey.com>
  * Copyright (C) 2015       Jean-François Ferry     <jfefe@aternatik.fr>
+ * Copyright (C) 2019       Pierre Ardoin	    <mapiolca@me.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +40,8 @@ if ($type=='0') $result=restrictedArea($user,'produit');
 else if ($type=='1') $result=restrictedArea($user,'service');
 else $result=restrictedArea($user,'produit|service');
 
-$langs->load("products");
-$langs->load("stocks");
+// Load translation files required by the page
+$langs->loadLangs(array('products', 'stocks'));
 
 // Initialize technical object to manage hooks. Note that conf->hooks_modules contains array of hooks
 $hookmanager->initHooks(array('productindex'));
@@ -174,17 +175,17 @@ $total=0;
 if ($type == '0')
 {
 	print $statProducts;
-	$total=round($prodser[0][0])+round($prodser[0][1])+round($prodser[0][2]);
+	$total=round($prodser[0][0])+round($prodser[0][1])+round($prodser[0][2])+round($prodser[0][3]);
 }
 else if ($type == '1')
 {
 	print $statServices;
-	$total=round($prodser[1][0])+round($prodser[1][1])+round($prodser[1][2]);
+	$total=round($prodser[1][0])+round($prodser[1][1])+round($prodser[1][2])+round($prodser[1][3]);
 }
 else
 {
 	print $statProducts.$statServices;
-	$total=round($prodser[1][0])+round($prodser[1][1])+round($prodser[1][2])+round($prodser[0][0])+round($prodser[0][1])+round($prodser[0][2]);
+	$total=round($prodser[0][0])+round($prodser[0][1])+round($prodser[0][2])+round($prodser[0][3])+round($prodser[1][0])+round($prodser[1][1])+round($prodser[1][2])+round($prodser[1][3]); //Calcul du Total des Produits et Services
 }
 print '<tr class="liste_total"><td>'.$langs->trans("Total").'</td><td align="right">';
 print $total;
@@ -272,8 +273,8 @@ print '</div><div class="fichetwothirdright"><div class="ficheaddleft">';
  * Last modified products
  */
 $max=15;
-$sql = "SELECT p.rowid, p.label, p.price, p.ref, p.fk_product_type, p.tosell, p.tobuy, p.fk_price_expression,";
-$sql.= " p.entity, p.tobatch,";
+$sql = "SELECT p.rowid, p.label, p.price, p.ref, p.fk_product_type, p.tosell, p.tobuy, p.tobatch, p.fk_price_expression,";
+$sql.= " p.entity,";
 $sql.= " p.tms as datem";
 $sql.= " FROM ".MAIN_DB_PREFIX."product as p";
 $sql.= " WHERE p.entity IN (".getEntity($product_static->element, 1).")";
@@ -302,12 +303,12 @@ if ($result)
 		print '<div class="div-table-responsive-no-min">';
 		print '<table class="noborder" width="100%">';
 
-		$colnb=5;
+		$colnb=4;
 		if (empty($conf->global->PRODUIT_MULTIPRICES)) $colnb++;
 
-		print '<tr class="liste_titre"><th colspan="'.$colnb.'">'.$transRecordedType.'</th></tr>';
-
-		$var=True;
+		print '<tr class="liste_titre"><th colspan="'.$colnb.'">'.$transRecordedType.'</th>';
+		print '<th class="right"><a href="'.DOL_URL_ROOT.'/product/list.php?sortfield=p.tms&sortorder=DESC">'.$langs->trans("FullList").'</td>';
+		print '</tr>';
 
 		while ($i < $num)
 		{
@@ -336,7 +337,7 @@ if ($result)
 			$product_static->ref=$objp->ref;
 			$product_static->label = $objp->label;
 			$product_static->type=$objp->fk_product_type;
-            $product_static->entity = $objp->entity;
+			$product_static->entity = $objp->entity;
 			$product_static->status_batch = $objp->tobatch;
 			print $product_static->getNomUrl(1,'',16);
 			print "</td>\n";

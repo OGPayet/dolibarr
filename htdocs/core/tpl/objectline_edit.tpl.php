@@ -53,7 +53,7 @@ $colspan = 3;	// Col total ht + col edit + col delete
 if (! empty($inputalsopricewithtax)) $colspan++;	// We add 1 if col total ttc
 if (in_array($object->element,array('propal','supplier_proposal','facture','invoice','commande','order','order_supplier','invoice_supplier'))) $colspan++;	// With this, there is a column move button
 if (empty($user->rights->margins->creer)) $colspan++;
-if (!empty($conf->multicurrency->enabled)) $colspan+=2;
+if (!empty($conf->multicurrency->enabled) && $this->multicurrency_code != $conf->currency) $colspan+=2;
 ?>
 
 <!-- BEGIN PHP TEMPLATE objectline_edit.tpl.php -->
@@ -62,7 +62,10 @@ if (!empty($conf->multicurrency->enabled)) $colspan+=2;
 $coldisplay=-1; // We remove first td
 ?>
 <tr <?php echo $bc[$var]; ?>>
-	<td<?php echo (! empty($conf->global->MAIN_VIEW_LINE_NUMBER) ? ' colspan="2"' : ''); ?>><?php $coldisplay+=(! empty($conf->global->MAIN_VIEW_LINE_NUMBER))?2:1; ?>
+	<?php if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) { ?>
+		<td class="linecolnum" align="center"><?php $coldisplay++; ?><?php echo ($i+1); ?></td>
+	<?php } ?>
+	<td>
 	<div id="line_<?php echo $line->id; ?>"></div>
 
 	<input type="hidden" name="lineid" value="<?php echo $line->id; ?>">
@@ -87,7 +90,7 @@ $coldisplay=-1; // We remove first td
 		echo ' - '.nl2br($line->product_label);
 		?>
 
-		<br>
+		<br><br>
 
 	<?php }	?>
 
@@ -100,7 +103,7 @@ $coldisplay=-1; // We remove first td
 	}
 
 	// Do not allow editing during a situation cycle
-	if (empty($this->situation_cycle_ref) || $this->situation_counter == 1)
+	if ($line->fk_prev_id == null )
 	{
 		// editeur wysiwyg
 		require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
@@ -114,6 +117,18 @@ $coldisplay=-1; // We remove first td
 	} else {
 		print '<textarea id="product_desc" class="flat" name="product_desc" readonly style="width: 200px; height:80px;">' . $line->description . '</textarea>';
 	}
+
+	// Show autofill date for recuring invoices
+	if (! empty($conf->service->enabled) && $line->product_type == 1 && $line->element == 'facturedetrec')
+	{
+		echo '<br>';
+		echo $langs->trans('AutoFillDateFrom').' ';
+		echo $form->selectyesno('date_start_fill', $line->date_start_fill, 1);
+		echo ' - ';
+		echo $langs->trans('AutoFillDateTo').' ';
+		echo $form->selectyesno('date_end_fill', $line->date_end_fill, 1);
+	}
+
 	?>
 	</td>
 
@@ -121,12 +136,12 @@ $coldisplay=-1; // We remove first td
 	if ($object->element == 'supplier_proposal' || $object->element == 'order_supplier' || $object->element == 'invoice_supplier')	// We must have same test in printObjectLines
 	{
 	?>
-		<td align="right"><input id="fourn_ref" name="fourn_ref" class="flat" value="<?php echo $line->ref_fourn; ?>" size="12"></td>
+		<td align="right"><input id="fourn_ref" name="fourn_ref" class="flat minwidth75" value="<?php echo ($line->ref_supplier ? $line->ref_supplier : $line->ref_fourn); ?>"></td>
 	<?php
 	}
 
 	$coldisplay++;
-	if ($this->situation_counter == 1 || !$this->situation_cycle_ref) {
+	if ($line->fk_prev_id == null ) {
 		print '<td align="right">' . $form->load_tva('tva_tx', $line->tva_tx.($line->vat_src_code?(' ('.$line->vat_src_code.')'):''), $seller, $buyer, 0, $line->info_bits, $line->product_type, false, 1) . '</td>';
 	} else {
 		print '<td align="right"><input size="1" type="text" class="flat right" name="tva_tx" value="' . price($line->tva_tx) . '" readonly />%</td>';
@@ -134,10 +149,10 @@ $coldisplay=-1; // We remove first td
 
 	$coldisplay++;
 	print '<td align="right"><input type="text" class="flat right" size="5" id="price_ht" name="price_ht" value="' . (isset($line->pu_ht)?price($line->pu_ht,0,'',0):price($line->subprice,0,'',0)) . '"';
-	if ($this->situation_counter > 1) print ' readonly';
+	if ($line->fk_prev_id != null ) print ' readonly';
 	print '></td>';
 
-	if (!empty($conf->multicurrency->enabled)) {
+	if (!empty($conf->multicurrency->enabled) && $this->multicurrency_code != $conf->currency) {
 		print '<td align="right"><input rel="'.$object->multicurrency_tx.'" type="text" class="flat right" size="5" id="multicurrency_subprice" name="multicurrency_subprice" value="'.price($line->multicurrency_subprice).'" /></td>';
 	}
 
@@ -145,7 +160,7 @@ $coldisplay=-1; // We remove first td
 	{
 		$coldisplay++;
 		print '<td align="right"><input type="text" class="flat right" size="5" id="price_ttc" name="price_ttc" value="'.(isset($line->pu_ttc)?price($line->pu_ttc,0,'',0):'').'"';
-		if ($this->situation_counter > 1) print ' readonly';
+		if ($line->fk_prev_id != null ) print ' readonly';
 		print '></td>';
 	}
 	?>
@@ -156,7 +171,7 @@ $coldisplay=-1; // We remove first td
 		// must also not be output for most entities (proposal, intervention, ...)
 		//if($line->qty > $line->stock) print img_picto($langs->trans("StockTooLow"),"warning", 'style="vertical-align: bottom;"')." ";
 		print '<input size="3" type="text" class="flat right" name="qty" id="qty" value="' . $line->qty . '"';
-		if ($this->situation_counter > 1) print ' readonly';
+		if ($line->fk_prev_id != null ) print ' readonly';
 		print '>';
 	} else { ?>
 		&nbsp;
@@ -175,7 +190,7 @@ $coldisplay=-1; // We remove first td
 	<td align="right" class="nowrap"><?php $coldisplay++; ?>
 	<?php if (($line->info_bits & 2) != 2) {
 		print '<input size="1" type="text" class="flat right" name="remise_percent" id="remise_percent" value="' . $line->remise_percent . '"';
-		if ($this->situation_counter > 1) print ' readonly';
+		if ($line->fk_prev_id != null ) print ' readonly';
 		print '>%';
 	} else { ?>
 		&nbsp;
@@ -241,6 +256,9 @@ if (!empty($extrafieldsline))
 
 <?php if (! empty($conf->service->enabled) && $line->product_type == 1 && $dateSelector)	 { ?>
 <tr id="service_duration_area" <?php echo $bc[$var]; ?>>
+	<?php if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER)) { ?>
+		<td class="linecolnum" align="center"><?php $coldisplay++; ?></td>
+	<?php } ?>
 	<td colspan="<?php echo 7+$colspan ?>"><?php echo $langs->trans('ServiceLimitedDuration').' '.$langs->trans('From').' '; ?>
 	<?php
 	$hourmin=(isset($conf->global->MAIN_USE_HOURMIN_IN_DATE_RANGE)?$conf->global->MAIN_USE_HOURMIN_IN_DATE_RANGE:'');
@@ -268,7 +286,8 @@ if (!empty($extrafieldsline))
 	?>
 	</td>
 </tr>
-<?php } ?>
+<?php }
+?>
 
 
 <script type="text/javascript">

@@ -36,6 +36,7 @@ class Entrepot extends CommonObject
 	public $element='stock';
 	public $table_element='entrepot';
 	public $picto='stock';
+	public $ismultientitymanaged = 1;	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
 
 	/**
 	 * Warehouse closed, inactive
@@ -308,6 +309,16 @@ class Entrepot extends CommonObject
 	{
 		global $conf;
 
+		dol_syslog(get_class($this)."::fetch id=".$id." ref=".$ref);
+
+		// Check parameters
+		if (! $id && ! $ref)
+		{
+			$this->error='ErrorWrongParameters';
+			dol_syslog(get_class($this)."::fetch ".$this->error);
+			return -1;
+		}
+
 		$sql  = "SELECT rowid, fk_parent, ref as label, description, statut, lieu, address, zip, town, fk_pays as country_id";
 		$sql .= " FROM ".MAIN_DB_PREFIX."entrepot";
 		if ($id)
@@ -320,7 +331,6 @@ class Entrepot extends CommonObject
 			if ($ref) $sql.= " AND ref = '".$this->db->escape($ref)."'";
 		}
 
-		dol_syslog(get_class($this)."::fetch", LOG_DEBUG);
 		$result = $this->db->query($sql);
 		if ($result)
 		{
@@ -706,6 +716,38 @@ class Entrepot extends CommonObject
 
 		return $TChildWarehouses;
 
+	}
+
+	/**
+	 *	Create object on disk
+	 *
+	 *	@param     string		$modele			force le modele a utiliser ('' to not force)
+	 * 	@param     Translate	$outputlangs	Object langs to use for output
+	 *  @param     int			$hidedetails    Hide details of lines
+	 *  @param     int			$hidedesc       Hide description
+	 *  @param     int			$hideref        Hide ref
+	 *  @return    int             				0 if KO, 1 if OK
+	 */
+	public function generateDocument($modele, $outputlangs='',$hidedetails=0,$hidedesc=0,$hideref=0)
+	{
+		global $conf,$user,$langs;
+
+		$langs->load("stocks");
+
+		if (! dol_strlen($modele)) {
+
+			$modele = 'standard';
+
+			if ($this->modelpdf) {
+				$modele = $this->modelpdf;
+			} elseif (! empty($conf->global->STOCK_ADDON_PDF)) {
+				$modele = $conf->global->STOCK_ADDON_PDF;
+			}
+		}
+
+		$modelpath = "core/modules/stock/doc/";
+
+		return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref);
 	}
 
 }

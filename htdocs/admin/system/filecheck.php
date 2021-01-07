@@ -2,7 +2,8 @@
 /* Copyright (C) 2005-2016  Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2007       Rodolphe Quiedeville    <rodolphe@quiedeville.org>
  * Copyright (C) 2007-2012  Regis Houssin           <regis.houssin@capnetworks.com>
- * Copyright (C) 2015       Frederic France         <frederic.france@free.fr>
+ * Copyright (C) 2015-2019  Frederic France         <frederic.france@netlogic.fr>
+ * Copyright (C) 2017       Nicolas ZABOURI         <info@inovea-conseil.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +39,8 @@ $error=0;
 /*
  * View
  */
+
+@set_time_limit(300);
 
 llxHeader();
 
@@ -140,7 +143,7 @@ if (GETPOST('target') == 'remote')
     if (! $xmlarray['curl_error_no'] && $xmlarray['http_code'] != '404')
     {
         $xmlfile = $xmlarray['content'];
-        //print "eee".$xmlfile."eee";
+        //print "xmlfilestart".$xmlfile."xmlfileend";
         $xml = simplexml_load_string($xmlfile);
     }
     else
@@ -211,7 +214,7 @@ if (! $error && $xml)
         $includecustom=(empty($xml->dolibarr_htdocs_dir[0]['includecustom'])?0:$xml->dolibarr_htdocs_dir[0]['includecustom']);
 
         // Defined qualified files (must be same than into generate_filelist_xml.php)
-        $regextoinclude='\.(php|css|html|js|json|tpl|jpg|png|gif|sql|lang)$';
+        $regextoinclude='\.(php|php3|php4|php5|phtml|phps|phar|inc|css|scss|html|xml|js|json|tpl|jpg|jpeg|png|gif|ico|sql|lang|txt|yml|md|mp3|mp4|wav|mkv|z|gz|zip|rar|tar|less|svg|eot|woff|woff2|ttf|manifest)$';
         $regextoexclude='('.($includecustom?'':'custom|').'documents|conf|install|public\/test|Shared\/PCLZip|nusoap\/lib\/Mail|php\/example|php\/test|geoip\/sample.*\.php|ckeditor\/samples|ckeditor\/adapters)$';  // Exclude dirs
         $scanfiles = dol_dir_list(DOL_DOCUMENT_ROOT, 'files', 1, $regextoinclude, $regextoexclude);
 
@@ -334,7 +337,12 @@ if (! $error && $xml)
                 $i++;
                 $out.='<tr class="oddeven">';
                 $out.='<td>'.$i.'</td>' . "\n";
-                $out.='<td>'.$file['filename'].'</td>' . "\n";
+                $out.='<td>'.$file['filename'];
+                if (! preg_match('/^win/i',PHP_OS)) {
+                	$htmltext=$langs->trans("YouCanDeleteFileOnServerWith", 'rm '.DOL_DOCUMENT_ROOT.'/'.$file['filename']);
+                	$out.=' '.$form->textwithpicto('', $htmltext, 1, 'help', '', 0, 2, 'helprm');
+                }
+                $out.='</td>' . "\n";
                 $out.='<td align="center">'.$file['expectedmd5'].'</td>' . "\n";
                 $out.='<td align="center">'.$file['md5'].'</td>' . "\n";
                 $size = dol_filesize(DOL_DOCUMENT_ROOT.'/'.$file['filename']);

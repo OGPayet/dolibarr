@@ -4,6 +4,7 @@
  * Copyright (C) 2005-2009 Regis Houssin        <regis.houssin@capnetworks.com>
  * Copyright (C) 2015-2017 Alexandre Spangaro   <aspangaro@zendsi.com>
  * Copyright (C) 2017      Ferran Marcet        <fmarcet@2byte.es>
+ * Copyright (C) 2018		Frédéric France		<frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,9 +45,8 @@ if (! empty($conf->accounting->enabled)) {
 	require_once DOL_DOCUMENT_ROOT . '/accountancy/class/accountingjournal.class.php';
 }
 
-$langs->load("trips");
-$langs->load("bills");
-$langs->load("mails");
+// Load translation files required by the page
+$langs->loadLangs(array("trips","bills","mails"));
 
 $action=GETPOST('action','aZ09');
 $cancel=GETPOST('cancel','alpha');
@@ -61,6 +61,8 @@ $ref=GETPOST("ref",'alpha');
 $comments=GETPOST('comments','none');
 $fk_c_type_fees=GETPOST('fk_c_type_fees','int');
 $socid = GETPOST('socid','int')?GETPOST('socid','int'):GETPOST('socid_id','int');
+
+$childids = $user->getAllChildIds(1);
 
 // Security check
 $id=GETPOST("id",'int');
@@ -105,7 +107,17 @@ $permissionnote = $user->rights->expensereport->creer; 		// Used by the include 
 $permissiondellink = $user->rights->expensereport->creer; 	// Used by the include of actions_dellink.inc.php
 $permissionedit = $user->rights->expensereport->creer; 		// Used by the include of actions_lineupdown.inc.php
 
-
+if ($object->id > 0)
+{
+    // Check current user can read this expense report
+    $canread = 0;
+    if (! empty($user->rights->expensereport->readall)) $canread=1;
+    if (! empty($user->rights->expensereport->lire) && in_array($object->fk_user_author, $childids)) $canread=1;
+    if (! $canread)
+    {
+        accessforbidden();
+    }
+}
 
 
 /*
@@ -279,27 +291,22 @@ if (empty($reshook))
 
     if ($action == 'update_extras')
     {
-        // Fill array 'array_options' with data from update form
+    	$object->oldcopy = dol_clone($object);
+
+    	// Fill array 'array_options' with data from update form
         $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
-        $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute', 'alpha'));
+        $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute', 'none'));
         if ($ret < 0) $error++;
 
         if (! $error)
         {
-            // Actions on extra fields (by external module or standard code)
-            $hookmanager->initHooks(array('expensereportdao'));
-            $parameters = array('id' => $object->id);
-            $reshook = $hookmanager->executeHooks('insertExtraFields', $parameters, $object, $action); // Note that $action and $object may have been modified by
-            // some hooks
-            if (empty($reshook)) {
-                $result = $object->insertExtraFields();
-       			if ($result < 0)
-				{
-					setEventMessages($object->error, $object->errors, 'errors');
-					$error++;
-				}
-            } else if ($reshook < 0)
-                $error++;
+            // Actions on extra fields
+           	$result = $object->insertExtraFields('EXPENSEREPORT_MODIFY');
+			if ($result < 0)
+			{
+				setEventMessages($object->error, $object->errors, 'errors');
+				$error++;
+			}
         }
 
         if ($error)
@@ -960,6 +967,34 @@ if (empty($reshook))
     	}
     }
 
+    if ($action == 'set_unpaid' && $id > 0 && $user->rights->expensereport->to_paid)
+    {
+    	$object = new ExpenseReport($db);
+    	$object->fetch($id);
+
+    	$result = $object->set_unpaid($user);
+
+    	if ($result > 0)
+    	{
+    		// Define output language
+    		if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
+    		{
+    			$outputlangs = $langs;
+    			$newlang = '';
+    			if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) $newlang = GETPOST('lang_id', 'aZ09');
+    			if ($conf->global->MAIN_MULTILANGS && empty($newlang))	$newlang = $object->thirdparty->default_lang;
+    			if (! empty($newlang)) {
+    				$outputlangs = new Translate("", $conf);
+    				$outputlangs->setDefaultLang($newlang);
+    			}
+    			$model=$object->modelpdf;
+    			$ret = $object->fetch($id); // Reload to get new records
+
+    			$object->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
+    		}
+    	}
+    }
+
     if ($action == 'set_paid' && $id > 0 && $user->rights->expensereport->to_paid)
     {
     	$object = new ExpenseReport($db);
@@ -1353,6 +1388,7 @@ if ($action == 'create')
 	print '</td>';
 	print '</tr>';
 
+	// User for expense report
 	print '<tr>';
 	print '<td class="fieldrequired">'.$langs->trans("User").'</td>';
 	print '<td>';
@@ -1365,6 +1401,7 @@ if ($action == 'create')
 	print '</td>';
 	print '</tr>';
 
+	// Approver
 	print '<tr>';
 	print '<td>'.$langs->trans("VALIDATOR").'</td>';
 	print '<td>';
@@ -1417,7 +1454,7 @@ if ($action == 'create')
 	$parameters = array('colspan' => ' colspan="3"');
 	$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action); // Note that $action and $object may have been modified by
     print $hookmanager->resPrint;
-	if (empty($reshook) && ! empty($extrafields->attribute_label)) {
+	if (empty($reshook)) {
 	    print $object->showOptionals($extrafields, 'edit');
 	}
 
@@ -1439,7 +1476,7 @@ else
 	{
 		$result = $object->fetch($id, $ref);
 
-		$res = $object->fetch_optionals($object->id, $extralabels);
+		$res = $object->fetch_optionals();
 
 		if ($result > 0)
 		{
@@ -1883,7 +1920,7 @@ else
 				$sql.= "c.code as p_code, c.libelle as payment_type,";
 				$sql.= "ba.rowid as baid, ba.ref as baref, ba.label, ba.number as banumber, ba.account_number, ba.fk_accountancy_journal";
 				$sql.= " FROM ".MAIN_DB_PREFIX."expensereport as e, ".MAIN_DB_PREFIX."payment_expensereport as p";
-				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_paiement as c ON p.fk_typepayment = c.id AND c.entity IN (".getEntity('c_paiement').")";
+				$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_paiement as c ON p.fk_typepayment = c.id";
 				$sql.= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'bank as b ON p.fk_bank = b.rowid';
 				$sql.= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'bank_account as ba ON b.fk_account = ba.rowid';
 				$sql.= " WHERE e.rowid = '".$id."'";
@@ -1895,7 +1932,7 @@ else
 				if ($resql)
 				{
 				    $num = $db->num_rows($resql);
-				    $i = 0; $total = 0;
+				    $i = 0; $totalpaid = 0;
 				    while ($i < $num)
 				    {
 				        $objp = $db->fetch_object($resql);
@@ -2254,9 +2291,9 @@ if ($action != 'create' && $action != 'edit')
 	// Send
 	if ($object->fk_statut > ExpenseReport::STATUS_DRAFT) {
 		//if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) || $user->rights->expensereport->expensereport_advance->send)) {
-			print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendByMail') . '</a></div>';
+			print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendMail') . '</a></div>';
 		//} else
-		//	print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">' . $langs->trans('SendByMail') . '</a></div>';
+		//	print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">' . $langs->trans('SendMail') . '</a></div>';
 	}
 
 
@@ -2340,8 +2377,8 @@ if ($action != 'create' && $action != 'edit')
 	}
 
 
-	// If status is Appoved
-	// --------------------
+	// If status is Approved
+	// ---------------------
 
 	if ($user->rights->expensereport->approve && $object->fk_statut == 5)
 	{
@@ -2385,9 +2422,15 @@ if ($action != 'create' && $action != 'edit')
 	    print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=cancel&id='.$object->id.'">'.$langs->trans('Cancel').'</a></div>';
 	}
 
+	if ($user->rights->expensereport->to_paid && $object->paid && $object->fk_statut == ExpenseReport::STATUS_CLOSED)
+	{
+		// Set unpaid
+		print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=set_unpaid&id='.$object->id.'">'.$langs->trans('ClassifyUnPaid').'</a></div>';
+	}
+
 	// Clone
 	if ($user->rights->expensereport->creer) {
-	    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&amp;action=clone">' . $langs->trans("ToClone") . '</a></div>';
+	    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=clone">' . $langs->trans("ToClone") . '</a></div>';
 	}
 
 	/* If draft, validated, cancel, and user can create, he can always delete its card before it is approved */

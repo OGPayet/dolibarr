@@ -85,8 +85,6 @@ class FormResource
     	    $out = '<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
     	    $out.= '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
     	}
-    	//$out.= '<input type="hidden" name="action" value="search">';
-    	//$out.= '<input type="hidden" name="id" value="'.$theme->id.'">';
 
     	if ($resourcestat)
     	{
@@ -153,7 +151,7 @@ class FormResource
      *
      *      @param	string	$selected       Id du type pre-selectionne
      *      @param  string	$htmlname       Nom de la zone select
-     *      @param  string	$filtertype     To filter on field type in llx_c_ticketsup_type (array('code'=>xx,'label'=>zz))
+     *      @param  string	$filtertype     To filter on field type in llx_c_ticket_type (array('code'=>xx,'label'=>zz))
      *      @param  int		$format         0=id+libelle, 1=code+code, 2=code+libelle, 3=id+code
      *      @param  int		$empty			1=peut etre vide, 0 sinon
      * 		@param	int		$noadmininfo	0=Add admin info, 1=Disable admin info
