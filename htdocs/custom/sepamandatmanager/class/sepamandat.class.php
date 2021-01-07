@@ -465,7 +465,11 @@ class SepaMandat extends CommonObject
 	 */
 	public function delete(User $user, $notrigger = false)
 	{
+		$this->db->begin();
 		$result = $this->deleteCommon($user, $notrigger);
+		if($result > 0) {
+			$result = $this->deleteObjectLinked();
+		}
 		if ($result > 0) {
 			$extendedEcm = new ExtendedEcm($this->db);
 			$files = $extendedEcm->fetchAll(null, null, null, null, array('filepath' => $this->getRelativePathToDolDataRoot()));
@@ -473,6 +477,12 @@ class SepaMandat extends CommonObject
 				$file->deleteFile();
 			}
 			dol_delete_dir($this->getAbsolutePath());
+		}
+		if($result >= 0) {
+			$this->db->commit();
+		}
+		else {
+			$this->db->rollback();
 		}
 		return $result;
 	}

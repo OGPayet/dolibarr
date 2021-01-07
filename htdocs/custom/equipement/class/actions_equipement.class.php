@@ -30,34 +30,34 @@ class ActionsEquipement // extends CommonObject
 	 *  @param	  action			 current action (if set). Generally create or edit or null
 	 *  @return	   void
 	 */
-	function printSearchForm($parameters, $object, $action)
-	{
-		global $conf, $langs;
+	// function printSearchForm($parameters, $object, $action)
+	// {
+	// 	global $conf, $langs;
 
-		// pour les anciennes version ou si on a activ� l'ancienne recherche
-		if (DOL_VERSION < "3.9.1" || $conf->global->MAIN_USE_OLD_SEARCH_FORM == 1) {
-			$langs->load("equipement@equipement");
-			$title = img_object('', 'equipement@equipement').' '.$langs->trans("Equipements");
-			$ret='';
-			$ret.='<form action="'.dol_buildpath('/equipement/list.php',1 ).'" method="post">';
-			$ret.='<div class="menu_titre menu_titre_search">';
-			$ret.='<a class="vsmenu" href="'.dol_buildpath('/equipement/list.php', 1).'">';
-			$ret.=$title.'</a><br>';
-			$ret.='</div>';
-			$ret.='<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			$ret.='<input type="hidden" name="mode" value="search">';
-			$ret.='<input type="text" class="flat" ';
-			if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER))
-				$ret.=' placeholder="'.$langs->trans("SearchOf").''.strip_tags($title).'"';
-			else
-				$ret.=' title="'.$langs->trans("SearchOf").''.strip_tags($title).'"';
-			$ret.=' name="search_ref" size="10" />&nbsp;';
-			$ret.='<input type="submit" class="button" style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px" value="'.$langs->trans("Go").'">';
-			$ret.="</form>\n";
-			$this->resprints=$ret;
-		}
-		return 0;
-	}
+	// 	// pour les anciennes version ou si on a activ� l'ancienne recherche
+	// 	if (DOL_VERSION < "3.9.1" || $conf->global->MAIN_USE_OLD_SEARCH_FORM == 1) {
+	// 		$langs->load("equipement@equipement");
+	// 		$title = img_object('', 'equipement@equipement').' '.$langs->trans("Equipements");
+	// 		$ret='';
+	// 		$ret.='<form action="'.dol_buildpath('/equipement/list.php',1 ).'" method="post">';
+	// 		$ret.='<div class="menu_titre menu_titre_search">';
+	// 		$ret.='<a class="vsmenu" href="'.dol_buildpath('/equipement/list.php', 1).'">';
+	// 		$ret.=$title.'</a><br>';
+	// 		$ret.='</div>';
+	// 		$ret.='<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	// 		$ret.='<input type="hidden" name="mode" value="search">';
+	// 		$ret.='<input type="text" class="flat" ';
+	// 		if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER))
+	// 			$ret.=' placeholder="'.$langs->trans("SearchOf").''.strip_tags($title).'"';
+	// 		else
+	// 			$ret.=' title="'.$langs->trans("SearchOf").''.strip_tags($title).'"';
+	// 		$ret.=' name="search_ref" size="10" />&nbsp;';
+	// 		$ret.='<input type="submit" class="button" style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px" value="'.$langs->trans("Go").'">';
+	// 		$ret.="</form>\n";
+	// 		$this->resprints=$ret;
+	// 	}
+	// 	return 0;
+	// }
 
 	function addSearchEntry ($parameters, $object, $action)
 	{

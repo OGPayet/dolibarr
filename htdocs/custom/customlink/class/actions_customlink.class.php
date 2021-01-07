@@ -60,7 +60,7 @@ class ActionsCustomlink // extends CommonObject
 		print "<input type=submit name=join value=".$langs->trans("Add")."></td>";
 		print "</tr>";
 		print '<tr><td colspan=2>';
-		// prévoir plus tard une liste de tag sélectionnable
+		// prï¿½voir plus tard une liste de tag sï¿½lectionnable
 		print '<input type="text" name=tag value="">';
 		print '</td></tr>';
 		print "</table>";
@@ -144,32 +144,32 @@ class ActionsCustomlink // extends CommonObject
 	 *  @param	  action			 current action (if set). Generally create or edit or null
 	 *  @return	   void
 	 */
-	function printSearchForm($parameters, $object, $action)
-	{
-		global $conf, $langs;
-		if (DOL_VERSION < "3.9.1") {
-			$langs->load("customlink@customlink");
-			$title = img_object('', 'customlink@customlink').' '.$langs->trans("ElementTags");
-			$ret='';
-			$ret.='<div class="menu_titre">';
-			$ret.='<a class="vsmenu" href="'.dol_buildpath('/customlink/listetag.php', 1).'">';
-			$ret.=$title.'</a><br>';
-			$ret.='</div>';
-			$ret.='<form action="'.dol_buildpath('/customlink/listetag.php', 1).'" method="post">';
-			$ret.='<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-			$ret.='<input type="text" class="flat" ';
-			if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER))
-				$ret.=' placeholder="'.$langs->trans("SearchOf").''.strip_tags($title).'"';
-			else
-				$ret.=' title="'.$langs->trans("SearchOf").''.strip_tags($title).'"';
-			$ret.=' name="tag" size="10" />&nbsp;';
-			$ret.='<input type="submit" class="button" value="'.$langs->trans("Go").'"';
-			$ret.=' style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px" >';
-			$ret.="</form>\n";
-			$this->resprints=$ret;
-		}
-		return 0;
-	}
+	// function printSearchForm($parameters, $object, $action)
+	// {
+	// 	global $conf, $langs;
+	// 	if (DOL_VERSION < "3.9.1") {
+	// 		$langs->load("customlink@customlink");
+	// 		$title = img_object('', 'customlink@customlink').' '.$langs->trans("ElementTags");
+	// 		$ret='';
+	// 		$ret.='<div class="menu_titre">';
+	// 		$ret.='<a class="vsmenu" href="'.dol_buildpath('/customlink/listetag.php', 1).'">';
+	// 		$ret.=$title.'</a><br>';
+	// 		$ret.='</div>';
+	// 		$ret.='<form action="'.dol_buildpath('/customlink/listetag.php', 1).'" method="post">';
+	// 		$ret.='<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+	// 		$ret.='<input type="text" class="flat" ';
+	// 		if (! empty($conf->global->MAIN_HTML5_PLACEHOLDER))
+	// 			$ret.=' placeholder="'.$langs->trans("SearchOf").''.strip_tags($title).'"';
+	// 		else
+	// 			$ret.=' title="'.$langs->trans("SearchOf").''.strip_tags($title).'"';
+	// 		$ret.=' name="tag" size="10" />&nbsp;';
+	// 		$ret.='<input type="submit" class="button" value="'.$langs->trans("Go").'"';
+	// 		$ret.=' style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px" >';
+	// 		$ret.="</form>\n";
+	// 		$this->resprints=$ret;
+	// 	}
+	// 	return 0;
+	// }
 
 	function addSearchEntry ($parameters, $object, $action)
 	{

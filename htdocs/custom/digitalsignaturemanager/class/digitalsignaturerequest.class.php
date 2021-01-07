@@ -527,6 +527,7 @@ class DigitalSignatureRequest extends CommonObject
 			$errors = array_merge($errors, $document->errors);
 		}
 		$this->deleteCommon($user, $notrigger);
+		$this->deleteObjectLinked();
 		$errors = array_merge($errors, $this->errors);
 		$this->errors = $errors;
 		if (empty($errors)) {

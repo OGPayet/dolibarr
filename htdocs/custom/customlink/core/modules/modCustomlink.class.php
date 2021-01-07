@@ -415,10 +415,10 @@ class modcustomlink extends DolibarrModules
 			$currentversion = $tblversionslast[count($tblversionslast)-1]->attributes()->Number;
 			$tblDolibarr=$sxelast->Dolibarr;
 			$minversionDolibarr=$tblDolibarr->attributes()->minVersion;
-			if (DOL_VERSION < $minversionDolibarr) {
-				$this->dolibarrminversion=$minversionDolibarr;
-				$this->disabled = true;
-			}
+			// if (DOL_VERSION < $minversionDolibarr) {
+			// 	$this->dolibarrminversion=$minversionDolibarr;
+			// 	$this->disabled = true;
+			// }
 		}
 		return $currentversion;
 	}
