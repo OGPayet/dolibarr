@@ -430,18 +430,21 @@ class DigitalSignatureRequest extends CommonObject
 		$result = $this->fetchCommon($id, $ref);
 		if ($result > 0) {
 			$result = $this->fetch_optionals();
+			if($result == 0) {
+				$result = 1;
+			}
 		}
-		if ($result >= 0) {
+		if ($result > 0) {
 			$result = $this->fetchAvailableCheckBox();
 		}
-		if ($result >= 0) {
+		if ($result > 0) {
 			$result = $this->fetchPeople();
 		}
-		if ($result >= 0) {
+		if ($result > 0) {
 			$result = $this->fetchDocuments();
 		}
 
-		if ($result >= 0) {
+		if ($result > 0) {
 			$result = $this->fetchSignatoryField();
 		}
 		return $result;
