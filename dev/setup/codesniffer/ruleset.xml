@@ -25,19 +25,19 @@
 		
 	<rule ref="Generic.CodeAnalysis.EmptyStatement" />
 
-	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedCATCH">
+	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedCatch">
 		<severity>0</severity>
 	</rule>
-	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedFOREACH">
+	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedForeach">
 		<severity>0</severity>
 	</rule>
-	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedIF">
+	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedIf">
 		<severity>0</severity>
 	</rule>
-	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedELSE">
+	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedElse">
 		<severity>0</severity>
 	</rule>
-	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedELSEIF">
+	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedElseif">
 		<severity>0</severity>
 	</rule>
 	
@@ -126,12 +126,12 @@
     <rule ref="Generic.Metrics.CyclomaticComplexity">
         <properties>
             <property name="complexity" value="120" />
-            <property name="absoluteComplexity" value="250" />
+            <property name="absoluteComplexity" value="300" />
         </properties>
     </rule>
     <rule ref="Generic.Metrics.NestingLevel">
         <properties>
-            <property name="nestingLevel" value="10" />
+            <property name="nestingLevel" value="12" />
             <property name="absoluteNestingLevel" value="50" />
         </properties>
     </rule>

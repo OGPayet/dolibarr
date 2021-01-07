@@ -48,10 +48,11 @@ $action = GETPOST('action', 'alpha');
  */
 
 
-if (preg_match('/set_(.*)/',$action,$reg))
+if (preg_match('/set_([a-z0-9_\-]+)/i',$action,$reg))
 {
 	$code=$reg[1];
-	if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
+	$value=(GETPOST($code, 'alpha') ? GETPOST($code, 'alpha') : 1);
+	if (dolibarr_set_const($db, $code, $value, 'chaine', 0, '', $conf->entity) > 0)
 	{
 		header("Location: ".$_SERVER["PHP_SELF"]);
 		exit;
@@ -62,7 +63,7 @@ if (preg_match('/set_(.*)/',$action,$reg))
 	}
 }
 
-if (preg_match('/del_(.*)/',$action,$reg))
+if (preg_match('/del_([a-z0-9_\-]+)/i',$action,$reg))
 {
 	$code=$reg[1];
 	if (dolibarr_del_const($db, $code, 0) > 0)
@@ -107,9 +108,7 @@ elseif ($action == 'update_currency')
 {
 	$error = 0;
 
-	$submit = GETPOST('submit', 'alpha');
-
-	if ($submit == $langs->trans('Modify'))
+	if (GETPOST('updatecurrency', 'alpha'))
 	{
 		$fk_multicurrency = GETPOST('fk_multicurrency', 'int');
 		$rate = price2num(GETPOST('rate', 'alpha'));
@@ -128,7 +127,7 @@ elseif ($action == 'update_currency')
 			}
 		}
 	}
-	elseif ($submit == $langs->trans('Delete'))
+	elseif (GETPOST('deletecurrency', 'alpha'))
 	{
 		$fk_multicurrency = GETPOST('fk_multicurrency', 'int');
 		$currency = new MultiCurrency($db);
@@ -179,7 +178,7 @@ $page_name = "MultiCurrencySetup";
 llxHeader('', $langs->trans($page_name));
 
 // Subheader
-$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">' . $langs->trans("BackToModuleList") . '</a>';
+$linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1">' . $langs->trans("BackToModuleList") . '</a>';
 print_fiche_titre($langs->trans($page_name), $linkback);
 
 // Configuration header
@@ -312,7 +311,7 @@ if (!empty($conf->global->MAIN_MULTICURRENCY_ALLOW_SYNCHRONIZATION))
 	print '</td></tr>';
 
 	print '</table>';
-	print '<br />';
+	print '<br>';
 }
 
 
@@ -356,8 +355,8 @@ foreach ($TCurrency as &$currency)
 	print '<input type="hidden" name="fk_multicurrency" value="'.$currency->id.'">';
 	print '1 '.$conf->currency.' = ';
 	print '<input type="text" name="rate" value="'.($currency->rate->rate ? $currency->rate->rate : '').'" size="13" />&nbsp;'.$currency->code.'&nbsp;';
-	print '<input type="submit" name="submit" class="button" value="'.$langs->trans("Modify").'">&nbsp;';
-	print '<input type="submit" name="submit" class="button" value="'.$langs->trans("Delete").'">';
+	print '<input type="submit" name="updatecurrency" class="button" value="'.$langs->trans("Modify").'">&nbsp;';
+	print '<input type="submit" name="deletecurrency" class="button" value="'.$langs->trans("Delete").'">';
 	print '</form>';
 
 	print '</td></tr>';

@@ -195,6 +195,7 @@ class pdf_typhon extends ModelePDFDeliveryOrder
                 $heightforinfotot = 30;	// Height reserved to output the info and total part
 		        $heightforfreetext= (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT)?$conf->global->MAIN_PDF_FREETEXT_HEIGHT:5);	// Height reserved to output the free text on last page
 	            $heightforfooter = $this->marge_basse + 8;	// Height reserved to output the footer (value include bottom margin)
+	            if ($conf->global->MAIN_GENERATE_DOCUMENTS_SHOW_FOOT_DETAILS >0) $heightforfooter+= 6;
                 $pdf->SetAutoPageBreak(1,0);
 
                 if (class_exists('TCPDF'))
@@ -283,11 +284,11 @@ class pdf_typhon extends ModelePDFDeliveryOrder
 						$pdf->writeHTMLCell(190, 3, $this->posxdesc-1, $tab_top-1, dol_htmlentitiesbr($desc_incoterms), 0, 1);
 						$nexY = $pdf->GetY();
 						$height_incoterms=$nexY-$tab_top;
-	
+
 						// Rect prend une longueur en 3eme param
 						$pdf->SetDrawColor(192,192,192);
 						$pdf->Rect($this->marge_gauche, $tab_top-1, $this->page_largeur-$this->marge_gauche-$this->marge_droite, $height_incoterms+1);
-	
+
 						$tab_top = $nexY+6;
 						$height_incoterms += 4;
 					}
@@ -566,6 +567,8 @@ class pdf_typhon extends ModelePDFDeliveryOrder
 				if (! empty($conf->global->MAIN_UMASK))
 					@chmod($file, octdec($conf->global->MAIN_UMASK));
 
+				$this->result = array('fullpath'=>$file);
+
 				return 1;	// pas d'erreur
 			}
 			else
@@ -660,14 +663,14 @@ class pdf_typhon extends ModelePDFDeliveryOrder
 		$pdf->line($this->posxqty, $tab_top, $this->posxqty, $tab_top + $tab_height);
 		if (empty($hidetop)) {
 			$pdf->SetXY($this->posxqty, $tab_top+1);
-			$pdf->MultiCell($this->posxremainingqty - $this->posxqty, 2, $outputlangs->transnoentities("QtyShipped"),'','R');
+			$pdf->MultiCell($this->posxremainingqty - $this->posxqty, 2, $outputlangs->transnoentities("QtyShippedShort"),'','R');
 		}
 
 		// Remain to ship
 		$pdf->line($this->posxremainingqty, $tab_top, $this->posxremainingqty, $tab_top + $tab_height);
 		if (empty($hidetop)) {
 			$pdf->SetXY($this->posxremainingqty, $tab_top+1);
-			$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->posxremainingqty, 2, $outputlangs->transnoentities("KeepToShip"),'','R');
+			$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->posxremainingqty, 2, $outputlangs->transnoentities("KeepToShipShort"),'','R');
 		}
 	}
 
@@ -753,43 +756,6 @@ class pdf_typhon extends ModelePDFDeliveryOrder
 		$pdf->SetTextColor(0,0,60);
 
 		$posy+=2;
-
-		// Add list of linked orders on shipment
-		// Currently not supported by pdf_writeLinkedObjects, link for delivery to order is done through shipment)
-		if ($object->origin == 'expedition' || $object->origin == 'shipping')
-		{
-			$Yoff=$posy-5;
-
-			include_once DOL_DOCUMENT_ROOT.'/expedition/class/expedition.class.php';
-			$shipment = new Expedition($this->db);
-			$shipment->fetch($object->origin_id);
-
-		    $origin 	= $shipment->origin;
-			$origin_id 	= $shipment->origin_id;
-
-			if ($conf->$origin->enabled)
-			{
-				$outputlangs->load('orders');
-
-				$classname = ucfirst($origin);
-				$linkedobject = new $classname($this->db);
-				$result=$linkedobject->fetch($origin_id);
-				if ($result >= 0)
-				{
-					$pdf->SetFont('','', $default_font_size - 2);
-					$text=$linkedobject->ref;
-					if ($linkedobject->ref_client) $text.=' ('.$linkedobject->ref_client.')';
-					$Yoff = $Yoff+8;
-					$pdf->SetXY($this->page_largeur - $this->marge_droite - 100,$Yoff);
-					$pdf->MultiCell(100, 2, $outputlangs->transnoentities("RefOrder") ." : ".$outputlangs->transnoentities($text), 0, 'R');
-					$Yoff = $Yoff+3;
-					$pdf->SetXY($this->page_largeur - $this->marge_droite - 60,$Yoff);
-					$pdf->MultiCell(60, 2, $outputlangs->transnoentities("OrderDate")." : ".dol_print_date($linkedobject->date,"day",false,$outputlangs,true), 0, 'R');
-				}
-			}
-
-			$posy=$Yoff;
-		}
 
 		// Show list of linked objects
 		$posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, 100, 3, 'R', $default_font_size);
