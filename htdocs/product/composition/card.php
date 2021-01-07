@@ -18,7 +18,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -45,7 +45,7 @@ $key=GETPOST('key');
 $parent=GETPOST('parent');
 
 // Security check
-if (! empty($user->societe_id)) $socid=$user->societe_id;
+if (! empty($user->socid)) $socid=$user->socid;
 $fieldvalue = (! empty($id) ? $id : (! empty($ref) ? $ref : ''));
 $fieldtype = (! empty($ref) ? 'ref' : 'rowid');
 $result=restrictedArea($user, 'produit|service', $fieldvalue, 'product&product', '', '', $fieldtype);
@@ -66,17 +66,20 @@ if ($id > 0 || ! empty($ref))
 
 if ($cancel) $action ='';
 
-// Action association d'un sousproduit
+// Add subproduct to product
 if ($action == 'add_prod' && ($user->rights->produit->creer || $user->rights->service->creer))
 {
 	$error=0;
-	for ($i=0; $i<$_POST["max_prod"]; $i++)
+
+	$maxprod = GETPOST("max_prod", 'int');
+	for ($i=0; $i < $maxprod; $i++)
 	{
-		if ($_POST["prod_qty_".$i] > 0)
+		$qty = price2num(GETPOST("prod_qty_".$i, 'alpha'), 'MS');
+		if ($qty > 0)
 		{
-			if ($object->add_sousproduit($id, $_POST["prod_id_".$i], $_POST["prod_qty_".$i], $_POST["prod_incdec_".$i]) > 0)
+			if ($object->add_sousproduit($id, GETPOST("prod_id_".$i, 'int'), $qty, GETPOST("prod_incdec_".$i, 'int')) > 0)
 			{
-				//var_dump($id.' - '.$_POST["prod_id_".$i].' - '.$_POST["prod_qty_".$i]);exit;
+				//var_dump($i.' '.GETPOST("prod_id_".$i, 'int'), $qty, GETPOST("prod_incdec_".$i, 'int'));
 				$action = 'edit';
 			}
 			else
@@ -94,7 +97,7 @@ if ($action == 'add_prod' && ($user->rights->produit->creer || $user->rights->se
 		}
 		else
 		{
-			if ($object->del_sousproduit($id, $_POST["prod_id_".$i]) > 0)
+			if ($object->del_sousproduit($id, GETPOST("prod_id_".$i, 'int')) > 0)
 			{
 				$action = 'edit';
 			}
@@ -106,6 +109,7 @@ if ($action == 'add_prod' && ($user->rights->produit->creer || $user->rights->se
 			}
 		}
 	}
+
 	if (! $error)
 	{
 		header("Location: ".$_SERVER["PHP_SELF"].'?id='.$object->id);
@@ -205,7 +209,7 @@ if ($id > 0 || ! empty($ref))
         $linkback = '<a href="'.DOL_URL_ROOT.'/product/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
 
         $shownav = 1;
-        if ($user->societe_id && ! in_array('product', explode(',', $conf->global->MAIN_MODULES_FOR_EXTERNAL))) $shownav=0;
+        if ($user->socid && ! in_array('product', explode(',', $conf->global->MAIN_MODULES_FOR_EXTERNAL))) $shownav=0;
 
         dol_banner_tab($object, 'ref', $linkback, $shownav, 'ref', '', '', '', 0, '', '', 0);
 
@@ -314,6 +318,7 @@ if ($id > 0 || ! empty($ref))
 		print load_fiche_titre($langs->trans("ProductAssociationList"), '', '');
 
 		print '<form name="formComposedProduct" action="'.$_SERVER['PHP_SELF'].'" method="post">';
+		print '<input type="hidden" name="token" value="'.newToken().'" />';
 		print '<input type="hidden" name="action" value="save_composed_product" />';
 		print '<input type="hidden" name="id" value="'.$id.'" />';
 
@@ -500,7 +505,7 @@ if ($id > 0 || ! empty($ref))
 			print '<input type="hidden" name="action" value="search">';
 			print '<input type="hidden" name="id" value="'.$id.'">';
 			print '<div class="inline-block">';
-			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="token" value="'.newToken().'">';
 			print $langs->trans("KeywordFilter").': ';
 			print '<input type="text" name="key" value="'.$key.'"> &nbsp; ';
 			print '</div>';
@@ -523,7 +528,7 @@ if ($id > 0 || ! empty($ref))
 		{
 			print '<br>';
 			print '<form action="'.DOL_URL_ROOT.'/product/composition/card.php?id='.$id.'" method="post">';
-			print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+			print '<input type="hidden" name="token" value="'.newToken().'">';
 			print '<input type="hidden" name="action" value="add_prod">';
 			print '<input type="hidden" name="id" value="'.$id.'">';
 			print '<table class="noborder centpercent">';
@@ -541,7 +546,9 @@ if ($id > 0 || ! empty($ref))
 
 				if($num == 0) print '<tr><td colspan="4">'.$langs->trans("NoMatchFound").'</td></tr>';
 
-				while ($i < $num)
+				$MAX = 100;
+
+				while ($i < min($num, $MAX))
 				{
 					$objp = $db->fetch_object($resql);
 					if($objp->rowid != $id)
@@ -573,7 +580,8 @@ if ($id > 0 || ! empty($ref))
 							}
 						}
 
-						print "\n".'<tr class="oddeven">';
+						print "\n";
+						print '<tr class="oddeven">';
 
 						$productstatic->id=$objp->rowid;
 						$productstatic->ref=$objp->ref;
@@ -620,6 +628,14 @@ if ($id > 0 || ! empty($ref))
 						print '</tr>';
 					}
 					$i++;
+				}
+				if ($num > $MAX) {
+					print '<tr class="oddeven">';
+					print '<td><span class="opacitymedium">'.$langs->trans("More").'...</span></td>';
+					print '<td></td>';
+					print '<td></td>';
+					print '<td></td>';
+					print '</tr>';
 				}
 			}
 			else

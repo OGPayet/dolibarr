@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -71,7 +71,7 @@ class modFournisseur extends DolibarrModules
 
 		// Dependencies
 		$this->depends = array("modSociete");
-		$this->requiredby = array();
+		$this->requiredby = array("modSupplierProposal");
 		$this->langfiles = array('bills', 'companies', 'suppliers', 'orders', 'sendings');
 
 		// Config pages
@@ -111,6 +111,13 @@ class modFournisseur extends DolibarrModules
 		$this->const[$r][4] = 0;
 		$r++;
 
+		$this->const[$r][0] = "SUPPLIER_ORDER_ADDON_PDF_ODT_PATH";
+		$this->const[$r][1] = "chaine";
+		$this->const[$r][2] = "DOL_DATA_ROOT/doctemplates/supplier_orders";
+		$this->const[$r][3] = '';
+		$this->const[$r][4] = 0;
+		$r++;
+
 		// Boxes
 		$this->boxes = array(
 		0=>array('file'=>'box_graph_invoices_supplier_permonth.php','enabledbydefaulton'=>'Home'),
@@ -119,6 +126,7 @@ class modFournisseur extends DolibarrModules
 		3=>array('file'=>'box_factures_fourn_imp.php','enabledbydefaulton'=>'Home'),
 		4=>array('file'=>'box_factures_fourn.php','enabledbydefaulton'=>'Home'),
 		5=>array('file'=>'box_supplier_orders.php','enabledbydefaulton'=>'Home'),
+		6=>array('file'=>'box_supplier_orders_awaiting_reception.php','enabledbydefaulton'=>'Home'),
 		);
 
 		// Permissions
@@ -276,7 +284,7 @@ class modFournisseur extends DolibarrModules
 
 		$r++;
 		$this->export_code[$r]=$this->rights_class.'_'.$r;
-		$this->export_label[$r]='Factures fournisseurs et lignes de facture';
+		$this->export_label[$r]='Vendor invoices and lines of invoices';
 		$this->export_icon[$r]='bill';
 		$this->export_permission[$r]=array(array("fournisseur","facture","export"));
 		$this->export_fields_array[$r]=array(
@@ -289,6 +297,14 @@ class modFournisseur extends DolibarrModules
 			'p.ref'=>'ProductRef','p.label'=>'ProductLabel','p.accountancy_code_buy'=>'ProductAccountancyBuyCode','project.rowid'=>'ProjectId',
 			'project.ref'=>'ProjectRef','project.title'=>'ProjectLabel'
 		);
+		if (! empty($conf->multicurrency->enabled))
+		{
+			$this->export_fields_array[$r]['f.multicurrency_code'] = 'Currency';
+			$this->export_fields_array[$r]['f.multicurrency_tx'] = 'CurrencyRate';
+			$this->export_fields_array[$r]['f.multicurrency_total_ht'] = 'MulticurrencyAmountHT';
+			$this->export_fields_array[$r]['f.multicurrency_total_tva'] = 'MulticurrencyAmountVAT';
+			$this->export_fields_array[$r]['f.multicurrency_total_ttc'] = 'MulticurrencyAmountTTC';
+		}
 		//$this->export_TypeFields_array[$r]=array(
 		//    's.rowid'=>"List:societe:CompanyName",'s.nom'=>'Text','s.address'=>'Text','s.zip'=>'Text','s.town'=>'Text','c.code'=>'Text','s.phone'=>'Text','s.siren'=>'Text','s.siret'=>'Text',
 		//    's.ape'=>'Text','s.idprof4'=>'Text','s.tva_intra'=>'Text','f.ref'=>"Text",'f.datec'=>"Date",'f.datef'=>"Date",'f.total_ht'=>"Numeric",'f.total_ttc'=>"Numeric",'f.total_tva'=>"Numeric",
@@ -312,7 +328,7 @@ class modFournisseur extends DolibarrModules
 		);
 		$this->export_dependencies_array[$r]=array('invoice_line'=>'fd.rowid','product'=>'fd.rowid'); // To add unique key if we ask a field of a child to avoid the DISTINCT to discard them
 		// Add extra fields object
-		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'facture_fourn'";
+		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'facture_fourn' AND entity IN (0, ".$conf->entity.")";
 		$resql=$this->db->query($sql);
 		if ($resql)    // This can fail when class is used on old database (during migration for example)
 		{
@@ -338,7 +354,10 @@ class modFournisseur extends DolibarrModules
 					case 'sellist':
 						$tmp='';
 						$tmpparam=unserialize($obj->param);	// $tmp ay be array 'options' => array 'c_currencies:code_iso:code_iso' => null
-						if ($tmpparam['options'] && is_array($tmpparam['options'])) $tmp=array_shift(array_keys($tmpparam['options']));
+						if ($tmpparam['options'] && is_array($tmpparam['options'])) {
+							$var=array_keys($tmpparam['options']);
+							$tmp=array_shift($var);
+						}
 						if (preg_match('/[a-z0-9_]+:[a-z0-9_]+:[a-z0-9_]+/', $tmp)) $typeFilter="List:".$tmp;
 						break;
 				}
@@ -349,7 +368,7 @@ class modFournisseur extends DolibarrModules
 		}
 		// End add extra fields
 		// Add extra fields line
-		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'facture_fourn_det'";
+		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'facture_fourn_det' AND entity IN (0, ".$conf->entity.")";
 		$resql=$this->db->query($sql);
 		if ($resql)    // This can fail when class is used on old database (during migration for example)
 		{
@@ -410,8 +429,16 @@ class modFournisseur extends DolibarrModules
 			's.tva_intra'=>'VATIntra','f.rowid'=>"InvoiceId",'f.ref'=>"InvoiceRef",'f.ref_supplier'=>"RefSupplier",'f.datec'=>"InvoiceDateCreation",
 			'f.datef'=>"DateInvoice",'f.total_ht'=>"TotalHT",'f.total_ttc'=>"TotalTTC",'f.total_tva'=>"TotalVAT",'f.paye'=>"InvoicePaid",
 			'f.fk_statut'=>'InvoiceStatus','f.note_public'=>"InvoiceNote",'p.rowid'=>'PaymentId','pf.amount'=>'AmountPayment',
-			'p.datep'=>'DatePayment','p.num_paiement'=>'PaymentNumber','project.rowid'=>'ProjectId','project.ref'=>'ProjectRef','project.title'=>'ProjectLabel'
+			'p.datep'=>'DatePayment','p.num_paiement'=>'PaymentNumber','p.fk_bank'=>'IdTransaction','project.rowid'=>'ProjectId','project.ref'=>'ProjectRef','project.title'=>'ProjectLabel'
 		);
+		if (! empty($conf->multicurrency->enabled))
+		{
+			$this->export_fields_array[$r]['f.multicurrency_code'] = 'Currency';
+			$this->export_fields_array[$r]['f.multicurrency_tx'] = 'CurrencyRate';
+			$this->export_fields_array[$r]['f.multicurrency_total_ht'] = 'MulticurrencyAmountHT';
+			$this->export_fields_array[$r]['f.multicurrency_total_tva'] = 'MulticurrencyAmountVAT';
+			$this->export_fields_array[$r]['f.multicurrency_total_ttc'] = 'MulticurrencyAmountTTC';
+		}
 		//$this->export_TypeFields_array[$r]=array(
 		//	's.rowid'=>"List:societe:CompanyName",'s.nom'=>'Text','s.address'=>'Text','s.zip'=>'Text','s.town'=>'Text','c.code'=>'Text','s.phone'=>'Text',
 		//	's.siren'=>'Text','s.siret'=>'Text','s.ape'=>'Text','s.idprof4'=>'Text','s.tva_intra'=>'Text','f.ref'=>"Text",'f.datec'=>"Date",'f.datef'=>"Date",
@@ -422,17 +449,17 @@ class modFournisseur extends DolibarrModules
 			's.nom'=>'Text','s.address'=>'Text','s.zip'=>'Text','s.town'=>'Text','c.code'=>'Text','s.phone'=>'Text','s.siren'=>'Text','s.siret'=>'Text','s.ape'=>'Text',
 			's.idprof4'=>'Text','s.tva_intra'=>'Text','f.ref'=>"Text",'f.ref_supplier'=>"Text",'f.datec'=>"Date",'f.datef'=>"Date",'f.total_ht'=>"Numeric",
 			'f.total_ttc'=>"Numeric",'f.total_tva'=>"Numeric",'f.paye'=>"Boolean",'f.fk_statut'=>'Status','f.note_public'=>"Text",'pf.amount'=>'Numeric',
-			'p.datep'=>'Date','p.num_paiement'=>'Numeric','project.ref'=>'Text','project.title'=>'Text'
+			'p.datep'=>'Date','p.num_paiement'=>'Numeric','p.fk_bank'=>'Numeric','project.ref'=>'Text','project.title'=>'Text'
 		);
 		$this->export_entities_array[$r]=array(
 			's.rowid'=>"company",'s.nom'=>'company','s.address'=>'company','s.zip'=>'company','s.town'=>'company','c.code'=>'company','s.phone'=>'company',
 			's.siren'=>'company','s.siret'=>'company','s.ape'=>'company','s.idprof4'=>'company','s.idprof5'=>'company','s.idprof6'=>'company','s.tva_intra'=>'company',
 			'f.rowid'=>"invoice",'f.ref'=>"invoice",'f.ref_supplier'=>"invoice",'f.datec'=>"invoice",'f.datef'=>"invoice",'f.total_ht'=>"invoice",
 			'f.total_ttc'=>"invoice",'f.total_tva'=>"invoice",'f.paye'=>"invoice",'f.fk_statut'=>'invoice','f.note_public'=>"invoice",'p.rowid'=>'payment','pf.amount'=>'payment',
-		    'p.datep'=>'payment','p.num_paiement'=>'payment','project.rowid'=>'project','project.ref'=>'project','project.title'=>'project');
+			'p.datep'=>'payment','p.num_paiement'=>'payment','p.fk_bank'=>'account','project.rowid'=>'project','project.ref'=>'project','project.title'=>'project');
 		$this->export_dependencies_array[$r]=array('payment'=>'p.rowid'); // To add unique key if we ask a field of a child to avoid the DISTINCT to discard them
 		// Add extra fields object
-		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'facture_fourn'";
+		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'facture_fourn' AND entity IN (0, ".$conf->entity.")";
 		$resql=$this->db->query($sql);
 		if ($resql)    // This can fail when class is used on old database (during migration for example)
 		{
@@ -484,7 +511,7 @@ class modFournisseur extends DolibarrModules
 		// Order
 		$r++;
 		$this->export_code[$r]=$this->rights_class.'_'.$r;
-		$this->export_label[$r]='Commandes fournisseurs et lignes de commandes';
+		$this->export_label[$r]='Purchase Orders and lines of purchase orders';
 		$this->export_icon[$r]='order';
 		$this->export_permission[$r]=array(array("fournisseur","commande","export"));
 		$this->export_fields_array[$r]=array(
@@ -497,6 +524,14 @@ class modFournisseur extends DolibarrModules
 			'fd.total_tva'=>"LineTotalVAT",'fd.product_type'=>'TypeOfLineServiceOrProduct','fd.ref'=>'RefSupplier','fd.fk_product'=>'ProductId',
 			'p.ref'=>'ProductRef','p.label'=>'ProductLabel','project.rowid'=>'ProjectId','project.ref'=>'ProjectRef','project.title'=>'ProjectLabel'
 		);
+		if (! empty($conf->multicurrency->enabled))
+		{
+			$this->export_fields_array[$r]['f.multicurrency_code'] = 'Currency';
+			$this->export_fields_array[$r]['f.multicurrency_tx'] = 'CurrencyRate';
+			$this->export_fields_array[$r]['f.multicurrency_total_ht'] = 'MulticurrencyAmountHT';
+			$this->export_fields_array[$r]['f.multicurrency_total_tva'] = 'MulticurrencyAmountVAT';
+			$this->export_fields_array[$r]['f.multicurrency_total_ttc'] = 'MulticurrencyAmountTTC';
+		}
 		if (empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED))
 		{
 			unset($this->export_fields_array['f.date_approve2']);
@@ -519,7 +554,7 @@ class modFournisseur extends DolibarrModules
 		);
 		$this->export_dependencies_array[$r]=array('order_line'=>'fd.rowid','product'=>'fd.rowid'); // To add unique key if we ask a field of a child to avoid the DISTINCT to discard them
 		// Add extra fields object
-		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'commande_fournisseur'";
+		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'commande_fournisseur' AND entity IN (0, ".$conf->entity.")";
 		$resql=$this->db->query($sql);
 		if ($resql)    // This can fail when class is used on old database (during migration for example)
 		{
@@ -557,7 +592,7 @@ class modFournisseur extends DolibarrModules
 		}
 		// End add extra fields object
 		// Add extra fields line
-		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'commande_fournisseurdet'";
+		$sql="SELECT name, label, type, param FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype = 'commande_fournisseurdet' AND entity IN (0, ".$conf->entity.")";
 		$resql=$this->db->query($sql);
 		if ($resql)    // This can fail when class is used on old database (during migration for example)
 		{
@@ -625,9 +660,27 @@ class modFournisseur extends DolibarrModules
 	 */
 	public function init($options = '')
 	{
-		global $conf;
+		global $conf, $langs;
 
 		$this->remove($options);
+
+		//ODT template
+		$src=DOL_DOCUMENT_ROOT.'/install/doctemplates/supplier_orders/template_supplier_order.odt';
+		$dirodt=DOL_DATA_ROOT.'/doctemplates/supplier_orders';
+		$dest=$dirodt.'/template_supplier_order.odt';
+
+		if (file_exists($src) && ! file_exists($dest))
+		{
+			require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+			dol_mkdir($dirodt);
+			$result=dol_copy($src, $dest, 0, 0);
+			if ($result < 0)
+			{
+				$langs->load("errors");
+				$this->error=$langs->trans('ErrorFailToCopyFile', $src, $dest);
+				return 0;
+			}
+		}
 
 		$sql = array(
 			 "DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = '".$this->db->escape($this->const[0][2])."' AND type = 'order_supplier' AND entity = ".$conf->entity,

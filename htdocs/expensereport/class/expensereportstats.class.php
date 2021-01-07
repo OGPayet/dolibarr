@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -41,6 +41,9 @@ class ExpenseReportStats extends Stats
     public $from;
     public $field;
     public $where;
+
+    private $datetouse = 'date_valid';
+
 
 	/**
 	 * Constructor
@@ -91,7 +94,7 @@ class ExpenseReportStats extends Stats
 	 */
 	public function getNbByYear()
 	{
-		$sql = "SELECT YEAR(".$this->db->ifsql('e.date_valid IS NULL', 'e.date_create', 'e.date_valid').") as dm, count(*)";
+		$sql = "SELECT YEAR(".$this->db->ifsql('e.'.$this->datetouse.' IS NULL', 'e.date_create', 'e.'.$this->datetouse).") as dm, count(*)";
 		$sql.= " FROM ".$this->from;
 		$sql.= " GROUP BY dm DESC";
 		$sql.= " WHERE ".$this->where;
@@ -104,14 +107,14 @@ class ExpenseReportStats extends Stats
 	 * 	Renvoie le nombre de facture par mois pour une annee donnee
 	 *
 	 *	@param	string	$year		Year to scan
-     *	@param	int		$format		0=Label of absiss is a translated text, 1=Label of absiss is month number, 2=Label of absiss is first letter of month
+     *	@param	int		$format		0=Label of abscissa is a translated text, 1=Label of abscissa is month number, 2=Label of abscissa is first letter of month
 	 *	@return	array				Array of values
 	 */
 	public function getNbByMonth($year, $format = 0)
 	{
-		$sql = "SELECT MONTH(".$this->db->ifsql('e.date_valid IS NULL', 'e.date_create', 'e.date_valid').") as dm, count(*)";
+		$sql = "SELECT MONTH(".$this->db->ifsql('e.'.$this->datetouse.' IS NULL', 'e.date_create', 'e.'.$this->datetouse).") as dm, count(*)";
 		$sql.= " FROM ".$this->from;
-		$sql.= " WHERE YEAR(e.date_valid) = ".$year;
+		$sql.= " WHERE YEAR(e.".$this->datetouse.") = ".$year;
 		$sql.= " AND ".$this->where;
 		$sql.= " GROUP BY dm";
         $sql.= $this->db->order('dm', 'DESC');
@@ -126,14 +129,14 @@ class ExpenseReportStats extends Stats
 	 * 	Renvoie le montant de facture par mois pour une annee donnee
 	 *
 	 *	@param	int		$year		Year to scan
-     *	@param	int		$format		0=Label of absiss is a translated text, 1=Label of absiss is month number, 2=Label of absiss is first letter of month
+     *	@param	int		$format		0=Label of abscissa is a translated text, 1=Label of abscissa is month number, 2=Label of abscissa is first letter of month
 	 *	@return	array				Array of values
 	 */
 	public function getAmountByMonth($year, $format = 0)
 	{
-		$sql = "SELECT date_format(".$this->db->ifsql('e.date_valid IS NULL', 'e.date_create', 'e.date_valid').",'%m') as dm, sum(".$this->field.")";
+		$sql = "SELECT date_format(".$this->db->ifsql('e.'.$this->datetouse.' IS NULL', 'e.date_create', 'e.'.$this->datetouse).",'%m') as dm, sum(".$this->field.")";
 		$sql.= " FROM ".$this->from;
-		$sql.= " WHERE date_format(".$this->db->ifsql('e.date_valid IS NULL', 'e.date_create', 'e.date_valid').",'%Y') = '".$year."'";
+		$sql.= " WHERE date_format(".$this->db->ifsql('e.'.$this->datetouse.' IS NULL', 'e.date_create', 'e.'.$this->datetouse).",'%Y') = '".$year."'";
 		$sql.= " AND ".$this->where;
 		$sql.= " GROUP BY dm";
 		$sql.= $this->db->order('dm', 'DESC');
@@ -151,9 +154,9 @@ class ExpenseReportStats extends Stats
 	 */
 	public function getAverageByMonth($year)
 	{
-		$sql = "SELECT date_format(".$this->db->ifsql('e.date_valid IS NULL', 'e.date_create', 'e.date_valid').",'%m') as dm, avg(".$this->field.")";
+		$sql = "SELECT date_format(".$this->db->ifsql('e.'.$this->datetouse.' IS NULL', 'e.date_create', 'e.'.$this->datetouse).",'%m') as dm, avg(".$this->field.")";
 		$sql.= " FROM ".$this->from;
-		$sql.= " WHERE date_format(".$this->db->ifsql('e.date_valid IS NULL', 'e.date_create', 'e.date_valid').",'%Y') = '".$year."'";
+		$sql.= " WHERE date_format(".$this->db->ifsql('e.'.$this->datetouse.' IS NULL', 'e.date_create', 'e.'.$this->datetouse).",'%Y') = '".$year."'";
 		$sql.= " AND ".$this->where;
 		$sql.= " GROUP BY dm";
         $sql.= $this->db->order('dm', 'DESC');
@@ -168,7 +171,7 @@ class ExpenseReportStats extends Stats
 	 */
 	public function getAllByYear()
 	{
-		$sql = "SELECT date_format(".$this->db->ifsql('e.date_valid IS NULL', 'e.date_create', 'e.date_valid').",'%Y') as year, count(*) as nb, sum(".$this->field.") as total, avg(".$this->field.") as avg";
+		$sql = "SELECT date_format(".$this->db->ifsql('e.'.$this->datetouse.' IS NULL', 'e.date_create', 'e.'.$this->datetouse).",'%Y') as year, count(*) as nb, sum(".$this->field.") as total, avg(".$this->field.") as avg";
 		$sql.= " FROM ".$this->from;
 		$sql.= " WHERE ".$this->where;
 		$sql.= " GROUP BY year";

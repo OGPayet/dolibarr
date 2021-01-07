@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  * Output code for the filemanager
  * $module must be defined ('ecm', 'medias', ...)
@@ -81,7 +81,7 @@ if ($permtoadd)
 else
 {
     print '<a href="#" class="inline-block valignmiddle toolbarbutton" title="'.$langs->trans("NotAllowed").'">';
-    print '<img class="toolbarbutton" border="0" src="'.DOL_URL_ROOT.'/theme/common/folder-new.png">';
+    print '<img class="toolbarbutton disabled" border="0" src="'.DOL_URL_ROOT.'/theme/common/folder-new.png">';
     print '</a>';
 }
 if ($module == 'ecm')
@@ -163,10 +163,11 @@ if (empty($action) || $action == 'editfile' || $action == 'file_manager' || preg
     	// Show the link to "Root"
     	if ($showroot)
     	{
-    		print '<tr><td><div style="padding-left: 5px; padding-right: 5px;"><a href="'.$_SERVER["PHP_SELF"].'?file_manager=1&pageid='.$pageid.'">'.$langs->trans("Root").'</a></div></td></tr>';
+    		print '<tr><td><div style="padding-left: 5px; padding-right: 5px;"><a href="'.$_SERVER["PHP_SELF"].'?file_manager=1&pageid='.$pageid.'">';
+    		if ($module == 'medias') print $langs->trans("RootOfMedias");
+    		else print $langs->trans("Root");
+    		print '</a></div></td></tr>';
     	}
-
-
 
     	print '<tr><td>';
 
@@ -177,7 +178,7 @@ if (empty($action) || $action == 'editfile' || $action == 'file_manager' || preg
 
 	    print '</td></tr>';
     }
-    else	// Show filtree when ajax is disabled (rare)
+    else	// Show file tree when ajax is disabled (rare)
     {
         print '<tr><td style="padding-left: 20px">';
 
@@ -211,7 +212,7 @@ if (empty($action) || $action == 'editfile' || $action == 'file_manager' || preg
 <div class="pane-in ecm-in-layout-center">
 <div id="ecmfileview" class="ecmfileview">
 <?php
-// Start right panel
+// Start right panel - List of content of a directory
 
 
 $mode='noajax';

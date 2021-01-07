@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  * You can call this page with param module=medias to get a filemanager for medias.
  */
@@ -35,7 +35,7 @@ require_once DOL_DOCUMENT_ROOT.'/ecm/class/ecmdirectory.class.php';
 $langs->loadLangs(array("ecm","companies","other","users","orders","propal","bills","contracts"));
 
 // Security check
-if ($user->societe_id) $socid=$user->societe_id;
+if ($user->socid) $socid=$user->socid;
 $result = restrictedArea($user, 'ecm', 0);
 
 // Get parameters
@@ -113,7 +113,7 @@ if (GETPOST("sendit", 'none') && ! empty($conf->global->MAIN_UPLOAD_DOC))
 		$res = dol_add_file_process($upload_dir, 0, 1, 'userfile', '', null, '', $generatethumbs);
 	    if ($res > 0)
 	    {
-	       $result=$ecmdir->changeNbOfFiles('+');
+	        $result=$ecmdir->changeNbOfFiles('+');
 	    }
 	}
 }
@@ -124,15 +124,17 @@ if ($action == 'confirm_deletefile')
 	if (GETPOST('confirm') == 'yes')
 	{
 		// GETPOST('urlfile','alpha') is full relative URL from ecm root dir. Contains path of all sections.
-		//var_dump(GETPOST('urlfile'));exit;
 
 		$upload_dir = $conf->ecm->dir_output.($relativepath?'/'.$relativepath:'');
 		$file = $upload_dir . "/" . GETPOST('urlfile', 'alpha');
+		//var_dump($file);exit;
 
 		$ret=dol_delete_file($file);	// This include also the delete from file index in database.
 		if ($ret)
 		{
-			setEventMessages($langs->trans("FileWasRemoved", GETPOST('urlfile', 'alpha')), null, 'mesgs');
+			$urlfiletoshow = GETPOST('urlfile', 'alpha');
+			$urlfiletoshow = preg_replace('/\.noexe$/', '', $urlfiletoshow);
+			setEventMessages($langs->trans("FileWasRemoved", $urlfiletoshow), null, 'mesgs');
 			$result=$ecmdir->changeNbOfFiles('-');
 		}
 		else
@@ -253,7 +255,7 @@ if ($action == 'refreshmanual')
                 }
             }
             else
-           {
+            {
                 dol_syslog("Parent is root");
                 $fk_parent=0;   // Parent is root
             }

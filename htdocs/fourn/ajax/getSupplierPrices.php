@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -84,6 +84,7 @@ if ($idprod > 0)
 		}
 	}
 
+	// After best supplier prices and before costprice
 	if(!empty($conf->stock->enabled))
 	{
 		// Add price for pmp
@@ -91,7 +92,7 @@ if ($idprod > 0)
 		$prices[] = array("id" => 'pmpprice', "price" => price2num($price), "label" => $langs->trans("PMPValueShort").': '.price($price, 0, $langs, 0, 0, -1, $conf->currency), "title" => $langs->trans("PMPValueShort").': '.price($price, 0, $langs, 0, 0, -1, $conf->currency));  // For price field, we must use price2num(), for label or title, price()
 	}
 
-	// Add price for costprice
+	// Add price for costprice (at end)
 	$price=$producttmp->cost_price;
 	$prices[] = array("id" => 'costprice', "price" => price2num($price), "label" => $langs->trans("CostPrice").': '.price($price, 0, $langs, 0, 0, -1, $conf->currency), "title" => $langs->trans("PMPValueShort").': '.price($price, 0, $langs, 0, 0, -1, $conf->currency));  // For price field, we must use price2num(), for label or title, price()
 }

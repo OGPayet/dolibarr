@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -47,11 +47,11 @@ class modLabel extends DolibarrModules
 		$this->module_position = '75';
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i', '', get_class($this));
-		$this->description = "Gestion des etiquettes";
+		$this->description = "Management of stickers";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
 		$this->version = 'development';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
-		$this->picto='label';
+		$this->picto='generic';
 
 		// Data directories to create when module is enabled
 		$this->dirs = array("/label/temp");

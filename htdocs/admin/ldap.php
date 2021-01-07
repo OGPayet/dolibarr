@@ -3,7 +3,7 @@
  * Copyright (C) 2004		Sebastien Di Cintio	<sdicintio@ressource-toi.org>
  * Copyright (C) 2004		Benoit Mortier		<benoit.mortier@opensides.be>
  * Copyright (C) 2005-2017	Regis Houssin		<regis.houssin@inodbox.com>
- * Copyright (C) 2006-2011	Laurent Destailleur	<eldy@users.sourceforge.net>
+ * Copyright (C) 2006-2020	Laurent Destailleur	<eldy@users.sourceforge.net>
  * Copyright (C) 2011-2013	Juanjo Menent		<jmenent@2byte.es>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,13 +17,13 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
  *      \file       htdocs/admin/ldap.php
  *      \ingroup    ldap
- *      \brief      Page d'administration/configuration du module Ldap
+ *      \brief      Page to setup module LDAP
  */
 
 require '../main.inc.php';
@@ -57,19 +57,19 @@ if (empty($reshook))
 		$error=0;
 
 		$db->begin();
-		if (! dolibarr_set_const($db, 'LDAP_SERVER_TYPE', GETPOST("type"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_SERVER_PROTOCOLVERSION', GETPOST("LDAP_SERVER_PROTOCOLVERSION"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_SERVER_HOST', GETPOST("host"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_SERVER_HOST_SLAVE', GETPOST("slave"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_SERVER_PORT', GETPOST("port"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_SERVER_DN', GETPOST("dn"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_ADMIN_DN', GETPOST("admin"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_ADMIN_PASS', GETPOST("pass"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_SERVER_USE_TLS', GETPOST("usetls"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_SYNCHRO_ACTIVE', GETPOST("activesynchro"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_CONTACT_ACTIVE', GETPOST("activecontact"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_MEMBER_ACTIVE', GETPOST("activemembers"), 'chaine', 0, '', $conf->entity)) $error++;
-		if (! dolibarr_set_const($db, 'LDAP_MEMBER_TYPE_ACTIVE', GETPOST("activememberstypes"), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_SERVER_TYPE', GETPOST("type", 'aZ09'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_SERVER_PROTOCOLVERSION', GETPOST("LDAP_SERVER_PROTOCOLVERSION", 'aZ09'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_SERVER_HOST', GETPOST("host", 'alphanohtml'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_SERVER_HOST_SLAVE', GETPOST("slave", 'alphanohtml'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_SERVER_PORT', GETPOST("port", 'int'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_SERVER_DN', GETPOST("dn", 'alphanohtml'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_ADMIN_DN', GETPOST("admin", 'alphanohtml'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_ADMIN_PASS', GETPOST("pass", 'none'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_SERVER_USE_TLS', GETPOST("usetls", 'aZ09'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_SYNCHRO_ACTIVE', GETPOST("activesynchro", 'aZ09'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_CONTACT_ACTIVE', GETPOST("activecontact", 'aZ09'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_MEMBER_ACTIVE', GETPOST("activemembers", 'aZ09'), 'chaine', 0, '', $conf->entity)) $error++;
+		if (! dolibarr_set_const($db, 'LDAP_MEMBER_TYPE_ACTIVE', GETPOST("activememberstypes", 'aZ09'), 'chaine', 0, '', $conf->entity)) $error++;
 
 		if (! $error)
 		{
@@ -107,11 +107,11 @@ $form=new Form($db);
 
 
 print '<form method="post" action="'.$_SERVER["PHP_SELF"].'?action=setvalue">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
 
 dol_fiche_head($head, 'ldap', $langs->trans("LDAPSetup"), -1);
 
-print '<table class="noborder" width="100%">';
+print '<table class="noborder centpercent">';
 
 // Liste de synchro actives
 print '<tr class="liste_titre">';

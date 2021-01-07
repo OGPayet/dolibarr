@@ -13,8 +13,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * or see http://www.gnu.org/
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * or see https://www.gnu.org/
  */
 
 /**
@@ -47,9 +47,10 @@ function dol_getwebuser($mode)
  *	@param		string	$passwordtotest		Password value to test
  *	@param		string	$entitytotest		Instance of data we must check
  *	@param		array	$authmode			Array list of selected authentication mode array('http', 'dolibarr', 'xxx'...)
+ *	@param		string	$context			Context checkLoginPassEntity was created for ('api', 'dav', 'ws', '')
  *  @return		string						Login or ''
  */
-function checkLoginPassEntity($usertotest, $passwordtotest, $entitytotest, $authmode)
+function checkLoginPassEntity($usertotest, $passwordtotest, $entitytotest, $authmode, $context = '')
 {
 	global $conf,$langs;
     //global $dolauthmode;    // To return authentication finally used
@@ -90,7 +91,7 @@ function checkLoginPassEntity($usertotest, $passwordtotest, $entitytotest, $auth
     			{
     				// Call function to check user/password
     				$function='check_user_password_'.$mode;
-    				$login=call_user_func($function, $usertotest, $passwordtotest, $entitytotest);
+    				$login=call_user_func($function, $usertotest, $passwordtotest, $entitytotest, $context);
     				if ($login)	// Login is successfull
     				{
     					$test=false;            // To stop once at first login success
@@ -103,7 +104,7 @@ function checkLoginPassEntity($usertotest, $passwordtotest, $entitytotest, $auth
     			}
     			else
     			{
-    				dol_syslog("Authentification ko - failed to load file '".$authfile."'", LOG_ERR);
+    				dol_syslog("Authentication KO - failed to load file '".$authfile."'", LOG_ERR);
     				sleep(1);
     				// Load translation files required by the page
                     $langs->loadLangs(array('other', 'main', 'errors'));
@@ -220,7 +221,7 @@ if (! function_exists('dol_loginfunction'))
 
 		// Show logo (search in order: small company logo, large company logo, theme logo, common logo)
 		$width=0;
-		$urllogo=DOL_URL_ROOT.'/theme/login_logo.png';
+		$urllogo=DOL_URL_ROOT.'/theme/common/login_logo.png';
 
 		if (! empty($mysoc->logo_small) && is_readable($conf->mycompany->dir_output.'/logos/thumbs/'.$mysoc->logo_small))
 		{
@@ -281,8 +282,11 @@ if (! function_exists('dol_loginfunction'))
 
 		// Set jquery theme
 		$dol_loginmesg = (! empty($_SESSION["dol_loginmesg"])?$_SESSION["dol_loginmesg"]:'');
-		$favicon=dol_buildpath('/theme/'.$conf->theme.'/img/favicon.ico', 1);
+
+		$favicon = DOL_URL_ROOT.'/theme/dolibarr_logo_256x256.png';
+		if (! empty($mysoc->logo_squarred_mini)) $favicon = DOL_URL_ROOT.'/viewimage.php?cache=1&modulepart=mycompany&file='.urlencode('logos/thumbs/'.$mysoc->logo_squarred_mini);
 		if (! empty($conf->global->MAIN_FAVICON_URL)) $favicon=$conf->global->MAIN_FAVICON_URL;
+
 		$jquerytheme = 'base';
 		if (! empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
 
@@ -463,15 +467,18 @@ function getRandomPassword($generic = false, $replaceambiguouschars = null, $len
 		{
 			$max = strlen($lowercase) - 1;
 			for ($x = 0; $x < $nbofchar; $x++) {
-				$randomCode .= $lowercase{random_int(0, $max)};
+				$tmp = random_int(0, $max);
+				$randomCode .= $lowercase[$tmp];
 			}
 			$max = strlen($uppercase) - 1;
 			for ($x = 0; $x < $nbofchar; $x++) {
-				$randomCode .= $uppercase{random_int(0, $max)};
+				$tmp = random_int(0, $max);
+				$randomCode .= $uppercase[$tmp];
 			}
 			$max = strlen($numbers) - 1;
 			for ($x = 0; $x < $nbofcharlast; $x++) {
-				$randomCode .= $numbers{random_int(0, $max)};
+				$tmp = random_int(0, $max);
+				$randomCode .= $numbers[$tmp];
 			}
 
 			$generated_password=str_shuffle($randomCode);
@@ -480,15 +487,18 @@ function getRandomPassword($generic = false, $replaceambiguouschars = null, $len
 		{
 			$max = strlen($lowercase) - 1;
 			for ($x = 0; $x < $nbofchar; $x++) {
-				$randomCode .= $lowercase{mt_rand(0, $max)};
+				$tmp = mt_rand(0, $max);
+				$randomCode .= $lowercase[$tmp];
 			}
 			$max = strlen($uppercase) - 1;
 			for ($x = 0; $x < $nbofchar; $x++) {
-				$randomCode .= $uppercase{mt_rand(0, $max)};
+				$tmp = mt_rand(0, $max);
+				$randomCode .= $uppercase[$tmp];
 			}
 			$max = strlen($numbers) - 1;
 			for ($x = 0; $x < $nbofcharlast; $x++) {
-				$randomCode .= $numbers{mt_rand(0, $max)};
+				$tmp = mt_rand(0, $max);
+				$randomCode .= $numbers[$tmp];
 			}
 
 			$generated_password=str_shuffle($randomCode);
@@ -512,11 +522,13 @@ function getRandomPassword($generic = false, $replaceambiguouschars = null, $len
 		$max = strlen($numbers) - 1;
 		if (function_exists('random_int'))	// Cryptographic random
 		{
-			$generated_password=str_replace($replaceambiguouschars, $numbers{random_int(0, $max)}, $generated_password);
+			$tmp = random_int(0, $max);
+			$generated_password=str_replace($replaceambiguouschars, $numbers[$tmp], $generated_password);
 		}
 		else
 		{
-			$generated_password=str_replace($replaceambiguouschars, $numbers{mt_rand(0, $max)}, $generated_password);
+			$tmp = mt_rand(0, $max);
+			$generated_password=str_replace($replaceambiguouschars, $numbers[$tmp], $generated_password);
 		}
 	}
 

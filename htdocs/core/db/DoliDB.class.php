@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -29,7 +29,7 @@ require_once DOL_DOCUMENT_ROOT .'/core/db/Database.interface.php';
  */
 abstract class DoliDB implements Database
 {
-	/** @var resource Database handler */
+	/** @var bool|resource|SQLite3 Database handler */
 	public $db;
 	/** @var string Database type */
 	public $type;
@@ -229,6 +229,7 @@ abstract class DoliDB implements Database
 	{
 		if (! empty($sortfield))
 		{
+			$oldsortorder = '';
 			$return='';
 			$fields=explode(',', $sortfield);
 			$orders=explode(',', $sortorder);
@@ -238,15 +239,19 @@ abstract class DoliDB implements Database
 				if (! $return) $return.=' ORDER BY ';
 				else $return.=', ';
 
-				$return.=preg_replace('/[^0-9a-z_\.]/i', '', $val);
+				$return .= preg_replace('/[^0-9a-z_\.]/i', '', $val);	// Add field
 
 				$tmpsortorder = trim($orders[$i]);
 
 				// Only ASC and DESC values are valid SQL
 				if (strtoupper($tmpsortorder) === 'ASC') {
+					$oldsortorder = 'ASC';
 					$return .= ' ASC';
 				} elseif (strtoupper($tmpsortorder) === 'DESC') {
+					$oldsortorder = 'DESC';
 					$return .= ' DESC';
+				} else {
+					$return .= ' '.($oldsortorder ? $oldsortorder : 'ASC');
 				}
 
 				$i++;

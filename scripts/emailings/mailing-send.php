@@ -17,7 +17,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -328,7 +328,7 @@ if ($resql) {
 							dol_syslog("error for emailing id " . $id . " #" . $i . ($mail->error ? ' - ' . $mail->error : ''), LOG_DEBUG);
 
 							$sqlerror = "UPDATE " . MAIN_DB_PREFIX . "mailing_cibles";
-							$sqlerror .= " SET statut=-1, date_envoi=" . $db->idate($now) . " WHERE rowid=" . $obj->rowid;
+							$sqlerror .= " SET statut=-1, date_envoi='" . $db->idate($now) . "' WHERE rowid=" . $obj->rowid;
 							$resqlerror = $db->query($sqlerror);
 							if (! $resqlerror) {
 								dol_print_error($db);

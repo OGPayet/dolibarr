@@ -4,7 +4,7 @@
  * Copyright (C) 2015       Florian Henry       <florian.henry@open-concept.pro>
  * Copyright (C) 2015       Raphaël Doursenaud  <rdoursenaud@gpcsolutions.fr>
  * Copyright (C) 2018       Francis Appels      <francis.appels@yahoo.com>
- * Copyright (C) ---Put here your own copyright and developer email---
+ * Copyright (C) 2019       Frédéric France     <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,11 +17,11 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
- * \file    ecm/ecmfiles.class.php
+ * \file    htdocs/ecm/class/ecmfiles.class.php
  * \ingroup ecm
  * \brief   Class to manage ECM Files (Create/Read/Update/Delete)
  */
@@ -138,7 +138,7 @@ class EcmFiles extends CommonObject
 			 $this->entity = trim($this->entity);
 		}
 		if (isset($this->filename)) {
-			 $this->filename = trim($this->filename);
+			 $this->filename = preg_replace('/\.noexe$/', '', trim($this->filename));
 		}
 		if (isset($this->filepath)) {
 			 $this->filepath = trim($this->filepath);
@@ -312,7 +312,7 @@ class EcmFiles extends CommonObject
 	 * @param  string $relativepath    	Relative path of file from document directory. Example: path/path2/file
 	 * @param  string $hashoffile      	Hash of file content. Take the first one found if same file is at different places. This hash will also change if file content is changed.
 	 * @param  string $hashforshare    	Hash of file sharing.
-	 * @param  string $src_object_type 	src_object_type to search
+	 * @param  string $src_object_type 	src_object_type to search (value of object->table_element)
 	 * @param  string $src_object_id 	src_object_id to search
 	 * @return int                 	   	<0 if KO, 0 if not found, >0 if OK
 	 */
@@ -346,12 +346,13 @@ class EcmFiles extends CommonObject
 		$sql .= " t.src_object_id";
 		$sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
 		$sql.= ' WHERE 1 = 1';
-		/* Fetching this table depends on filepath+filename, it must not depends on entity
+		/* Fetching this table depends on filepath+filename, it must not depends on entity because filesystem on disk does not know what is Dolibarr entities
 		if (! empty($conf->multicompany->enabled)) {
 		    $sql .= " AND entity IN (" . getEntity('ecmfiles') . ")";
 		}*/
 		if ($relativepath) {
-			$sql .= " AND t.filepath = '" . $this->db->escape(dirname($relativepath)) . "' AND t.filename = '".$this->db->escape(basename($relativepath))."'";
+			$relativepathwithnoexe = preg_replace('/\.noexe$/', '', $relativepath);		// We must never have the .noexe into the database
+			$sql .= " AND t.filepath = '" . $this->db->escape(dirname($relativepath)) . "' AND t.filename = '".$this->db->escape(basename($relativepathwithnoexe))."'";
 			$sql .= " AND t.entity = ".$conf->entity;				// unique key include the entity so each company has its own index
 		}
 		elseif (! empty($ref)) {		// hash of file path
@@ -552,46 +553,47 @@ class EcmFiles extends CommonObject
 		// Clean parameters
 
 		if (isset($this->ref)) {
-			 $this->ref = trim($this->ref);
+			$this->ref = trim($this->ref);
 		}
 		if (isset($this->label)) {
-			 $this->label = trim($this->label);
+			$this->label = trim($this->label);
 		}
 		if (isset($this->share)) {
-			 $this->share = trim($this->share);
+			$this->share = trim($this->share);
 		}
 		if (isset($this->entity)) {
-			 $this->entity = trim($this->entity);
+			$this->entity = trim($this->entity);
 		}
 		if (isset($this->filename)) {
-			 $this->filename = trim($this->filename);
+			$this->filename = preg_replace('/\.noexe$/', '', trim($this->filename));
 		}
 		if (isset($this->filepath)) {
-			 $this->filepath = trim($this->filepath);
+			$this->filepath = trim($this->filepath);
+			$this->filepath = preg_replace('/[\\/]+$/', '', $this->filepath);		// Remove last /
 		}
 		if (isset($this->fullpath_orig)) {
-			 $this->fullpath_orig = trim($this->fullpath_orig);
+			$this->fullpath_orig = trim($this->fullpath_orig);
 		}
 		if (isset($this->description)) {
-			 $this->description = trim($this->description);
+			$this->description = trim($this->description);
 		}
 		if (isset($this->keywords)) {
-			 $this->keywords = trim($this->keywords);
+			$this->keywords = trim($this->keywords);
 		}
 		if (isset($this->cover)) {
-			 $this->cover = trim($this->cover);
+			$this->cover = trim($this->cover);
 		}
 		if (isset($this->gen_or_uploaded)) {
-			 $this->gen_or_uploaded = trim($this->gen_or_uploaded);
+			$this->gen_or_uploaded = trim($this->gen_or_uploaded);
 		}
 		if (isset($this->extraparams)) {
-			 $this->extraparams = trim($this->extraparams);
+			$this->extraparams = trim($this->extraparams);
 		}
 		if (isset($this->fk_user_m)) {
-			 $this->fk_user_m = trim($this->fk_user_m);
+			$this->fk_user_m = trim($this->fk_user_m);
 		}
 		if (isset($this->acl)) {
-			 $this->acl = trim($this->acl);
+			$this->acl = trim($this->acl);
 		}
 		if (isset($this->src_object_type)) {
 			$this->src_object_type = trim($this->src_object_type);

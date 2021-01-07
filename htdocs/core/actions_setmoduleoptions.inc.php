@@ -12,8 +12,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * or see http://www.gnu.org/
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * or see https://www.gnu.org/
  */
 
 /**
@@ -64,6 +64,7 @@ if ($action == 'setModuleOptions')
     {
         foreach($_POST as $key => $val)
         {
+        	$reg = array();
             if (preg_match('/^param(\d*)$/', $key, $reg))    // Works for POST['param'], POST['param1'], POST['param2'], ...
             {
                 $param=GETPOST("param".$reg[1], 'alpha');

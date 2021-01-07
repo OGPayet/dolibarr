@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -43,18 +43,19 @@ class Export
     public $array_export_sql_order=array();        // Tableau des "requetes sql"
 
     public $array_export_fields=array();           // Tableau des listes de champ+libelle a exporter
-    public $array_export_TypeFields=array();		// Tableau des listes de champ+Type de filtre
-    public $array_export_FilterValue=array();		// Tableau des listes de champ+Valeur a filtrer
+    public $array_export_TypeFields=array();	   // Tableau des listes de champ+Type de filtre
+    public $array_export_FilterValue=array();	   // Tableau des listes de champ+Valeur a filtrer
     public $array_export_entities=array();         // Tableau des listes de champ+alias a exporter
     public $array_export_dependencies=array();     // array of list of entities that must take care of the DISTINCT if a field is added into export
-    public $array_export_special=array();          // Tableau des operations speciales sur champ
-    public $array_export_examplevalues=array();    // array with examples
+    public $array_export_special=array();          // array of special operations to do on field
+    public $array_export_examplevalues=array();    // array with examples for fields
+	public $array_export_help=array();			   // array with tooltip help for fields
 
     // To store export modules
-    public $hexa;
-    public $hexafiltervalue;
+    public $hexa;									// List of fields in the export profile
+    public $hexafiltervalue;						// List of search criteria in the export profile
     public $datatoexport;
-    public $model_name;
+    public $model_name;								// Name of export profile
 
     public $sqlusedforexport;
 
@@ -186,6 +187,8 @@ class Export
 									$this->array_export_special[$i]=(! empty($module->export_special_array[$r])?$module->export_special_array[$r]:'');
             						// Array of examples
             						$this->array_export_examplevalues[$i]=$module->export_examplevalues_array[$r];
+            						// Array of help tooltips
+            						$this->array_export_help[$i]=(! empty($module->export_help_array[$r])?$module->export_help_array[$r]:'');
 
 									// Requete sql du dataset
 									$this->array_export_sql_start[$i]=$module->export_sql_start[$r];
@@ -399,8 +402,7 @@ class Export
 			    $szFilterField='<input type="text" size="6" name="'.$NameField.'" value="'.$ValueField.'">';
 				break;
 			case 'Status':
-				if (! empty($conf->global->MAIN_ACTIVATE_HTML5)) $szFilterField='<input type="number" size="6" name="'.$NameField.'" value="'.$ValueField.'">';
-				else $szFilterField='<input type="text" size="6" name="'.$NameField.'" value="'.$ValueField.'">';
+				$szFilterField='<input type="number" size="6" name="'.$NameField.'" value="'.$ValueField.'">';
 				break;
 			case 'Boolean':
 				$szFilterField='<select name="'.$NameField.'" class="flat">';
@@ -545,7 +547,7 @@ class Export
 		$indice=0;
 		asort($array_selected);
 
-		dol_syslog(get_class($this)."::".__FUNCTION__." ".$model.", ".$datatoexport.", ".implode(",", $array_selected));
+		dol_syslog(__METHOD__." ".$model.", ".$datatoexport.", ".implode(",", $array_selected));
 
 		// Check parameters or context properties
 		if (empty($this->array_export_fields) || ! is_array($this->array_export_fields))
@@ -586,7 +588,7 @@ class Export
 
 		// Run the sql
 		$this->sqlusedforexport=$sql;
-		dol_syslog(get_class($this)."::".__FUNCTION__."", LOG_DEBUG);
+		dol_syslog(__METHOD__."", LOG_DEBUG);
 		$resql = $this->db->query($sql);
 		if ($resql)
 		{
@@ -658,6 +660,7 @@ class Export
 								    }
 								    $tmpobjforcomputecall->id = $obj->f_rowid;
 								    $tmpobjforcomputecall->total_ttc = $obj->f_total_ttc;
+								    $tmpobjforcomputecall->close_code = $obj->f_close_code;
 								    $remaintopay=$tmpobjforcomputecall->getRemainToPay();
 								}
 								$obj->$alias=$remaintopay;
