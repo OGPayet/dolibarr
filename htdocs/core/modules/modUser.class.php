@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2005      Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2005-2009 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ class modUser extends DolibarrModules
 		$this->numero = 0;
 
 		$this->family = "hr";		// Family for module (or "base" if core module)
-		$this->module_position = 10;
+		$this->module_position = '10';
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		$this->description = "Gestion des utilisateurs (requis)";
@@ -63,9 +63,12 @@ class modUser extends DolibarrModules
 		// Config pages
 		$this->config_page_url = array("user.php");
 
-		// Dependancies
-		$this->depends = array();
-		$this->requiredby = array();
+		// Dependencies
+		$this->hidden = false;			// A condition to hide module
+		$this->depends = array();		// List of module class names as string that must be enabled if this module is enabled
+		$this->requiredby = array();	// List of module ids to disable if this one is disabled
+		$this->conflictwith = array();	// List of module class names as string this module is in conflict with
+		$this->phpmin = array(5,4);		// Minimum version of PHP required by module
 		$this->langfiles = array("main","users","companies","members",'salaries');
 		$this->always_enabled = true;	// Can't be disabled
 
@@ -205,13 +208,10 @@ class modUser extends DolibarrModules
 
 
         // Menus
-        //-------
-
         $this->menu = 1;        // This module add menu entries. They are coded into menu manager.
 
 
 		// Exports
-		//--------
 		$r=0;
 
 		$r++;
@@ -264,7 +264,6 @@ class modUser extends DolibarrModules
 		$this->export_sql_end[$r] .=' WHERE u.entity IN ('.getEntity('user').')';
 
 		// Imports
-		//--------
 		$r=0;
 
 		// Import list of users attributes
@@ -321,7 +320,6 @@ class modUser extends DolibarrModules
 		    'u.statut'=>"0 (closed) or 1 (active)",
 		);
 		$this->import_updatekeys_array[$r]=array('u.lastname'=>'Lastname','u.firstname'=>'Firstname','u.login'=>'Login');
-
 	}
 
 

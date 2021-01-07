@@ -2,11 +2,12 @@
 /* Copyright (C) 2004-2006 Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2016 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2005      Eric Seigne          <eric.seigne@ryxeo.com>
- * Copyright (C) 2005-2009 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2009 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2010      Juanjo Menent        <jmenent@2byte.es>
  * Copyright (C) 2014      Cedric Gross         <c.gross@kreiz-it.fr>
- * Copyright (C) 2016      Florian Henry         <florian.henry@atm-consulting.fr>
+ * Copyright (C) 2016      Florian Henry        <florian.henry@atm-consulting.fr>
  * Copyright (C) 2017      Ferran Marcet        <fmarcet@2byte.es>
+ * Copyright (C) 2018      Frédéric France      <frederic.france@netlogic.fr>
  *
  * This	program	is free	software; you can redistribute it and/or modify
  * it under the	terms of the GNU General Public	License	as published by
@@ -39,13 +40,9 @@ require_once DOL_DOCUMENT_ROOT . '/product/class/html.formproduct.class.php';
 if (! empty($conf->projet->enabled))
 	require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
 
-$langs->load('orders');
-$langs->load('sendings');
-$langs->load('companies');
-$langs->load('bills');
-$langs->load('deliveries');
-$langs->load('products');
-$langs->load('stocks');
+// Load translation files required by the page
+$langs->loadLangs(array("bills", "orders", "sendings", "companies", "deliveries", "products", "stocks"));
+
 if (! empty($conf->productbatch->enabled))
 	$langs->load('productbatch');
 
@@ -492,13 +489,37 @@ if ($id > 0 || ! empty($ref)) {
 			$db->free($resql);
 		}
 
-		$sql = "SELECT l.rowid, l.fk_product, l.subprice, l.remise_percent, SUM(l.qty) as qty,";
+		$sql = "SELECT l.rowid, l.fk_product, l.subprice, l.remise_percent, l.ref AS sref, SUM(l.qty) as qty,";
 		$sql .= " p.ref, p.label, p.tobatch, p.fk_default_warehouse";
+
+        // Enable hooks to alter the SQL query (SELECT)
+        $parameters = array();
+        $reshook = $hookmanager->executeHooks(
+            'printFieldListSelect',
+            $parameters,
+            $object,
+            $action
+        );
+        if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+        $sql .= $hookmanager->resPrint;
+
 		$sql .= " FROM " . MAIN_DB_PREFIX . "commande_fournisseurdet as l";
 		$sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product as p ON l.fk_product=p.rowid";
 		$sql .= " WHERE l.fk_commande = " . $object->id;
 		if (empty($conf->global->STOCK_SUPPORTS_SERVICES))
 			$sql .= " AND l.product_type = 0";
+
+        // Enable hooks to alter the SQL query (WHERE)
+        $parameters = array();
+        $reshook = $hookmanager->executeHooks(
+            'printFieldListWhere',
+            $parameters,
+            $object,
+            $action
+        );
+        if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+        $sql .= $hookmanager->resPrint;
+
 		$sql .= " GROUP BY p.ref, p.label, p.tobatch, l.rowid, l.fk_product, l.subprice, l.remise_percent, p.fk_default_warehouse"; // Calculation of amount dispatched is done per fk_product so we must group by fk_product
 		$sql .= " ORDER BY p.ref, p.label";
 
@@ -511,7 +532,7 @@ if ($id > 0 || ! empty($ref)) {
 				print '<tr class="liste_titre">';
 
 				print '<td>' . $langs->trans("Description") . '</td>';
-				if (!empty($conf->productbatch->enabled))
+				if (! empty($conf->productbatch->enabled))
 				{
 					print '<td class="dispatch_batch_number_title">'.$langs->trans("batch_number").'</td>';
 					print '<td class="dispatch_dluo_title">'.$langs->trans("EatByDate").'</td>';
@@ -521,13 +542,26 @@ if ($id > 0 || ! empty($ref)) {
 				{
 					print '<td></td>';
 					print '<td></td>';
-					print '<td></td>';					
+					print '<td></td>';
 				}
+				print '<td align="right">' . $langs->trans("SupplierRef") . '</td>';
 				print '<td align="right">' . $langs->trans("QtyOrdered") . '</td>';
 				print '<td align="right">' . $langs->trans("QtyDispatchedShort") . '</td>';
 				print '<td align="right">' . $langs->trans("QtyToDispatchShort") . '</td>';
 				print '<td width="32"></td>';
 				print '<td align="right">' . $langs->trans("Warehouse") . '</td>';
+
+                // Enable hooks to append additional columns
+                $parameters = array();
+                $reshook = $hookmanager->executeHooks(
+                    'printFieldListTitle',
+                    $parameters,
+                    $object,
+                    $action
+                );
+                if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+                print $hookmanager->resPrint;
+
 				print "</tr>\n";
 			}
 
@@ -535,7 +569,6 @@ if ($id > 0 || ! empty($ref)) {
 			$nbproduct = 0;			// Nb of predefined product lines to dispatch (already done or not) if SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED is off (default)
 									// or nb of line that remain to dispatch if SUPPLIER_ORDER_DISABLE_STOCK_DISPATCH_WHEN_TOTAL_REACHED is on.
 
-			$var = false;
 			while ( $i < $num ) {
 				$objp = $db->fetch_object($resql);
 
@@ -594,6 +627,9 @@ if ($id > 0 || ! empty($ref)) {
 						if (! empty($objp->remise_percent) && empty($conf->global->STOCK_EXCLUDE_DISCOUNT_FOR_PMP))
 							$up_ht_disc = price2num($up_ht_disc * (100 - $objp->remise_percent) / 100, 'MU');
 
+						// Supplier ref
+						print '<td align="right">'.$objp->sref.'</td>';
+
 						// Qty ordered
 						print '<td align="right">' . $objp->qty . '</td>';
 
@@ -608,6 +644,23 @@ if ($id > 0 || ! empty($ref)) {
 							//print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
 							print '</td>';     // Dispatch column
 							print '<td></td>'; // Warehouse column
+
+                            // Enable hooks to append additional columns
+                            $parameters = array(
+                                'is_information_row' => true, // allows hook to distinguish between the
+                                                              // rows with information and the rows with
+                                                              // dispatch form input
+                                'objp' => $objp
+                            );
+                            $reshook = $hookmanager->executeHooks(
+                                'printFieldListValue',
+                                $parameters,
+                                $object,
+                                $action
+                            );
+                            if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+                            print $hookmanager->resPrint;
+
 							print '</tr>';
 
 							print '<tr class="oddeven" name="' . $type . $suffix . '">';
@@ -632,15 +685,15 @@ if ($id > 0 || ! empty($ref)) {
 							print '</td>';
 							print '<td class="nowraponall">';
 							$dlcdatesuffix = dol_mktime(0, 0, 0, GETPOST('dlc' . $suffix . 'month'), GETPOST('dlc' . $suffix . 'day'), GETPOST('dlc' . $suffix . 'year'));
-							$form->select_date($dlcdatesuffix, 'dlc' . $suffix, '', '', 1, "");
+							print $form->selectDate($dlcdatesuffix, 'dlc' . $suffix, '', '', 1, '');
 							print '</td>';
 							print '<td class="nowraponall">';
 							$dluodatesuffix = dol_mktime(0, 0, 0, GETPOST('dluo' . $suffix . 'month'), GETPOST('dluo' . $suffix . 'day'), GETPOST('dluo' . $suffix . 'year'));
-							$form->select_date($dluodatesuffix, 'dluo' . $suffix, '', '', 1, "");
+							print $form->selectDate($dluodatesuffix, 'dluo' . $suffix, '', '', 1, '');
 							print '</td>';
-							print '<td colspan="2">&nbsp</td>'; // Qty ordered + qty already dispatached
+							print '<td colspan="3">&nbsp</td>'; // Supplier ref + Qty ordered + qty already dispatched
 						} else {
-							
+
 							$type = 'dispatch';
 							print '<td align="right">';
 							print '</td>';     // Qty to dispatch
@@ -648,10 +701,27 @@ if ($id > 0 || ! empty($ref)) {
 							//print img_picto($langs->trans('AddStockLocationLine'), 'split.png', 'onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
 							print '</td>';      // Dispatch column
 							print '<td></td>'; // Warehouse column
+
+                            // Enable hooks to append additional columns
+                            $parameters = array(
+                                'is_information_row' => true, // allows hook to distinguish between the
+                                                              // rows with information and the rows with
+                                                              // dispatch form input
+                                'objp' => $objp
+                            );
+                            $reshook = $hookmanager->executeHooks(
+                                'printFieldListValue',
+                                $parameters,
+                                $object,
+                                $action
+                            );
+                            if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+                            print $hookmanager->resPrint;
+
 							print '</tr>';
 
 							print '<tr class="oddeven" name="' . $type . $suffix . '">';
-							print '<td colspan="6">';
+							print '<td colspan="7">';
 							print '<input name="fk_commandefourndet' . $suffix . '" type="hidden" value="' . $objp->rowid . '">';
 							print '<input name="product' . $suffix . '" type="hidden" value="' . $objp->fk_product . '">';
 
@@ -673,7 +743,7 @@ if ($id > 0 || ! empty($ref)) {
 						print '<input id="qty' . $suffix . '" name="qty' . $suffix . '" type="text" class="width50 right" value="' . (GETPOST('qty' . $suffix) != '' ? GETPOST('qty' . $suffix) : $remaintodispatch) . '">';
 						print '</td>';
 
-                        print '<td>';
+						print '<td>';
 						if (! empty($conf->productbatch->enabled) && $objp->tobatch == 1) {
 						    $type = 'batch';
 						    //print img_picto($langs->trans('AddDispatchBatchLine'), 'split.png', 'class="splitbutton" onClick="addDispatchLine(' . $i . ',\'' . $type . '\')"');
@@ -698,6 +768,19 @@ if ($id > 0 || ! empty($ref)) {
 							print $langs->trans("ErrorNoWarehouseDefined");
 						}
 						print "</td>\n";
+
+                        // Enable hooks to append additional columns
+                        $parameters = array(
+                            'is_information_row' => false // this is a dispatch form row
+                        );
+                        $reshook = $hookmanager->executeHooks(
+                            'printFieldListValue',
+                            $parameters,
+                            $object,
+                            $action
+                        );
+                        if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+                        print $hookmanager->resPrint;
 
 						print "</tr>\n";
 					}
@@ -793,8 +876,6 @@ if ($id > 0 || ! empty($ref)) {
 			print '<td>' . $langs->trans("Date") . '</td>';
 			print "</tr>\n";
 
-			$var = false;
-
 			while ( $i < $num ) {
 				$objp = $db->fetch_object($resql);
 
@@ -868,7 +949,6 @@ if ($id > 0 || ! empty($ref)) {
 				print "</tr>\n";
 
 				$i ++;
-				$var = ! $var;
 			}
 			$db->free($resql);
 
@@ -880,6 +960,6 @@ if ($id > 0 || ! empty($ref)) {
 	}
 }
 
+// End of page
 llxFooter();
-
 $db->close();

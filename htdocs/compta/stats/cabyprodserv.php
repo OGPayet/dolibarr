@@ -1,7 +1,8 @@
 <?php
-/* Copyright (C) 2013      Antoine Iauch	   <aiauch@gpcsolutions.fr>
- * Copyright (C) 2013-2016 Laurent Destailleur <eldy@users.sourceforge.net>
- * Copyright (C) 2015      Raphaël Doursenaud  <rdoursenaud@gpcsolutions.fr>
+/* Copyright (C) 2013       Antoine Iauch	        <aiauch@gpcsolutions.fr>
+ * Copyright (C) 2013-2016  Laurent Destailleur     <eldy@users.sourceforge.net>
+ * Copyright (C) 2015       Raphaël Doursenaud      <rdoursenaud@gpcsolutions.fr>
+ * Copyright (C) 2018       Frédéric France         <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,22 +122,24 @@ $year_end = $tmpe['year'];
 $nbofyear = ($year_end - $year_start) + 1;
 
 $commonparams=array();
-$commonparams['modecompta']=$modecompta;
-$commonparams['sortorder'] = $sortorder;
-$commonparams['sortfield'] = $sortfield;
+if(!empty($modecompta)) $commonparams['modecompta']=$modecompta;
+if(!empty($sortorder)) $commonparams['sortorder'] = $sortorder;
+if(!empty($sortfield)) $commonparams['sortfield'] = $sortfield;
 
 $headerparams = array();
-$headerparams['date_startyear'] = $date_startyear;
-$headerparams['date_startmonth'] = $date_startmonth;
-$headerparams['date_startday'] = $date_startday;
-$headerparams['date_endyear'] = $date_endyear;
-$headerparams['date_endmonth'] = $date_endmonth;
-$headerparams['date_endday'] = $date_endday;
+if(!empty($date_startyear)) $headerparams['date_startyear'] = $date_startyear;
+if(!empty($date_startmonth)) $headerparams['date_startmonth'] = $date_startmonth;
+if(!empty($date_startday)) $headerparams['date_startday'] = $date_startday;
+if(!empty($date_endyear)) $headerparams['date_endyear'] = $date_endyear;
+if(!empty($date_endmonth)) $headerparams['date_endmonth'] = $date_endmonth;
+if(!empty($date_endday)) $headerparams['date_endday'] = $date_endday;
+if(!empty($year)) $headerparams['year'] = $year;
+if(!empty($month)) $headerparams['month'] = $month;
 $headerparams['q'] = $q;
 
 $tableparams = array();
-$tableparams['search_categ'] = $selected_cat;
-$tableparams['search_type'] = $selected_type;
+if(!empty($selected_cat)) $tableparams['search_categ'] = $selected_cat;
+if(!empty($selected_type)) $tableparams['search_type'] = $selected_type;
 $tableparams['subcat'] = ($subcat === true)?'yes':'';
 
 // Adding common parameters
@@ -199,7 +202,7 @@ else if ($modecompta=="BOOKKEEPINGCOLLECTED")
 
 }
 
-$period=$form->select_date($date_start,'date_start',0,0,0,'',1,0,1).' - '.$form->select_date($date_end,'date_end',0,0,0,'',1,0,1);
+$period=$form->selectDate($date_start, 'date_start', 0, 0, 0, '', 1, 0).' - '.$form->selectDate($date_end, 'date_end', 0, 0, 0, '', 1, 0);
 if ($date_end == dol_time_plus_duree($date_start, 1, 'y') - 1) $periodlink='<a href="'.$_SERVER["PHP_SELF"].'?year='.($year_start-1).'&modecompta='.$modecompta.'">'.img_previous().'</a> <a href="'.$_SERVER["PHP_SELF"].'?year='.($year_start+1).'&modecompta='.$modecompta.'">'.img_next().'</a>';
 else $periodlink = '';
 
@@ -461,5 +464,6 @@ if ($modecompta == 'CREANCES-DETTES')
 	print '<br>'.$langs->trans("TurnoverPerProductInCommitmentAccountingNotRelevant") . '<br>';
 }
 
+// End of page
 llxFooter();
 $db->close();

@@ -141,6 +141,7 @@ OrderByWWW=En ligne
 OrderByPhone=Téléphone
 # Documents models
 PDFEinsteinDescription=Modèle de commande complet (logo…)
+PDFEratostheneDescription=Modèle de commande complet (logo…)
 PDFEdisonDescription=Modèle de commande simple
 PDFProformaDescription=Modèle de facture proforma complet (logo…)
 CreateInvoiceForThisCustomer=Facturer commandes

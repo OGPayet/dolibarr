@@ -1,6 +1,6 @@
 <?php
 /* Copyright (C) 2006-2012	Laurent Destailleur	<eldy@users.sourceforge.net>
- * Copyright (C) 2009-2012	Regis Houssin		<regis.houssin@capnetworks.com>
+ * Copyright (C) 2009-2012	Regis Houssin		<regis.houssin@inodbox.com>
  * Copyright (C) 2012      Christophe Battarel  <christophe.battarel@altairis.fr>
  * Copyright (C) 2012-2016 Juanjo Menent		<jmenent@2byte.es>
  *
@@ -33,31 +33,60 @@ require_once DOL_DOCUMENT_ROOT .'/core/modules/import/modules_import.php';
  */
 class ImportXlsx extends ModeleImports
 {
-    var $db;
-    var $datatoimport;
+    /**
+     * @var DoliDB Database handler.
+     */
+    public $db;
 
-	var $error='';
-	var $errors=array();
+    public $datatoimport;
 
-    var $id;           // Id of driver
-	var $label;        // Label of driver
-	var $extension;    // Extension of files imported by driver
-	var $version;      // Version of driver
+    /**
+	 * @var string Error code (or message)
+	 */
+	public $error='';
 
-	var $label_lib;    // Label of external lib used by driver
-	var $version_lib;  // Version of external lib used by driver
+	/**
+	 * @var string[] Error codes (or messages)
+	 */
+	public $errors = array();
 
-	var $separator;
+    /**
+	 * @var int ID
+	 */
+	public $id;
 
-    var $file;      // Path of file
-	var $handle;    // Handle fichier
+	/**
+     * @var string label
+     */
+    public $label;
 
-	var $cacheconvert=array();      // Array to cache list of value found after a convertion
-	var $cachefieldtable=array();   // Array to cache list of value found into fields@tables
+	public $extension;    // Extension of files imported by driver
 
-	var $workbook; // temporary import file
-	var $record; // current record
-	var $headers;
+	/**
+     * Dolibarr version of driver
+     * @public string
+     */
+	public $version = 'dolibarr';
+
+	public $label_lib;    // Label of external lib used by driver
+
+	public $version_lib;  // Version of external lib used by driver
+
+	public $separator;
+
+    public $file;      // Path of file
+
+	public $handle;    // Handle fichier
+
+	public $cacheconvert=array();      // Array to cache list of value found after a convertion
+
+	public $cachefieldtable=array();   // Array to cache list of value found into fields@tables
+
+	public $workbook; // temporary import file
+
+	public $record; // current record
+
+	public $headers;
 
 
 	/**
@@ -96,6 +125,7 @@ class ImportXlsx extends ModeleImports
 	}
 
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * 	Output header of an example file for this format
 	 *
@@ -104,29 +134,31 @@ class ImportXlsx extends ModeleImports
 	 */
 	function write_header_example($outputlangs)
 	{
-	  global $user,$conf,$langs;
-	  // create a temporary object, the final output will be generated in footer
-          if (!empty($conf->global->MAIN_USE_FILECACHE_EXPORT_EXCEL_DIR)) {
+        // phpcs:enable
+        global $user,$conf,$langs;
+        // create a temporary object, the final output will be generated in footer
+        if (!empty($conf->global->MAIN_USE_FILECACHE_EXPORT_EXCEL_DIR)) {
             $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_discISAM;
             $cacheSettings = array (
-              'dir' => $conf->global->MAIN_USE_FILECACHE_EXPORT_EXCEL_DIR
-          );
-          PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+                'dir' => $conf->global->MAIN_USE_FILECACHE_EXPORT_EXCEL_DIR
+            );
+            PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
         }
 
-            $this->workbook = new PHPExcel();
-            $this->workbook->getProperties()->setCreator($user->getFullName($outputlangs).' - Dolibarr '.DOL_VERSION);
-            $this->workbook->getProperties()->setTitle($outputlangs->trans("Import").' - '.$file);
-            $this->workbook->getProperties()->setSubject($outputlangs->trans("Import").' - '.$file);
-            $this->workbook->getProperties()->setDescription($outputlangs->trans("Import").' - '.$file);
+        $this->workbook = new PHPExcel();
+        $this->workbook->getProperties()->setCreator($user->getFullName($outputlangs).' - Dolibarr '.DOL_VERSION);
+        $this->workbook->getProperties()->setTitle($outputlangs->trans("Import").' - '.$file);
+        $this->workbook->getProperties()->setSubject($outputlangs->trans("Import").' - '.$file);
+        $this->workbook->getProperties()->setDescription($outputlangs->trans("Import").' - '.$file);
 
-            $this->workbook->setActiveSheetIndex(0);
-            $this->workbook->getActiveSheet()->setTitle($outputlangs->trans("Sheet"));
-            $this->workbook->getActiveSheet()->getDefaultRowDimension()->setRowHeight(16);
+        $this->workbook->setActiveSheetIndex(0);
+        $this->workbook->getActiveSheet()->setTitle($outputlangs->trans("Sheet"));
+        $this->workbook->getActiveSheet()->getDefaultRowDimension()->setRowHeight(16);
 
-	    return '';
-	}
+        return '';
+    }
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * 	Output title line of an example file for this format
 	 *
@@ -136,6 +168,7 @@ class ImportXlsx extends ModeleImports
 	 */
 	function write_title_example($outputlangs,$headerlinefields)
 	{
+        // phpcs:enable
 		global $conf;
 		$this->workbook->getActiveSheet()->getStyle('1')->getFont()->setBold(true);
 		$this->workbook->getActiveSheet()->getStyle('1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
@@ -151,6 +184,7 @@ class ImportXlsx extends ModeleImports
 		return ''; // final output will be generated in footer
 	}
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * 	Output record of an example file for this format
 	 *
@@ -160,6 +194,7 @@ class ImportXlsx extends ModeleImports
 	 */
 	function write_record_example($outputlangs,$contentlinevalues)
 	{
+        // phpcs:enable
 		$col = 0;
 		$row = 2;
 		foreach($contentlinevalues as $cell) {
@@ -170,6 +205,7 @@ class ImportXlsx extends ModeleImports
 		return ''; // final output will be generated in footer
 	}
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * 	Output footer of an example file for this format
 	 *
@@ -178,7 +214,8 @@ class ImportXlsx extends ModeleImports
 	 */
 	function write_footer_example($outputlangs)
 	{
-		// return te file content as a string
+        // phpcs:enable
+		// return the file content as a string
 		$tempfile = tempnam(sys_get_temp_dir(), 'dol');
 		$objWriter = new PHPExcel_Writer_Excel2007($this->workbook);
 		$objWriter->save($tempfile);
@@ -192,6 +229,7 @@ class ImportXlsx extends ModeleImports
 
 
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 *	Open input file
 	 *
@@ -200,6 +238,7 @@ class ImportXlsx extends ModeleImports
 	 */
 	function import_open_file($file)
 	{
+        // phpcs:enable
 		global $langs;
 		$ret=1;
 
@@ -214,6 +253,7 @@ class ImportXlsx extends ModeleImports
 	}
 
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * 	Return nb of records. File must be closed.
 	 *
@@ -222,6 +262,7 @@ class ImportXlsx extends ModeleImports
 	 */
 	function import_get_nb_of_lines($file)
 	{
+        // phpcs:enable
 		$reader = new PHPExcel_Reader_Excel2007();
 		$this->workbook = $reader->load($file);
 
@@ -234,6 +275,7 @@ class ImportXlsx extends ModeleImports
 	}
 
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * 	Input header line from file
 	 *
@@ -241,6 +283,7 @@ class ImportXlsx extends ModeleImports
 	 */
 	function import_read_header()
 	{
+        // phpcs:enable
 		// This is not called by the import code !!!
 		$this->headers = array();
 		$colcount = PHPExcel_Cell::columnIndexFromString($this->workbook->getActiveSheet()->getHighestDataColumn());
@@ -251,6 +294,7 @@ class ImportXlsx extends ModeleImports
 	}
 
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * 	Return array of next record in input file.
 	 *
@@ -258,6 +302,7 @@ class ImportXlsx extends ModeleImports
 	 */
 	function import_read_record()
 	{
+        // phpcs:enable
 		global $conf;
 
 		$rowcount = $this->workbook->getActiveSheet()->getHighestDataRow();
@@ -274,6 +319,7 @@ class ImportXlsx extends ModeleImports
 		return $array;
 	}
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * 	Close file handle
 	 *
@@ -281,11 +327,14 @@ class ImportXlsx extends ModeleImports
 	 */
 	function import_close_file()
 	{
+        // phpcs:enable
 		$this->workbook->disconnectWorksheets();
 		unset($this->workbook);
 	}
 
 
+    // What is this doing here ? it is common to all imports, is should be in the parent class
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
 	 * Insert a record into database
 	 *
@@ -297,9 +346,9 @@ class ImportXlsx extends ModeleImports
 	 * @param	array	$updatekeys						Array of keys to use to try to do an update first before insert. This field are defined into the module descriptor.
 	 * @return	int										<0 if KO, >0 if OK
 	 */
-	// What is this doing here ? it is common to all imports, is should be in the parent class
 	function import_insert($arrayrecord,$array_match_file_to_database,$objimport,$maxfields,$importid,$updatekeys)
 	{
+        // phpcs:enable
 		global $langs,$conf,$user;
         global $thirdparty_static;    	// Specific to thirdparty import
 		global $tablewithentity_cache;	// Cache to avoid to call  desc at each rows on tables
@@ -421,11 +470,29 @@ class ImportXlsx extends ModeleImports
                                             }
                                             $classinstance=new $class($this->db);
                                             // Try the fetch from code or ref
-                                            call_user_func_array(array($classinstance, $method),array('', $newval));
+                                            $param_array = array('', $newval);
+                                            if ($class == 'AccountingAccount')
+                                            {
+                                                //var_dump($arrayrecord[0]['val']);
+                                                /*include_once DOL_DOCUMENT_ROOT.'/accountancy/class/accountancysystem.class.php';
+                                                $tmpchartofaccount = new AccountancySystem($this->db);
+                                                $tmpchartofaccount->fetch($conf->global->CHARTOFACCOUNTS);
+                                                var_dump($tmpchartofaccount->ref.' - '.$arrayrecord[0]['val']);
+                                                if ((! ($conf->global->CHARTOFACCOUNTS > 0)) || $tmpchartofaccount->ref != $arrayrecord[0]['val'])
+                                                {
+                                                    $this->errors[$error]['lib']=$langs->trans('ErrorImportOfChartLimitedToCurrentChart', $tmpchartofaccount->ref);
+                                                    $this->errors[$error]['type']='RESTRICTONCURRENCTCHART';
+                                                    $errorforthistable++;
+                                                    $error++;
+                                                }*/
+                                                $param_array = array('', $newval, 0, $arrayrecord[0]['val']);       // Param to fetch parent from account, in chart.
+                                            }
+                                            call_user_func_array(array($classinstance, $method), $param_array);
                                             // If not found, try the fetch from label
                                             if (! ($classinstance->id != '') && $objimport->array_import_convertvalue[0][$val]['rule']=='fetchidfromcodeorlabel')
                                             {
-												call_user_func_array(array($classinstance, $method),array('', '', $newval));
+                                                $param_array = array('', '', $newval);
+                                                call_user_func_array(array($classinstance, $method), $param_array);
                                             }
                                             $this->cacheconvert[$file.'_'.$class.'_'.$method.'_'][$newval]=$classinstance->id;
                                             //print 'We have made a '.$class.'->'.$method.' to get id from code '.$newval.'. ';
@@ -437,14 +504,13 @@ class ImportXlsx extends ModeleImports
                                             {
                                                 if (!empty($objimport->array_import_convertvalue[0][$val]['dict'])) $this->errors[$error]['lib']=$langs->trans('ErrorFieldValueNotIn',$key,$newval,'code',$langs->transnoentitiesnoconv($objimport->array_import_convertvalue[0][$val]['dict']));
                                                 else if (!empty($objimport->array_import_convertvalue[0][$val]['element'])) $this->errors[$error]['lib']=$langs->trans('ErrorFieldRefNotIn',$key,$newval,$langs->transnoentitiesnoconv($objimport->array_import_convertvalue[0][$val]['element']));
-                                                else $this->errors[$error]['lib']='ErrorFieldValueNotIn';
+                                                else $this->errors[$error]['lib']='ErrorBadDefinitionOfImportProfile';
                                                 $this->errors[$error]['type']='FOREIGNKEY';
                                                 $errorforthistable++;
                                                 $error++;
                                             }
                                         }
                                     }
-
                                 }
                                 elseif ($objimport->array_import_convertvalue[0][$val]['rule']=='zeroifnull')
                                 {
@@ -598,26 +664,39 @@ class ImportXlsx extends ModeleImports
     				// Loop on each hidden fields to add them into listfields/listvalues
 				    foreach($objimport->array_import_fieldshidden[0] as $key => $val)
     				{
-    				    if (! preg_match('/^'.preg_quote($alias).'\./', $key)) continue;    // Not a field of current table
+    				    if (! preg_match('/^'.preg_quote($alias, '/').'\./', $key)) continue;    // Not a field of current table
     				    if ($val == 'user->id')
     				    {
-    				        $listfields[] = preg_replace('/^'.preg_quote($alias).'\./','',$key);
+    				        $listfields[] = preg_replace('/^'.preg_quote($alias, '/').'\./', '', $key);
     				        $listvalues[] = $user->id;
     				    }
     				    elseif (preg_match('/^lastrowid-/',$val))
     				    {
     				        $tmp=explode('-',$val);
     				        $lastinsertid=(isset($last_insert_id_array[$tmp[1]]))?$last_insert_id_array[$tmp[1]]:0;
-							$keyfield = preg_replace('/^'.preg_quote($alias).'\./','',$key);
+							$keyfield = preg_replace('/^'.preg_quote($alias, '/').'\./', '', $key);
     				        $listfields[] = $keyfield;
                             $listvalues[] = $lastinsertid;
     				        //print $key."-".$val."-".$listfields."-".$listvalues."<br>";exit;
+    				    }
+    				    elseif (preg_match('/^const-/', $val))
+    				    {
+    				    	$tmp=explode('-', $val, 2);
+    				    	$listfields[] = preg_replace('/^'.preg_quote($alias, '/').'\./', '', $key);
+    				    	$listvalues[] = "'".$tmp[1]."'";
+    				    }
+    				    else
+    				    {
+    				    	$this->errors[$error]['lib']='Bad value of profile setup '.$val.' for array_import_fieldshidden';
+    				    	$this->errors[$error]['type']='Import profile setup';
+    				    	$error++;
     				    }
     				}
 				}
 				//print 'listfields='.$listfields.'<br>listvalues='.$listvalues.'<br>';
 
 				// If no error for this $alias/$tablename, we have a complete $listfields and $listvalues that are defined
+				// so we can try to make the insert or update now.
 				if (! $errorforthistable)
 				{
 					//print "$alias/$tablename/$listfields/$listvalues<br>";
@@ -627,7 +706,8 @@ class ImportXlsx extends ModeleImports
 						$insertdone = false;
 						if (!empty($updatekeys)) {
 							// We do SELECT to get the rowid, if we already have the rowid, it's to be used below for related tables (extrafields)
-							if (empty($lastinsertid)) {
+
+							if (empty($lastinsertid)) {	// No insert done yet for a parent table
 								$sqlSelect = 'SELECT rowid FROM '.$tablename;
 
 								$data = array_combine($listfields, $listvalues);
@@ -664,9 +744,10 @@ class ImportXlsx extends ModeleImports
 								}
 							} else {
 								// We have a last INSERT ID. Check if we have a row referencing this foreign key.
-								// This is required when updating table with some extrafields. When inserting a record in parent table, we can make 
-								// a direct insert into subtable extrafields, but when me wake an update, the insertid is defined and the child record 
-								// may already exists. So we rescan the extrafield table to be know if record exists or not for the rowid.
+								// This is required when updating table with some extrafields. When inserting a record in parent table, we can make
+								// a direct insert into subtable extrafields, but when me wake an update, the insertid is defined and the child record
+								// may already exists. So we rescan the extrafield table to know if record exists or not for the rowid.
+								// Note: For extrafield tablename, we have in importfieldshidden_array an enty 'extra.fk_object'=>'lastrowid-tableparent' so $keyfield is 'fk_object'
 								$sqlSelect = 'SELECT rowid FROM '.$tablename;
 
 								if(empty($keyfield)) $keyfield = 'rowid';
@@ -774,5 +855,4 @@ class ImportXlsx extends ModeleImports
 
 		return 1;
 	}
-
 }

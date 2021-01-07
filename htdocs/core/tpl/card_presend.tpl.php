@@ -48,11 +48,14 @@ if ($action == 'presend')
 
 		$ref = dol_sanitizeFileName($object->ref);
 		include_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
-		$fileparams = dol_most_recent_file($diroutput . '/' . $ref, preg_quote($ref, '/').'[^\-]+');
-		//
+		// Special case
 		if ($object->element == 'invoice_supplier')
 		{
 			$fileparams = dol_most_recent_file($diroutput . '/' . get_exdir($object->id,2,0,0,$object,$object->element).$ref, preg_quote($ref,'/').'([^\-])+');
+		}
+		else
+		{
+		    $fileparams = dol_most_recent_file($diroutput . '/' . $ref, preg_quote($ref, '/').'[^\-]+');
 		}
 
 		$file = $fileparams['fullname'];
@@ -74,6 +77,7 @@ if ($action == 'presend')
 	{
 		$outputlangs = new Translate('', $conf);
 		$outputlangs->setDefaultLang($newlang);
+		// Load traductions files requiredby by page
 		$outputlangs->loadLangs(array('commercial','bills','orders','contracts','members','propal','products','supplier_proposal','interventions'));
 	}
 
@@ -85,16 +89,27 @@ if ($action == 'presend')
 	}
 
 	// Build document if it not exists
-	if (! in_array($object->element, array('societe', 'user', 'member')))
+	$forcebuilddoc=true;
+	if (in_array($object->element, array('societe', 'user', 'member'))) $forcebuilddoc=false;
+	if ($object->element == 'invoice_supplier' && empty($conf->global->INVOICE_SUPPLIER_ADDON_PDF)) $forcebuilddoc=false;
+	if ($forcebuilddoc)    // If there is no default value for supplier invoice, we do not generate file, even if modelpdf was set by a manual generation
 	{
 		if ((! $file || ! is_readable($file)) && method_exists($object, 'generateDocument'))
 		{
 			$result = $object->generateDocument(GETPOST('model') ? GETPOST('model') : $object->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
-			if ($result <= 0) {
+			if ($result < 0) {
 				dol_print_error($db, $object->error, $object->errors);
 				exit();
 			}
-			$fileparams = dol_most_recent_file($diroutput . '/' . $ref, preg_quote($ref, '/').'[^\-]+');
+			if ($object->element == 'invoice_supplier')
+			{
+			    $fileparams = dol_most_recent_file($diroutput . '/' . get_exdir($object->id,2,0,0,$object,$object->element).$ref, preg_quote($ref,'/').'([^\-])+');
+			}
+			else
+			{
+			    $fileparams = dol_most_recent_file($diroutput . '/' . $ref, preg_quote($ref, '/').'[^\-]+');
+			}
+
 			$file = $fileparams['fullname'];
 		}
 	}
@@ -156,7 +171,7 @@ if ($action == 'presend')
 		$listeuser=array();
 		$fuserdest = new User($db);
 
-		$result= $fuserdest->fetchAll('ASC', 't.lastname', 0, 0, array('customsql'=>'t.statut=1 AND t.employee=1 AND t.email IS NOT NULL AND t.email<>\'\''));
+		$result= $fuserdest->fetchAll('ASC', 't.lastname', 0, 0, array('customsql'=>'t.statut=1 AND t.employee=1 AND t.email IS NOT NULL AND t.email<>\'\''), 'AND', true);
 		if ($result>0 && is_array($fuserdest->users) && count($fuserdest->users)>0) {
 			foreach($fuserdest->users as $uuserdest) {
 				$listeuser[$uuserdest->id] = $uuserdest->user_get_property($uuserdest->id,'email');
@@ -168,7 +183,6 @@ if ($action == 'presend')
 			$formmail->withtouser = $listeuser;
 			$formmail->withtoccuser = $listeuser;
 		}
-
 	}
 
 	$formmail->withto = GETPOST('sendto') ? GETPOST('sendto') : $liste;

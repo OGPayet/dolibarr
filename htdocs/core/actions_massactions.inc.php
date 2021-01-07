@@ -44,7 +44,7 @@ if (empty($objectclass) || empty($uploaddir))
 
 // Mass actions. Controls on number of lines checked.
 $maxformassaction=(empty($conf->global->MAIN_LIMIT_FOR_MASS_ACTIONS)?1000:$conf->global->MAIN_LIMIT_FOR_MASS_ACTIONS);
-if (! empty($massaction) && count($toselect) < 1)
+if (! empty($massaction) && is_array($toselect) && count($toselect) < 1)
 {
 	$error++;
 	setEventMessages($langs->trans("NoRecordSelected"), null, "warnings");
@@ -76,9 +76,11 @@ if (! $error && $massaction == 'confirm_presend')
 	if (! $error)
 	{
 		$thirdparty=new Societe($db);
-		if ($objecttmp->element == 'expensereport') $thirdparty=new User($db);
 
 		$objecttmp=new $objectclass($db);
+		if ($objecttmp->element == 'expensereport') $thirdparty=new User($db);
+		if ($objecttmp->element == 'holiday')       $thirdparty=new User($db);
+
 		foreach($toselect as $toselectid)
 		{
 			$objecttmp=new $objectclass($db);	// we must create new instance because instance is saved into $listofobjectref array for future use
@@ -86,9 +88,13 @@ if (! $error && $massaction == 'confirm_presend')
 			if ($result > 0)
 			{
 				$listofobjectid[$toselectid]=$toselectid;
-				$thirdpartyid=$objecttmp->fk_soc?$objecttmp->fk_soc:$objecttmp->socid;
+
+				$thirdpartyid=($objecttmp->fk_soc?$objecttmp->fk_soc:$objecttmp->socid);
 				if ($objecttmp->element == 'societe') $thirdpartyid=$objecttmp->id;
 				if ($objecttmp->element == 'expensereport') $thirdpartyid=$objecttmp->fk_user_author;
+				if ($objecttmp->element == 'holiday')       $thirdpartyid=$objecttmp->fk_user;
+				if (empty($thirdpartyid)) $thirdpartyid=0;
+
 				$listofobjectthirdparties[$thirdpartyid]=$thirdpartyid;
 				$listofobjectref[$thirdpartyid][$toselectid]=$objecttmp;
 			}
@@ -234,6 +240,12 @@ if (! $error && $massaction == 'confirm_presend')
 						$fuser->fetch($objectobj->fk_user_author);
 						$sendto = $fuser->email;
 					}
+					elseif ($objectobj->element == 'holiday')
+					{
+					    $fuser = new User($db);
+					    $fuser->fetch($objectobj->fk_user);
+					    $sendto = $fuser->email;
+					}
 					else
 					{
 						$objectobj->fetch_thirdparty();
@@ -293,7 +305,7 @@ if (! $error && $massaction == 'confirm_presend')
 					}
 				}
 
-				// Object of thirdparty qualified
+				// Object of thirdparty qualified, we add it
 				$listofqualifiedobj[$objectid]=$objectobj;
 				$listofqualifiedref[$objectid]=$objectobj->ref;
 
@@ -301,7 +313,7 @@ if (! $error && $massaction == 'confirm_presend')
 				//var_dump($listofqualifiedref);
 			}
 
-			// Send email if there is at least one qualified record
+			// Send email if there is at least one qualified object for current thirdparty
 			if (count($listofqualifiedobj) > 0)
 			{
 				$langs->load("commercial");
@@ -339,28 +351,29 @@ if (! $error && $massaction == 'confirm_presend')
 				$message = GETPOST('message','none');
 
 				$sendtobcc = GETPOST('sendtoccc');
-				if ($objectclass == 'Propale') 				$sendtobcc .= (empty($conf->global->MAIN_MAIL_AUTOCOPY_PROPOSAL_TO) ? '' : (($sendtobcc?", ":"").$conf->global->MAIN_MAIL_AUTOCOPY_PROPOSAL_TO));
+				if ($objectclass == 'Propal') 				$sendtobcc .= (empty($conf->global->MAIN_MAIL_AUTOCOPY_PROPOSAL_TO) ? '' : (($sendtobcc?", ":"").$conf->global->MAIN_MAIL_AUTOCOPY_PROPOSAL_TO));
 				if ($objectclass == 'Commande') 			$sendtobcc .= (empty($conf->global->MAIN_MAIL_AUTOCOPY_ORDER_TO) ? '' : (($sendtobcc?", ":"").$conf->global->MAIN_MAIL_AUTOCOPY_ORDER_TO));
 				if ($objectclass == 'Facture') 				$sendtobcc .= (empty($conf->global->MAIN_MAIL_AUTOCOPY_INVOICE_TO) ? '' : (($sendtobcc?", ":"").$conf->global->MAIN_MAIL_AUTOCOPY_INVOICE_TO));
 				if ($objectclass == 'Supplier_Proposal') 	$sendtobcc .= (empty($conf->global->MAIN_MAIL_AUTOCOPY_SUPPLIER_PROPOSAL_TO) ? '' : (($sendtobcc?", ":"").$conf->global->MAIN_MAIL_AUTOCOPY_SUPPLIER_PROPOSAL_TO));
 				if ($objectclass == 'CommandeFournisseur')	$sendtobcc .= (empty($conf->global->MAIN_MAIL_AUTOCOPY_SUPPLIER_ORDER_TO) ? '' : (($sendtobcc?", ":"").$conf->global->MAIN_MAIL_AUTOCOPY_SUPPLIER_ORDER_TO));
 				if ($objectclass == 'FactureFournisseur')	$sendtobcc .= (empty($conf->global->MAIN_MAIL_AUTOCOPY_SUPPLIER_INVOICE_TO) ? '' : (($sendtobcc?", ":"").$conf->global->MAIN_MAIL_AUTOCOPY_SUPPLIER_INVOICE_TO));
+				if ($objectclass == 'Project') 			    $sendtobcc .= (empty($conf->global->MAIN_MAIL_AUTOCOPY_PROJECT_TO) ? '' : (($sendtobcc?", ":"").$conf->global->MAIN_MAIL_AUTOCOPY_PROJECT_TO));
 
 				// $listofqualifiedobj is array with key = object id and value is instance of qualified objects, for the current thirdparty (but thirdparty property is not loaded yet)
-
+				// $looparray will be an array with number of email to send for the current thirdparty (so 1 or n if n object for same thirdparty)
 				$looparray=array();
 				if (! $oneemailperrecipient)
 				{
 					$looparray = $listofqualifiedobj;
 					foreach ($looparray as $key => $objecttmp)
 					{
-						$looparray[$key]->thirdparty = $thirdparty;
+					    $looparray[$key]->thirdparty = $thirdparty;   // Force thirdparty on object
 					}
 				}
 				else
 				{
 					$objectforloop=new $objectclass($db);
-					$objectforloop->thirdparty = $thirdparty;
+					$objectforloop->thirdparty = $thirdparty;          // Force thirdparty on object (even if object was not loaded)
 					$looparray[0]=$objectforloop;
 				}
 				//var_dump($looparray);exit;
@@ -389,12 +402,11 @@ if (! $error && $massaction == 'confirm_presend')
                     $subjectreplaced=make_substitutions($subject, $substitutionarray);
                     $messagereplaced=make_substitutions($message, $substitutionarray);
 
-
                     $attachedfiles=array('paths'=>array(), 'names'=>array(), 'mimes'=>array());
-					if($oneemailperrecipient)
+					if ($oneemailperrecipient)
 					{
-						// if "one email per recipient" isn't check we must collate $attachedfiles by thirdparty
-						if(is_array($attachedfilesThirdpartyObj[$thirdparty->id]) && count($attachedfilesThirdpartyObj[$thirdparty->id]))
+						// if "one email per recipient" is check we must collate $attachedfiles by thirdparty
+						if (is_array($attachedfilesThirdpartyObj[$thirdparty->id]) && count($attachedfilesThirdpartyObj[$thirdparty->id]))
 						{
 							foreach ($attachedfilesThirdpartyObj[$thirdparty->id] as $keyObjId =>  $objAttachedFiles){
 								// Create form object
@@ -406,7 +418,7 @@ if (! $error && $massaction == 'confirm_presend')
 							}
 						}
 					}
-					elseif(!empty($attachedfilesThirdpartyObj[$thirdparty->id][$objectid])){
+					elseif (!empty($attachedfilesThirdpartyObj[$thirdparty->id][$objectid])){
 						// Create form object
 						// if "one email per recipient" isn't check we must separate $attachedfiles by object
 						$attachedfiles=$attachedfilesThirdpartyObj[$thirdparty->id][$objectid];
@@ -416,14 +428,33 @@ if (! $error && $massaction == 'confirm_presend')
 					$filename = $attachedfiles['names'];
 					$mimetype = $attachedfiles['mimes'];
 
+					// Define the trackid when emails sent from the mass action
+					if ($oneemailperrecipient)
+					{
+					    $trackid='thi'.$thirdparty->id;
+					    if ($objecttmp->element == 'expensereport') $trackid='use'.$thirdparty->id;
+					    if ($objecttmp->element == 'holiday') $trackid='use'.$thirdparty->id;
+					}
+					else
+					{
+					    $trackid=strtolower(get_class($objecttmp));
+					    if (get_class($objecttmp)=='Contrat')  $trackid='con';
+					    if (get_class($objecttmp)=='Propal')   $trackid='pro';
+					    if (get_class($objecttmp)=='Commande') $trackid='ord';
+					    if (get_class($objecttmp)=='Facture')  $trackid='inv';
+					    if (get_class($objecttmp)=='Supplier_Proposal')   $trackid='spr';
+					    if (get_class($objecttmp)=='CommandeFournisseur') $trackid='sor';
+					    if (get_class($objecttmp)=='FactureFournisseur')  $trackid='sin';
 
-
-
+					    $trackid.=$objecttmp->id;
+					}
 					//var_dump($filepath);
+					//var_dump($trackid);exit;
+					//var_dump($subjectreplaced);
 
 					// Send mail (substitutionarray must be done just before this)
                     require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
-                    $mailfile = new CMailFile($subjectreplaced, $sendto, $from, $messagereplaced, $filepath, $mimetype, $filename, $sendtocc, $sendtobcc, $deliveryreceipt, -1);
+                    $mailfile = new CMailFile($subjectreplaced, $sendto, $from, $messagereplaced, $filepath, $mimetype, $filename, $sendtocc, $sendtobcc, $deliveryreceipt, -1, '', '', $trackid);
 					if ($mailfile->error)
 					{
 						$resaction.='<div class="error">'.$mailfile->error.'</div>';
@@ -468,15 +499,15 @@ if (! $error && $massaction == 'confirm_presend')
                                 $objectobj2->fk_element		= $objid2;
                                 $objectobj2->elementtype	= $objectobj2->element;
 
-								$triggername = strtoupper(get_class($objectobj)) .'_SENTBYMAIL';
-								if ($triggername == 'SOCIETE_SENTBYMAIL')    $triggername = 'COMPANY_SENTBYEMAIL';
-								if ($triggername == 'CONTRAT_SENTBYMAIL')    $triggername = 'CONTRACT_SENTBYEMAIL';
-								if ($triggername == 'COMMANDE_SENTBYMAIL')   $triggername = 'ORDER_SENTBYEMAIL';
+								$triggername = strtoupper(get_class($objectobj2)) .'_SENTBYMAIL';
+								if ($triggername == 'SOCIETE_SENTBYMAIL')    $triggername = 'COMPANY_SENTBYMAIL';
+								if ($triggername == 'CONTRAT_SENTBYMAIL')    $triggername = 'CONTRACT_SENTBYMAIL';
+								if ($triggername == 'COMMANDE_SENTBYMAIL')   $triggername = 'ORDER_SENTBYMAIL';
 								if ($triggername == 'FACTURE_SENTBYMAIL')    $triggername = 'BILL_SENTBYMAIL';
-								if ($triggername == 'EXPEDITION_SENTBYMAIL') $triggername = 'SHIPPING_SENTBYEMAIL';
+								if ($triggername == 'EXPEDITION_SENTBYMAIL') $triggername = 'SHIPPING_SENTBYMAIL';
 								if ($triggername == 'COMMANDEFOURNISSEUR_SENTBYMAIL') $triggername = 'ORDER_SUPPLIER_SENTBYMAIL';
-								if ($triggername == 'FACTUREFOURNISSEUR_SENTBYMAIL') $triggername = 'BILL_SUPPLIER_SENTBYEMAIL';
-								if ($triggername == 'SUPPLIERPROPOSAL_SENTBYMAIL') $triggername = 'PROPOSAL_SUPPLIER_SENTBYEMAIL';
+								if ($triggername == 'FACTUREFOURNISSEUR_SENTBYMAIL') $triggername = 'BILL_SUPPLIER_SENTBYMAIL';
+								if ($triggername == 'SUPPLIERPROPOSAL_SENTBYMAIL') $triggername = 'PROPOSAL_SUPPLIER_SENTBYMAIL';
 
 								if (! empty($triggername))
 								{
@@ -494,7 +525,7 @@ if (! $error && $massaction == 'confirm_presend')
 									}
 								}
 
-								$nbsent++;   // Nb of record sent
+								$nbsent++;   // Nb of object sent
 							}
 						}
 						else
@@ -569,10 +600,12 @@ if ($massaction == 'confirm_createbills')
 			$objecttmp->mode_reglement_id	= $cmd->mode_reglement_id;
 			$objecttmp->fk_project			= $cmd->fk_project;
             $objecttmp->multicurrency_code  = $cmd->multicurrency_code;
-			$datefacture = dol_mktime(12, 0, 0, $_POST['remonth'], $_POST['reday'], $_POST['reyear']);
-			if (empty($datefacture))
+            if (empty($createbills_onebythird)) $objecttmp->ref_client = $cmd->ref_client;
+
+            $datefacture = dol_mktime(12, 0, 0, GETPOST('remonth', 'int'), GETPOST('reday', 'int'), GETPOST('reyear', 'int'));
+            if (empty($datefacture))
 			{
-				$datefacture = dol_mktime(date("h"), date("M"), 0, date("m"), date("d"), date("Y"));
+			    $datefacture = dol_now();
 			}
 
 			$objecttmp->date = $datefacture;
@@ -893,7 +926,8 @@ if (! $error && $massaction == "builddoc" && $permtoread && ! GETPOST('button_se
 	}
 
 	$arrayofinclusion=array();
-	foreach($listofobjectref as $tmppdf) $arrayofinclusion[]='^'.preg_quote(dol_sanitizeFileName($tmppdf).'.pdf','/').'$';
+	foreach($listofobjectref as $tmppdf) $arrayofinclusion[]='^'.preg_quote(dol_sanitizeFileName($tmppdf),'/').'\.pdf$';
+	foreach($listofobjectref as $tmppdf) $arrayofinclusion[]='^'.preg_quote(dol_sanitizeFileName($tmppdf),'/').'_[a-zA-Z0-9-_]+\.pdf$';	// To include PDF generated from ODX files
 	$listoffiles = dol_dir_list($uploaddir,'all',1,implode('|',$arrayofinclusion),'\.meta$|\.png','date',SORT_DESC,0,true);
 
 	// build list of files with full path
@@ -1209,8 +1243,71 @@ if (! $error && ($massaction == 'delete' || ($action == 'delete' && $confirm == 
 	//var_dump($listofobjectthirdparties);exit;
 }
 
+// Generate document foreach object according to model linked to object
+// @TODO : propose model selection
+if (! $error && $massaction == 'generate_doc' && $permtoread)
+{
+    $db->begin();
+
+    $objecttmp=new $objectclass($db);
+    $nbok = 0;
+    foreach($toselect as $toselectid)
+    {
+        $result=$objecttmp->fetch($toselectid);
+        if ($result > 0)
+        {
+            $outputlangs = $langs;
+            $newlang='';
+
+            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id','aZ09')) $newlang=GETPOST('lang_id','aZ09');
+            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && isset($objecttmp->thirdparty->default_lang)) $newlang=$objecttmp->thirdparty->default_lang;  // for proposal, order, invoice, ...
+            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && isset($objecttmp->default_lang)) $newlang=$objecttmp->default_lang;                  // for thirdparty
+            if (! empty($newlang))
+            {
+                $outputlangs = new Translate("",$conf);
+                $outputlangs->setDefaultLang($newlang);
+            }
+
+            // To be sure vars is defined
+            if (empty($hidedetails)) $hidedetails=0;
+            if (empty($hidedesc)) $hidedesc=0;
+            if (empty($hideref)) $hideref=0;
+            if (empty($moreparams)) $moreparams=null;
+
+            $result= $objecttmp->generateDocument($objecttmp->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+
+            if ($result <= 0)
+            {
+                setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+                $error++;
+                break;
+            }
+            else $nbok++;
+        }
+        else
+        {
+            setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+            $error++;
+            break;
+        }
+    }
+
+    if (! $error)
+    {
+        if ($nbok > 1) setEventMessages($langs->trans("RecordsGenerated", $nbok), null, 'mesgs');
+        else setEventMessages($langs->trans("RecordGenerated", $nbok), null, 'mesgs');
+        $db->commit();
+    }
+    else
+    {
+        $db->rollback();
+    }
+}
+
 $parameters['toselect']=$toselect;
 $parameters['uploaddir']=$uploaddir;
+$parameters['massaction']=$massaction;
+$parameters['diroutputmassaction']=$diroutputmassaction;
 
 $reshook=$hookmanager->executeHooks('doMassActions',$parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');

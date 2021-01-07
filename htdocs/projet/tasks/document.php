@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2010-2012 Regis Houssin        <regis.houssin@capnetworks.com>
+/* Copyright (C) 2010-2012 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2006-2012 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2012      Florian Henry        <florian.henry@open-concept.pro>
  * Copyright (C) 2013      Cédric Salvador      <csalvador@gpcsolutions.fr>
@@ -256,9 +256,11 @@ if ($object->id > 0)
 	    $morehtmlref.='<br>';
 
 	    // Third party
-	    $morehtmlref.=$langs->trans("ThirdParty").': ';
-	    $morehtmlref.=$projectstatic->thirdparty->getNomUrl(1);
-	    $morehtmlref.='</div>';
+	    $morehtmlref .= $langs->trans("ThirdParty") . ': ';
+	    if (is_object($projectstatic->thirdparty) && $projectstatic->thirdparty->id > 0) {
+	    	$morehtmlref .= $projectstatic->thirdparty->getNomUrl(1);
+	    }
+	    $morehtmlref .= '</div>';
 	}
 
 	dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref, $param);
@@ -294,7 +296,6 @@ else
 	exit;
 }
 
-
+// End of page
 llxFooter();
-
 $db->close();

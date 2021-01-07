@@ -28,22 +28,44 @@
  */
 class AccountancySystem
 {
-	var $db;
-	var $error;
-	var $rowid;
-	var $fk_pcg_version;
-	var $pcg_type;
-	var $pcg_subtype;
-	var $label;
-	var $account_number;
-	var $account_parent;
+    /**
+     * @var DoliDB Database handler.
+     */
+    public $db;
+
+	/**
+	 * @var string Error code (or message)
+	 */
+	public $error='';
+
+	/**
+	 * @var int ID
+	 */
+	public $rowid;
+
+	/**
+     * @var int ID
+     */
+	public $fk_pcg_version;
+
+	public $pcg_type;
+	public $pcg_subtype;
+
+    /**
+     * @var string Accountancy System label
+     */
+    public $label;
+
+	public $account_number;
+	public $account_parent;
 
 	/**
 	 * Constructor
 	 *
 	 * @param DoliDB $db handler
 	 */
-	function __construct($db) {
+    function __construct($db)
+    {
 		$this->db = $db;
 	}
 
@@ -61,13 +83,13 @@ class AccountancySystem
 
 	    if ($rowid > 0 || $ref)
 	    {
-	        $sql  = "SELECT a.pcg_version, a.label, a.active";
+	        $sql  = "SELECT a.rowid, a.pcg_version, a.label, a.active";
 	        $sql .= " FROM " . MAIN_DB_PREFIX . "accounting_system as a";
 	        $sql .= " WHERE";
 	        if ($rowid) {
 	            $sql .= " a.rowid = '" . $rowid . "'";
 	        } elseif ($ref) {
-	            $sql .= " a.pcg_version = '" . $ref . "'";
+	            $sql .= " a.pcg_version = '" . $this->db->escape($ref) . "'";
 	        }
 
 	        dol_syslog(get_class($this) . "::fetch sql=" . $sql, LOG_DEBUG);
@@ -102,7 +124,8 @@ class AccountancySystem
 	 * @param User $user making insert
 	 * @return int if KO, Id of line if OK
 	 */
-	function create($user) {
+    function create($user)
+    {
 		$now = dol_now();
 
 		$sql = "INSERT INTO " . MAIN_DB_PREFIX . "accounting_system";

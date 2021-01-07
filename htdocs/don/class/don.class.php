@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2002      Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2008 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2009      Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2009      Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2014      Florian Henry        <florian.henry@open-concept.pro>
  * Copyright (C) 2015-2017 Alexandre Spangaro   <aspangaro@zendsi.com>
  * Copyright (C) 2016      Juanjo Menent        <jmenent@2byte.es>
@@ -34,34 +34,67 @@ require_once DOL_DOCUMENT_ROOT .'/core/class/commonobject.class.php';
  */
 class Don extends CommonObject
 {
-    public $element='don'; 					// Id that identify managed objects
-    public $table_element='don';			// Name of table without prefix where object is stored
-	public $fk_element = 'fk_donation';
-	public $ismultientitymanaged = 1;  	// 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
-    var $picto = 'generic';
+    /**
+	 * @var string ID to identify managed object
+	 */
+	public $element='don';
 
-    var $date;
-    var $amount;
-    var $societe;
-    var $address;
-    var $zip;
-    var $town;
-    var $email;
-    var $public;
-    var $fk_project;
-    var $fk_typepayment;
-	var $num_payment;
-	var $date_valid;
-	var $modepaymentid = 0;
-
-	var $labelstatut;
-	var $labelstatutshort;
+    /**
+	 * @var string Name of table without prefix where object is stored
+	 */
+	public $table_element='don';
 
 	/**
-	 * @deprecated
-	 * @see note_private, note_public
+	 * @var int Field with ID of parent key if this field has a parent
 	 */
-	var $commentaire;
+	public $fk_element = 'fk_donation';
+
+	/**
+	 * 0=No test on entity, 1=Test with field entity, 2=Test with link by societe
+	 * @var int
+	 */
+	public $ismultientitymanaged = 1;
+
+    /**
+	 * @var string String with name of icon for myobject. Must be the part after the 'object_' into object_myobject.png
+	 */
+	public $picto = 'generic';
+
+    public $date;
+    public $amount;
+    public $societe;
+
+    /**
+	 * @var string Address
+	 */
+	public $address;
+
+    public $zip;
+    public $town;
+    public $email;
+    public $public;
+
+    /**
+     * @var int ID
+     */
+    public $fk_project;
+
+    /**
+     * @var int ID
+     */
+    public $fk_typepayment;
+
+	public $num_payment;
+	public $date_valid;
+	public $modepaymentid = 0;
+
+	public $labelstatut;
+	public $labelstatutshort;
+
+	/**
+	 * Draft
+	 */
+	const STATUS_DRAFT = 0;
 
 
     /**
@@ -71,9 +104,7 @@ class Don extends CommonObject
      */
     function __construct($db)
     {
-        global $langs;
-
-        $this->db = $db;
+         $this->db = $db;
     }
 
 
@@ -88,6 +119,7 @@ class Don extends CommonObject
         return $this->LibStatut($this->statut,$mode);
     }
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
     /**
      *  Renvoi le libelle d'un statut donne
      *
@@ -97,7 +129,8 @@ class Don extends CommonObject
      */
     function LibStatut($statut,$mode=0)
     {
-    	if (empty($this->labelstatut) || empty($this->labelstatushort))
+        // phpcs:enable
+    	if (empty($this->labelstatut) || empty($this->labelstatutshort))
     	{
 	    	global $langs;
 	    	$langs->load("donations");
@@ -115,44 +148,44 @@ class Don extends CommonObject
         {
             return $this->labelstatut[$statut];
         }
-        if ($mode == 1)
+        elseif ($mode == 1)
         {
             return $this->labelstatutshort[$statut];
         }
-        if ($mode == 2)
+        elseif ($mode == 2)
         {
             if ($statut == -1) return img_picto($this->labelstatut[$statut],'statut5').' '.$this->labelstatutshort[$statut];
-            if ($statut == 0)  return img_picto($this->labelstatut[$statut],'statut0').' '.$this->labelstatutshort[$statut];
-            if ($statut == 1)  return img_picto($this->labelstatut[$statut],'statut1').' '.$this->labelstatutshort[$statut];
-            if ($statut == 2)  return img_picto($this->labelstatut[$statut],'statut6').' '.$this->labelstatutshort[$statut];
+            elseif ($statut == 0)  return img_picto($this->labelstatut[$statut],'statut0').' '.$this->labelstatutshort[$statut];
+            elseif ($statut == 1)  return img_picto($this->labelstatut[$statut],'statut1').' '.$this->labelstatutshort[$statut];
+            elseif ($statut == 2)  return img_picto($this->labelstatut[$statut],'statut6').' '.$this->labelstatutshort[$statut];
         }
-        if ($mode == 3)
+        elseif ($mode == 3)
         {
             if ($statut == -1) return img_picto($this->labelstatut[$statut],'statut5');
-            if ($statut == 0)  return img_picto($this->labelstatut[$statut],'statut0');
-            if ($statut == 1)  return img_picto($this->labelstatut[$statut],'statut1');
-            if ($statut == 2)  return img_picto($this->labelstatut[$statut],'statut6');
+            elseif ($statut == 0)  return img_picto($this->labelstatut[$statut],'statut0');
+            elseif ($statut == 1)  return img_picto($this->labelstatut[$statut],'statut1');
+            elseif ($statut == 2)  return img_picto($this->labelstatut[$statut],'statut6');
         }
-        if ($mode == 4)
+        elseif ($mode == 4)
         {
             if ($statut == -1) return img_picto($this->labelstatut[$statut],'statut5').' '.$this->labelstatut[$statut];
-            if ($statut == 0)  return img_picto($this->labelstatut[$statut],'statut0').' '.$this->labelstatut[$statut];
-            if ($statut == 1)  return img_picto($this->labelstatut[$statut],'statut1').' '.$this->labelstatut[$statut];
-            if ($statut == 2)  return img_picto($this->labelstatut[$statut],'statut6').' '.$this->labelstatut[$statut];
+            elseif ($statut == 0)  return img_picto($this->labelstatut[$statut],'statut0').' '.$this->labelstatut[$statut];
+            elseif ($statut == 1)  return img_picto($this->labelstatut[$statut],'statut1').' '.$this->labelstatut[$statut];
+            elseif ($statut == 2)  return img_picto($this->labelstatut[$statut],'statut6').' '.$this->labelstatut[$statut];
         }
-            if ($mode == 5)
+        elseif ($mode == 5)
         {
             if ($statut == -1) return $this->labelstatutshort[$statut].' '.img_picto($this->labelstatut[$statut],'statut5');
-            if ($statut == 0)  return $this->labelstatutshort[$statut].' '.img_picto($this->labelstatut[$statut],'statut0');
-            if ($statut == 1)  return $this->labelstatutshort[$statut].' '.img_picto($this->labelstatut[$statut],'statut1');
-            if ($statut == 2)  return $this->labelstatutshort[$statut].' '.img_picto($this->labelstatut[$statut],'statut6');
+            elseif ($statut == 0)  return $this->labelstatutshort[$statut].' '.img_picto($this->labelstatut[$statut],'statut0');
+            elseif ($statut == 1)  return $this->labelstatutshort[$statut].' '.img_picto($this->labelstatut[$statut],'statut1');
+            elseif ($statut == 2)  return $this->labelstatutshort[$statut].' '.img_picto($this->labelstatut[$statut],'statut6');
         }
-        if ($mode == 6)
+        elseif ($mode == 6)
         {
             if ($statut == -1) return $this->labelstatut[$statut].' '.img_picto($this->labelstatut[$statut],'statut5');
-            if ($statut == 0)  return $this->labelstatut[$statut].' '.img_picto($this->labelstatut[$statut],'statut0');
-            if ($statut == 1)  return $this->labelstatut[$statut].' '.img_picto($this->labelstatut[$statut],'statut1');
-            if ($statut == 2)  return $this->labelstatut[$statut].' '.img_picto($this->labelstatut[$statut],'statut6');
+            elseif ($statut == 0)  return $this->labelstatut[$statut].' '.img_picto($this->labelstatut[$statut],'statut0');
+            elseif ($statut == 1)  return $this->labelstatut[$statut].' '.img_picto($this->labelstatut[$statut],'statut1');
+            elseif ($statut == 2)  return $this->labelstatut[$statut].' '.img_picto($this->labelstatut[$statut],'statut6');
         }
     }
 
@@ -366,8 +399,8 @@ class Don extends CommonObject
         $sql.= ", '".$this->db->escape($this->address)."'";
         $sql.= ", '".$this->db->escape($this->zip)."'";
         $sql.= ", '".$this->db->escape($this->town)."'";
-		$sql.= ", ".$this->country_id;
-        $sql.= ", ".$this->public;
+        $sql.= ", ".($this->country_id > 0 ? $this->country_id : '0');
+        $sql.= ", ".((int) $this->public);
         $sql.= ", ".($this->fk_project > 0?$this->fk_project:"null");
        	$sql.= ", ".(!empty($this->note_private)?("'".$this->db->escape($this->note_private)."'"):"NULL");
 		$sql.= ", ".(!empty($this->note_public)?("'".$this->db->escape($this->note_public)."'"):"NULL");
@@ -379,7 +412,6 @@ class Don extends CommonObject
         $sql.= ", '".$this->db->escape($this->phone_mobile)."'";
         $sql.= ")";
 
-        dol_syslog(get_class($this)."::create", LOG_DEBUG);
         $resql = $this->db->query($sql);
         if ($resql)
         {
@@ -415,8 +447,8 @@ class Don extends CommonObject
 
 		if (!$error && !empty($conf->global->MAIN_DISABLEDRAFTSTATUS))
         {
-            $res = $this->setValid($user);
-            if ($res < 0) $error++;
+            //$res = $this->setValid($user);
+            //if ($res < 0) $error++;
         }
 
         if (!$error)
@@ -637,40 +669,42 @@ class Don extends CommonObject
             {
                 $obj = $this->db->fetch_object($resql);
 
-                $this->id             = $obj->rowid;
-                $this->ref            = $obj->rowid;
-                $this->datec          = $this->db->jdate($obj->datec);
-                $this->date_valid     = $this->db->jdate($obj->date_valid);
-                $this->datem          = $this->db->jdate($obj->datem);
-                $this->date           = $this->db->jdate($obj->datedon);
-                $this->firstname      = $obj->firstname;
-                $this->lastname       = $obj->lastname;
-                $this->societe        = $obj->societe;
-                $this->statut         = $obj->fk_statut;
-                $this->address        = $obj->address;
-                $this->town           = $obj->town;
-                $this->zip            = $obj->zip;
-                $this->town           = $obj->town;
-                $this->country_id     = $obj->fk_country;
-                $this->country_code   = $obj->country_code;
-                $this->country        = $obj->country;
-                $this->country_olddata= $obj->country_olddata;	// deprecated
-				$this->email          = $obj->email;
-                $this->phone          = $obj->phone;
-                $this->phone_mobile   = $obj->phone_mobile;
-                $this->project        = $obj->project_ref;
-                $this->fk_projet      = $obj->fk_project;   // deprecated
-                $this->fk_project     = $obj->fk_project;
-                $this->public         = $obj->public;
-                $this->modepaymentid  = $obj->fk_payment;
-                $this->modepaymentcode = $obj->payment_code;
-                $this->modepayment    = $obj->payment_label;
-				$this->paid			  = $obj->paid;
-                $this->amount         = $obj->amount;
-                $this->note_private	  = $obj->note_private;
-                $this->note_public	  = $obj->note_public;
-                $this->modelpdf       = $obj->model_pdf;
-                $this->commentaire    = $obj->note;	// deprecated
+                $this->id             	= $obj->rowid;
+                $this->ref            	= $obj->rowid;
+                $this->datec          	= $this->db->jdate($obj->datec);
+		$this->date_creation  	= $this->db->jdate($obj->datec);
+                $this->date_valid     	= $this->db->jdate($obj->date_valid);
+                $this->date_validation	= $this->db->jdate($obj->date_valid);
+                $this->datem		= $this->db->jdate($obj->datem);
+                $this->date_modification= $this->db->jdate($obj->datem);
+                $this->date           	= $this->db->jdate($obj->datedon);
+                $this->firstname      	= $obj->firstname;
+                $this->lastname       	= $obj->lastname;
+                $this->societe        	= $obj->societe;
+                $this->statut         	= $obj->fk_statut;
+                $this->address        	= $obj->address;
+                $this->town           	= $obj->town;
+                $this->zip            	= $obj->zip;
+                $this->town           	= $obj->town;
+                $this->country_id     	= $obj->fk_country;
+                $this->country_code   	= $obj->country_code;
+                $this->country        	= $obj->country;
+                $this->country_olddata	= $obj->country_olddata;	// deprecated
+		$this->email          	= $obj->email;
+                $this->phone          	= $obj->phone;
+                $this->phone_mobile   	= $obj->phone_mobile;
+                $this->project        	= $obj->project_ref;
+                $this->fk_projet      	= $obj->fk_project;   // deprecated
+                $this->fk_project     	= $obj->fk_project;
+                $this->public         	= $obj->public;
+                $this->modepaymentid  	= $obj->fk_payment;
+                $this->modepaymentcode 	= $obj->payment_code;
+                $this->modepayment    	= $obj->payment_label;
+		$this->paid		= $obj->paid;
+                $this->amount         	= $obj->amount;
+                $this->note_private	= $obj->note_private;
+                $this->note_public	= $obj->note_public;
+                $this->modelpdf       	= $obj->model_pdf;
 
                 // Retreive all extrafield
                 // fetch optionals attributes and labels
@@ -697,6 +731,7 @@ class Don extends CommonObject
 		return $this->valid_promesse($this->id, $user->id, $notrigger);
 	}
 
+	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
 	/**
      *    Validate a promise of donation
      *
@@ -707,6 +742,7 @@ class Don extends CommonObject
      */
 	function valid_promesse($id, $userid, $notrigger=0)
 	{
+		// phpcs:enable
 		global $langs, $user;
 
 		$error=0;
@@ -747,6 +783,7 @@ class Don extends CommonObject
         }
     }
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
     /**
      *    Classify the donation as paid, the donation was received
      *
@@ -756,6 +793,7 @@ class Don extends CommonObject
      */
     function set_paid($id, $modepayment=0)
     {
+        // phpcs:enable
         $sql = "UPDATE ".MAIN_DB_PREFIX."don SET fk_statut = 2";
         if ($modepayment)
         {
@@ -782,6 +820,7 @@ class Don extends CommonObject
         }
     }
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
     /**
      *    Set donation to status cancelled
      *
@@ -790,6 +829,7 @@ class Don extends CommonObject
      */
     function set_cancel($id)
     {
+        // phpcs:enable
         $sql = "UPDATE ".MAIN_DB_PREFIX."don SET fk_statut = -1 WHERE rowid = ".$id;
 
         $resql=$this->db->query($sql);
@@ -811,6 +851,7 @@ class Don extends CommonObject
         }
     }
 
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
     /**
      *  Sum of donations
      *
@@ -819,6 +860,7 @@ class Don extends CommonObject
      */
     function sum_donations($param)
     {
+        // phpcs:enable
         global $conf;
 
         $result=0;
@@ -838,13 +880,15 @@ class Don extends CommonObject
         return $result;
     }
 
-	/**
+    // phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
+    /**
      *	Charge indicateurs this->nb pour le tableau de bord
      *
      *	@return     int         <0 if KO, >0 if OK
      */
     function load_state_board()
     {
+        // phpcs:enable
         global $conf;
 
         $this->nb=array();
@@ -1049,5 +1093,4 @@ class Don extends CommonObject
 			return 0;
 		}
 	}
-
 }

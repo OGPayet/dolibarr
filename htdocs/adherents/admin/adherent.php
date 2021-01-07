@@ -4,7 +4,7 @@
  * Copyright (C) 2004-2012 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2004      Sebastien Di Cintio  <sdicintio@ressource-toi.org>
  * Copyright (C) 2004      Benoit Mortier       <benoit.mortier@opensides.be>
- * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2011-2012 Juanjo Menent		<jmenent@2byte.es>
  * Copyright (C) 2012      J. Fernando Lagrange <fernando@demo-tic.org>
  * Copyright (C) 2015      Jean-François Ferry	<jfefe@aternatik.fr>
@@ -33,8 +33,8 @@ require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/member.lib.php';
 
-$langs->load("admin");
-$langs->load("members");
+// Load translation files required by the page
+$langs->loadLangs(array("admin","members"));
 
 if (! $user->admin) accessforbidden();
 
@@ -183,6 +183,10 @@ if (! empty($conf->banque->enabled) && ! empty($conf->societe->enabled) && ! emp
 if (! empty($conf->banque->enabled) && ! empty($conf->societe->enabled) && ! empty($conf->facture->enabled)) $arraychoices['bankviainvoice']=$langs->trans("MoreActionBankViaInvoice");
 print '<td>';
 print $form->selectarray('ADHERENT_BANK_USE',$arraychoices,$conf->global->ADHERENT_BANK_USE,0);
+if ($conf->global->ADHERENT_BANK_USE == 'bankdirect' || $conf->global->ADHERENT_BANK_USE == 'bankviainvoice')
+{
+    print '<br><div style="padding-top: 5px;"><span class="opacitymedium">'.$langs->trans("ABankAccountMustBeDefinedOnPaymentModeSetup").'</span></div>';
+}
 print '</td>';
 print "</tr>\n";
 
@@ -265,7 +269,6 @@ form_constantes($constantes, 0, $helptext);
 
 dol_fiche_end();
 
-
+// End of page
 llxFooter();
-
 $db->close();

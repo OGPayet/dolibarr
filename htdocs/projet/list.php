@@ -2,7 +2,7 @@
 /* Copyright (C) 2001-2005 Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2016 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2005      Marc Bariley / Ocebo <marc@ocebo.com>
- * Copyright (C) 2005-2010 Regis Houssin        <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2010 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2013      Cédric Salvador      <csalvador@gpcsolutions.fr>
  * Copyright (C) 2015 	   Claudio Aschieri     <c.aschieri@19.coop>
  * Copyright (C) 2018 	   Ferran Marcet	    <fmarcet@2byte.es>
@@ -106,7 +106,7 @@ $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels
 $extralabels = $extrafields->fetch_name_optionals_label('projet');
-$search_array_options=$extrafields->getOptionalsFromPost($extralabels,'','search_');
+$search_array_options=$extrafields->getOptionalsFromPost($object->table_element,'','search_');
 
 // List of fields to search into when doing a "search in all"
 $fieldstosearchall = array(
@@ -277,7 +277,6 @@ if ($resql)
 else dol_print_error($db);
 if (count($listofprojectcontacttype) == 0) $listofprojectcontacttype[0]='0';    // To avoid sql syntax error if not found
 
-
 $distinct='DISTINCT';   // We add distinct until we are added a protection to be sure a contact of a project and task is only once.
 $sql = "SELECT ".$distinct." p.rowid as id, p.ref, p.title, p.fk_statut, p.fk_opp_status, p.public, p.fk_user_creat";
 $sql.= ", p.datec as date_creation, p.dateo as date_start, p.datee as date_end, p.opp_amount, p.opp_percent, p.tms as date_update, p.budget_amount";
@@ -351,9 +350,10 @@ if ($search_status >= 0)
 if ($search_opp_status)
 {
 	if (is_numeric($search_opp_status) && $search_opp_status > 0) $sql .= " AND p.fk_opp_status = ".$db->escape($search_opp_status);
-	if ($search_opp_status == 'all') $sql .= " AND p.fk_opp_status IS NOT NULL";
-	if ($search_opp_status == 'openedopp') $sql .= " AND p.fk_opp_status IS NOT NULL AND p.fk_opp_status NOT IN (SELECT rowid FROM ".MAIN_DB_PREFIX."c_lead_status WHERE code IN ('WON','LOST'))";
-	if ($search_opp_status == 'none') $sql .= " AND p.fk_opp_status IS NULL";
+	if ($search_opp_status == 'all') $sql .= " AND (p.fk_opp_status IS NOT NULL AND p.fk_opp_status <> -1)";
+	if ($search_opp_status == 'openedopp') $sql .= " AND p.fk_opp_status IS NOT NULL AND p.fk_opp_status <> -1 AND p.fk_opp_status NOT IN (SELECT rowid FROM ".MAIN_DB_PREFIX."c_lead_status WHERE code IN ('WON','LOST'))";
+	if ($search_opp_status == 'notopenedopp') $sql .= " AND (p.fk_opp_status IS NULL OR p.fk_opp_status = -1 OR p.fk_opp_status IN (SELECT rowid FROM ".MAIN_DB_PREFIX."c_lead_status WHERE code IN ('WON')))";
+	if ($search_opp_status == 'none') $sql .= " AND (p.fk_opp_status IS NULL OR p.fk_opp_status = -1)";
 }
 if ($search_public!='') $sql .= " AND p.public = ".$db->escape($search_public);
 // For external user, no check is done on company permission because readability is managed by public status of project and assignement.
@@ -386,9 +386,8 @@ if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST))
 
 $sql.= $db->plimit($limit + 1,$offset);
 
-//print $sql;
 dol_syslog("list allowed project", LOG_DEBUG);
-//print $sql;
+
 $resql = $db->query($sql);
 if (! $resql)
 {
@@ -425,7 +424,7 @@ if ($search_ref != '') 			$param.='&search_ref='.$search_ref;
 if ($search_label != '') 		$param.='&search_label='.$search_label;
 if ($search_societe != '') 		$param.='&search_societe='.$search_societe;
 if ($search_status >= 0) 		$param.='&search_status='.$search_status;
-if ((is_numeric($search_opp_status) && $search_opp_status >= 0) || in_array($search_opp_status, array('all','openedopp','none'))) 	    $param.='&search_opp_status='.urlencode($search_opp_status);
+if ((is_numeric($search_opp_status) && $search_opp_status >= 0) || in_array($search_opp_status, array('all','openedopp','notopenedopp','none'))) 	    $param.='&search_opp_status='.urlencode($search_opp_status);
 if ($search_opp_percent != '') 	$param.='&search_opp_percent='.urlencode($search_opp_percent);
 if ($search_public != '') 		$param.='&search_public='.$search_public;
 if ($search_project_user != '')   $param.='&search_project_user='.$search_project_user;
@@ -506,7 +505,7 @@ if (! empty($conf->categorie->enabled))
 // If the user can view user other than himself
 $moreforfilter.='<div class="divsearchfield">';
 $moreforfilter.=$langs->trans('ProjectsWithThisUserAsContact'). ': ';
-$includeonly='hierachyme';
+$includeonly='hierarchyme';
 if (empty($user->rights->user->user->lire)) $includeonly=array($user->id);
 $moreforfilter.=$form->select_dolusers($search_project_user?$search_project_user:'', 'search_project_user', 1, '', 0, $includeonly, '', 0, 0, 0, '', 0, '', 'maxwidth200');
 $moreforfilter.='</div>';
@@ -539,18 +538,21 @@ print '<div class="div-table-responsive">';
 print '<table class="tagtable liste'.($moreforfilter?" listwithfilterbefore":"").'">'."\n";
 
 print '<tr class="liste_titre_filter">';
+// Project ref
 if (! empty($arrayfields['p.ref']['checked']))
 {
 	print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_ref" value="'.dol_escape_htmltag($search_ref).'" size="6">';
 	print '</td>';
 }
+// Project label
 if (! empty($arrayfields['p.title']['checked']))
 {
 	print '<td class="liste_titre">';
 	print '<input type="text" class="flat" name="search_label" size="8" value="'.dol_escape_htmltag($search_label).'">';
 	print '</td>';
 }
+// Third party
 if (! empty($arrayfields['s.nom']['checked']))
 {
 	print '<td class="liste_titre">';
@@ -593,6 +595,7 @@ if (! empty($arrayfields['p.public']['checked']))
 	print $form->selectarray('search_public',$array,$search_public);
 	print '</td>';
 }
+// Opp status
 if (! empty($arrayfields['p.fk_opp_status']['checked']))
 {
 	print '<td class="liste_titre nowrap center">';
@@ -744,9 +747,7 @@ while ($i < min($num,$limit))
 				$nbofsalesrepresentative=count($listsalesrepresentatives);
 				if ($nbofsalesrepresentative > 3)   // We print only number
 				{
-					print '<a href="'.DOL_URL_ROOT.'/societe/commerciaux.php?socid='.$socstatic->id.'">';
 					print $nbofsalesrepresentative;
-					print '</a>';
 				}
 				else if ($nbofsalesrepresentative > 0)
 				{
@@ -884,7 +885,6 @@ while ($i < min($num,$limit))
 		if (! $i) $totalarray['nbfield']++;
 
 		print "</tr>\n";
-
 	}
 
 	$i++;
@@ -920,7 +920,6 @@ print "</table>\n";
 print '</div>';
 print "</form>\n";
 
-
+// End of page
 llxFooter();
-
 $db->close();

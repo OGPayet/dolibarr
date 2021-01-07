@@ -1,13 +1,14 @@
 <?php
-/* Copyright (C) 2001-2006 Rodolphe Quiedeville  <rodolphe@quiedeville.org>
- * Copyright (C) 2004-2017 Laurent Destailleur   <eldy@users.sourceforge.net>
- * Copyright (C) 2005      Marc Barilley / Ocebo <marc@ocebo.com>
- * Copyright (C) 2005-2012 Regis Houssin         <regis.houssin@capnetworks.com>
- * Copyright (C) 2007      Franky Van Liedekerke <franky.van.liedekerke@telenet.be>
- * Copyright (C) 2012      Cédric Salvador       <csalvador@gpcsolutions.fr>
- * Copyright (C) 2014      Raphaël Doursenaud    <rdoursenaud@gpcsolutions.fr>
- * Copyright (C) 2014      Teddy Andreotti       <125155@supinfo.com>
- * Copyright (C) 2015      Juanjo Menent		 <jmenent@2byte.es>
+/* Copyright (C) 2001-2006  Rodolphe Quiedeville    <rodolphe@quiedeville.org>
+ * Copyright (C) 2004-2017  Laurent Destailleur     <eldy@users.sourceforge.net>
+ * Copyright (C) 2005       Marc Barilley / Ocebo   <marc@ocebo.com>
+ * Copyright (C) 2005-2012  Regis Houssin           <regis.houssin@inodbox.com>
+ * Copyright (C) 2007       Franky Van Liedekerke   <franky.van.liedekerke@telenet.be>
+ * Copyright (C) 2012       Cédric Salvador         <csalvador@gpcsolutions.fr>
+ * Copyright (C) 2014       Raphaël Doursenaud      <rdoursenaud@gpcsolutions.fr>
+ * Copyright (C) 2014       Teddy Andreotti         <125155@supinfo.com>
+ * Copyright (C) 2015       Juanjo Menent           <jmenent@2byte.es>
+ * Copyright (C) 2018       Frédéric France         <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -470,7 +471,7 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
         print '<tr><td><span class="fieldrequired">'.$langs->trans('Date').'</span></td><td>';
         $datepayment = dol_mktime(12, 0, 0, $_POST['remonth'], $_POST['reday'], $_POST['reyear']);
         $datepayment= ($datepayment == '' ? (empty($conf->global->MAIN_AUTOFILL_DATE)?-1:'') : $datepayment);
-        $form->select_date($datepayment,'','','',0,"add_paiement",1,1,0,0,'','',$facture->date);
+        print $form->selectDate($datepayment, '', '', '', 0, "add_paiement", 1, 1, 0, '', '', $facture->date);
         print '</td></tr>';
 
         // Payment mode
@@ -528,7 +529,7 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
          */
 
         $sql = 'SELECT f.rowid as facid, f.facnumber, f.total_ttc, f.multicurrency_code, f.multicurrency_total_ttc, f.type,';
-        $sql.= ' f.datef as df, f.fk_soc as socid';
+        $sql.= ' f.datef as df, f.fk_soc as socid, f.date_lim_reglement as dlr';
         $sql.= ' FROM '.MAIN_DB_PREFIX.'facture as f';
 		$sql.= ' WHERE f.entity IN ('.getEntity('facture').')';
         $sql.= ' AND (f.fk_soc = '.$facture->socid;
@@ -580,15 +581,22 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
                 print '<tr class="liste_titre">';
                 print '<td>'.$arraytitle.'</td>';
                 print '<td align="center">'.$langs->trans('Date').'</td>';
-                if (!empty($conf->multicurrency->enabled)) print '<td>'.$langs->trans('Currency').'</td>';
-                if (!empty($conf->multicurrency->enabled)) print '<td align="right">'.$langs->trans('MulticurrencyAmountTTC').'</td>';
-                if (!empty($conf->multicurrency->enabled)) print '<td align="right">'.$multicurrencyalreadypayedlabel.'</td>';
-                if (!empty($conf->multicurrency->enabled)) print '<td align="right">'.$multicurrencyremaindertopay.'</td>';
-                if (!empty($conf->multicurrency->enabled)) print '<td align="right">'.$langs->trans('MulticurrencyPaymentAmount').'</td>';
+                print '<td align="center">'.$langs->trans('DateMaxPayment').'</td>';
+                if (!empty($conf->multicurrency->enabled)) {
+                	print '<td>'.$langs->trans('Currency').'</td>';
+                	print '<td align="right">'.$langs->trans('MulticurrencyAmountTTC').'</td>';
+                	print '<td align="right">'.$multicurrencyalreadypayedlabel.'</td>';
+                	print '<td align="right">'.$multicurrencyremaindertopay.'</td>';
+                	print '<td align="right">'.$langs->trans('MulticurrencyPaymentAmount').'</td>';
+                }
                 print '<td align="right">'.$langs->trans('AmountTTC').'</td>';
                 print '<td align="right">'.$alreadypayedlabel.'</td>';
                 print '<td align="right">'.$remaindertopay.'</td>';
                 print '<td align="right">'.$langs->trans('PaymentAmount').'</td>';
+
+                $parameters=array();
+                $reshook=$hookmanager->executeHooks('printFieldListTitle', $parameters, $facture, $action); // Note that $action and $object may have been modified by hook
+
                 print '<td align="right">&nbsp;</td>';
                 print "</tr>\n";
 
@@ -613,8 +621,7 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
                     $remaintopay=price2num($invoice->total_ttc - $paiement - $creditnotes - $deposits,'MT');
 
 					// Multicurrency Price
-					if (!empty($conf->multicurrency->enabled))
-					{
+					if (!empty($conf->multicurrency->enabled)) {
 						$multicurrency_payment = $invoice->getSommePaiement(1);
 						$multicurrency_creditnotes=$invoice->getSumCreditNotesUsed(1);
 						$multicurrency_deposits=$invoice->getSumDepositsUsed(1);
@@ -631,6 +638,24 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
 
                     // Date
                     print '<td align="center">'.dol_print_date($db->jdate($objp->df),'day')."</td>\n";
+
+                    // Due date
+                    if ($objp->dlr > 0 )
+                    {
+                        print '<td align="center">';
+                        print dol_print_date($db->jdate($objp->dlr), 'day');
+
+                        if ($invoice->hasDelay())
+                        {
+                            print img_warning($langs->trans('Late'));
+                        }
+
+                        print '</td>';
+                    }
+                    else
+                    {
+                        print '<td align="center"></td>';
+                    }
 
                     // Currency
                     if (!empty($conf->multicurrency->enabled)) print '<td align="center">'.$objp->multicurrency_code."</td>\n";
@@ -715,6 +740,9 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
                     }
                     print "</td>";
 
+                    $parameters=array();
+                    $reshook=$hookmanager->executeHooks('printFieldListValue', $parameters, $objp, $action); // Note that $action and $object may have been modified by hook
+
                     // Warning
                     print '<td align="center" width="16">';
                     //print "xx".$amounts[$invoice->id]."-".$amountsresttopay[$invoice->id]."<br>";
@@ -724,9 +752,6 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
                         print ' '.img_warning($langs->trans("PaymentHigherThanReminderToPay"));
                     }
                     print '</td>';
-
-					$parameters=array();
-					$reshook=$hookmanager->executeHooks('printObjectLine',$parameters,$objp,$action); // Note that $action and $object may have been modified by hook
 
                     print "</tr>\n";
 
@@ -742,12 +767,14 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
                 {
                     // Print total
                     print '<tr class="liste_total">';
-                    print '<td colspan="2" align="left">'.$langs->trans('TotalTTC').'</td>';
-					if (!empty($conf->multicurrency->enabled)) print '<td></td>';
-					if (!empty($conf->multicurrency->enabled)) print '<td></td>';
-					if (!empty($conf->multicurrency->enabled)) print '<td></td>';
-					if (!empty($conf->multicurrency->enabled)) print '<td></td>';
-					if (!empty($conf->multicurrency->enabled)) print '<td align="right" id="multicurrency_result" style="font-weight: bold;"></td>';
+                    print '<td colspan="2" align="left">'.$langs->trans('TotalTTC').'</td><td></td>';
+                    if (!empty($conf->multicurrency->enabled)) {
+                    	print '<td></td>';
+                    	print '<td></td>';
+                    	print '<td></td>';
+                    	print '<td></td>';
+                    	print '<td align="right" id="multicurrency_result" style="font-weight: bold;"></td>';
+                    }
 					print '<td align="right"><b>'.price($sign * $total_ttc).'</b></td>';
                     print '<td align="right"><b>'.price($sign * $totalrecu);
                     if ($totalrecucreditnote) print '+'.price($totalrecucreditnote);
@@ -863,11 +890,11 @@ if (! GETPOST('action','aZ09'))
             print '<td>'.dol_print_date($db->jdate($objp->dp))."</td>\n";
             print '<td>'.$objp->paiement_type.' '.$objp->num_paiement."</td>\n";
             print '<td align="right">'.price($objp->amount).'</td><td>&nbsp;</td>';
-
-			$parameters=array();
-			$reshook=$hookmanager->executeHooks('printObjectLine',$parameters,$objp,$action); // Note that $action and $object may have been modified by hook
-
             print '</tr>';
+
+            $parameters=array();
+            $reshook=$hookmanager->executeHooks('printObjectLine',$parameters,$objp,$action); // Note that $action and $object may have been modified by hook
+
             $i++;
         }
         print '</table>';
