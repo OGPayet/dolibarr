@@ -1,0 +1,61 @@
+# <one line to give the program's name and a brief idea of what it does.>
+# Copyright (C) <year>  <name of author>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+CHARSET=UTF-8
+
+#
+# Générique
+#
+Module500500Name = OwnTheme
+Module500500Desc = Thème et menus responsive
+
+#
+# Page d'administration
+#
+SetupSaved = Configuration enregistrée
+OwnThemeSetup = Configuration du module OwnTheme
+OwnThemeSettings = Paramètres
+Colors = Couleurs
+PrimaryColor = Couleur primaire
+SecondaryColor = Couleur secondaire
+HeaderBckgrdColor = Couleur de fond du Menu
+BodyBckgrdColor = Couleur de fond des pages
+LogoBckgrdColor = Couleur de fond du LOGO
+TxtMenuColor = Couleur des titres du menu vertical
+DefaultsColors = Retour aux couleurs d'origine
+DefaultsColorsMsg = Couleurs d'origine activées
+AS_SettingsColors = Couleurs
+AS_SettingsOptions = Options
+FixedMenu = Menu vertical fixe
+FixedMenuDescr = Le menu glissant reste apparent uniquement en mode PC
+AS_AdvSettingsOptions = Options avancées
+CustomCSS = CSS personnalisé
+CustomCSSDescr = Charge le fichier /owntheme/css/as_style_custom.css
+CustomJS = JS personnalisé
+CustomJSDescr = Charge le fichier /owntheme/js/as_code_custom.js
+AS_SettingsFontSizes = Tailles de police
+HeaderFontSize = Menu horizontal (icones)
+VmenuFontSize = Menu vertical (texte)
+Element = Elément
+Validation = Validation
+Smartphone = Tablettes / Smartphones
+Desktop = PC de bureau
+
+#
+# Page À propos
+#
+OwnThemeAbout = À propos
+OwnThemeAboutPage = À propos du module OwnTheme
+

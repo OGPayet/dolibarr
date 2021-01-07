@@ -1,0 +1,59 @@
+# <one line to give the program's name and a brief idea of what it does.>
+# Copyright (C) 2015 Serge Azout MS Mobile
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Generic
+#
+Module500500Name = OwnTheme
+Module500500Desc = Responsive Theme and Menus
+
+#
+# Admin page
+#
+SetupSaved = Setup saved
+OwnThemeSetup = OwnTheme Module setup
+OwnThemeSettings = Settings
+Colors = Colors
+PrimaryColor = Primary Color
+SecondaryColor = Secondary color
+HeaderBckgrdColor = Menu background color 
+BodyBckgrdColor = Background color
+LogoBckgrdColor = LOGO Background color
+TxtMenuColor = Vertical Menu titles color
+DefaultColors = Back to default colorss
+DefaultColorssMsg = Default colors activated
+AS_SettingsColors = Colors
+AS_SettingsOptions = Options
+FixedMenu = Fixed vertical menu
+FixedMenuDescr = Sliding menu stay visible only in Desktop mode
+AS_AdvSettingsOptions = Advanced options
+CustomCSS = Custom CSS
+CustomCSSDescr = Load /owntheme/css/as_style_custom.css file
+CustomJS = Custom JS
+CustomJSDescr = Load /owntheme/js/as_code_custom.js file
+AS_SettingsFontSizes = Font sizes
+HeaderFontSize = Horizontal Menu (icons)
+VmenuFontSize = Vertical menu (text)
+Element = Elément
+Validation = Validation
+Smartphone = Tablets / Smartphones
+Desktop = Desktops
+
+#
+# About page
+#
+OwnThemeAbout = About
+OwnThemeAboutPage = OwnTheme about page
