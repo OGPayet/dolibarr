@@ -222,7 +222,7 @@ class modtransporteur extends DolibarrModules
 			$minversionDolibarr=$tblDolibarr->attributes()->minVersion;
 			if (DOL_VERSION < $minversionDolibarr) {
 				$this->dolibarrminversion=$minversionDolibarr;
-				$this->disabled = true;
+				//$this->disabled = true;
 			}
 		}
 		return $currentversion;
