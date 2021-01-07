@@ -25,23 +25,16 @@ require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php";
 require_once DOL_DOCUMENT_ROOT."/core/lib/files.lib.php";
 
+// Load translation files required by the page
+$langs->load("opensurvey");
+
 // Security check
 if (!$user->rights->opensurvey->read) accessforbidden();
+
 
 /*
  * View
  */
-
- // Load translation files required by the page
-$langs->load("opensurvey");
-
-llxHeader();
-
-print load_fiche_titre($langs->trans("OpenSurveyArea"));
-
-
-print '<div class="fichecenter"><div class="fichethirdleft">';
-
 
 $nbsondages=0;
 $sql = 'SELECT COUNT(*) as nb';
@@ -53,20 +46,27 @@ if ($resql)
 	$obj=$db->fetch_object($resql);
 	$nbsondages=$obj->nb;
 }
-else dol_print_error($db,'');
+else dol_print_error($db, '');
+
+llxHeader();
+
+print load_fiche_titre($langs->trans("OpenSurveyArea"));
+
+
+print '<div class="fichecenter"><div class="fichethirdleft">';
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre"><td colspan="2">'.$langs->trans("OpenSurveyArea").'</td></tr>';
-print "<tr ".$bc[0].">";
-print '<td>'.$langs->trans("NbOfSurveys").'</td><td align="right"><a href="list.php">'.$nbsondages.'</a></td>';
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans("NbOfSurveys").'</td><td class="right"><a href="list.php">'.$nbsondages.'</a></td>';
 print "</tr>";
-//print '<tr class="liste_total"><td>'.$langs->trans("Total").'</td><td align="right">';
+//print '<tr class="liste_total"><td>'.$langs->trans("Total").'</td><td class="right">';
 //print $total;
 //print '</td></tr>';
 print '</table>';
 
 
-print '</div></div></div>';
+print '</div></div>';
 
 // End of page
 llxFooter();

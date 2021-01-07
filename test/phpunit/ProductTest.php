@@ -45,7 +45,7 @@ $conf->global->MAIN_DISABLE_ALL_MAILS=1;
  * @backupStaticAttributes enabled
  * @remarks backupGlobals must be disabled to have db,conf,user and lang not erased.
  */
-class ProductTest extends PHPUnit_Framework_TestCase
+class ProductTest extends PHPUnit\Framework\TestCase
 {
     protected $savconf;
     protected $savuser;
@@ -58,11 +58,11 @@ class ProductTest extends PHPUnit_Framework_TestCase
      *
      * @return ProductTest
      */
-    function __construct()
+    public function __construct()
     {
-    	parent::__construct();
+        parent::__construct();
 
-    	//$this->sharedFixture
+        //$this->sharedFixture
         global $conf,$user,$langs,$db;
         $this->savconf=$conf;
         $this->savuser=$user;
@@ -186,7 +186,7 @@ class ProductTest extends PHPUnit_Framework_TestCase
         $db=$this->savdb;
 
         $localobject->note='New note after update';
-        $result=$localobject->update($localobject->id,$user);
+        $result=$localobject->update($localobject->id, $user);
         print __METHOD__." id=".$localobject->id." result=".$result."\n";
         $this->assertLessThan($result, 0);
 
