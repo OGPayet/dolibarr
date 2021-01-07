@@ -46,7 +46,7 @@ function societe_prepare_head(Societe $object)
     $head = array();
 
     $head[$h][0] = DOL_URL_ROOT.'/societe/card.php?socid='.$object->id;
-    $head[$h][1] = $langs->trans("Card");
+    $head[$h][1] = $langs->trans("ThirdParty");
     $head[$h][2] = 'card';
     $h++;
 
@@ -104,7 +104,9 @@ function societe_prepare_head(Societe $object)
             $h++;
         }
     }
-    if (!empty($conf->fournisseur->enabled) && $object->fournisseur && !empty($user->rights->fournisseur->lire))
+    $supplier_module_enabled = 0;
+    if ((!empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD)) || !empty($conf->supplier_proposal->enabled) || !empty($conf->supplier_order->enabled) || !empty($conf->supplier_invoice->enabled)) $supplier_module_enabled = 1;
+    if ($supplier_module_enabled == 1 && $object->fournisseur && !empty($user->rights->fournisseur->lire))
     {
         $head[$h][0] = DOL_URL_ROOT.'/fourn/card.php?socid='.$object->id;
         $head[$h][1] = $langs->trans("Supplier");
@@ -172,7 +174,7 @@ function societe_prepare_head(Societe $object)
 	}
 
 	// Related items
-    if ((!empty($conf->commande->enabled) || !empty($conf->propal->enabled) || !empty($conf->facture->enabled) || !empty($conf->ficheinter->enabled) || !empty($conf->fournisseur->enabled))
+    if ((!empty($conf->commande->enabled) || !empty($conf->propal->enabled) || !empty($conf->facture->enabled) || !empty($conf->ficheinter->enabled) || !empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD) || !empty($conf->supplier_order->enabled) || !empty($conf->supplier_invoice->enabled))
         && empty($conf->global->THIRPARTIES_DISABLE_RELATED_OBJECT_TAB))
     {
         $head[$h][0] = DOL_URL_ROOT.'/societe/consumption.php?socid='.$object->id;
@@ -365,7 +367,7 @@ function societe_prepare_head2($object)
     $head = array();
 
     $head[$h][0] = DOL_URL_ROOT.'/societe/card.php?socid='.$object->id;
-    $head[$h][1] = $langs->trans("Card");
+    $head[$h][1] = $langs->trans("ThirdParty");
     $head[$h][2] = 'company';
     $h++;
 
@@ -800,7 +802,10 @@ function show_projects($conf, $langs, $db, $object, $backtopage = '', $nocreatel
                         print '<tr class="oddeven">';
 
                         // Ref
-                        print '<td><a href="'.DOL_URL_ROOT.'/projet/card.php?id='.$projecttmp->id.'">'.img_object($langs->trans("ShowProject"), ($obj->public ? 'projectpub' : 'project'))." ".$obj->ref.'</a></td>';
+                        print '<td>';
+                        print $projecttmp->getNomUrl(1);
+                        print '</td>';
+
                         // Label
                         print '<td>'.$obj->title.'</td>';
                         // Date start
@@ -872,7 +877,7 @@ function show_contacts($conf, $langs, $db, $object, $backtopage = '')
     $optioncss = GETPOST('optioncss', 'alpha');
     $sortfield = GETPOST("sortfield", 'alpha');
     $sortorder = GETPOST("sortorder", 'alpha');
-    $page = GETPOST('page', 'int');
+    $page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 
     $search_status = GETPOST("search_status", 'int');
     if ($search_status == '') $search_status = 1; // always display active customer first
@@ -1226,7 +1231,7 @@ function show_contacts($conf, $langs, $db, $object, $backtopage = '')
             // Edit
             if ($user->rights->societe->contact->creer)
             {
-                print '<a href="'.DOL_URL_ROOT.'/contact/card.php?action=edit&id='.$obj->rowid.'&backtopage='.urlencode($backtopage).'">';
+                print '<a class="editfielda paddingleft" href="'.DOL_URL_ROOT.'/contact/card.php?action=edit&id='.$obj->rowid.'&backtopage='.urlencode($backtopage).'">';
                 print img_edit();
                 print '</a>';
             }
@@ -1281,7 +1286,7 @@ function show_actions_todo($conf, $langs, $db, $filterobj, $objcon = '', $noprin
  * 		@param	Conf		       $conf		   Object conf
  * 		@param	Translate	       $langs		   Object langs
  * 		@param	DoliDB		       $db			   Object db
- * 		@param	mixed			   $filterobj	   Filter on object Adherent|Societe|Project|Product|CommandeFournisseur|Dolresource|Ticket|... to list events linked to an object
+ * 		@param	mixed			   $filterobj	   Filter on object Adherent|Societe|Project|Product|CommandeFournisseur|Dolresource|Ticket... to list events linked to an object
  * 		@param	Contact		       $objcon		   Filter on object contact to filter events on a contact
  *      @param  int			       $noprint        Return string but does not output it
  *      @param  string		       $actioncode     Filter on actioncode
@@ -1289,9 +1294,10 @@ function show_actions_todo($conf, $langs, $db, $filterobj, $objcon = '', $noprin
  *      @param  array              $filters        Filter on other fields
  *      @param  string             $sortfield      Sort field
  *      @param  string             $sortorder      Sort order
+ *      @param	string			   $module		   You can add module name here if elementtype in table llx_actioncomm is objectkey@module
  *      @return	string|void				           Return html part or void if noprint is 1
  */
-function show_actions_done($conf, $langs, $db, $filterobj, $objcon = '', $noprint = 0, $actioncode = '', $donetodo = 'done', $filters = array(), $sortfield = 'a.datep,a.id', $sortorder = 'DESC')
+function show_actions_done($conf, $langs, $db, $filterobj, $objcon = '', $noprint = 0, $actioncode = '', $donetodo = 'done', $filters = array(), $sortfield = 'a.datep,a.id', $sortorder = 'DESC', $module = '')
 {
     global $user, $conf;
     global $form;
@@ -1411,7 +1417,8 @@ function show_actions_done($conf, $langs, $db, $filterobj, $objcon = '', $noprin
             }
             elseif (is_object($filterobj) && is_array($filterobj->fields) && is_array($filterobj->fields['rowid']) && is_array($filterobj->fields['ref']) && $filterobj->table_element && $filterobj->element)
             {
-            	$sql .= " AND a.fk_element = o.rowid AND a.elementtype = '".$db->escape($filterobj->element)."'";
+            	// Generic case
+            	$sql .= " AND a.fk_element = o.rowid AND a.elementtype = '".$db->escape($filterobj->element).($module ? '@'.$module : '')."'";
             	if ($filterobj->id) $sql .= " AND a.fk_element = ".$filterobj->id;
             }
         }
@@ -1736,7 +1743,7 @@ function show_actions_done($conf, $langs, $db, $filterobj, $objcon = '', $noprin
             //$out.='<td>'.dol_trunc($histo[$key]['note'], 40).'</td>';
 
             // Linked object
-            $out .= '<td>';
+            $out .= '<td class="nowraponall">';
             if (isset($histo[$key]['elementtype']) && !empty($histo[$key]['fk_element']))
             {
             	$out .= dolGetElementUrl($histo[$key]['fk_element'], $histo[$key]['elementtype'], 1);

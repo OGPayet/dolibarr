@@ -180,7 +180,7 @@ if ($nolinesbefore) {
 				echo '<label for="prod_entry_mode_free">';
 				echo '<input type="radio" class="prod_entry_mode_free" name="prod_entry_mode" id="prod_entry_mode_free" value="free"';
 				//echo (GETPOST('prod_entry_mode')=='free' ? ' checked' : ((empty($forceall) && (empty($conf->product->enabled) || empty($conf->service->enabled)))?' checked':'') );
-				echo (GETPOST('prod_entry_mode') == 'free' ? ' checked' : '');
+				echo ((GETPOST('prod_entry_mode', 'alpha') == 'free' || ! empty($conf->global->MAIN_FREE_PRODUCT_CHECKED_BY_DEFAULT)) ? ' checked' : '');
 				echo '> ';
 				// Show type selector
 				echo $langs->trans("FreeLineOfType");
@@ -198,7 +198,7 @@ if ($nolinesbefore) {
 					echo ' ';
 				}
 			}
-			echo $form->select_type_of_lines(isset($_POST["type"]) ?GETPOST("type", 'alpha', 2) : -1, 'type', 1, 1, $forceall);
+			echo $form->select_type_of_lines(GETPOSTISSET("type") ? GETPOST("type", 'alpha', 2) : -1, 'type', 1, 1, $forceall);
 			echo '</span>';
 		}
 		// Predefined product/service
@@ -378,7 +378,7 @@ if ($nolinesbefore) {
 	<td class="nobottom linecolqty right"><input type="text" size="2" name="qty" id="qty" class="flat right" value="<?php echo (isset($_POST["qty"]) ?GETPOST("qty", 'alpha', 2) : 1); ?>">
 	</td>
 	<?php
-	if (! empty($conf->global->PRODUCT_USE_UNITS)) {
+	if (!empty($conf->global->PRODUCT_USE_UNITS)) {
 		$coldisplay++;
 		print '<td class="nobottom linecoluseunit left">';
 		print $form->selectUnits($line->fk_unit, "units");
@@ -432,7 +432,7 @@ if ($nolinesbefore) {
 
 <?php
 if (is_object($objectline)) {
-	print $objectline->showOptionals($extrafields, 'edit', array('colspan'=>$coldisplay), '', '', empty($conf->global->MAIN_EXTRAFIELDS_IN_ONE_TD) ? 0 : 1);
+	print $objectline->showOptionals($extrafields, 'edit', array('colspan'=>$coldisplay), '', '', 1);
 }
 
 if ((!empty($conf->service->enabled) || ($object->element == 'contrat')) && $dateSelector && GETPOST('type') != '0')	// We show date field if required
@@ -631,13 +631,16 @@ if (!empty($usemargins) && $user->rights->margins->creer)
 		if (empty($conf->global->MAIN_DISABLE_EDIT_PREDEF_PRICEHT) && empty($senderissupplier))
 		{
 			?>
-			var pbq = parseInt($('option:selected', this).attr('data-pbq'));
+			var pbq = parseInt($('option:selected', this).attr('data-pbq'));	/* If product was selected with a HTML select */
+			if (isNaN(pbq)) { pbq = jQuery('#idprod').attr('data-pbq'); } 		/* If product was selected with a HTML input with autocomplete */
+			//console.log(pbq);
+
 			if ((jQuery('#idprod').val() > 0 || jQuery('#idprodfournprice').val()) && ! isNaN(pbq) && pbq > 0)
 			{
-				console.log("We are in a price per qty context, we do not call ajax/product");
+				console.log("We are in a price per qty context, we do not call ajax/product, init of fields is done few lines later");
 			} else {
-				<?php if (! empty($conf->global->PRODUIT_CUSTOMER_PRICES_BY_QTY) || ! empty($conf->global->PRODUIT_CUSTOMER_PRICES_BY_QTY_MULTIPRICES)) { ?>
-					if (isNaN(pbq)) { console.log("We use experimental option PRODUIT_CUSTOMER_PRICES_BY_QTY or PRODUIT_CUSTOMER_PRICES_BY_QTY but we are not yet able to get the id of pbq from product combo list, so load of price may be 0 if product has differet prices"); }
+				<?php if (!empty($conf->global->PRODUIT_CUSTOMER_PRICES_BY_QTY) || !empty($conf->global->PRODUIT_CUSTOMER_PRICES_BY_QTY_MULTIPRICES)) { ?>
+					if (isNaN(pbq)) { console.log("We use experimental option PRODUIT_CUSTOMER_PRICES_BY_QTY or PRODUIT_CUSTOMER_PRICES_BY_QTY but we could not get the id of pbq from product combo list, so load of price may be 0 if product has differet prices"); }
 				<?php } ?>
 				// Get the HT price for the product and display it
 				console.log("Load unit price without tax and set it into #price_ht for product id="+$(this).val()+" socid=<?php print $object->socid; ?>");
@@ -664,7 +667,7 @@ if (!empty($usemargins) && $user->rights->margins->creer)
 			$("#buying_price").val("").show();
 
 			/* Call post to load content of combo list fournprice_predef */
-			$.post('<?php echo DOL_URL_ROOT; ?>/fourn/ajax/getSupplierPrices.php?bestpricefirst=1', { 'idprod': $(this).val() }, function(data) {
+			$.post('<?php echo DOL_URL_ROOT; ?>/fourn/ajax/getSupplierPrices.php?bestpricefirst=1', { 'idprod': $(this).val(), 'token': '<?php echo newToken(); ?>' }, function(data) {
 				if (data && data.length > 0)
 				{
 					var options = ''; var defaultkey = ''; var defaultprice = ''; var bestpricefound = 0;
@@ -760,11 +763,16 @@ if (!empty($usemargins) && $user->rights->margins->creer)
 		?>
 
 		/* To process customer price per quantity (CUSTOMER_PRICE_PER_QTY works only if combo product is not an ajax after x key pressed) */
-		var pbq = parseInt($('option:selected', this).attr('data-pbq'));
+		var pbq = parseInt($('option:selected', this).attr('data-pbq'));				// When select is done from HTML select
+		if (isNaN(pbq)) { pbq = jQuery('#idprod').attr('data-pbq');	}					// When select is done from HTML input with autocomplete
 		var pbqup = parseFloat($('option:selected', this).attr('data-pbqup'));
+		if (isNaN(pbqup)) { pbqup = jQuery('#idprod').attr('data-pbqup');	}
 		var pbqbase = $('option:selected', this).attr('data-pbqbase');
+		if (isNaN(pbqbase)) { pbqbase = jQuery('#idprod').attr('data-pbqbase');	}
 		var pbqqty = parseFloat($('option:selected', this).attr('data-pbqqty'));
+		if (isNaN(pbqqty)) { pbqqty = jQuery('#idprod').attr('data-pbqqty');	}
 		var pbqpercent = parseFloat($('option:selected', this).attr('data-pbqpercent'));
+		if (isNaN(pbqpercent)) { pbqpercent = jQuery('#idprod').attr('data-pbqpercent');	}
 
 		if ((jQuery('#idprod').val() > 0 || jQuery('#idprodfournprice').val()) && ! isNaN(pbq) && pbq > 0)
 		{

@@ -399,7 +399,7 @@ class ExpenseReport extends CommonObject
 
         // get extrafields so they will be clone
         //foreach($this->lines as $line)
-            //$line->fetch_optionals($line->rowid);
+	        //$line->fetch_optionals();
 
         // Load source object
         $objFrom = clone $this;
@@ -588,7 +588,7 @@ class ExpenseReport extends CommonObject
                 elseif ($this->fk_user_validator > 0) $user_approver->fetch($this->fk_user_validator); // For backward compatibility
                 $this->user_validator_infos = dolGetFirstLastname($user_approver->firstname, $user_approver->lastname);
 
-                $this->fk_statut                = $obj->status;		// deprecated
+                $this->fk_statut                = $obj->status; // deprecated
                 $this->status                   = $obj->status;
                 $this->fk_c_paiement            = $obj->fk_c_paiement;
                 $this->paid                     = $obj->paid;
@@ -1184,7 +1184,7 @@ class ExpenseReport extends CommonObject
         }
         if (empty($num) || $num < 0) return -1;
 
-        $this->newref = $num;
+        $this->newref = dol_sanitizeFileName($num);
 
 		$this->db->begin();
 
@@ -1526,7 +1526,7 @@ class ExpenseReport extends CommonObject
     {
         // phpcs:enable
 		$error = 0;
-        $this->date_cancel = $this->db->idate(gmmktime());
+        $this->date_cancel = $this->db->idate(dol_now());
         if ($this->fk_statut != self::STATUS_CANCELED)
         {
 			$this->db->begin();
@@ -1801,6 +1801,7 @@ class ExpenseReport extends CommonObject
 			$localtaxes_type = getLocalTaxesFromRate($vatrate, 0, $mysoc, $this->thirdparty);
 
 			$vat_src_code = '';
+			$reg = array();
 			if (preg_match('/\s*\((.*)\)/', $vatrate, $reg))
 			{
 				$vat_src_code = $reg[1];
@@ -2046,6 +2047,7 @@ class ExpenseReport extends CommonObject
 
             // Clean vat code
             $vat_src_code = '';
+            $reg = array();
             if (preg_match('/\((.*)\)/', $vatrate, $reg))
             {
                 $vat_src_code = $reg[1];
@@ -2060,10 +2062,6 @@ class ExpenseReport extends CommonObject
 
             $tx_tva = $vatrate / 100;
             $tx_tva = $tx_tva + 1;
-            $total_ht = price2num($total_ttc / $tx_tva, 'MT');
-
-            $total_tva = price2num($total_ttc - $total_ht, 'MT');
-            // fin calculs
 
             $this->line = new ExpenseReportLine($this->db);
             $this->line->comments        = $comments;
@@ -2281,18 +2279,19 @@ class ExpenseReport extends CommonObject
         $langs->load("trips");
 
 	    if (!dol_strlen($modele)) {
-		    $modele = 'standard';
-
 		    if ($this->modelpdf) {
 			    $modele = $this->modelpdf;
 		    } elseif (!empty($conf->global->EXPENSEREPORT_ADDON_PDF)) {
 			    $modele = $conf->global->EXPENSEREPORT_ADDON_PDF;
 		    }
 	    }
+		if (!empty($modele)) {
+			$modelpath = "core/modules/expensereport/doc/";
 
-        $modelpath = "core/modules/expensereport/doc/";
-
-        return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+			return $this->commonGenerateDocument($modelpath, $modele, $outputlangs, $hidedetails, $hidedesc, $hideref, $moreparams);
+		} else {
+			return 0;
+		}
     }
 
     /**

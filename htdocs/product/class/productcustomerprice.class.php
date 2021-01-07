@@ -703,13 +703,12 @@ class Productcustomerprice extends CommonObject
 			$this->errors [] = "Error ".$this->db->lasterror();
 		}
 
-		if (! $error) {
-			if (! $notrigger) {
-			    $result = $this->call_trigger('PRODUCT_CUSTOMER_PRICE_UPDATE', $user);
-			    if ($result < 0) {
-			        $error++;
-			    }
-			}
+		if (!$error && !$notrigger)
+		{
+			// Call trigger
+			$result = $this->call_trigger('PRODUCT_CUSTOMER_PRICE_UPDATE', $user);
+			if ($result < 0) $error++;
+			// End call triggers
 		}
 
 		if (!$error) {
@@ -744,7 +743,7 @@ class Productcustomerprice extends CommonObject
     {
 		global $conf;
 
-		if (! empty($conf->global->PRODUCT_DISABLE_PROPAGATE_CUSTOMER_PRICES_ON_CHILD_COMPANIES)) {
+		if (!empty($conf->global->PRODUCT_DISABLE_PROPAGATE_CUSTOMER_PRICES_ON_CHILD_COMPANIES)) {
 			return 0;
 		}
 
@@ -842,13 +841,11 @@ class Productcustomerprice extends CommonObject
 
 		$this->db->begin();
 
-		if (! $error) {
-			if (! $notrigger) {
-			    $result = $this->call_trigger('PRODUCT_CUSTOMER_PRICE_DELETE', $user);
-			    if ($result < 0) {
-			        $error++;
-			    }
-			}
+		if (!$error && !$notrigger) {
+		    $result = $this->call_trigger('PRODUCT_CUSTOMER_PRICE_DELETE', $user);
+		    if ($result < 0) {
+		        $error++;
+		    }
 		}
 
 		if (!$error) {

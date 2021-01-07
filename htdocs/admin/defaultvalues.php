@@ -45,7 +45,7 @@ $mode = GETPOST('mode', 'aZ09') ?GETPOST('mode', 'aZ09') : 'createform'; // 'cre
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
 $sortfield = GETPOST("sortfield", 'alpha');
 $sortorder = GETPOST("sortorder", 'alpha');
-$page = GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, or '' or -1
 $offset = $limit * $page;
 $pageprev = $page - 1;
@@ -185,7 +185,7 @@ if ($action == 'delete')
 $form = new Form($db);
 $formadmin = new FormAdmin($db);
 
-$wikihelp = 'EN:Setup|FR:Paramétrage|ES:Configuración';
+$wikihelp = 'EN:First_setup|FR:Premiers_paramétrages|ES:Primeras_configuraciones';
 llxHeader('', $langs->trans("Setup"), $wikihelp);
 
 $param = '&mode='.$mode;

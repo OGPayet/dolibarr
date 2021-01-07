@@ -321,7 +321,7 @@ if ($action == 'create')
 {
 	$object = new Account($db);
 
-	print load_fiche_titre($langs->trans("NewFinancialAccount"), '', 'title_bank.png');
+	print load_fiche_titre($langs->trans("NewFinancialAccount"), '', 'bank_account');
 
 	if ($conf->use_javascript_ajax)
 	{
@@ -690,7 +690,7 @@ else
 		// Categories
 		if ($conf->categorie->enabled) {
 			print '<tr><td class="titlefield">'.$langs->trans("Categories").'</td><td>';
-			print $form->showCategories($object->id, 'bank_account', 1);
+			print $form->showCategories($object->id, Categorie::TYPE_ACCOUNT, 1);
 			print "</td></tr>";
 		}
 
@@ -804,7 +804,7 @@ else
 		$object = new Account($db);
 		$object->fetch(GETPOST('id', 'int'));
 
-		print load_fiche_titre($langs->trans("EditFinancialAccount"), '', 'title_bank.png');
+		print load_fiche_titre($langs->trans("EditFinancialAccount"), '', 'bank_account');
 
 		if ($conf->use_javascript_ajax)
 		{
@@ -907,7 +907,7 @@ else
 		print '<td><input size="12" type="text" class="flat" name="account_min_allowed" value="'.(isset($_POST["account_min_allowed"]) ?GETPOST("account_min_allowed") : $object->min_allowed).'"></td></tr>';
 
 		print '<tr><td>'.$langs->trans("BalanceMinimalDesired").'</td>';
-		print '<td ><input size="12" type="text" class="flat" name="account_min_desired" value="'.(isset($_POST["account_min_desired"]) ?GETPOST("account_min_desired") : $object->min_desired).'"></td></tr>';
+		print '<td><input size="12" type="text" class="flat" name="account_min_desired" value="'.(isset($_POST["account_min_desired"]) ?GETPOST("account_min_desired") : $object->min_desired).'"></td></tr>';
 
 		// Web
 		print '<tr><td>'.$langs->trans("Web").'</td>';

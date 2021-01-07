@@ -46,7 +46,7 @@ if (empty($objectclass) || empty($uploaddir))
 // For backward compatibility
 if (!empty($permtoread) && empty($permissiontoread)) $permissiontoread = $permtoread;
 if (!empty($permtocreate) && empty($permissiontoadd)) $permissiontoadd = $permtocreate;
-if (!empty($permtodelete) && empty($permissiontodelete)) $permissiontoread = $permtodelete;
+if (!empty($permtodelete) && empty($permissiontodelete)) $permissiontodelete = $permtodelete;
 
 
 // Mass actions. Controls on number of lines checked.
@@ -294,7 +294,7 @@ if (!$error && $massaction == 'confirm_presend')
 				if (empty($sendto))
 				{
 					if ($objectobj->element == 'societe') {
-						$objectobj->thirdparty = $objectobj;	// Hack so following code is comaptible when objectobj is a thirdparty
+						$objectobj->thirdparty = $objectobj; // Hack so following code is comaptible when objectobj is a thirdparty
 					}
 
 				   	//print "No recipient for thirdparty ".$objectobj->thirdparty->name;
@@ -560,12 +560,10 @@ if (!$error && $massaction == 'confirm_presend')
 
 								if (!empty($triggername))
 								{
-									// Appel des triggers
-                                    include_once DOL_DOCUMENT_ROOT."/core/class/interfaces.class.php";
-									$interface = new Interfaces($db);
-                                    $result = $interface->run_triggers($triggername, $objectobj2, $user, $langs, $conf);
-									if ($result < 0) { $error++; $errors = $interface->errors; }
-									// Fin appel triggers
+									// Call trigger
+									$result = $objectobj2->call_trigger($triggername, $user);
+									if ($result < 0) $error++;
+									// End call triggers
 
 									if ($error)
 									{
@@ -753,8 +751,8 @@ if ($massaction == 'confirm_createbills')   // Create bills from orders
 						}
 
 						// Extrafields
-						if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED) && method_exists($lines[$i], 'fetch_optionals')) {
-							$lines[$i]->fetch_optionals($lines[$i]->rowid);
+						if (method_exists($lines[$i], 'fetch_optionals')) {
+							$lines[$i]->fetch_optionals();
 							$array_options = $lines[$i]->array_options;
 						}
 
@@ -838,7 +836,7 @@ if ($massaction == 'confirm_createbills')   // Create bills from orders
 			// Builddoc
 			$donotredirect = 1;
 			$upload_dir = $conf->facture->dir_output;
-			$permissiontoadd=$user->rights->facture->creer;
+			$permissiontoadd = $user->rights->facture->creer;
 
 			// Call action to build doc
 			$savobject = $object;
@@ -915,9 +913,10 @@ if (!$error && $massaction == 'cancelorders')
 			setEventMessages($langs->trans("ErrorObjectMustHaveStatusValidToBeCanceled", $cmd->ref), null, 'errors');
 			$error++;
 			break;
-		}
-		else
+		} else {
+			// TODO We do not provide warehouse so no stock change here for the moment.
 			$result = $cmd->cancel();
+		}
 
 		if ($result < 0)
 		{
@@ -1154,8 +1153,6 @@ if (!$error && $massaction == 'validate' && $permissiontoadd)
 			$result = $objecttmp->fetch($toselectid);
 			if ($result > 0)
 			{
-				//if (in_array($objecttmp->element, array('societe','member'))) $result = $objecttmp->delete($objecttmp->id, $user, 1);
-				//else
 				$result = $objecttmp->validate($user);
 				if ($result == 0)
 				{

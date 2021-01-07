@@ -71,7 +71,7 @@ $active = 1;
 
 $sortfield = GETPOST("sortfield", 'alpha');
 $sortorder = GETPOST("sortorder", 'alpha');
-$page = GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, or '' or -1
 $offset = $listlimit * $page;
 $pageprev = $page - 1;
@@ -155,20 +155,20 @@ $sourceList = array();
 
 // We save list of template email Dolibarr can manage. This list can found by a grep into code on "->param['models']"
 $elementList = array();
-if ($conf->propal->enabled)            $elementList['propal_send'] = $langs->trans('MailToSendProposal');
-if ($conf->commande->enabled)          $elementList['order_send'] = $langs->trans('MailToSendOrder');
-if ($conf->facture->enabled)           $elementList['facture_send'] = $langs->trans('MailToSendInvoice');
+if ($conf->propal->enabled && $user->rights->propal->lire)     $elementList['propal_send'] = $langs->trans('MailToSendProposal');
+if ($conf->commande->enabled && $user->rights->commande->lire) $elementList['order_send'] = $langs->trans('MailToSendOrder');
+if ($conf->facture->enabled && $user->rights->facture->lire)   $elementList['facture_send'] = $langs->trans('MailToSendInvoice');
 if ($conf->expedition->enabled)        $elementList['shipping_send'] = $langs->trans('MailToSendShipment');
 if ($conf->reception->enabled) 		   $elementList['reception_send'] = $langs->trans('MailToSendReception');
 if ($conf->ficheinter->enabled)        $elementList['fichinter_send'] = $langs->trans('MailToSendIntervention');
 if ($conf->supplier_proposal->enabled) $elementList['supplier_proposal_send'] = $langs->trans('MailToSendSupplierRequestForQuotation');
-if ($conf->fournisseur->enabled)       $elementList['order_supplier_send'] = $langs->trans('MailToSendSupplierOrder');
-if ($conf->fournisseur->enabled)       $elementList['invoice_supplier_send'] = $langs->trans('MailToSendSupplierInvoice');
-if ($conf->societe->enabled)           $elementList['thirdparty'] = $langs->trans('MailToThirdparty');
-if ($conf->adherent->enabled)          $elementList['member'] = $langs->trans('MailToMember');
-if ($conf->contrat->enabled)           $elementList['contract'] = $langs->trans('MailToSendContract');
+if (($conf->fournisseur->enabled && $user->rights->fournisseur->commande->lire && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD)) || ($conf->supplier_order->enabled && $user->rights->supplier_order->lire))	$elementList['order_supplier_send'] = $langs->trans('MailToSendSupplierOrder');
+if (($conf->fournisseur->enabled && $user->rights->fournisseur->facture->lire && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD)) || ($conf->supplier_invoice->enabled && $user->rights->supplier_invoice->lire))	$elementList['invoice_supplier_send'] = $langs->trans('MailToSendSupplierInvoice');
+if ($conf->societe->enabled && $user->rights->societe->lire)           $elementList['thirdparty'] = $langs->trans('MailToThirdparty');
+if ($conf->adherent->enabled && $user->rights->adherent->lire)          $elementList['member'] = $langs->trans('MailToMember');
+if ($conf->contrat->enabled && $user->rights->contrat->lire)           $elementList['contract'] = $langs->trans('MailToSendContract');
 if ($conf->projet->enabled)            $elementList['project'] = $langs->trans('MailToProject');
-if ($conf->ticket->enabled)            $elementList['ticket_send'] = $langs->trans('MailToTicket');
+if ($conf->ticket->enabled && $user->rights->ticket->read)            $elementList['ticket_send'] = $langs->trans('MailToTicket');
 $elementList['user'] = $langs->trans('MailToUser');
 
 $parameters = array('elementList'=>$elementList);
@@ -280,7 +280,7 @@ if (empty($reshook))
                 elseif ($keycode == 'content') {
                 	$sql .= "'".$db->escape(GETPOST($keycode, 'restricthtml'))."'";
                 }
-                elseif (in_array($keycode, array('joinfile', 'private', 'position', 'scale'))) {
+                elseif (in_array($keycode, array('joinfiles', 'private', 'position', 'scale'))) {
                 	$sql .= (int) GETPOST($keycode, 'int');
                 }
                 else {
@@ -334,7 +334,7 @@ if (empty($reshook))
                 if ($i) $sql .= ", ";
                 $sql .= $field."=";
 
-                if (GETPOST($keycode) == '' || ($keycode != 'langcode' && $keycode != 'position' && $keycode != 'private' && ! GETPOST($keycode))) $sql .= "null"; // langcode,... must be '' if not defined so the unique key that include lang will work
+                if (GETPOST($keycode) == '' || ($keycode != 'langcode' && $keycode != 'position' && $keycode != 'private' && !GETPOST($keycode))) $sql .= "null"; // langcode,... must be '' if not defined so the unique key that include lang will work
                 elseif (GETPOST($keycode) == '0' && $keycode == 'langcode') $sql .= "''"; // langcode must be '' if not defined so the unique key that include lang will work
                 elseif ($keycode == 'content') {
                 	$sql .= "'".$db->escape(GETPOST($keycode, 'restricthtml'))."'";
@@ -537,7 +537,7 @@ $errors = $hookmanager->errors;
 
 
 // Line to enter new values (input fields)
-print "<tr ".$bcnd[$var].">";
+print '<tr class="oddeven">';
 
 if (empty($reshook))
 {
@@ -558,6 +558,7 @@ if (!empty($conf->global->MAIN_EMAIL_TEMPLATES_FOR_OBJECT_LINES)) { $fieldsforco
 foreach ($fieldsforcontent as $tmpfieldlist)
 {
 	print '<tr class="impair nodrag nodrop nohover"><td colspan="6" class="nobottom">';
+
 	// Label
 	if ($tmpfieldlist == 'topic')
 	{
@@ -571,6 +572,7 @@ foreach ($fieldsforcontent as $tmpfieldlist)
 		print $form->textwithpicto($langs->trans("Content"), $tabhelp[$id][$tmpfieldlist], 1, 'help', '', 0, 2, $tmpfieldlist).'<br>';
 	if ($tmpfieldlist == 'content_lines')
 		print $form->textwithpicto($langs->trans("ContentForLines"), $tabhelp[$id][$tmpfieldlist], 1, 'help', '', 0, 2, $tmpfieldlist).'<br>';
+
 	// Input field
 	if ($tmpfieldlist == 'topic') {
 		print '<input type="text" class="flat minwidth500" name="'.$tmpfieldlist.'" value="'.(!empty($obj->{$tmpfieldlist}) ? $obj->{$tmpfieldlist} : '').'">';
@@ -652,33 +654,34 @@ if ($resql)
 
     // Title line with search boxes
     print '<tr class="liste_titre">';
+
     $filterfound = 0;
     foreach ($fieldlist as $field => $value)
     {
-        if ($value == 'label') print '<td class="liste_titre"><input type="text" name="search_label" class="maxwidth100" value="'.dol_escape_htmltag($search_label).'"></td>';
-        elseif ($value == 'lang')
-        {
+    	if ($value == 'label') {
+    		print '<td class="liste_titre"><input type="text" name="search_label" class="maxwidth100" value="'.dol_escape_htmltag($search_label).'"></td>';
+    	} elseif ($value == 'lang') {
         	print '<td class="liste_titre">';
         	print $formadmin->select_language($search_lang, 'search_lang', 0, null, 1, 0, 0, 'maxwidth100');
         	print '</td>';
-        }
-        elseif ($value == 'fk_user')
-        {
+        } elseif ($value == 'fk_user') {
         	print '<td class="liste_titre">';
         	$restrictid = array();
         	if (!$user->admin) $restrictid = array($user->id);
         	//var_dump($restrictid);
         	print $form->select_dolusers($search_fk_user, 'search_fk_user', 1, null, 0, 'hierarchyme', null, 0, 0, 1, '', 0, '', 'maxwidth100');
         	print '</td>';
-        }
-        elseif ($value == 'topic') print '<td class="liste_titre"><input type="text" name="search_topic" value="'.dol_escape_htmltag($search_topic).'"></td>';
-        elseif ($value == 'type_template')
-        {
+        } elseif ($value == 'topic') {
+        	print '<td class="liste_titre"><input type="text" name="search_topic" value="'.dol_escape_htmltag($search_topic).'"></td>';
+        } elseif ($value == 'type_template') {
         	print '<td class="liste_titre">'.$form->selectarray('search_type_template', $elementList, $search_type_template, 1, 0, 0, '', 0, 0, 0, '', 'maxwidth100 maxwidth100onsmartphone').'</td>';
+        } elseif (!in_array($value, array('content', 'content_lines'))) {
+        	print '<td class="liste_titre"></td>';
         }
-        elseif (!in_array($value, array('content', 'content_lines'))) print '<td class="liste_titre"></td>';
     }
+
     if (empty($conf->global->MAIN_EMAIL_TEMPLATES_FOR_OBJECT_LINES)) print '<td class="liste_titre"></td>';
+
     // Action column
     print '<td class="liste_titre right" width="64">';
     $searchpicto = $form->showFilterButtons();
@@ -755,9 +758,9 @@ if ($resql)
                 print '<td class="center">';
                 print '<input type="hidden" name="page" value="'.$page.'">';
                 print '<input type="hidden" name="rowid" value="'.$rowid.'">';
-                print '<input type="submit" class="button" name="actionmodify" value="'.$langs->trans("Modify").'">';
+                print '<input type="submit" class="button buttongen" name="actionmodify" value="'.$langs->trans("Modify").'">';
                 print '<div name="'.(!empty($obj->rowid) ? $obj->rowid : $obj->code).'"></div>';
-                print '<input type="submit" class="button" name="actioncancel" value="'.$langs->trans("Cancel").'">';
+                print '<input type="submit" class="button buttongen" name="actioncancel" value="'.$langs->trans("Cancel").'">';
                 print '</td>';
 
                 $fieldsforcontent = array('topic', 'joinfiles', 'content');
@@ -903,10 +906,10 @@ if ($resql)
 
                 // Modify link / Delete link
                 print '<td class="center nowraponall" width="64">';
-                if ($canbemodified) print '<a class="reposition" href="'.$url.'action=edit">'.img_edit().'</a>';
+                if ($canbemodified) print '<a class="reposition editfielda" href="'.$url.'action=edit">'.img_edit().'</a>';
                 if ($iserasable)
                 {
-                    print ' &nbsp; <a href="'.$url.'action=delete">'.img_delete().'</a>';
+                    print '<a class="marginleftonly" href="'.$url.'action=delete">'.img_delete().'</a>';
                     //else print '<a href="#">'.img_delete().'</a>';    // Some dictionary can be edited by other profile than admin
                 }
                 print '</td>';
@@ -977,12 +980,9 @@ function fieldList($fieldlist, $obj = '', $tabname = '', $context = '')
 {
 	global $conf, $langs, $user, $db;
 	global $form;
-	global $region_id;
-	global $elementList, $sourceList, $localtax_typeList;
-	global $bc;
+	global $elementList, $sourceList;
 
 	$formadmin = new FormAdmin($db);
-	$formcompany = new FormCompany($db);
 
 	foreach ($fieldlist as $field => $value)
 	{

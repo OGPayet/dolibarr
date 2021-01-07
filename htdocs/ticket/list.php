@@ -2,8 +2,8 @@
 /* Copyright (C) 2013-2018	Jean-François FERRY	<hello@librethic.io>
  * Copyright (C) 2016		Christophe Battarel	<christophe@altairis.fr>
  * Copyright (C) 2018		Regis Houssin		<regis.houssin@inodbox.com>
- * Copyright (C) 2019		Juanjo Menent		<jmenent@2byte.es>
- * Copyright (C) 2019		Laurent Destailleur <eldy@users.sourceforge.net>
+ * Copyright (C) 2019-2021	Juanjo Menent		<jmenent@2byte.es>
+ * Copyright (C) 2019-2020  Laurent Destailleur <eldy@users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,6 @@ include_once DOL_DOCUMENT_ROOT.'/core/lib/project.lib.php';
 // Load translation files required by the page
 $langs->loadLangs(array("ticket", "companies", "other", "projects"));
 
-
 // Get parameters
 $action     = GETPOST('action', 'aZ09') ?GETPOST('action', 'aZ09') : 'view'; // The action 'add', 'create', 'edit', 'update', 'view', ...
 $massaction = GETPOST('massaction', 'alpha'); // The bulk action (combo box choice into lists)
@@ -58,14 +57,22 @@ $project_ref = GETPOST('project_ref', 'alpha');
 $search_societe = GETPOST('search_societe', 'alpha');
 $search_fk_project = GETPOST('search_fk_project', 'int') ?GETPOST('search_fk_project', 'int') : GETPOST('projectid', 'int');
 $search_fk_status = GETPOST('search_fk_statut', 'array');
+$search_date_start = dol_mktime(0, 0, 0, GETPOST('search_date_startmonth', 'int'), GETPOST('search_date_startday', 'int'), GETPOST('search_date_startyear', 'int'));
+$search_date_end = dol_mktime(23, 59, 59, GETPOST('search_date_endmonth', 'int'), GETPOST('search_date_endday', 'int'), GETPOST('search_date_endyear', 'int'));
+$search_dateread_start = dol_mktime(0, 0, 0, GETPOST('search_dateread_startmonth', 'int'), GETPOST('search_dateread_startday', 'int'), GETPOST('search_dateread_startyear', 'int'));
+$search_dateread_end = dol_mktime(23, 59, 59, GETPOST('search_dateread_endmonth', 'int'), GETPOST('search_dateread_endday', 'int'), GETPOST('search_dateread_endyear', 'int'));
+$search_dateclose_start = dol_mktime(0, 0, 0, GETPOST('search_dateclose_startmonth', 'int'), GETPOST('search_dateclose_startday', 'int'), GETPOST('search_dateclose_startyear', 'int'));
+$search_dateclose_end = dol_mktime(23, 59, 59, GETPOST('search_dateclose_endmonth', 'int'), GETPOST('search_dateclose_endday', 'int'), GETPOST('search_dateclose_endyear', 'int'));
+
+
 $mode = GETPOST('mode', 'alpha');
 
 // Load variable for pagination
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
 $sortfield = GETPOST('sortfield', 'alpha');
 $sortorder = GETPOST('sortorder', 'alpha');
-$page = GETPOST('page', 'int');
-if (empty($page) || $page == -1 || GETPOST('button_search', 'alpha') || GETPOST('button_removefilter', 'alpha') || (empty($toselect) && $massaction === '0')) { $page = 0; }     // If $page is not defined, or '' or -1 or if we click on clear filters or if we select empty mass action
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
+if (empty($page) || $page < 0 || GETPOST('button_search', 'alpha') || GETPOST('button_removefilter', 'alpha')) { $page = 0; }     // If $page is not defined, or '' or -1 or if we click on clear filters
 $offset = $limit * $page;
 $pageprev = $page - 1;
 $pagenext = $page + 1;
@@ -96,7 +103,12 @@ foreach ($object->fields as $key => $val)
 }
 
 // List of fields to search into when doing a "search in all"
-$fieldstosearchall = array();
+$fieldstosearchall = array(
+	's.nom'=>"ThirdParty",
+	's.name_alias'=>"AliasNameShort",
+	's.zip'=>"Zip",
+	's.town'=>"Town",
+);
 foreach ($object->fields as $key => $val)
 {
 	if ($val['searchall']) $fieldstosearchall['t.'.$key] = $val['label'];
@@ -140,6 +152,12 @@ if ($project_ref)
 	$search_fk_project = $projectid;
 }
 
+$permissiontoread = $user->rights->ticket->read;
+$permissiontoadd = $user->rights->ticket->write;
+$permissiontodelete = $user->rights->ticket->delete;
+
+$error = 0;
+
 
 /*
  * Actions
@@ -168,6 +186,12 @@ if (empty($reshook))
 		}
 		$toselect = '';
 		$search_array_options = array();
+		$search_date_start = '';
+		$search_date_end = '';
+		$search_dateread_start = '';
+		$search_dateread_end = '';
+		$search_dateclose_start = '';
+		$search_dateclose_end = '';
 	}
 	if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x', 'alpha') || GETPOST('button_removefilter', 'alpha')
 		|| GETPOST('button_search_x', 'alpha') || GETPOST('button_search.x', 'alpha') || GETPOST('button_search', 'alpha'))
@@ -178,10 +202,95 @@ if (empty($reshook))
 	// Mass actions
 	$objectclass = 'Ticket';
 	$objectlabel = 'Ticket';
-	$permissiontoread = $user->rights->ticket->read;
-	$permissiontodelete = $user->rights->ticket->delete;
 	$uploaddir = $conf->ticket->dir_output;
 	include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
+
+	// Close records
+	if (!$error && $massaction == 'close' && $permissiontoadd)
+	{
+		$objecttmp = new $objectclass($db);
+		if (!$error)
+		{
+			$db->begin();
+
+			$nbok = 0;
+			foreach ($toselect as $toselectid)
+			{
+				$result = $objecttmp->fetch($toselectid);
+				if ($result > 0)
+				{
+					$result = $objecttmp->close($user);
+					if ($result < 0)
+					{
+						setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+						$error++;
+						break;
+					} else $nbok++;
+				} else {
+					setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+					$error++;
+					break;
+				}
+			}
+
+			if (!$error)
+			{
+				if ($nbok > 1) setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+				else setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+				$db->commit();
+			} else {
+				$db->rollback();
+			}
+			//var_dump($listofobjectthirdparties);exit;
+		}
+	}
+
+	// Reopen records
+	if (!$error && $massaction == 'reopen' && $permissiontoadd)
+	{
+		$objecttmp = new $objectclass($db);
+		if (!$error)
+		{
+			$db->begin();
+
+			$nbok = 0;
+			foreach ($toselect as $toselectid)
+			{
+				$result = $objecttmp->fetch($toselectid);
+				if ($result > 0)
+				{
+					if ($objecttmp->status == Ticket::STATUS_CLOSED || $objecttmp->status == Ticket::STATUS_CANCELED) {
+						$result = $objecttmp->setStatut(Ticket::STATUS_ASSIGNED);
+						if ($result < 0)
+						{
+							setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+							$error++;
+							break;
+						} else $nbok++;
+					} else {
+						$langs->load("errors");
+						setEventMessages($langs->trans("ErrorObjectMustHaveStatusClosedToBeReOpened", $objecttmp->ref), null, 'errors');
+						$error++;
+						break;
+					}
+				} else {
+					setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+					$error++;
+					break;
+				}
+			}
+
+			if (!$error)
+			{
+				if ($nbok > 1) setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+				else setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+				$db->commit();
+			} else {
+				$db->rollback();
+			}
+			//var_dump($listofobjectthirdparties);exit;
+		}
+	}
 }
 
 
@@ -231,11 +340,23 @@ foreach ($search as $key => $val)
 {
     if ($key == 'fk_statut' && !empty($search['fk_statut']))
 	{
-	    $tmpstatus = '';
-	    if ($search['fk_statut'] == 'openall' || in_array('openall', $search['fk_statut'])) $tmpstatus .= ($tmpstatus ? ',' : '')."'".Ticket::STATUS_NOT_READ."', '".Ticket::STATUS_READ."', '".Ticket::STATUS_ASSIGNED."', '".Ticket::STATUS_IN_PROGRESS."', '".Ticket::STATUS_NEED_MORE_INFO."', '".Ticket::STATUS_WAITING."'";
-	    if ($search['fk_statut'] == 'closeall' || in_array('closeall', $search['fk_statut'])) $tmpstatus .= ($tmpstatus ? ',' : '')."'".Ticket::STATUS_CLOSED."', '".Ticket::STATUS_CANCELED."'";
-	    if ($tmpstatus) $sql .= " AND fk_statut IN (".$tmpstatus.")";
-	    elseif (is_array($search[$key]) && count($search[$key])) $sql .= natural_search($key, join(',', $search[$key]), 2);
+		$newarrayofstatus = array();
+		foreach ($search['fk_statut'] as $key2 => $val2) {
+			if (in_array($val2, array('openall', 'closeall'))) continue;
+			$newarrayofstatus[] = $val2;
+		}
+	    if ($search['fk_statut'] == 'openall' || in_array('openall', $search['fk_statut'])) {
+	    	$newarrayofstatus[] = Ticket::STATUS_NOT_READ;
+	    	$newarrayofstatus[] = Ticket::STATUS_ASSIGNED;
+	    	$newarrayofstatus[] = Ticket::STATUS_IN_PROGRESS;
+	    	$newarrayofstatus[] = Ticket::STATUS_NEED_MORE_INFO;
+	    	$newarrayofstatus[] = Ticket::STATUS_WAITING;
+	    }
+	    if ($search['fk_statut'] == 'closeall' || in_array('closeall', $search['fk_statut'])) {
+	    	$newarrayofstatus[] = Ticket::STATUS_CLOSED;
+	    	$newarrayofstatus[] = Ticket::STATUS_CANCELED;
+	    }
+	    if (count($newarrayofstatus)) $sql .= natural_search($key, join(',', $newarrayofstatus), 2);
 	    continue;
 	}
 	if ($key == 'fk_user_assign' || $key == 'fk_user_create')
@@ -249,6 +370,14 @@ foreach ($search as $key => $val)
 if ($search_all) $sql .= natural_search(array_keys($fieldstosearchall), $search_all);
 if ($search_societe)     $sql .= natural_search('s.nom', $search_societe);
 if ($search_fk_project) $sql .= natural_search('fk_project', $search_fk_project, 2);
+if ($search_date_start)			$sql .= " AND t.datec >= '".$db->idate($search_date_start)."'";
+if ($search_date_end)			$sql .= " AND t.datec <= '".$db->idate($search_date_end)."'";
+if ($search_dateread_start)		$sql .= " AND t.date_read >= '".$db->idate($search_dateread_start)."'";
+if ($search_dateread_end)		$sql .= " AND t.date_read <= '".$db->idate($search_dateread_end)."'";
+if ($search_dateclose_start)	$sql .= " AND t.date_close >= '".$db->idate($search_dateclose_start)."'";
+if ($search_dateclose_end)		$sql .= " AND t.date_close <= '".$db->idate($search_dateclose_end)."'";
+
+
 if (!$user->socid && ($mode == "mine" || (!$user->admin && $conf->global->TICKET_LIMIT_VIEW_ASSIGNED_ONLY))) {
     $sql .= " AND (t.fk_user_assign = ".$user->id;
     if (empty($conf->global->TICKET_LIMIT_VIEW_ASSIGNED_ONLY)) $sql .= " OR t.fk_user_create = ".$user->id;
@@ -334,10 +463,10 @@ if ($socid && !$projectid && !$project_ref && $user->rights->societe->lire) {
             print '<tr><td class="titlefield">';
             print $langs->trans('CustomerCode').'</td><td>';
             print $socstat->code_client;
-            if ($socstat->check_codeclient() != 0) {
-                print ' <font class="error">('.$langs->trans("WrongCustomerCode").')</font>';
+            $tmpcheck = $socstat->check_codeclient();
+            if ($tmpcheck != 0 && $tmpcheck != -5) {
+            	print ' <font class="error">('.$langs->trans("WrongCustomerCode").')</font>';
             }
-
             print '</td>';
             print '</tr>';
         }
@@ -346,10 +475,10 @@ if ($socid && !$projectid && !$project_ref && $user->rights->societe->lire) {
         	print '<tr><td class="titlefield">';
         	print $langs->trans('SupplierCode').'</td><td>';
         	print $socstat->code_fournisseur;
-        	if ($socstat->check_codefournisseur() != 0) {
+        	$tmpcheck = $socstat->check_codefournisseur();
+        	if ($tmpcheck != 0 && $tmpcheck != -5) {
         		print ' <font class="error">('.$langs->trans("WrongSupplierCode").')</font>';
         	}
-
         	print '</td>';
         	print '</tr>';
         }
@@ -442,11 +571,20 @@ include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_param.tpl.php';
 if ($socid)     $param .= '&socid='.urlencode($socid);
 if ($projectid) $param .= '&projectid='.urlencode($projectid);
 
+if ($search_date_start)			$param .= '&search_date_start='.urlencode($search_date_start);
+if ($search_date_end)			$param .= '&search_date_end='.urlencode($search_date_end);
+if ($search_dateread_start)		$param .= '&search_dateread_start='.urlencode($search_dateread_start);
+if ($search_dateread_end)		$param .= '&search_dateread_end='.urlencode($search_dateread_end);
+if ($search_dateclose_start)	$param .= '&search_dateclose_start='.urlencode($search_dateclose_start);
+if ($search_dateclose_end)		$param .= '&search_dateclose_end='.urlencode($search_dateclose_end);
+
 // List of mass actions available
 $arrayofmassactions = array(
 	//'presend'=>$langs->trans("SendByMail"),
 	//'builddoc'=>$langs->trans("PDFMerge"),
 );
+if ($user->rights->ticket->write) $arrayofmassactions['close'] = $langs->trans("Close");
+if ($user->rights->ticket->write) $arrayofmassactions['reopen'] = $langs->trans("ReOpen");
 if ($user->rights->ticket->delete) $arrayofmassactions['predelete'] = '<span class="fa fa-trash paddingrightonly"></span>'.$langs->trans("Delete");
 if (GETPOST('nomassaction', 'int') || in_array($massaction, array('presend', 'predelete'))) $arrayofmassactions = array();
 $massactionbutton = $form->selectMassAction('', $arrayofmassactions);
@@ -458,7 +596,6 @@ print '<input type="hidden" name="formfilteraction" id="formfilteraction" value=
 print '<input type="hidden" name="action" value="list">';
 print '<input type="hidden" name="sortfield" value="'.$sortfield.'">';
 print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
-print '<input type="hidden" name="page" value="'.$page.'">';
 print '<input type="hidden" name="contextpage" value="'.$contextpage.'">';
 print '<input type="hidden" name="mode" value="'.$mode.'" >';
 if ($socid)     print '<input type="hidden" name="socid" value="'.$socid.'" >';
@@ -470,7 +607,7 @@ $newcardbutton .= dolGetButtonTitle($langs->trans('NewTicket'), '', 'fa fa-plus-
 $picto = 'ticket';
 if ($socid > 0) $picto = '';
 
-print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, $picto, 0, $newcardbutton, '', $limit);
+print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, $picto, 0, $newcardbutton, '', $limit, 0, 0, 1);
 
 if ($mode == 'mine') {
     print '<div class="opacitymedium">'.$langs->trans('TicketAssignedToMeInfos').'</div><br>';
@@ -545,8 +682,8 @@ foreach ($object->fields as $key => $val)
 		    $arrayofstatus['openall'] = '-- '.$langs->trans('OpenAll').' --';
 		    foreach ($object->statuts_short as $key2 => $val2)
 		    {
-		        $arrayofstatus[$key2] = $val2;
-		        if ($key2 == '6') $arrayofstatus['closeall'] = '-- '.$langs->trans('ClosedAll').' --';
+		    	if ($key2 == Ticket::STATUS_CLOSED) $arrayofstatus['closeall'] = '-- '.$langs->trans('ClosedAll').' --';
+		    	$arrayofstatus[$key2] = $val2;
 		    }
 		    print '<td class="liste_titre'.($cssforfield ? ' '.$cssforfield : '').'">';
 		    //var_dump($arrayofstatus);var_dump($search['fk_statut']);var_dump(array_values($search[$key]));
@@ -558,6 +695,38 @@ foreach ($object->fields as $key => $val)
 		elseif ($key == "fk_soc")
 		{
 			print '<td class="liste_titre'.($cssforfield ? ' '.$cssforfield : '').'"><input type="text" class="flat maxwidth75" name="search_societe" value="'.dol_escape_htmltag($search_societe).'"></td>';
+		}
+		elseif ($key == "datec" || $key == 'date_read' || $key == 'date_close'){
+			print '<td class="liste_titre center">';
+			print '<div class="nowrap">';
+			print $langs->trans('From').' ';
+
+			switch ($key){
+				case 'datec':
+					print $form->selectDate($search_date_start ?: -1, 'search_date_start', 0, 0, 1);
+					break;
+				case 'date_read':
+					print $form->selectDate($search_dateread_start ?: -1, 'search_dateread_start', 0, 0, 1);
+					break;
+				case 'date_close':
+					print $form->selectDate($search_dateclose_start ?: -1, 'search_dateclose_start', 0, 0, 1);
+			}
+
+			print '</div>';
+			print '<div class="nowrap">';
+			print $langs->trans('to').' ';
+			switch ($key){
+				case 'datec':
+					print $form->selectDate($search_date_end ?: -1, 'search_date_end', 0, 0, 1);
+					break;
+				case 'date_read':
+					print $form->selectDate($search_dateread_end ?: -1, 'search_dateread_end', 0, 0, 1);
+					break;
+				case 'date_close':
+					print $form->selectDate($search_dateclose_end ?: -1, 'search_dateclose_end', 0, 0, 1);
+			}
+			print '</div>';
+			print '</td>';
 		}
 		else {
 			print '<td class="liste_titre'.($cssforfield ? ' '.$cssforfield : '').'"><input type="text" class="flat maxwidth75" name="search_'.$key.'" value="'.dol_escape_htmltag($search[$key]).'"></td>';
@@ -655,6 +824,12 @@ while ($i < min($num, $limit))
 			elseif ($key == 'severity_code') print $langs->getLabelFromKey($db, $object->severity_code, 'c_ticket_severity', 'code', 'label');
 			elseif ($key == 'type_code') print $langs->getLabelFromKey($db, $object->type_code, 'c_ticket_type', 'code', 'label');
 			elseif ($key == 'tms') print dol_print_date($db->jdate($obj->$key), 'dayhour', 'tzuser');
+			elseif ($key == 'fk_user_create') {
+				if ($object->fk_user_create > 0) {
+					$user_create->fetch($object->fk_user_create);
+					print $user_create->getNomUrl(-1);
+				}
+			}
 			elseif (in_array($val['type'], array('date', 'datetime', 'timestamp'))) print $object->showOutputField($val, $key, $db->jdate($obj->$key), '');
 			else print $object->showOutputField($val, $key, $obj->$key, '');
 			print '</td>';

@@ -21,8 +21,8 @@
  *       \brief      File of the superclass of orders classes (customer and supplier)
  */
 
-require_once DOL_DOCUMENT_ROOT .'/core/class/commonobject.class.php';
-require_once DOL_DOCUMENT_ROOT .'/core/class/commonobjectline.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/commonobjectline.class.php';
 
 /**
  *      Superclass for orders classes
@@ -70,6 +70,18 @@ abstract class CommonOrderLine extends CommonObjectLine
 	 * @var string
 	 */
 	public $product_desc;
+
+	/**
+	 * Product use lot
+	 * @var string
+	 */
+	public $product_tobatch;
+
+	/**
+	 * Product barcode
+	 * @var string
+	 */
+	public $product_barcode;
 
 	/**
 	 * Quantity

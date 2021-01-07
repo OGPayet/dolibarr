@@ -2,7 +2,7 @@
 /* Copyright (C) 2001-2005 Rodolphe Quiedeville <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2013 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2005-2015 Regis Houssin        <regis.houssin@inodbox.com>
- * Copyright (C) 2015-2016 Juanjo Menent	<jmenent@2byte.es>
+ * Copyright (C) 2015-2020 Juanjo Menent	<jmenent@2byte.es>
  * Copyright (C) 2015      Jean-François Ferry	<jfefe@aternatik.fr>
  * Copyright (C) 2015      Raphaël Doursenaud   <rdoursenaud@gpcsolutions.fr>
  * Copyright (C) 2016      Marcos García        <marcosgdf@gmail.com>
@@ -87,7 +87,7 @@ $thirdpartystatic = new Societe($db);
 
 llxHeader("", $langs->trans("AccountancyTreasuryArea"));
 
-print load_fiche_titre($langs->trans("AccountancyTreasuryArea"), '', 'invoicing');
+print load_fiche_titre($langs->trans("AccountancyTreasuryArea"), '', 'bill');
 
 
 print '<div class="fichecenter"><div class="fichethirdleft">';
@@ -101,7 +101,7 @@ if (!empty($conf->global->MAIN_SEARCH_FORM_ON_HOME_AREAS))     // This is useles
     	$listofsearchfields['search_invoice'] = array('text'=>'CustomerInvoice');
     }
     // Search supplier invoices
-    if (!empty($conf->fournisseur->enabled) && $user->rights->fournisseur->lire)
+    if ((!empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD) || !empty($conf->supplier_order->enabled) || !empty($conf->supplier_invoice->enabled)) && $user->rights->fournisseur->lire)
     {
     	$listofsearchfields['search_supplier_invoice'] = array('text'=>'SupplierInvoice');
     }
@@ -159,6 +159,14 @@ if (!empty($conf->facture->enabled) && $user->rights->facture->lire)
 	// Add where from hooks
 	$parameters = array();
 	$reshook = $hookmanager->executeHooks('printFieldListWhereCustomerDraft', $parameters);
+	$sql .= $hookmanager->resPrint;
+
+	$sql.= " GROUP BY f.rowid, f.ref, f.datef, f.total, f.tva, f.total_ttc, f.ref_client, f.type, ";
+	$sql.= "s.email, s.nom, s.rowid, s.code_client, s.code_compta, s.code_fournisseur, s.code_compta_fournisseur";
+
+	// Add Group from hooks
+	$parameters = array();
+	$reshook = $hookmanager->executeHooks('printFieldListGroupByCustomerDraft', $parameters);
 	$sql .= $hookmanager->resPrint;
 
 	$resql = $db->query($sql);
@@ -231,7 +239,7 @@ if (!empty($conf->facture->enabled) && $user->rights->facture->lire)
 /**
  * Draft suppliers invoices
  */
-if (!empty($conf->fournisseur->enabled) && $user->rights->fournisseur->facture->lire)
+if ((!empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD) || !empty($conf->supplier_invoice->enabled)) && $user->rights->fournisseur->facture->lire)
 {
 	$sql = "SELECT f.ref, f.rowid, f.total_ht, f.total_tva, f.total_ttc, f.type, f.ref_supplier";
 	$sql .= ", s.nom as name";
@@ -348,7 +356,7 @@ if (!empty($conf->facture->enabled) && $user->rights->facture->lire)
 	$sql .= " GROUP BY f.rowid, f.ref, f.fk_statut, f.type, f.total, f.tva, f.total_ttc, f.paye, f.tms, f.date_lim_reglement,";
 	$sql .= " s.nom, s.rowid, s.code_client, s.code_compta, s.email,";
 	$sql .= " cc.rowid, cc.code";
-	$sql .= " ORDER BY f.tms DESC ";
+	$sql .= " ORDER BY f.tms DESC";
 	$sql .= $db->plimit($max, 0);
 
 	$resql = $db->query($sql);
@@ -447,7 +455,7 @@ if (!empty($conf->facture->enabled) && $user->rights->facture->lire)
 
 
 // Last modified supplier invoices
-if (!empty($conf->fournisseur->enabled) && $user->rights->fournisseur->facture->lire)
+if ((!empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD) || !empty($conf->supplier_invoice->enabled)) && $user->rights->fournisseur->facture->lire)
 {
 	$langs->load("boxes");
 	$facstatic = new FactureFournisseur($db);
@@ -470,7 +478,7 @@ if (!empty($conf->fournisseur->enabled) && $user->rights->fournisseur->facture->
 	$sql .= $hookmanager->resPrint;
 
 	$sql .= " GROUP BY ff.rowid, ff.ref, ff.fk_statut, ff.libelle, ff.total_ht, ff.tva, ff.total_tva, ff.total_ttc, ff.tms, ff.paye,";
-	$sql .= " s.nom, s.rowid, s.code_fournisseur, s.code_compta_fournisseur";
+	$sql .= " s.nom, s.rowid, s.code_fournisseur, s.code_compta_fournisseur, s.email";
 	$sql .= " ORDER BY ff.tms DESC ";
 	$sql .= $db->plimit($max, 0);
 
@@ -958,7 +966,7 @@ if (!empty($conf->facture->enabled) && $user->rights->facture->lire)
 /*
  * Unpayed supplier invoices
  */
-if (!empty($conf->fournisseur->enabled) && $user->rights->fournisseur->facture->lire)
+if ((!empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD) || !empty($conf->supplier_invoice->enabled)) && $user->rights->fournisseur->facture->lire)
 {
 	$facstatic = new FactureFournisseur($db);
 

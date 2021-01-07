@@ -76,7 +76,7 @@ $search_no_email = GETPOST("search_no_email", 'int');
 if (!empty($conf->socialnetworks->enabled)) {
 	foreach ($socialnetworks as $key => $value) {
 		if ($value['active']) {
-			$search_{$key} = GETPOST("search_".$key, 'alpha');
+			${"search_".$key} = GETPOST("search_".$key, 'alpha');
 		}
 	}
 }
@@ -103,12 +103,12 @@ $view = GETPOST("view", 'alpha');
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
 $sortfield = GETPOST('sortfield', 'alpha');
 $sortorder = GETPOST('sortorder', 'alpha');
-$page = GETPOST('page', 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 $userid = GETPOST('userid', 'int');
 $begin = GETPOST('begin');
 if (!$sortorder) $sortorder = "ASC";
 if (!$sortfield) $sortfield = "p.lastname";
-if (empty($page) || $page < 0) { $page = 0; }
+if (empty($page) || $page < 0 || GETPOST('button_search', 'alpha') || GETPOST('button_removefilter', 'alpha')) { $page = 0; }
 $offset = $limit * $page;
 
 $titre = (!empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT) ? $langs->trans("ListOfContacts") : $langs->trans("ListOfContactsAddresses"));
@@ -143,7 +143,7 @@ $hookmanager->initHooks(array('contactlist'));
 $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels
-$extrafields->fetch_name_optionals_label('contact');
+$extrafields->fetch_name_optionals_label($object->table_element);
 
 $search_array_options = $extrafields->getOptionalsFromPost($object->table_element, '', 'search_');
 
@@ -154,6 +154,9 @@ $fieldstosearchall = array(
 	'p.email'=>'EMail',
 	's.nom'=>"ThirdParty",
 	'p.phone'=>"Phone",
+	'p.phone_perso'=>"PhonePerso",
+	'p.phone_mobile'=>"PhoneMobile",
+	'p.fax'=>"Fax",
     'p.note_public'=>"NotePublic",
     'p.note_private'=>"NotePrivate",
 );
@@ -197,7 +200,13 @@ if (is_array($extrafields->attributes[$object->table_element]['label']) && count
 	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val)
 	{
 		if (!empty($extrafields->attributes[$object->table_element]['list'][$key]))
-			$arrayfields["ef.".$key] = array('label'=>$extrafields->attributes[$object->table_element]['label'][$key], 'checked'=>(($extrafields->attributes[$object->table_element]['list'][$key] < 0) ? 0 : 1), 'position'=>$extrafields->attributes[$object->table_element]['pos'][$key], 'enabled'=>(abs($extrafields->attributes[$object->table_element]['list'][$key]) != 3 && $extrafields->attributes[$object->table_element]['perms'][$key]));
+			$arrayfields["ef.".$key] = array(
+				'label'=>$extrafields->attributes[$object->table_element]['label'][$key],
+				'checked'=>(($extrafields->attributes[$object->table_element]['list'][$key] < 0) ? 0 : 1),
+				'position'=>$extrafields->attributes[$object->table_element]['pos'][$key],
+				'enabled'=>(abs($extrafields->attributes[$object->table_element]['list'][$key]) != 3 && $extrafields->attributes[$object->table_element]['perms'][$key]),
+				'langfile'=>$extrafields->attributes[$object->table_element]['langfile'][$key],
+			);
 	}
 }
 $object->fields = dol_sort_array($object->fields, 'position');
@@ -250,7 +259,7 @@ if (empty($reshook))
 		if (!empty($conf->socialnetworks->enabled)) {
 			foreach ($socialnetworks as $key => $value) {
 				if ($value['active']) {
-					$search_{$key} = "";
+					${"search_".$key} = "";
 				}
 			}
 		}
@@ -354,9 +363,8 @@ if (strlen($search_phone_mobile))   $sql .= natural_search('p.phone_mobile', $se
 if (strlen($search_fax))            $sql .= natural_search('p.fax', $search_fax);
 if (!empty($conf->socialnetworks->enabled)) {
 	foreach ($socialnetworks as $key => $value) {
-		if ($value['active'] && strlen($search_{$key})) {
-			//$sql.= natural_search("p.socialnetworks->'$.".$key."'", $search_{$key});
-			$sql .= ' AND p.socialnetworks LIKE \'%"'.$key.'":"'.$search_{$key}.'%\'';
+		if ($value['active'] && strlen(${"search_".$key})) {
+			$sql .= ' AND p.socialnetworks LIKE \'%"'.$key.'":"'.${"search_".$key}.'%\'';
 		}
 	}
 }
@@ -497,11 +505,11 @@ print '<input type="hidden" name="token" value="'.newToken().'">';
 print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
 print '<input type="hidden" name="sortfield" value="'.$sortfield.'">';
 print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
-print '<input type="hidden" name="page" value="'.$page.'">';
+//print '<input type="hidden" name="page" value="'.$page.'">';
 print '<input type="hidden" name="type" value="'.$type.'">';
 print '<input type="hidden" name="view" value="'.dol_escape_htmltag($view).'">';
 
-print_barre_liste($titre, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'address', 0, $newcardbutton, '', $limit);
+print_barre_liste($titre, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'address', 0, $newcardbutton, '', $limit, 0, 0, 1);
 
 $topicmail = "Information";
 $modelmail = "contact";
@@ -666,7 +674,7 @@ if (!empty($conf->socialnetworks->enabled)) {
 			if (!empty($arrayfields['p.'.$key]['checked']))
 			{
 				print '<td class="liste_titre">';
-				print '<input class="flat" type="text" name="search_'.$key.'" size="6" value="'.dol_escape_htmltag($search_{$key}).'">';
+				print '<input class="flat" type="text" name="search_'.$key.'" size="6" value="'.dol_escape_htmltag(${"search_".$key}).'">';
 				print '</td>';
 			}
 		}

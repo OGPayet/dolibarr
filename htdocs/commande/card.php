@@ -93,24 +93,32 @@ $extrafields = new ExtraFields($db);
 $extrafields->fetch_name_optionals_label($object->table_element);
 
 // Load object
-include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php';  // Must be include, not include_once
+include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be include, not include_once
 
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
-$hookmanager->initHooks(array('ordercard','globalcard'));
+$hookmanager->initHooks(array('ordercard', 'globalcard'));
 
 $usercanread = $user->rights->commande->lire;
 $usercancreate = $user->rights->commande->creer;
-$usercanclose = $user->rights->commande->cloturer;
 $usercandelete = $user->rights->commande->supprimer;
-$usercanvalidate = ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $usercancreate) || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->commande->order_advance->validate)));
-$usercancancel = ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $usercancreate) || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->commande->order_advance->annuler)));
+// Advanced permissions
+$usercanclose = ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->commande->creer)) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->commande->order_advance->close)));
+$usercanvalidate = ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $usercancreate) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->commande->order_advance->validate)));
+$usercancancel = ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $usercancreate) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->commande->order_advance->annuler)));
 $usercansend = (empty($conf->global->MAIN_USE_ADVANCED_PERMS) || $user->rights->commande->order_advance->send);
 
 $usercancreatepurchaseorder = $user->rights->fournisseur->commande->creer;
 
-$permissionnote = $usercancreate; 		// Used by the include of actions_setnotes.inc.php
-$permissiondellink = $usercancreate; 	// Used by the include of actions_dellink.inc.php
-$permissiontoadd = $usercancreate; 		// Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+$permissionnote = $usercancreate; // Used by the include of actions_setnotes.inc.php
+$permissiondellink = $usercancreate; // Used by the include of actions_dellink.inc.php
+$permissiontoadd = $usercancreate; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+
+if (!empty($conf->expedition->enabled) && !empty($conf->global->WAREHOUSE_ASK_WAREHOUSE_DURING_ORDER)) {
+	if (empty($object->warehouse_id) && !empty($conf->global->MAIN_DEFAULT_WAREHOUSE)) $object->warehouse_id = $conf->global->MAIN_DEFAULT_WAREHOUSE;
+	if (empty($object->warehouse_id) && !empty($conf->global->MAIN_DEFAULT_WAREHOUSE_USER)) $object->warehouse_id = $user->fk_warehouse;
+}
+
+$error = 0;
 
 
 /*
@@ -376,9 +384,9 @@ if (empty($reshook))
 								}
 
 								// Extrafields
-								if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED) && method_exists($lines[$i], 'fetch_optionals')) // For avoid conflicts if trigger used
+								if (method_exists($lines[$i], 'fetch_optionals')) // For avoid conflicts if trigger used
 								{
-									$lines[$i]->fetch_optionals($lines[$i]->rowid);
+									$lines[$i]->fetch_optionals();
 									$array_options = $lines[$i]->array_options;
 								}
 
@@ -452,26 +460,15 @@ if (empty($reshook))
 				if (!$error)
 				{
 					$object_id = $object->create($user);
-
-					// If some invoice's lines already known
-					$NBLINES = 8;
-					for ($i = 1; $i <= $NBLINES; $i++) {
-						if ($_POST['idprod'.$i]) {
-							$xid = 'idprod'.$i;
-							$xqty = 'qty'.$i;
-							$xremise = 'remise_percent'.$i;
-							$object->add_product($_POST[$xid], $_POST[$xqty], $_POST[$xremise]);
-						}
-					}
 				}
 			}
 
 			// Insert default contacts if defined
 			if ($object_id > 0)
 			{
-				if (GETPOST('contactid'))
+				if (GETPOST('contactid', 'int'))
 				{
-					$result = $object->add_contact(GETPOST('contactid'), 'CUSTOMER', 'external');
+					$result = $object->add_contact(GETPOST('contactid', 'int'), 'CUSTOMER', 'external');
 					if ($result < 0) {
 						setEventMessages($langs->trans("ErrorFailedToAddContact"), null, 'errors');
 						$error++;
@@ -673,8 +670,8 @@ if (empty($reshook))
 			$tva_tx = '';
 		}
 
-		$qty = GETPOST('qty'.$predef);
-		$remise_percent = (GETPOST('remise_percent'.$predef) != '' ? GETPOST('remise_percent'.$predef) : 0);
+		$qty = price2num(GETPOST('qty'.$predef, 'alpha'));
+		$remise_percent = (GETPOSTISSET('remise_percent'.$predef) ? price2num(GETPOST('remise_percent'.$predef, 'alpha')) : 0);
 
 		// Extrafields
 		$extralabelsline = $extrafields->fetch_name_optionals_label($object->table_element_line);
@@ -956,6 +953,7 @@ if (empty($reshook))
 
 				if ($result > 0) {
 					$ret = $object->fetch($object->id); // Reload to get new records
+					$object->fetch_thirdparty();
 
 					if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
 						// Define output language
@@ -1152,7 +1150,7 @@ if (empty($reshook))
 
 	elseif ($action == 'confirm_validate' && $confirm == 'yes' && $usercanvalidate)
 	{
-		$idwarehouse = GETPOST('idwarehouse');
+		$idwarehouse = GETPOST('idwarehouse', 'int');
 
 		$qualified_for_stock_change = 0;
 		if (empty($conf->global->STOCK_SUPPORTS_SERVICES))
@@ -1261,7 +1259,7 @@ if (empty($reshook))
 
 	elseif ($action == 'confirm_cancel' && $confirm == 'yes' && $usercanvalidate)
 	{
-		$idwarehouse = GETPOST('idwarehouse');
+		$idwarehouse = GETPOST('idwarehouse', 'int');
 
 		$qualified_for_stock_change = 0;
 		if (empty($conf->global->STOCK_SUPPORTS_SERVICES))
@@ -1355,7 +1353,7 @@ if (empty($reshook))
 	            $originLine = new $lineClassName($db);
 	            if (intval($fromElementid) > 0 && $originLine->fetch($lineId) > 0)
 	            {
-	                $originLine->fetch_optionals($lineId);
+	                $originLine->fetch_optionals();
 	                $desc = $originLine->desc;
 	                $pu_ht = $originLine->subprice;
 	                $qty = $originLine->qty;
@@ -1485,7 +1483,7 @@ if (!empty($conf->projet->enabled)) { $formproject = new FormProjets($db); }
 // Mode creation
 if ($action == 'create' && $usercancreate)
 {
-	print load_fiche_titre($langs->trans('CreateOrder'), '', 'commercial');
+	print load_fiche_titre($langs->trans('CreateOrder'), '', 'order');
 
 	$soc = new Societe($db);
 	if ($socid > 0)
@@ -1498,9 +1496,10 @@ if ($action == 'create' && $usercancreate)
 	if (!empty($origin) && !empty($originid)) {
 		// Parse element/subelement (ex: project_task)
 		$element = $subelement = $origin;
+		$regs = array();
 		if (preg_match('/^([^_]+)_([^_]+)/i', $origin, $regs)) {
-			$element = $regs [1];
-			$subelement = $regs [2];
+			$element = $regs[1];
+			$subelement = $regs[2];
 		}
 
 		if ($element == 'project') {
@@ -1542,7 +1541,7 @@ if ($action == 'create' && $usercancreate)
 			$objectsrc->fetch_thirdparty();
 
 			// Replicate extrafields
-			$objectsrc->fetch_optionals($originid);
+			$objectsrc->fetch_optionals();
 			$object->array_options = $objectsrc->array_options;
 
 			$projectid = (!empty($objectsrc->fk_project) ? $objectsrc->fk_project : '');
@@ -1597,22 +1596,22 @@ if ($action == 'create' && $usercancreate)
 	print '<form name="crea_commande" action="'.$_SERVER["PHP_SELF"].'" method="POST">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	print '<input type="hidden" name="action" value="add">';
-	print '<input type="hidden" name="socid" value="' . $soc->id . '">' . "\n";
-	print '<input type="hidden" name="remise_percent" value="' . $soc->remise_percent . '">';
-	print '<input type="hidden" name="origin" value="' . $origin . '">';
-	print '<input type="hidden" name="originid" value="' . $originid . '">';
-	if (!empty($currency_tx)) print '<input type="hidden" name="originmulticurrency_tx" value="' . $currency_tx . '">';
+	print '<input type="hidden" name="socid" value="'.$soc->id.'">'."\n";
+	print '<input type="hidden" name="remise_percent" value="'.$soc->remise_percent.'">';
+	print '<input type="hidden" name="origin" value="'.$origin.'">';
+	print '<input type="hidden" name="originid" value="'.$originid.'">';
+	if (!empty($currency_tx)) print '<input type="hidden" name="originmulticurrency_tx" value="'.$currency_tx.'">';
 
 	dol_fiche_head('');
 
 	print '<table class="border centpercent">';
 
 	// Reference
-	print '<tr><td class="titlefieldcreate fieldrequired">' . $langs->trans('Ref') . '</td><td>' . $langs->trans("Draft") . '</td></tr>';
+	print '<tr><td class="titlefieldcreate fieldrequired">'.$langs->trans('Ref').'</td><td>'.$langs->trans("Draft").'</td></tr>';
 
 	// Reference client
-	print '<tr><td>' . $langs->trans('RefCustomer') . '</td><td>';
-	if (!empty($conf->global->MAIN_USE_PROPAL_REFCLIENT_FOR_ORDER) && ! empty($origin) && ! empty($originid))
+	print '<tr><td>'.$langs->trans('RefCustomer').'</td><td>';
+	if (!empty($conf->global->MAIN_USE_PROPAL_REFCLIENT_FOR_ORDER) && !empty($origin) && !empty($originid))
 		print '<input type="text" name="ref_client" value="'.$ref_client.'"></td>';
 	else
 		print '<input type="text" name="ref_client" value="'.GETPOST('ref_client').'"></td>';
@@ -1628,7 +1627,7 @@ if ($action == 'create' && $usercancreate)
 		print '</td>';
 	} else {
 		print '<td>';
-		print $form->select_company('', 'socid', '(s.client = 1 OR s.client = 3)', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
+		print $form->select_company('', 'socid', '(s.client = 1 OR s.client = 2 OR s.client = 3)', 'SelectThirdParty', 0, 0, null, 0, 'minwidth300');
 		// reload page to retrieve customer informations
 		if (!empty($conf->global->RELOAD_PAGE_ON_CUSTOMER_CHANGE))
 		{
@@ -1763,7 +1762,7 @@ if ($action == 'create' && $usercancreate)
 	$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action);
 	print $hookmanager->resPrint;
 	if (empty($reshook)) {
-		if (!empty($conf->global->THIRDPARTY_PROPAGATE_EXTRAFIELDS_TO_ORDER)) {
+		if (!empty($conf->global->THIRDPARTY_PROPAGATE_EXTRAFIELDS_TO_ORDER) && !empty($soc->id)) {
 			// copy from thirdparty
 			$tpExtrafields = new Extrafields($db);
 			$tpExtrafieldLabels = $tpExtrafields->fetch_name_optionals_label($soc->table_element);
@@ -2058,7 +2057,7 @@ if ($action == 'create' && $usercancreate)
 		if ($action == 'clone') {
 			// Create an array for form
 			$formquestion = array(
-				array('type' => 'other', 'name' => 'socid', 'label' => $langs->trans("SelectThirdParty"), 'value' => $form->select_company(GETPOST('socid', 'int'), 'socid', '(s.client=1 OR s.client=3)'))
+				array('type' => 'other', 'name' => 'socid', 'label' => $langs->trans("SelectThirdParty"), 'value' => $form->select_company(GETPOST('socid', 'int'), 'socid', '(s.client=1 OR s.client = 2 OR s.client=3)'))
 			);
 			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('ToClone'), $langs->trans('ConfirmCloneOrder', $object->ref), 'confirm_clone', $formquestion, 'yes', 1);
 		}
@@ -2558,7 +2557,7 @@ if ($action == 'create' && $usercancreate)
 				}
 
 				// Valid
-				if ($object->statut == Commande::STATUS_DRAFT && $object->total_ttc >= 0 && $numlines > 0 && $usercanvalidate)
+				if ($object->statut == Commande::STATUS_DRAFT && ($object->total_ttc >= 0 || !empty($conf->global->ORDER_ENABLE_NEGATIVE)) && $numlines > 0 && $usercanvalidate)
 				{
 					print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=validate">'.$langs->trans('Validate').'</a>';
 				}
@@ -2633,7 +2632,7 @@ if ($action == 'create' && $usercancreate)
 
 				// Create bill and Classify billed
 				// Note: Even if module invoice is not enabled, we should be able to use button "Classified billed"
-				if ($object->statut > Commande::STATUS_DRAFT && !$object->billed) {
+				if ($object->statut > Commande::STATUS_DRAFT && !$object->billed && $object->total_ttc >= 0) {
 					if (!empty($conf->facture->enabled) && $user->rights->facture->creer && empty($conf->global->WORKFLOW_DISABLE_CREATE_INVOICE_FROM_ORDER)) {
 						print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/compta/facture/card.php?action=create&amp;origin='.$object->element.'&amp;originid='.$object->id.'&amp;socid='.$object->socid.'">'.$langs->trans("CreateBill").'</a></div>';
 					}
@@ -2679,13 +2678,13 @@ if ($action == 'create' && $usercancreate)
 			print '<div class="fichecenter"><div class="fichehalfleft">';
 			print '<a name="builddoc"></a>'; // ancre
 			// Documents
-			$comref = dol_sanitizeFileName($object->ref);
-			$relativepath = $comref.'/'.$comref.'.pdf';
-			$filedir = $conf->commande->multidir_output[$object->entity].'/'.$comref;
+			$objref = dol_sanitizeFileName($object->ref);
+			$relativepath = $objref.'/'.$objref.'.pdf';
+			$filedir = $conf->commande->multidir_output[$object->entity].'/'.$objref;
 			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 			$genallowed = $usercanread;
 			$delallowed = $usercancreate;
-			print $formfile->showdocuments('commande', $comref, $filedir, $urlsource, $genallowed, $delallowed, $object->modelpdf, 1, 0, 0, 28, 0, '', '', '', $soc->default_lang, '', $object);
+			print $formfile->showdocuments('commande', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->modelpdf, 1, 0, 0, 28, 0, '', '', '', $soc->default_lang, '', $object);
 
 
 			// Show links to link elements

@@ -36,24 +36,25 @@ if (!$user->admin) accessforbidden();
 
 $usersignature = $user->signature;
 // For action = test or send, we ensure that content is not html, even for signature, because this we want a test with NO html.
+
 if ($action == 'test' || $action == 'send')
 {
-	$usersignature = dol_string_nohtmltag($usersignature);
+	$usersignature = dol_string_nohtmltag($usersignature, 2);
 }
 
 $substitutionarrayfortest = array(
-'__DOL_MAIN_URL_ROOT__'=>DOL_MAIN_URL_ROOT,
-'__ID__' => 'RecipientIdRecord',
-//'__EMAIL__' => 'RecipientEMail',				// Done into actions_sendmails
-'__CHECK_READ__' => (is_object($object) && is_object($object->thirdparty)) ? '<img src="'.DOL_MAIN_URL_ROOT.'/public/emailing/mailing-read.php?tag='.$object->thirdparty->tag.'&securitykey='.urlencode($conf->global->MAILING_EMAIL_UNSUBSCRIBE_KEY).'" width="1" height="1" style="width:1px;height:1px" border="0"/>' : '',
-'__USER_SIGNATURE__' => (($user->signature && empty($conf->global->MAIN_MAIL_DO_NOT_USE_SIGN)) ? $usersignature : ''), // Done into actions_sendmails
-'__LOGIN__' => 'RecipientLogin',
-'__LASTNAME__' => 'RecipientLastname',
-'__FIRSTNAME__' => 'RecipientFirstname',
-'__ADDRESS__'=> 'RecipientAddress',
-'__ZIP__'=> 'RecipientZip',
-'__TOWN_'=> 'RecipientTown',
-'__COUNTRY__'=> 'RecipientCountry'
+	'__DOL_MAIN_URL_ROOT__'=>DOL_MAIN_URL_ROOT,
+	'__ID__' => 'RecipientIdRecord',
+	//'__EMAIL__' => 'RecipientEMail',				// Done into actions_sendmails
+	'__CHECK_READ__' => (is_object($object) && is_object($object->thirdparty)) ? '<img src="'.DOL_MAIN_URL_ROOT.'/public/emailing/mailing-read.php?tag='.$object->thirdparty->tag.'&securitykey='.urlencode($conf->global->MAILING_EMAIL_UNSUBSCRIBE_KEY).'" width="1" height="1" style="width:1px;height:1px" border="0"/>' : '',
+	'__USER_SIGNATURE__' => (($user->signature && empty($conf->global->MAIN_MAIL_DO_NOT_USE_SIGN)) ? $usersignature : ''), // Done into actions_sendmails
+	'__LOGIN__' => 'RecipientLogin',
+	'__LASTNAME__' => 'RecipientLastname',
+	'__FIRSTNAME__' => 'RecipientFirstname',
+	'__ADDRESS__'=> 'RecipientAddress',
+	'__ZIP__'=> 'RecipientZip',
+	'__TOWN_'=> 'RecipientTown',
+	'__COUNTRY__'=> 'RecipientCountry'
 );
 complete_substitutions_array($substitutionarrayfortest, $langs);
 
@@ -99,7 +100,7 @@ $triggersendname = ''; // Disable triggers
 $paramname = 'id';
 $mode = 'emailfortest';
 $trackid = (($action == 'testhtml') ? "testhtml" : "test");
-$sendcontext='';
+$sendcontext = '';
 include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';
 
 if ($action == 'presend' && GETPOST('trackid', 'alphanohtml') == 'test')       $action = 'test';
@@ -638,7 +639,7 @@ else
 	$liste['user'] = $langs->trans('UserEmail');
 	$liste['company'] = $langs->trans('CompanyEmail').' ('.(empty($conf->global->MAIN_INFO_SOCIETE_MAIL) ? $langs->trans("NotDefined") : $conf->global->MAIN_INFO_SOCIETE_MAIL).')';
 	$sql = 'SELECT rowid, label, email FROM '.MAIN_DB_PREFIX.'c_email_senderprofile';
-	$sql.= ' WHERE active = 1 AND (private = 0 OR private = '.$user->id.')';
+	$sql .= ' WHERE active = 1 AND (private = 0 OR private = '.$user->id.')';
 	$resql = $db->query($sql);
 	if ($resql)
 	{
@@ -758,16 +759,22 @@ else
 		$text = '';
 		if ($conf->global->MAIN_MAIL_SENDMODE == 'mail')
 		{
-			$text .= $langs->trans("WarningPHPMail");	// To encourage to use SMTPS
+			$text .= $langs->trans("WarningPHPMail"); // To encourage to use SMTPS
 		}
 
 		if ($conf->global->MAIN_MAIL_SENDMODE == 'mail')
 		{
-			// MAIN_EXTERNAL_SMTP_CLIENT_IP_ADDRESS is list of IPs where email is sent from. Example: '1.2.3.4, [aaaa:bbbb:cccc:dddd]'.
-			if (!empty($conf->global->MAIN_EXTERNAL_SMTP_CLIENT_IP_ADDRESS))
+			if (!empty($conf->global->MAIN_EXTERNAL_MAIL_SPF_STRING_TO_ADD))
 			{
-				// List of IP show as record to add in SPF if we use the mail method
-				$text .= ($text ? '<br><br>' : '').$langs->trans("WarningPHPMailSPF", $conf->global->MAIN_EXTERNAL_SMTP_CLIENT_IP_ADDRESS);
+				// List of string to add in SPF if the setup use the mail method
+				$text .= ($text ? '<br><br>' : '').$langs->trans("WarningPHPMailSPF", $conf->global->MAIN_EXTERNAL_MAIL_SPF_STRING_TO_ADD);
+			} else {
+				// MAIN_EXTERNAL_SMTP_CLIENT_IP_ADDRESS is list of IPs where email is sent from. Example: '1.2.3.4, [aaaa:bbbb:cccc:dddd]'.
+				if (!empty($conf->global->MAIN_EXTERNAL_SMTP_CLIENT_IP_ADDRESS))
+				{
+					// List of IP show as record to add in SPF if we use the mail method
+					$text .= ($text ? '<br><br>' : '').$langs->trans("WarningPHPMailSPF", $conf->global->MAIN_EXTERNAL_SMTP_CLIENT_IP_ADDRESS);
+				}
 			}
 		} else {
 			if (!empty($conf->global->MAIN_EXTERNAL_SMTP_CLIENT_IP_ADDRESS))
@@ -775,7 +782,7 @@ else
 				// List of IP show as record to add as allowed IP if we use the smtp method
 				$text .= ($text ? '<br><br>' : '').$langs->trans("WarningPHPMail2", $conf->global->MAIN_EXTERNAL_SMTP_CLIENT_IP_ADDRESS);
 			}
-			if (!empty($conf->global->MAIN_EXTERNAL_SMTP_SPF_STRING_TO_ADD))
+			if (!empty($conf->global->MAIN_EXTERNAL_SMTP_SPF_STRING_TO_ADD))	// Should be required only if you have set to use your own SMTP and wat to warn users to update their domain name to match your SMTP server.
 			{
 				// List of string to add in SPF if we use the smtp method
 				$text .= ($text ? '<br><br>' : '').$langs->trans("WarningPHPMailSPF", $conf->global->MAIN_EXTERNAL_SMTP_SPF_STRING_TO_ADD);

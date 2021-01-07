@@ -40,8 +40,8 @@
  * 		@param 	float	$pu                         Unit price (HT or TTC selon price_base_type)
  *		@param 	float	$remise_percent_ligne       Discount for line
  *		@param 	float	$txtva                      0=do not apply VAT tax, VAT rate=apply (this is VAT rate only without text code, we don't need text code because we alreaydy have all tax info into $localtaxes_array)
- *		@param  float	$uselocaltax1_rate          0=do not use this localtax, >0=apply and get value from localtaxes_array (or database if empty), -1=autodetect according to seller if we must apply, get value from localtaxes_array (or database if empty). Try to always use -1.
- *		@param  float	$uselocaltax2_rate          0=do not use this localtax, >0=apply and get value from localtaxes_array (or database if empty), -1=autodetect according to seller if we must apply, get value from localtaxes_array (or database if empty). Try to always use -1.
+ *		@param  float	$uselocaltax1_rate          0=do not use localtax1, >0=apply and get value from localtaxes_array (or database if empty), -1=autodetect according to seller if we must apply, get value from localtaxes_array (or database if empty). Try to always use -1.
+ *		@param  float	$uselocaltax2_rate          0=do not use localtax2, >0=apply and get value from localtaxes_array (or database if empty), -1=autodetect according to seller if we must apply, get value from localtaxes_array (or database if empty). Try to always use -1.
  *		@param 	float	$remise_percent_global		0
  *		@param	string	$price_base_type 			HT=Unit price parameter is HT, TTC=Unit price parameter is TTC
  *		@param	int		$info_bits					Miscellaneous informations on line
@@ -103,9 +103,13 @@ function calcul_price_total($qty, $pu, $remise_percent_ligne, $txtva, $uselocalt
 		$seller = $mysoc; // If sell is done to a customer, $seller is not provided, we use $mysoc
 		//var_dump($seller->country_id);exit;
 	}
-	if (empty($localtaxes_array) || !is_array($localtaxes_array))
-	{
+	if (empty($localtaxes_array) || !is_array($localtaxes_array)) {
 		dol_syslog("Price.lib::calcul_price_total Warning: function is called with parameter localtaxes_array that is missing", LOG_WARNING);
+	}
+	if (!is_numeric($txtva)) {
+		dol_syslog("Price.lib::calcul_price_total Warning: function was called with a parameter vat rate that is not a real numeric value. There is surely a bug.", LOG_ERR);
+	} elseif ($txtva >= 1000) {
+		dol_syslog("Price.lib::calcul_price_total Warning: function was called with a bad value for vat rate (should be often < 100, always < 1000). There is surely a bug.", LOG_ERR);
 	}
 	// Too verbose. Enable for debug only
 	//dol_syslog("Price.lib::calcul_price_total qty=".$qty." pu=".$pu." remiserpercent_ligne=".$remise_percent_ligne." txtva=".$txtva." uselocaltax1_rate=".$uselocaltax1_rate." uselocaltax2_rate=".$uselocaltax2_rate.' remise_percent_global='.$remise_percent_global.' price_base_type='.$ice_base_type.' type='.$type.' progress='.$progress);
@@ -351,17 +355,17 @@ function calcul_price_total($qty, $pu, $remise_percent_ligne, $txtva, $uselocalt
 		{
 			$result[0] = round($result[0] / $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * $conf->global->MAIN_ROUNDING_RULE_TOT;
 			$result[1] = round($result[1] / $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * $conf->global->MAIN_ROUNDING_RULE_TOT;
-			$result[2] = price2num($result[0] + $result[1], 'MT');
 			$result[9] = round($result[9] / $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * $conf->global->MAIN_ROUNDING_RULE_TOT;
 			$result[10] = round($result[10] / $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * $conf->global->MAIN_ROUNDING_RULE_TOT;
+			$result[2] = price2num($result[0] + $result[1] + $result[9] + $result[10], 'MT');
 		}
 		else
 		{
 			$result[1] = round($result[1] / $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * $conf->global->MAIN_ROUNDING_RULE_TOT;
 			$result[2] = round($result[2] / $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * $conf->global->MAIN_ROUNDING_RULE_TOT;
-			$result[0] = price2num($result[2] - $result[1], 'MT');
 			$result[9] = round($result[9] / $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * $conf->global->MAIN_ROUNDING_RULE_TOT;
 			$result[10] = round($result[10] / $conf->global->MAIN_ROUNDING_RULE_TOT, 0) * $conf->global->MAIN_ROUNDING_RULE_TOT;
+			$result[0] = price2num($result[2] - $result[1] - $result[9] - $result[10], 'MT');
 		}
 	}
 

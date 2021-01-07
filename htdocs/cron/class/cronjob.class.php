@@ -267,19 +267,6 @@ class Cronjob extends CommonObject
 		if (!$error)
         {
             $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."cronjob");
-
-			//if (! $notrigger)
-			//{
-	            // Uncomment this and change MYOBJECT to your own tag if you
-	            // want this action calls a trigger.
-
-	            //// Call triggers
-	            //include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
-	            //$interface=new Interfaces($this->db);
-	            //$result=$interface->run_triggers('MYOBJECT_CREATE',$this,$user,$langs,$conf);
-	            //if ($result < 0) { $error++; $this->errors=$interface->errors; }
-	            //// End call triggers
-			//}
         }
 
         // Commit or rollback
@@ -656,19 +643,6 @@ class Cronjob extends CommonObject
 		dol_syslog(get_class($this)."::update", LOG_DEBUG);
         $resql = $this->db->query($sql);
     	if (!$resql) { $error++; $this->errors[] = "Error ".$this->db->lasterror(); }
-
-		//if (! $error && ! $notrigger)
-		//{
-	            // Uncomment this and change MYOBJECT to your own tag if you
-	            // want this action calls a trigger.
-
-	            //// Call triggers
-	            //include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
-	            //$interface=new Interfaces($this->db);
-	            //$result=$interface->run_triggers('MYOBJECT_MODIFY',$this,$user,$langs,$conf);
-	            //if ($result < 0) { $error++; $this->errors=$interface->errors; }
-	            //// End call triggers
-		//}
 
         // Commit or rollback
 		if ($error)
@@ -1078,7 +1052,10 @@ class Cronjob extends CommonObject
 				$object = new $this->objectname($this->db);
 				if ($this->entity > 0) $object->entity = $this->entity; // We work on a dedicated entity
 
-				$params_arr = array_map('trim', explode(",", $this->params));
+				$params_arr = array();
+				if (!empty($this->params) || $this->params === '0'){
+					$params_arr = array_map('trim', explode(",", $this->params));
+				}
 
 				if (!is_array($params_arr))
 				{
@@ -1095,7 +1072,7 @@ class Cronjob extends CommonObject
 
 				    $errmsg = '';
 				    if (!is_array($object->errors) || !in_array($object->error, $object->errors)) $errmsg .= $object->error;
-				    if (is_array($object->errors) && count($object->errors)) $errmsg .= ($errmsg ? ', '.$errmsg : '').join(', ', $object->errors);
+				    if (is_array($object->errors) && count($object->errors)) $errmsg .= (($errmsg ? ', ' : '').join(', ', $object->errors));
 				    if (empty($errmsg)) $errmsg = $langs->trans('ErrorUnknown');
 
 				    dol_syslog(get_class($this)."::run_jobs END result=".$result." error=".$errmsg, LOG_ERR);
@@ -1309,7 +1286,7 @@ class Cronjob extends CommonObject
     public function LibStatut($status, $mode = 0, $processing = 0, $lastresult = 0)
 	{
 		// phpcs:enable
-		$this->labelStatus = array();		// Force reset o array because label depends on other fields
+		$this->labelStatus = array(); // Force reset o array because label depends on other fields
 		$this->labelStatusShort = array();
 
 		if (empty($this->labelStatus) || empty($this->labelStatusShort))

@@ -102,7 +102,7 @@ class Menubase
     /**
      * @var string Key for menu translation
      * @deprecated
-     * @see title
+     * @see $title
      */
     public $titre;
 
@@ -656,7 +656,7 @@ class Menubase
 
                 // Define $right
                 $perms = true;
-                if ($menu['perms'])
+                if (isset($menu['perms']))
                 {
                 	$tmpcond = $menu['perms'];
                 	if ($leftmenu == 'all') $tmpcond = preg_replace('/\$leftmenu\s*==\s*["\'a-zA-Z_]+/', '1==1', $tmpcond); // Force part of condition to true
@@ -666,7 +666,7 @@ class Menubase
 
                 // Define $enabled
                 $enabled = true;
-                if ($menu['enabled'])
+                if (isset($menu['enabled']))
                 {
                 	$tmpcond = $menu['enabled'];
                 	if ($leftmenu == 'all') $tmpcond = preg_replace('/\$leftmenu\s*==\s*["\'a-zA-Z_]+/', '1==1', $tmpcond); // Force part of condition to true
@@ -725,9 +725,9 @@ class Menubase
                     $tabMenu[$b]['mainmenu']    = $menu['mainmenu'];
                     $tabMenu[$b]['leftmenu']    = $menu['leftmenu'];
                     $tabMenu[$b]['perms']       = $perms;
+                    $tabMenu[$b]['langs']       = $menu['langs'];	// Note that this should not be used, lang file should be already loaded.
                     $tabMenu[$b]['enabled']     = $enabled;
                     $tabMenu[$b]['type']        = $menu['type'];
-                    //$tabMenu[$b]['langs']       = $menu['langs'];
                     $tabMenu[$b]['fk_mainmenu'] = $menu['fk_mainmenu'];
                     $tabMenu[$b]['fk_leftmenu'] = $menu['fk_leftmenu'];
                     $tabMenu[$b]['position']    = (int) $menu['position'];

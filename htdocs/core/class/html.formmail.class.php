@@ -112,14 +112,7 @@ class FormMail extends Form
 	public $withfrom;
 
 	/**
-	 * @var int
-	 * @deprecated Fill withto with array before calling method.
-	 * @see $withto
-	 */
-	public $withtosocid;
-
-	/**
-	 * @var int|int[]
+	 * @var int|string|array
 	 */
 	public $withto; // Show recipient emails
 
@@ -314,8 +307,8 @@ class FormMail extends Form
 	/**
 	 *	Get the form to input an email
 	 *  this->withfile: 0=No attaches files, 1=Show attached files, 2=Can add new attached files
-	 *  this->withfile
 	 *  this->param:	Contains more parameters like email templates info
+	 *  this->withfckeditor: 1=We use an advanced editor, so we switch content into HTML
 	 *
 	 *	@param	string	$addfileaction		Name of action when posting file attachments
 	 *	@param	string	$removefileaction	Name of action when removing file attachments
@@ -947,7 +940,7 @@ class FormMail extends Form
 					$this->substit['__ONLINE_PAYMENT_URL__'] = '';
 				}
 
-				//Add lines substitution key from each line
+				// Add lines substitution key from each line
 				$lines = '';
 				$defaultlines = $arraydefaultmessage->content_lines;
 				if (isset($defaultlines))
@@ -961,14 +954,30 @@ class FormMail extends Form
 
 				$defaultmessage = str_replace('\n', "\n", $defaultmessage);
 
-				// Deal with format differences between message and signature (text / HTML)
-				if (dol_textishtml($defaultmessage) && !dol_textishtml($this->substit['__USER_SIGNATURE__'])) {
-					$this->substit['__USER_SIGNATURE__'] = dol_nl2br($this->substit['__USER_SIGNATURE__']);
-				} elseif (!dol_textishtml($defaultmessage) && dol_textishtml($this->substit['__USER_SIGNATURE__'])) {
-					$defaultmessage = dol_nl2br($defaultmessage);
+				// Deal with format differences between message and some substitution variables (text / HTML)
+				$atleastonecomponentishtml = 0;
+				if (strpos($defaultmessage, '__USER_SIGNATURE__') !== false && dol_textishtml($this->substit['__USER_SIGNATURE__'])) {
+					$atleastonecomponentishtml++;
+				}
+				if (strpos($defaultmessage, '__ONLINE_PAYMENT_TEXT_AND_URL__') !== false && dol_textishtml($this->substit['__ONLINE_PAYMENT_TEXT_AND_URL__'])) {
+					$atleastonecomponentishtml++;
+				}
+				if (dol_textishtml($defaultmessage)) {
+					$atleastonecomponentishtml++;
+				}
+				if ($atleastonecomponentishtml) {
+					if (! dol_textishtml($this->substit['__USER_SIGNATURE__'])) {
+						$this->substit['__USER_SIGNATURE__'] = dol_nl2br($this->substit['__USER_SIGNATURE__']);
+					}
+					if (! dol_textishtml($this->substit['__ONLINE_PAYMENT_TEXT_AND_URL__'])) {
+						$this->substit['__ONLINE_PAYMENT_TEXT_AND_URL__'] = dol_nl2br($this->substit['__ONLINE_PAYMENT_TEXT_AND_URL__']);
+					}
+					if (! dol_textishtml($defaultmessage)) {
+						$defaultmessage = dol_nl2br($defaultmessage);
+					}
 				}
 
-				if (isset($_POST["message"]) && !$_POST['modelselected']) $defaultmessage = $_POST["message"];
+				if (GETPOSTISSET("message") && !$_POST['modelselected']) $defaultmessage = $_POST["message"];
 				else
 				{
 					$defaultmessage = make_substitutions($defaultmessage, $this->substit);
@@ -976,6 +985,7 @@ class FormMail extends Form
 					$defaultmessage = preg_replace("/^(<br>)+/", "", $defaultmessage);
 					$defaultmessage = preg_replace("/^\n+/", "", $defaultmessage);
 				}
+
 				$out .= '<tr>';
 				$out .= '<td class="tdtop">';
 				$out .= $form->textwithpicto($langs->trans('MailText'), $helpforsubstitution, 1, 'help', '', 0, 2, 'substittooltipfrombody');
@@ -1034,6 +1044,7 @@ class FormMail extends Form
 				$out .= '	$(document).on("keypress", \'#mailform\', function (e) {		/* Note this is called at every key pressed ! */
 	    						var code = e.keyCode || e.which;
 	    						if (code == 13) {
+									console.log("Enter was intercepted and blocked");
 	        						e.preventDefault();
 	        						return false;
 	    						}

@@ -33,6 +33,7 @@ $langs->loadLangs(array('ecm', 'companies', 'other', 'users', 'orders', 'propal'
 
 $action = GETPOST('action', 'aZ09');
 $cancel = GETPOST('cancel', 'alpha');
+$backtopage = GETPOST('backtopage', 'alpha');
 
 if (!$user->rights->ecm->setup) accessforbidden();
 
@@ -46,11 +47,12 @@ if ($user->socid > 0)
     $socid = $user->socid;
 }
 
+$limit = GETPOST('limit', 'int') ? GETPOST('limit', 'int') : $conf->liste_limit;
 $sortfield = GETPOST("sortfield", 'alpha');
 $sortorder = GETPOST("sortorder", 'alpha');
-$page = GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, or '' or -1
-$offset = $conf->liste_limit * $page;
+$offset = $limit * $page;
 $pageprev = $page - 1;
 $pagenext = $page + 1;
 if (!$sortorder) $sortorder = "ASC";
@@ -281,10 +283,13 @@ $s = img_picto('', 'object_dir').' <a href="'.DOL_URL_ROOT.'/ecm/index.php">'.$l
 if ($action == 'edit') $s .= '<input type="text" name="label" class="quatrevingtpercent" value="'.$urlfiletoshow.'">';
 else $s .= $urlfiletoshow;
 
-$morehtml = '';
+$linkback = '';
+if ($backtopage) {
+	$linkback = '<a href="'.$backtopage.'">'.$langs->trans("BackToTree").'</a>';
+}
 
 $object->ref = ''; // Force to hide ref
-dol_banner_tab($object, '', $morehtml, 0, '', '', $s);
+dol_banner_tab($object, '', $linkback, 0, '', '', $s);
 
 print '<div class="fichecenter">';
 

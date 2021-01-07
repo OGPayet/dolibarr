@@ -85,7 +85,7 @@ $search_status = GETPOST('search_status', 'int');
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
 $sortfield = GETPOST("sortfield", 'alpha');
 $sortorder = GETPOST("sortorder", 'alpha');
-$page = GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, or '' or -1
 $offset = $limit * $page;
 if (!$sortorder) $sortorder = 'DESC';
@@ -104,11 +104,11 @@ if (($id > 0 || $ref) && $action != 'create' && $action != 'add')
 }
 
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
-$hookmanager->initHooks(array('invoicereccard', 'globalcard'));
+$hookmanager->initHooks(array('invoicereclist'));
 $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels
-$extrafields->fetch_name_optionals_label('facture_rec');
+$extrafields->fetch_name_optionals_label($object->table_element);
 
 $search_array_options = $extrafields->getOptionalsFromPost($object->table_element, '', 'search_');
 
@@ -335,13 +335,12 @@ if ($resql)
 	print '<input type="hidden" name="action" value="list">';
 	print '<input type="hidden" name="sortfield" value="'.$sortfield.'">';
 	print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
-	print '<input type="hidden" name="page" value="'.$page.'">';
 	print '<input type="hidden" name="contextpage" value="'.$contextpage.'">';
 	print '<input type="hidden" name="search_status" value="'.$search_status.'">';
 
 	$title = $langs->trans("RepeatableInvoices");
 
-	print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'invoicing', 0, '', '', $limit);
+	print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, $sortfield, $sortorder, '', $num, $nbtotalofrecords, 'bill', 0, '', '', $limit, 0, 0, 1);
 
 	print '<span class="opacitymedium">'.$langs->trans("ToCreateAPredefinedInvoice", $langs->transnoentitiesnoconv("ChangeIntoRepeatableInvoice")).'</span><br><br>';
 
@@ -479,7 +478,7 @@ if ($resql)
 	}
 	// Action column
 	print '<td class="liste_titre" align="middle">';
-	$searchpicto = $form->showFilterAndCheckAddButtons(0, 'checkforselect', 1);
+	$searchpicto = $form->showFilterButtons();
 	print $searchpicto;
 	print '</td>';
 	print "</tr>\n";
@@ -503,7 +502,7 @@ if ($resql)
 	// Extra fields
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
 	if (!empty($arrayfields['status']['checked']))          print_liste_field_titre($arrayfields['status']['label'], $_SERVER['PHP_SELF'], "f.suspended,f.frequency", "", $param, 'align="center"', $sortfield, $sortorder);
-	print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'nomaxwidthsearch ');
+	print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"], "", '', '', 'align="center"', $sortfield, $sortorder, 'center maxwidthsearch ');
 	print "</tr>\n";
 
 	if ($num > 0)
@@ -543,21 +542,21 @@ if ($resql)
 			}
 			if (!empty($arrayfields['f.total']['checked']))
 			{
-			    print '<td class="right">'.price($objp->total).'</td>'."\n";
+			    print '<td class="nowrap right">'.price($objp->total).'</td>'."\n";
 			    if (!$i) $totalarray['nbfield']++;
 			    if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'f.total';
 			    $totalarray['val']['f.total'] += $objp->total;
 			}
 			if (!empty($arrayfields['f.tva']['checked']))
 			{
-			    print '<td class="right">'.price($objp->total_vat).'</td>'."\n";
+			    print '<td class="nowrap right">'.price($objp->total_vat).'</td>'."\n";
 			    if (!$i) $totalarray['nbfield']++;
 			    if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'f.tva';
 			    $totalarray['val']['f.tva'] += $objp->total_vat;
 			}
 			if (!empty($arrayfields['f.total_ttc']['checked']))
 			{
-			    print '<td class="right">'.price($objp->total_ttc).'</td>'."\n";
+			    print '<td class="nowrap right">'.price($objp->total_ttc).'</td>'."\n";
 			    if (!$i) $totalarray['nbfield']++;
 			    if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'f.total_ttc';
 			    $totalarray['val']['f.total_ttc'] += $objp->total_ttc;

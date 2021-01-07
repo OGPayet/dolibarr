@@ -55,14 +55,13 @@ if (!empty($conf->variants->enabled)) {
 	require_once DOL_DOCUMENT_ROOT.'/variants/class/ProductCombination.class.php';
 }
 
-$langs->loadLangs(array('admin', 'orders', 'sendings', 'companies', 'bills', 'propal', 'supplier_proposal', 'deliveries', 'products', 'stocks', 'productbatch'));
+$langs->loadLangs(array('admin', 'orders', 'sendings', 'companies', 'bills', 'propal', 'receptions', 'supplier_proposal', 'deliveries', 'products', 'stocks', 'productbatch'));
 if (!empty($conf->incoterm->enabled)) $langs->load('incoterm');
 
 $id = GETPOST('id', 'int');
 $ref = GETPOST('ref', 'alpha');
 $action 		= GETPOST('action', 'alpha');
 $confirm		= GETPOST('confirm', 'alpha');
-$comclientid = GETPOST('comid', 'int');
 $socid = GETPOST('socid', 'int');
 $projectid = GETPOST('projectid', 'int');
 $cancel         = GETPOST('cancel', 'alpha');
@@ -654,7 +653,9 @@ if (empty($reshook))
 	 */
 	if ($action == 'updateline' && $user->rights->fournisseur->commande->creer && !GETPOST('cancel', 'alpha'))
 	{
-		$vat_rate = (GETPOST('tva_tx') ?GETPOST('tva_tx') : 0);
+		$db->begin();
+
+		$vat_rate = (GETPOST('tva_tx') ? GETPOST('tva_tx') : 0);
 
    		if ($lineid)
 		{
@@ -784,9 +785,13 @@ if (empty($reshook))
 				$result = $object->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
 				if ($result < 0) dol_print_error($db, $result);
 			}
+
+			$db->commit();
 		}
 		else
 		{
+			$db->rollback();
+
 			dol_print_error($db, $object->error);
 			exit;
 		}
@@ -795,6 +800,8 @@ if (empty($reshook))
 	// Remove a product line
 	if ($action == 'confirm_deleteline' && $confirm == 'yes' && $user->rights->fournisseur->commande->creer)
 	{
+		$db->begin();
+
 		$result = $object->deleteline($lineid);
 		if ($result > 0)
 		{
@@ -813,15 +820,22 @@ if (empty($reshook))
 				$ret = $object->fetch($object->id); // Reload to get new records
 				$object->generateDocument($object->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
 			}
-
-			header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
-			exit;
 		}
 		else
 		{
+			$error++;
 			setEventMessages($object->error, $object->errors, 'errors');
-			/* Fix bug 1485 : Reset action to avoid asking again confirmation on failure */
+			// Reset action to avoid asking again confirmation on failure
 			$action = '';
+		}
+
+		if (!$error) {
+			$db->commit();
+
+			header('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
+			exit;
+		} else {
+			$db->rollback();
 		}
 	}
 
@@ -831,6 +845,8 @@ if (empty($reshook))
 		|| (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->fournisseur->supplier_order_advance->validate)))
 		)
 	{
+		$db->begin();
+
 		$object->date_commande = dol_now();
 		$result = $object->valid($user);
 		if ($result >= 0)
@@ -850,23 +866,35 @@ if (empty($reshook))
 				$ret = $object->fetch($id); // Reload to get new records
 
 				$result = $object->generateDocument($model, $outputlangs, $hidedetails, $hidedesc, $hideref);
-				if ($result < 0) dol_print_error($db, $result);
+				if ($result < 0) {
+					$error++;
+					dol_print_error($db, $result);
+				}
 			}
 		}
 		else
 		{
+			$error++;
 			setEventMessages($object->error, $object->errors, 'errors');
 		}
 
 		// If we have permission, and if we don't need to provide the idwarehouse, we go directly on approved step
-		if (empty($conf->global->SUPPLIER_ORDER_NO_DIRECT_APPROVE) && $user->rights->fournisseur->commande->approuver && !(!empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_VALIDATE_ORDER) && $object->hasProductsOrServices(1)))
+		if (!$error && empty($conf->global->SUPPLIER_ORDER_NO_DIRECT_APPROVE) && $user->rights->fournisseur->commande->approuver && !(!empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_VALIDATE_ORDER) && $object->hasProductsOrServices(1)))
 		{
 			$action = 'confirm_approve'; // can make standard or first level approval also if permission is set
+		}
+
+		if (! $error) {
+			$db->commit();
+		} else {
+			$db->rollback();
 		}
 	}
 
 	if (($action == 'confirm_approve' || $action == 'confirm_approve2') && $confirm == 'yes' && $user->rights->fournisseur->commande->approuver)
 	{
+		$db->begin();
+
 		$idwarehouse = GETPOST('idwarehouse', 'int');
 
 		$qualified_for_stock_change = 0;
@@ -906,13 +934,21 @@ if (empty($reshook))
 					}
 					$object->generateDocument($object->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
 				}
-				header("Location: ".$_SERVER["PHP_SELF"]."?id=".$object->id);
-				exit;
 			}
 			else
 			{
+				$error++;
 				setEventMessages($object->error, $object->errors, 'errors');
 			}
+		}
+
+		if (!$error) {
+			$db->commit();
+
+			header("Location: ".$_SERVER["PHP_SELF"]."?id=".$object->id);
+			exit;
+		} else {
+			$db->rollback();
 		}
 	}
 
@@ -932,7 +968,7 @@ if (empty($reshook))
 
 	// Force mandatory order method
     if ($action == 'commande') {
-        $methodecommande = GETPOST('methodecommande');
+        $methodecommande = GETPOST('methodecommande', 'int');
 
         if ($methodecommande <= 0) {
             setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentities("OrderMode")), null, 'errors');
@@ -942,7 +978,9 @@ if (empty($reshook))
 
 	if ($action == 'confirm_commande' && $confirm == 'yes' && $user->rights->fournisseur->commande->commander)
 	{
-		$result = $object->commande($user, $_REQUEST["datecommande"], $_REQUEST["methode"], $_REQUEST['comment']);
+		$db->begin();
+
+		$result = $object->commande($user, GETPOST("datecommande"), GETPOST("methode", 'int'), GETPOST('comment', 'alphanohtml'));
 		if ($result > 0)
 		{
 			if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE))
@@ -958,12 +996,20 @@ if (empty($reshook))
 				$object->generateDocument($object->modelpdf, $outputlangs, $hidedetails, $hidedesc, $hideref);
 			}
 			$action = '';
-			header("Location: ".$_SERVER["PHP_SELF"]."?id=".$object->id);
-			exit;
 		}
 		else
 		{
+			$error++;
 			setEventMessages($object->error, $object->errors, 'errors');
+		}
+
+		if (!$error) {
+			$db->commit();
+
+			header("Location: ".$_SERVER["PHP_SELF"]."?id=".$object->id);
+			exit;
+		} else {
+			$db->rollback();
 		}
 	}
 
@@ -1014,6 +1060,8 @@ if (empty($reshook))
 	// Set status of reception (complete, partial, ...)
 	if ($action == 'livraison' && $user->rights->fournisseur->commande->receptionner)
 	{
+		$db->begin();
+
 		if (GETPOST("type") != '')
 		{
 			$date_liv = dol_mktime(GETPOST('rehour'), GETPOST('remin'), GETPOST('resec'), GETPOST("remonth"), GETPOST("reday"), GETPOST("reyear"));
@@ -1027,16 +1075,25 @@ if (empty($reshook))
 			}
 			elseif ($result == -3)
 			{
+				$error++;
 				setEventMessages($object->error, $object->errors, 'errors');
 			}
 			else
 			{
+				$error++;
 				setEventMessages($object->error, $object->errors, 'errors');
 			}
 		}
 		else
 		{
+			$error++;
 			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentities("Delivery")), null, 'errors');
+		}
+
+		if (! $error) {
+			$db->commit();
+		} else {
+			$db->rollback();
 		}
 	}
 
@@ -1080,7 +1137,7 @@ if (empty($reshook))
 		if (!$error)
 		{
 			// Actions on extra fields
-			if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+			if (!$error)
 			{
 				$result = $object->insertExtraFields('ORDER_SUPPLIER_MODIFY');
 				if ($result < 0)
@@ -1206,9 +1263,9 @@ if (empty($reshook))
 								}
 
 								// Extrafields
-								if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED) && method_exists($lines[$i], 'fetch_optionals')) 							// For avoid conflicts if
+								if (method_exists($lines[$i], 'fetch_optionals')) 							// For avoid conflicts if
 								{
-									$lines[$i]->fetch_optionals($lines[$i]->rowid);
+									$lines[$i]->fetch_optionals();
 									$array_option = $lines[$i]->array_options;
 								}
 
@@ -1481,7 +1538,7 @@ llxHeader('', $langs->trans("Order"), $help_url);
 $now = dol_now();
 if ($action == 'create')
 {
-	print load_fiche_titre($langs->trans('NewOrderSupplier'));
+	print load_fiche_titre($langs->trans('NewOrderSupplier'), '', 'supplier_order');
 
 	dol_htmloutput_events();
 
@@ -1530,7 +1587,7 @@ if ($action == 'create')
 		$objectsrc->fetch_thirdparty();
 
 		// Replicate extrafields
-		$objectsrc->fetch_optionals($originid);
+		$objectsrc->fetch_optionals();
 		$object->array_options = $objectsrc->array_options;
 
 		$projectid = (!empty($objectsrc->fk_project) ? $objectsrc->fk_project : '');
@@ -1676,8 +1733,8 @@ if ($action == 'create')
 
 		$langs->load('projects');
 		print '<tr><td>'.$langs->trans('Project').'</td><td>';
-		$formproject->select_projects((empty($conf->global->PROJECT_CAN_ALWAYS_LINK_TO_ALL_SUPPLIERS) ? $societe->id : -1), $projectid, 'projectid', 0, 0, 1, 1);
-		print ' &nbsp; <a href="'.DOL_URL_ROOT.'/projet/card.php?socid='.$soc->id.'&action=create&status=1&backtopage='.urlencode($_SERVER["PHP_SELF"].'?action=create&socid='.$societe->id).'"><span class="valignmiddle text-plus-circle">'.$langs->trans("AddProject").'</span><span class="fa fa-plus-circle valignmiddle"></span></a>';
+		$formproject->select_projects((empty($conf->global->PROJECT_CAN_ALWAYS_LINK_TO_ALL_SUPPLIERS) ? $societe->id : -1), $projectid, 'projectid', 0, 0, 1, 1, 0, 0, 0, '', 0, 0, 'maxwidth500');
+		print ' &nbsp; <a href="'.DOL_URL_ROOT.'/projet/card.php?socid='.$soc->id.'&action=create&status=1&backtopage='.urlencode($_SERVER["PHP_SELF"].'?action=create&socid='.$societe->id).'"><span class="fa fa-plus-circle valignmiddle" title="'.$langs->trans("AddProject").'"></span></a>';
 		print '</td></tr>';
 	}
 
@@ -1971,7 +2028,7 @@ elseif (!empty($object->id))
                 $morehtmlref .= '<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'">';
                 $morehtmlref .= '<input type="hidden" name="action" value="classin">';
                 $morehtmlref .= '<input type="hidden" name="token" value="'.newToken().'">';
-                $morehtmlref .= $formproject->select_projects((empty($conf->global->PROJECT_CAN_ALWAYS_LINK_TO_ALL_SUPPLIERS) ? $object->socid : -1), $object->fk_project, 'projectid', $maxlength, 0, 1, 0, 1, 0, 0, '', 1);
+                $morehtmlref .= $formproject->select_projects((empty($conf->global->PROJECT_CAN_ALWAYS_LINK_TO_ALL_SUPPLIERS) ? $object->socid : -1), $object->fk_project, 'projectid', 0, 0, 1, 0, 1, 0, 0, '', 1, 0, 'maxwidth500');
                 $morehtmlref .= '<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
                 $morehtmlref .= '</form>';
             }
@@ -2008,9 +2065,9 @@ elseif (!empty($object->id))
 	if ($object->methode_commande_id > 0)
 	{
 		print '<tr><td class="titlefield">'.$langs->trans("Date").'</td><td>';
-		if ($object->date_commande)
-		{
-			print dol_print_date($object->date_commande, "dayhour")."\n";
+		print $object->date_commande ? dol_print_date($object->date_commande, $usehourmin) : '&nbsp;';
+		if ($object->hasDelay() && empty($object->date_livraison) && !empty($object->date_commande)) {
+			print ' '.img_picto($langs->trans("Late").' : '.$object->showDelay(), "warning");
 		}
 		print "</td></tr>";
 
@@ -2406,7 +2463,7 @@ elseif (!empty($object->id))
 			{
 				if ($user->rights->fournisseur->commande->approuver)
 				{
-					if (!empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $conf->global->MAIN_FEATURES_LEVEL > 0 && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED && !empty($object->user_approve_id))
+					if (!empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED && !empty($object->user_approve_id))
 					{
 						print '<a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->trans("FirstApprovalAlreadyDone")).'">'.$langs->trans("ApproveOrder").'</a>';
 					}
@@ -2422,7 +2479,7 @@ elseif (!empty($object->id))
 			}
 
 			// Second approval (if option SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED is set)
-			if (!empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $conf->global->MAIN_FEATURES_LEVEL > 0 && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED)
+			if (!empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED)
 			{
 				if ($object->statut == CommandeFournisseur::STATUS_VALIDATED)
 				{
@@ -2502,11 +2559,14 @@ elseif (!empty($object->id))
 
 			if (!empty($conf->stock->enabled) && (!empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER) || !empty($conf->global->STOCK_CALCULATE_ON_RECEPTION) || !empty($conf->global->STOCK_CALCULATE_ON_RECEPTION_CLOSE)))
 			{
+				$labelofbutton = $langs->trans('ReceiveProducts');
+				if ($conf->reception->enabled) $labelofbutton = $langs->trans("CreateReception");
+
 				if (in_array($object->statut, array(3, 4, 5))) {
 					if ($conf->fournisseur->enabled && $user->rights->fournisseur->commande->receptionner) {
-						print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/fourn/commande/dispatch.php?id='.$object->id.'">'.$langs->trans('ReceiveProducts').'</a></div>';
+						print '<div class="inline-block divButAction"><a class="butAction" href="'.DOL_URL_ROOT.'/fourn/commande/dispatch.php?id='.$object->id.'">'.$labelofbutton.'</a></div>';
 					} else {
-						print '<div class="inline-block divButAction"><a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">'.$langs->trans('ReceiveProducts').'</a></div>';
+						print '<div class="inline-block divButAction"><a class="butActionRefused classfortooltip" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">'.$labelofbutton.'</a></div>';
 					}
 				}
 			}
@@ -2638,15 +2698,15 @@ elseif (!empty($object->id))
 			print '<div class="fichecenter"><div class="fichehalfleft">';
 
 			// Generated documents
-			$comfournref = dol_sanitizeFileName($object->ref);
-			$file = $conf->fournisseur->dir_output.'/commande/'.$comfournref.'/'.$comfournref.'.pdf';
-			$relativepath = $comfournref.'/'.$comfournref.'.pdf';
-			$filedir = $conf->fournisseur->dir_output.'/commande/'.$comfournref;
+			$objref = dol_sanitizeFileName($object->ref);
+			$file = $conf->fournisseur->dir_output.'/commande/'.$objref.'/'.$objref.'.pdf';
+			$relativepath = $objref.'/'.$objref.'.pdf';
+			$filedir = $conf->fournisseur->dir_output.'/commande/'.$objref;
 			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 			$genallowed = $user->rights->fournisseur->commande->lire;
 			$delallowed = $user->rights->fournisseur->commande->creer;
 
-			print $formfile->showdocuments('commande_fournisseur', $comfournref, $filedir, $urlsource, $genallowed, $delallowed, $object->modelpdf, 1, 0, 0, 0, 0, '', '', '', $object->thirdparty->default_lang);
+			print $formfile->showdocuments('commande_fournisseur', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->modelpdf, 1, 0, 0, 0, 0, '', '', '', $object->thirdparty->default_lang);
 			$somethingshown = $formfile->numoffiles;
 
 			// Show links to link elements

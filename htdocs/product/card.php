@@ -8,7 +8,7 @@
  * Copyright (C) 2010-2015	Juanjo Menent		 <jmenent@2byte.es>
  * Copyright (C) 2013-2016	Marcos García		 <marcosgdf@gmail.com>
  * Copyright (C) 2012-2013	Cédric Salvador		 <csalvador@gpcsolutions.fr>
- * Copyright (C) 2011-2017	Alexandre Spangaro	 <aspangaro.dolibarr@gmail.com>
+ * Copyright (C) 2011-2020	Alexandre Spangaro	 <aspangaro@open-dsi.fr>
  * Copyright (C) 2014		Cédric Gross		 <c.gross@kreiz-it.fr>
  * Copyright (C) 2014-2015	Ferran Marcet		 <fmarcet@2byte.es>
  * Copyright (C) 2015		Jean-François Ferry	 <jfefe@aternatik.fr>
@@ -78,6 +78,17 @@ $confirm = GETPOST('confirm', 'alpha');
 $socid = GETPOST('socid', 'int');
 $duration_value = GETPOST('duration_value', 'int');
 $duration_unit = GETPOST('duration_unit', 'alpha');
+
+$accountancy_code_sell = GETPOST('accountancy_code_sell', 'alpha');
+$accountancy_code_sell_intra = GETPOST('accountancy_code_sell_intra', 'alpha');
+$accountancy_code_sell_export = GETPOST('accountancy_code_sell_export', 'alpha');
+$accountancy_code_buy = GETPOST('accountancy_code_buy', 'alpha');
+$accountancy_code_buy_intra = GETPOST('accountancy_code_buy_intra', 'alpha');
+$accountancy_code_buy_export = GETPOST('accountancy_code_buy_export', 'alpha');
+
+// by default 'alphanohtml' (better security); hidden conf MAIN_SECURITY_ALLOW_UNSECURED_LABELS_WITH_HTML allows basic html
+$label_security_check = empty($conf->global->MAIN_SECURITY_ALLOW_UNSECURED_LABELS_WITH_HTML) ? 'alphanohtml' : 'restricthtml';
+
 if (!empty($user->socid)) $socid = $user->socid;
 
 $object = new Product($db);
@@ -193,7 +204,7 @@ if (empty($reshook))
     {
         $error = 0;
 
-        if (!GETPOST('label', 'alphanohtml'))
+        if (!GETPOST('label', $label_security_check))
         {
             setEventMessages($langs->trans('ErrorFieldRequired', $langs->transnoentities('Label')), null, 'errors');
             $action = "create";
@@ -217,7 +228,7 @@ if (empty($reshook))
 	        $units = GETPOST('units', 'int');
 
             $object->ref                   = $ref;
-            $object->label                 = GETPOST('label', 'alphanohtml');
+            $object->label                 = GETPOST('label', $label_security_check);
             $object->price_base_type       = GETPOST('price_base_type', 'aZ09');
 
             if ($object->price_base_type == 'TTC')
@@ -320,18 +331,22 @@ if (empty($reshook))
 	        $accountancy_code_sell_intra = GETPOST('accountancy_code_sell_intra', 'alpha');
 	        $accountancy_code_sell_export = GETPOST('accountancy_code_sell_export', 'alpha');
 	        $accountancy_code_buy = GETPOST('accountancy_code_buy', 'alpha');
+			$accountancy_code_buy_intra = GETPOST('accountancy_code_buy_intra', 'alpha');
+			$accountancy_code_buy_export = GETPOST('accountancy_code_buy_export', 'alpha');
 
 			if ($accountancy_code_sell <= 0) { $object->accountancy_code_sell = ''; } else { $object->accountancy_code_sell = $accountancy_code_sell; }
 			if ($accountancy_code_sell_intra <= 0) { $object->accountancy_code_sell_intra = ''; } else { $object->accountancy_code_sell_intra = $accountancy_code_sell_intra; }
 			if ($accountancy_code_sell_export <= 0) { $object->accountancy_code_sell_export = ''; } else { $object->accountancy_code_sell_export = $accountancy_code_sell_export; }
 			if ($accountancy_code_buy <= 0) { $object->accountancy_code_buy = ''; } else { $object->accountancy_code_buy = $accountancy_code_buy; }
+			if ($accountancy_code_buy_intra <= 0) { $object->accountancy_code_buy_intra = ''; } else { $object->accountancy_code_buy_intra = $accountancy_code_buy_intra; }
+			if ($accountancy_code_buy_export <= 0) { $object->accountancy_code_buy_export = ''; } else { $object->accountancy_code_buy_export = $accountancy_code_buy_export; }
 
             // MultiPrix
             if (!empty($conf->global->PRODUIT_MULTIPRICES))
             {
                 for ($i = 2; $i <= $conf->global->PRODUIT_MULTIPRICES_LIMIT; $i++)
                 {
-                    if (isset($_POST["price_".$i]))
+                    if (GETPOSTISSET("price_".$i))
                     {
                         $object->multiprices["$i"] = price2num($_POST["price_".$i], 'MU');
                         $object->multiprices_base_type["$i"] = $_POST["multiprices_base_type_".$i];
@@ -394,7 +409,7 @@ if (empty($reshook))
 				$object->oldcopy = clone $object;
 
                 $object->ref                    = $ref;
-                $object->label                  = GETPOST('label', 'alphanohtml');
+                $object->label                  = GETPOST('label', $label_security_check);
                 $object->description            = dol_htmlcleanlastbr(GETPOST('desc', 'none'));
             	$object->url = GETPOST('url');
     			if (!empty($conf->global->MAIN_DISABLE_NOTES_TAB))
@@ -461,11 +476,15 @@ if (empty($reshook))
     	        $accountancy_code_sell_intra = GETPOST('accountancy_code_sell_intra', 'alpha');
     	        $accountancy_code_sell_export = GETPOST('accountancy_code_sell_export', 'alpha');
     	        $accountancy_code_buy = GETPOST('accountancy_code_buy', 'alpha');
+    	        $accountancy_code_buy_intra = GETPOST('accountancy_code_buy_intra', 'alpha');
+    	        $accountancy_code_buy_export = GETPOST('accountancy_code_buy_export', 'alpha');
 
 				if ($accountancy_code_sell <= 0) { $object->accountancy_code_sell = ''; } else { $object->accountancy_code_sell = $accountancy_code_sell; }
 				if ($accountancy_code_sell_intra <= 0) { $object->accountancy_code_sell_intra = ''; } else { $object->accountancy_code_sell_intra = $accountancy_code_sell_intra; }
 				if ($accountancy_code_sell_export <= 0) { $object->accountancy_code_sell_export = ''; } else { $object->accountancy_code_sell_export = $accountancy_code_sell_export; }
 				if ($accountancy_code_buy <= 0) { $object->accountancy_code_buy = ''; } else { $object->accountancy_code_buy = $accountancy_code_buy; }
+				if ($accountancy_code_buy_intra <= 0) { $object->accountancy_code_buy_intra = ''; } else { $object->accountancy_code_buy_intra = $accountancy_code_buy_intra; }
+				if ($accountancy_code_buy_export <= 0) { $object->accountancy_code_buy_export = ''; } else { $object->accountancy_code_buy_export = $accountancy_code_buy_export; }
 
                 // Fill array 'array_options' with data from add form
         		$ret = $extrafields->setOptionalsFromPost(null, $object);
@@ -963,10 +982,16 @@ else
 			print '<input type="hidden" name="barcode_auto" value="1">';
 		print '<input type="hidden" name="backtopage" value="'.$backtopage.'">';
 
-        if ($type == 1) $title = $langs->trans("NewService");
-        else $title = $langs->trans("NewProduct");
+		if ($type == 1) {
+			$picto = 'service';
+			$title = $langs->trans("NewService");
+		}
+		else {
+			$picto = 'product';
+			$title = $langs->trans("NewProduct");
+		}
         $linkback = "";
-        print load_fiche_titre($title, $linkback, 'products');
+        print load_fiche_titre($title, $linkback, $picto);
 
         dol_fiche_head('');
 
@@ -983,7 +1008,7 @@ else
         print '</td></tr>';
 
         // Label
-        print '<tr><td class="fieldrequired">'.$langs->trans("Label").'</td><td colspan="3"><input name="label" class="minwidth300 maxwidth400onsmartphone" maxlength="255" value="'.dol_escape_htmltag(GETPOST('label', 'alphanohtml')).'"></td></tr>';
+        print '<tr><td class="fieldrequired">'.$langs->trans("Label").'</td><td colspan="3"><input name="label" class="minwidth300 maxwidth400onsmartphone" maxlength="255" value="'.dol_escape_htmltag(GETPOST('label', $label_security_check)).'"></td></tr>';
 
         // On sell
         print '<tr><td class="fieldrequired">'.$langs->trans("Status").' ('.$langs->trans("Sell").')</td><td colspan="3">';
@@ -1272,17 +1297,50 @@ else
 			// Accountancy_code_buy
 			print '<tr><td>'.$langs->trans("ProductAccountancyBuyCode").'</td>';
 			print '<td>';
-            if($type == 0)
+            if ($type == 0)
             {
-                $accountancy_code_buy = (GETPOST('accountancy_code_buy', 'alpha')?(GETPOST('accountancy_code_buy', 'alpha')):$conf->global->ACCOUNTING_PRODUCT_BUY_ACCOUNT);
+                $accountancy_code_buy = (GETPOST('accountancy_code_buy', 'alpha') ? (GETPOST('accountancy_code_buy', 'alpha')) : $conf->global->ACCOUNTING_PRODUCT_BUY_ACCOUNT);
             } else {
                 $accountancy_code_buy = GETPOST('accountancy_code_buy', 'alpha');
             }
 			print $formaccounting->select_account($accountancy_code_buy, 'accountancy_code_buy', 1, null, 1, 1, '');
 			print '</td></tr>';
+
+			// Accountancy_code_buy_intra
+			if ($mysoc->isInEEC())
+			{
+				print '<tr><td class="titlefieldcreate">'.$langs->trans("ProductAccountancyBuyIntraCode").'</td>';
+				print '<td>';
+				if ($type == 0) {
+					$accountancy_code_buy_intra = (GETPOSTISSET('accountancy_code_buy_intra') ? GETPOST('accountancy_code_buy_intra', 'alpha') : $conf->global->ACCOUNTING_PRODUCT_BUY_INTRA_ACCOUNT);
+				} else {
+					$accountancy_code_buy_intra = (GETPOSTISSET('accountancy_code_buy_intra') ? GETPOST('accountancy_code_buy_intra', 'alpha') : $conf->global->ACCOUNTING_SERVICE_BUY_INTRA_ACCOUNT);
+				}
+				print $formaccounting->select_account($accountancy_code_buy_intra, 'accountancy_code_buy_intra', 1, null, 1, 1, '');
+				print '</td></tr>';
+			}
+
+			// Accountancy_code_buy_export
+			print '<tr><td class="titlefieldcreate">'.$langs->trans("ProductAccountancyBuyExportCode").'</td>';
+			print '<td>';
+			if ($type == 0)
+			{
+				$accountancy_code_buy_export = (GETPOST('accountancy_code_buy_export') ? GETPOST('accountancy_code_buy_export', 'alpha') : $conf->global->ACCOUNTING_PRODUCT_BUY_EXPORT_ACCOUNT);
+			} else {
+				$accountancy_code_buy_export = (GETPOST('accountancy_code_buy_export') ? GETPOST('accountancy_code_buy_export', 'alpha') : $conf->global->ACCOUNTING_SERVICE_BUY_EXPORT_ACCOUNT);
+			}
+			print $formaccounting->select_account($accountancy_code_buy_export, 'accountancy_code_buy_export', 1, null, 1, 1, '');
+			print '</td></tr>';
 		}
 		else // For external software
 		{
+			if (!empty($accountancy_code_sell)) { $object->accountancy_code_sell = $accountancy_code_sell; }
+			if (!empty($accountancy_code_sell_intra)) { $object->accountancy_code_sell_intra = $accountancy_code_sell_intra; }
+			if (!empty($accountancy_code_sell_export)) { $object->accountancy_code_sell_export = $accountancy_code_sell_export; }
+			if (!empty($accountancy_code_buy)) { $object->accountancy_code_buy = $accountancy_code_buy; }
+			if (!empty($accountancy_code_buy_intra)) { $object->accountancy_code_buy_intra = $accountancy_code_buy_intra; }
+			if (!empty($accountancy_code_buy_export)) { $object->accountancy_code_buy_export = $accountancy_code_buy_export; }
+
 			// Accountancy_code_sell
 			print '<tr><td class="titlefieldcreate">'.$langs->trans("ProductAccountancySellCode").'</td>';
 			print '<td class="maxwidthonsmartphone"><input class="minwidth100" name="accountancy_code_sell" value="'.$object->accountancy_code_sell.'">';
@@ -1304,6 +1362,19 @@ else
 			// Accountancy_code_buy
 			print '<tr><td>'.$langs->trans("ProductAccountancyBuyCode").'</td>';
 			print '<td class="maxwidthonsmartphone"><input class="minwidth100" name="accountancy_code_buy" value="'.$object->accountancy_code_buy.'">';
+			print '</td></tr>';
+
+			// Accountancy_code_buy_intra
+			if ($mysoc->isInEEC())
+			{
+				print '<tr><td class="titlefieldcreate">'.$langs->trans("ProductAccountancyBuyIntraCode").'</td>';
+				print '<td class="maxwidthonsmartphone"><input class="minwidth100" name="accountancy_code_buy_intra" value="'.$object->accountancy_code_buy_intra.'">';
+				print '</td></tr>';
+			}
+
+			// Accountancy_code_buy_export
+			print '<tr><td class="titlefieldcreate">'.$langs->trans("ProductAccountancyBuyExportCode").'</td>';
+			print '<td class="maxwidthonsmartphone"><input class="minwidth100" name="accountancy_code_buy_export" value="'.$object->accountancy_code_buy_export.'">';
 			print '</td></tr>';
 		}
 		print '</table>';
@@ -1560,8 +1631,10 @@ else
 				$c = new Categorie($db);
 				$cats = $c->containing($object->id, Categorie::TYPE_PRODUCT);
 				$arrayselected = array();
-				foreach ($cats as $cat) {
-					$arrayselected[] = $cat->id;
+				if (is_array($cats)) {
+					foreach ($cats as $cat) {
+						$arrayselected[] = $cat->id;
+					}
 				}
 				print $form->multiselectarray('categories', $cate_arbo, $arrayselected, '', 0, '', 0, '100%');
 				print "</td></tr>";
@@ -1612,6 +1685,21 @@ else
 				print '<td>';
 				print $formaccounting->select_account($object->accountancy_code_buy, 'accountancy_code_buy', 1, '', 1, 1);
 				print '</td></tr>';
+
+				// Accountancy_code_buy_intra
+				if ($mysoc->isInEEC())
+				{
+					print '<tr><td class="titlefield">'.$langs->trans("ProductAccountancyBuyIntraCode").'</td>';
+					print '<td>';
+					print $formaccounting->select_account($object->accountancy_code_buy_intra, 'accountancy_code_buy_intra', 1, '', 1, 1);
+					print '</td></tr>';
+				}
+
+				// Accountancy_code_buy_export
+				print '<tr><td class="titlefield">'.$langs->trans("ProductAccountancyBuyExportCode").'</td>';
+				print '<td>';
+				print $formaccounting->select_account($object->accountancy_code_buy_export, 'accountancy_code_buy_export', 1, '', 1, 1);
+				print '</td></tr>';
 			}
 			else // For external software
 			{
@@ -1636,6 +1724,19 @@ else
 				// Accountancy_code_buy
 				print '<tr><td>'.$langs->trans("ProductAccountancyBuyCode").'</td>';
 				print '<td><input name="accountancy_code_buy" class="maxwidth200" value="'.$object->accountancy_code_buy.'">';
+				print '</td></tr>';
+
+				// Accountancy_code_buy_intra
+				if ($mysoc->isInEEC())
+				{
+					print '<tr><td class="titlefield">'.$langs->trans("ProductAccountancyBuyIntraCode").'</td>';
+					print '<td><input name="accountancy_code_buy_intra" class="maxwidth200" value="'.$object->accountancy_code_buy_intra.'">';
+					print '</td></tr>';
+				}
+
+				// Accountancy_code_buy_export
+				print '<tr><td class="titlefield">'.$langs->trans("ProductAccountancyBuyExportCode").'</td>';
+				print '<td><input name="accountancy_code_buy_export" class="maxwidth200" value="'.$object->accountancy_code_buy_export.'">';
 				print '</td></tr>';
 			}
 			print '</table>';
@@ -1815,6 +1916,45 @@ else
 				}
 			} else {
 				print $object->accountancy_code_buy;
+			}
+			print '</td></tr>';
+
+			// Accountancy buy code intra-community
+			if ($mysoc->isInEEC())
+			{
+				print '<tr><td class="nowrap">';
+				print $langs->trans("ProductAccountancyBuyIntraCode");
+				print '</td><td colspan="2">';
+				if (!empty($conf->accounting->enabled))
+				{
+					if (!empty($object->accountancy_code_buy_intra))
+					{
+						$accountingaccount5 = new AccountingAccount($db);
+						$accountingaccount5->fetch('', $object->accountancy_code_buy_intra, 1);
+
+						print $accountingaccount5->getNomUrl(0, 1, 1, '', 1);
+					}
+				} else {
+					print $object->accountancy_code_buy_intra;
+				}
+				print '</td></tr>';
+			}
+
+			// Accountancy buy code export
+			print '<tr><td class="nowrap">';
+			print $langs->trans("ProductAccountancyBuyExportCode");
+			print '</td><td colspan="2">';
+			if (!empty($conf->accounting->enabled))
+			{
+				if (!empty($object->accountancy_code_buy_export))
+				{
+					$accountingaccount6 = new AccountingAccount($db);
+					$accountingaccount6->fetch('', $object->accountancy_code_buy_export, 1);
+
+					print $accountingaccount6->getNomUrl(0, 1, 1, '', 1);
+				}
+			} else {
+				print $object->accountancy_code_buy_export;
 			}
 			print '</td></tr>';
 
@@ -1998,7 +2138,7 @@ else
 			// Categories
 			if ($conf->categorie->enabled) {
 				print '<tr><td class="valignmiddle">'.$langs->trans("Categories").'</td><td colspan="3">';
-				print $form->showCategories($object->id, 'product', 1);
+				print $form->showCategories($object->id, Categorie::TYPE_PRODUCT, 1);
 				print "</td></tr>";
 			}
 

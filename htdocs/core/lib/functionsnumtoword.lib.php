@@ -57,6 +57,7 @@ function dol_convertToWord($num, $langs, $currency = false, $centimes = false)
 		return $concatWords;
 	} else {
 		$TNum = explode('.', $num);
+
 		$num = (int) $TNum[0];
 		$words = array();
 		$list1 = array(
@@ -181,7 +182,7 @@ function dolNumberToWord($numero, $langs, $numorcurrency = 'number')
 	}
 
 	/*In dolibarr 3.6.2 (my current version) doesn't have $langs->default and
-	 in case exist why ask $lang like a parameter?*/
+	in case exist why ask $lang like a parameter?*/
 	if (((is_object($langs) && $langs->default == 'es_MX') || (!is_object($langs) && $langs == 'es_MX')) && $numorcurrency == 'currency')
 	{
 		if ($numero >= 1 && $numero < 2) {
@@ -263,7 +264,7 @@ function hundreds2text($hundreds, $tens, $units)
 	$decenas = array("", "", "TREINTA ", "CUARENTA ", "CINCUENTA ", "SESENTA ", "SETENTA ", "OCHENTA ", "NOVENTA ");
 	$veintis = array("VEINTE", "VEINTIUN", "VEINTID&OacuteS", "VEINTITR&EacuteS", "VEINTICUATRO", "VEINTICINCO", "VEINTIS&EacuteIS", "VEINTISIETE", "VEINTIOCHO", "VEINTINUEVE");
 	$diecis = array("DIEZ", "ONCE", "DOCE", "TRECE", "CATORCE", "QUINCE", "DIECIS&EacuteIS", "DIECISIETE", "DIECIOCHO", "DIECINUEVE");
-	$unidades = array("UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE");
+    $unidades = array("UN", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE");
 	$entexto = "";
 	if ($hundreds != 0) {
 		$entexto .= $centenas[$hundreds - 1];

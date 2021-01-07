@@ -83,17 +83,23 @@ else
     if (DOL_VERSION != $conf->global->MAIN_VERSION_LAST_UPGRADE) print ' '.img_warning($langs->trans("RunningUpdateProcessMayBeRequired", DOL_VERSION, $conf->global->MAIN_VERSION_LAST_UPGRADE));
 }
 
+$version = DOL_VERSION;
+if (preg_match('/[a-z]+/i', $version)) $version = 'develop'; // If version contains text, it is not an official tagged version, so we use the full change log.
+print ' &nbsp; <a href="https://raw.githubusercontent.com/Dolibarr/dolibarr/'.$version.'/ChangeLog" target="_blank">'.$langs->trans("SeeChangeLog").'</a>';
+
+$newversion = '';
 if (function_exists('curl_init'))
 {
     $conf->global->MAIN_USE_RESPONSE_TIMEOUT = 10;
     print ' &nbsp; &nbsp; - &nbsp; &nbsp; ';
     if ($action == 'getlastversion')
     {
-        if ($sfurl)
-        {
+        if ($sfurl) {
+        	$i = 0;
             while (!empty($sfurl->channel[0]->item[$i]->title) && $i < 10000)
             {
                 $title = $sfurl->channel[0]->item[$i]->title;
+                $reg = array();
                 if (preg_match('/([0-9]+\.([0-9\.]+))/', $title, $reg))
                 {
                     $newversion = $reg[1];
@@ -107,25 +113,23 @@ if (function_exists('curl_init'))
 
             // Show version
             print $langs->trans("LastStableVersion").' : <b>'.(($version != '0.0') ? $version : $langs->trans("Unknown")).'</b>';
-        }
-        else
-        {
+            if ($version != '0.0') {
+            	print ' &nbsp; <a href="https://raw.githubusercontent.com/Dolibarr/dolibarr/'.$version.'/ChangeLog" target="_blank">'.$langs->trans("SeeChangeLog").'</a>';
+            }
+        } else {
             print $langs->trans("LastStableVersion").' : <b>'.$langs->trans("UpdateServerOffline").'</b>';
         }
-    }
-    else
-    {
+    } else {
         print $langs->trans("LastStableVersion").' : <a href="'.$_SERVER["PHP_SELF"].'?action=getlastversion" class="butAction">'.$langs->trans("Check").'</a>';
     }
 }
 
 // Now show link to the changelog
-print ' &nbsp; &nbsp; - &nbsp; &nbsp; ';
+//print ' &nbsp; &nbsp; - &nbsp; &nbsp; ';
 
 $version = DOL_VERSION;
 if (preg_match('/[a-z]+/i', $version)) $version = 'develop'; // If version contains text, it is not an official tagged version, so we use the full change log.
 
-print '<a href="https://raw.githubusercontent.com/Dolibarr/dolibarr/'.$version.'/ChangeLog" target="_blank">'.$langs->trans("SeeChangeLog").'</a>';
 print '</td></tr>'."\n";
 print '<tr class="oddeven"><td>'.$langs->trans("VersionLastUpgrade").' ('.$langs->trans("Database").')</td><td>'.$conf->global->MAIN_VERSION_LAST_UPGRADE.'</td></tr>'."\n";
 print '<tr class="oddeven"><td>'.$langs->trans("VersionLastInstall").'</td><td>'.$conf->global->MAIN_VERSION_LAST_INSTALL.'</td></tr>'."\n";
@@ -221,7 +225,7 @@ if (($thousand != ',' && $thousand != '.') || ($thousand != ' '))
 print '<tr class="oddeven"><td>&nbsp; => price(1234.56)</td><td>'.price(1234.56).'</td></tr>'."\n";
 // Timezone
 $txt = $langs->trans("OSTZ").' (variable system TZ): '.(!empty($_ENV["TZ"]) ? $_ENV["TZ"] : $langs->trans("NotDefined")).'<br>'."\n";
-$txt .= $langs->trans("PHPTZ").' (php.ini date.timezone): '.(ini_get("date.timezone") ?ini_get("date.timezone") : $langs->trans("NotDefined")).''."<br>\n"; // date.timezone must be in valued defined in http://fr3.php.net/manual/en/timezones.europe.php
+$txt .= $langs->trans("PHPTZ").' (date_default_timezone_get() / php.ini date.timezone): '.(getServerTimeZoneString()." / ".(ini_get("date.timezone") ? ini_get("date.timezone") : $langs->trans("NotDefined")))."<br>\n"; // date.timezone must be in valued defined in http://fr3.php.net/manual/en/timezones.europe.php
 $txt .= $langs->trans("Dolibarr constant MAIN_SERVER_TZ").': '.(empty($conf->global->MAIN_SERVER_TZ) ? $langs->trans("NotDefined") : $conf->global->MAIN_SERVER_TZ);
 print '<tr class="oddeven"><td>'.$langs->trans("CurrentTimeZone").'</td><td>'; // Timezone server PHP
 $a = getServerTimeZoneInt('now');
@@ -376,8 +380,7 @@ foreach ($configfileparameters as $key => $value)
 			print "<td>";
 			if ($newkey == 'dolibarr_main_db_pass') print preg_replace('/./i', '*', ${$newkey});
 			elseif ($newkey == 'dolibarr_main_url_root' && preg_match('/__auto__/', ${$newkey})) print ${$newkey}.' => '.constant('DOL_MAIN_URL_ROOT');
-			elseif ($newkey == 'dolibarr_main_document_root_alt')
-			{
+			elseif ($newkey == 'dolibarr_main_document_root_alt') {
 				$tmparray = explode(',', ${$newkey});
 				$i = 0;
 				foreach ($tmparray as $value2)
@@ -391,20 +394,23 @@ foreach ($configfileparameters as $key => $value)
 					}
 					++$i;
 				}
-			}
-			elseif ($newkey == 'dolibarr_main_instance_unique_id')
-			{
+			} elseif ($newkey == 'dolibarr_main_instance_unique_id') {
 			    //print $conf->file->instance_unique_id;
 			    global $dolibarr_main_cookie_cryptkey;
-			    $valuetoshow = ${$newkey} ? ${$newkey} : $dolibarr_main_cookie_cryptkey;	// Use $dolibarr_main_instance_unique_id first then $dolibarr_main_cookie_cryptkey
+			    $valuetoshow = ${$newkey} ? ${$newkey} : $dolibarr_main_cookie_cryptkey; // Use $dolibarr_main_instance_unique_id first then $dolibarr_main_cookie_cryptkey
 			    print $valuetoshow;
 			    if (empty($valuetoshow)) {
 			        print img_warning("EditConfigFileToAddEntry", 'dolibarr_main_instance_unique_id');
 			    }
 			    print ' &nbsp; <span class="opacitymedium">('.$langs->trans("HashForPing").'='.md5('dolibarr'.$valuetoshow).')</span>';
-			}
-			else
-			{
+			} elseif ($newkey == 'dolibarr_main_prod') {
+				print ${$newkey};
+
+				$valuetoshow = ${$newkey};
+				if (empty($valuetoshow)) {
+					print img_warning($langs->trans('SwitchThisForABetterSecurity'));
+				}
+			} else {
 			    print ${$newkey};
 			}
 			if ($newkey == 'dolibarr_main_url_root' && ${$newkey} != DOL_MAIN_URL_ROOT) print ' (currently overwritten by autodetected value: '.DOL_MAIN_URL_ROOT.')';

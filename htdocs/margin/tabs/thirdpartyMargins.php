@@ -34,13 +34,12 @@ if (!empty($user->socid)) $socid = $user->socid;
 $result = restrictedArea($user, 'societe', '', '');
 
 
-$mesg = '';
-
+$limit = GETPOST('limit', 'int') ? GETPOST('limit', 'int') : $conf->liste_limit;
 $sortfield = GETPOST("sortfield", 'alpha');
 $sortorder = GETPOST("sortorder", 'alpha');
-$page = GETPOST("page", 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, or '' or -1
-$offset = $conf->liste_limit * $page;
+$offset = $limit * $page;
 $pageprev = $page - 1;
 $pagenext = $page + 1;
 if (!$sortorder) $sortorder = "DESC";
@@ -102,16 +101,22 @@ if ($socid > 0)
         print '<tr><td class="titlefield">';
         print $langs->trans('CustomerCode').'</td><td colspan="3">';
         print $object->code_client;
-        if ($object->check_codeclient() <> 0) print ' <font class="error">('.$langs->trans("WrongCustomerCode").')</font>';
+        $tmpcheck = $object->check_codeclient();
+        if ($tmpcheck != 0 && $tmpcheck != -5) {
+        	print ' <font class="error">('.$langs->trans("WrongCustomerCode").')</font>';
+        }
         print '</td></tr>';
     }
 
-    if (!empty($conf->fournisseur->enabled) && $object->fournisseur && !empty($user->rights->fournisseur->lire))
+    if ((!empty($conf->fournisseur->enabled) && empty($conf->global->MAIN_USE_NEW_SUPPLIERMOD) || ! empty($conf->supplier_order->enabled) || ! empty($conf->supplier_invoice->enabled)) && $object->fournisseur && !empty($user->rights->fournisseur->lire))
     {
         print '<tr><td class="titlefield">';
         print $langs->trans('SupplierCode').'</td><td colspan="3">';
         print $object->code_fournisseur;
-        if ($object->check_codefournisseur() <> 0) print ' <font class="error">('.$langs->trans("WrongSupplierCode").')</font>';
+        $tmpcheck = $object->check_codefournisseur();
+        if ($tmpcheck != 0 && $tmpcheck != -5) {
+        	print ' <font class="error">('.$langs->trans("WrongSupplierCode").')</font>';
+        }
         print '</td></tr>';
     }
 

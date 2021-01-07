@@ -6,8 +6,8 @@
  * Copyright (C) 2010-2013 Juanjo Menent        <jmenent@2byte.es>
  * Copyright (C) 2013      Florian Henry        <florian.henry@open-concept.pro>
  * Copyright (C) 2014      Cedric GROSS         <c.gross@kreiz-it.fr>
- * Copyright (C) 2015       Alexandre Spangaro      <aspangaro@open-dsi.fr>
- * Copyright (C) 2018-2019  Frédéric France         <frederic.france@netlogic.fr>
+ * Copyright (C) 2015      Alexandre Spangaro   <aspangaro@open-dsi.fr>
+ * Copyright (C) 2018-2019 Frédéric France      <frederic.france@netlogic.fr>
  * Copyright (C) 2019	   Ferran Marcet	    <fmarcet@2byte.es>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -44,37 +44,38 @@ require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
+require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
 
 // Load translation files required by the page
 $langs->loadLangs(array("companies", "other", "commercial", "bills", "orders", "agenda"));
 
-$action=GETPOST('action', 'alpha');
-$cancel=GETPOST('cancel', 'alpha');
-$backtopage=GETPOST('backtopage', 'alpha');
-$socpeopleassigned=GETPOST('socpeopleassigned', 'array');
-$origin=GETPOST('origin', 'alpha');
-$originid=GETPOST('originid', 'int');
+$action = GETPOST('action', 'alpha');
+$cancel = GETPOST('cancel', 'alpha');
+$backtopage = GETPOST('backtopage', 'alpha');
+$socpeopleassigned = GETPOST('socpeopleassigned', 'array');
+$origin = GETPOST('origin', 'alpha');
+$originid = GETPOST('originid', 'int');
 $confirm = GETPOST('confirm', 'alpha');
 
-$fulldayevent=GETPOST('fullday');
+$fulldayevent = GETPOST('fullday');
 
 $aphour = GETPOST('aphour');
 $apmin = GETPOST('apmin');
 $p2hour = GETPOST('p2hour');
 $p2min = GETPOST('p2min');
 
-$datep=dol_mktime($fulldayevent?'00':$aphour, $fulldayevent?'00':$apmin, 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
-$datef=dol_mktime($fulldayevent?'23':$p2hour, $fulldayevent?'59':$p2min, $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
+$datep = dol_mktime($fulldayevent ? '00' : $aphour, $fulldayevent ? '00' : $apmin, 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
+$datef = dol_mktime($fulldayevent ? '23' : $p2hour, $fulldayevent ? '59' : $p2min, $fulldayevent ? '59' : '0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
 
 // Security check
 $socid = GETPOST('socid', 'int');
 $id = GETPOST('id', 'int');
-if ($user->socid) $socid=$user->socid;
+if ($user->socid) $socid = $user->socid;
 $result = restrictedArea($user, 'agenda', $id, 'actioncomm&societe', 'myactions|allactions', 'fk_soc', 'id');
 if ($user->socid && $socid) $result = restrictedArea($user, 'societe', $socid);
 
-$error=GETPOST("error");
-$donotclearsession=GETPOST('donotclearsession')?GETPOST('donotclearsession'):0;
+$error = GETPOST("error");
+$donotclearsession = GETPOST('donotclearsession') ?GETPOST('donotclearsession') : 0;
 
 $cactioncomm = new CActionComm($db);
 $object = new ActionComm($db);
@@ -109,6 +110,7 @@ $hookmanager->initHooks(array('actioncard', 'globalcard'));
 $parameters = array('socid' => $socid);
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
 
 /*
  * Actions
@@ -274,12 +276,12 @@ if (empty($reshook) && $action == 'add')
 				}
 			}
 		}
-		$object->fk_project = isset($_POST["projectid"])?$_POST["projectid"]:0;
+		$object->fk_project = isset($_POST["projectid"]) ? $_POST["projectid"] : 0;
 
 		$taskid = GETPOST('taskid', 'int');
-		if(!empty($taskid)){
+		if (!empty($taskid)) {
 		    $taskProject = new Task($db);
-		    if($taskProject->fetch($taskid)>0){
+		    if ($taskProject->fetch($taskid) > 0) {
 		        $object->fk_project = $taskProject->fk_project;
 		    }
 
@@ -316,7 +318,7 @@ if (empty($reshook) && $action == 'add')
 		if (GETPOST("doneby") > 0) $object->userdoneid = GETPOST("doneby", "int");
 	}
 
-	$object->note = trim(GETPOST("note"));
+	$object->note_private = trim(GETPOST("note", "none"));
 
 	if (isset($_POST["contactid"])) $object->contact = $contact;
 
@@ -374,6 +376,10 @@ if (empty($reshook) && $action == 'add')
 		{
 			if (!$object->error)
 			{
+				// Category association
+				$categories = GETPOST('categories', 'array');
+				$object->setCategories($categories);
+
 				unset($_SESSION['assignedtouser']);
 
 				$moreparam = '';
@@ -439,8 +445,8 @@ if (empty($reshook) && $action == 'update')
 		$object->fetch_userassigned();
 		$object->oldcopy = clone $object;
 
-		$datep = dol_mktime($fulldayevent ? '00' : $aphour, $fulldayevent ? '00' : $apmin, 0, $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
-		$datef = dol_mktime($fulldayevent ? '23' : $p2hour, $fulldayevent ? '59' : $p2min, $fulldayevent ? '59' : '0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
+		$datep = dol_mktime($fulldayevent ? '00' : $aphour, $fulldayevent ? '00' : $apmin, 0, GETPOST("apmonth", 'int'), GETPOST("apday", 'int'), GETPOST("apyear", 'int'));
+		$datef = dol_mktime($fulldayevent ? '23' : $p2hour, $fulldayevent ? '59' : $p2min, $fulldayevent ? '59' : '0', GETPOST("p2month", 'int'), GETPOST("p2day", 'int'), GETPOST("p2year", 'int'));
 
 		$object->type_id     = dol_getIdFromCode($db, GETPOST("actioncode", 'aZ09'), 'c_actioncomm');
 		$object->label       = GETPOST("label", "alphanohtml");
@@ -460,11 +466,9 @@ if (empty($reshook) && $action == 'update')
             $object->contactid = key($object->socpeopleassigned);
         }
 		$object->fk_project  = GETPOST("projectid", 'int');
-		$object->note        = GETPOST("note", "none"); // deprecated
-		$object->note_private = GETPOST("note", "none");
+		$object->note_private = trim(GETPOST("note", "none"));
 		$object->fk_element	 = GETPOST("fk_element", "int");
 		$object->elementtype = GETPOST("elementtype", "alphanohtml");
-
 		if (!$datef && $percentage == 100)
 		{
 			$error++; $donotclearsession = 1;
@@ -595,6 +599,10 @@ if (empty($reshook) && $action == 'update')
 
 			if ($result > 0)
 			{
+				// Category association
+				$categories = GETPOST('categories', 'array');
+				$object->setCategories($categories);
+
 				unset($_SESSION['assignedtouser']);
 
 				$db->commit();
@@ -807,6 +815,7 @@ if ($action == 'create')
 	            	}
                     setdatefields();
                     $("#fullday").change(function() {
+						console.log("setdatefields");
                         setdatefields();
                     });
                     $("#selectcomplete").change(function() {
@@ -861,9 +870,7 @@ if ($action == 'create')
 	if (GETPOST('datep', 'int', 1)) $datep = dol_stringtotime(GETPOST('datep', 'int', 1), 0);
 	print '<tr><td class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td>';
 	if (GETPOST("afaire") == 1) {
-        print $form->selectDate($datep, 'ap', 1, 1, 0, "action", 1, 2, 0, 'fulldayend');
-    } elseif (GETPOST("afaire") == 2) {
-        print $form->selectDate($datep, 'ap', 1, 1, 1, "action", 1, 2, 0, 'fulldayend');
+        print $form->selectDate($datep, 'ap', 1, 1, 0, "action", 1, 2, 0, 'fulldaystart');	// Empty value not allowed for start date and hours if "todo"
     } else {
         print $form->selectDate($datep, 'ap', 1, 1, 1, "action", 1, 2, 0, 'fulldaystart');
     }
@@ -878,11 +885,9 @@ if ($action == 'create')
 	}
 	print '<tr><td><span id="dateend"'.(GETPOST("actioncode", 'aZ09') == 'AC_RDV' ? ' class="fieldrequired"' : '').'>'.$langs->trans("DateActionEnd").'</span></td><td>';
 	if (GETPOST("afaire") == 1) {
-        print $form->selectDate($datef, 'p2', 1, 1, 1, "action", 1, 1, 0, 'fulldayend');
-    } elseif (GETPOST("afaire") == 2) {
-        print $form->selectDate($datef, 'p2', 1, 1, 1, "action", 1, 1, 0, 'fulldayend');
+        print $form->selectDate($datef, 'p2', 1, 1, 1, "action", 1, 2, 0, 'fulldayend');
     } else {
-        print $form->selectDate($datef, 'p2', 1, 1, 1, "action", 1, 1, 0, 'fulldayend');
+        print $form->selectDate($datef, 'p2', 1, 1, 1, "action", 1, 2, 0, 'fulldayend');
     }
 	print '</td></tr>';
 
@@ -1000,6 +1005,14 @@ if ($action == 'create')
 		print '</td></tr>';
 	}
 
+	if ($conf->categorie->enabled) {
+		// Categories
+		print '<tr><td>'.$langs->trans("Categories").'</td><td colspan="3">';
+		$cate_arbo = $form->select_all_categories(Categorie::TYPE_ACTIONCOMM, '', 'parent', 64, 0, 1);
+		print $form->multiselectarray('categories', $cate_arbo, GETPOST('categories', 'array'), '', 0, '', 0, '100%');
+		print "</td></tr>";
+	}
+
 	print '</table>';
 
 
@@ -1043,14 +1056,13 @@ if ($action == 'create')
 	// Project
 	if (!empty($conf->projet->enabled))
 	{
-		// Projet associe
 		$langs->load("projects");
 
 		$projectid = GETPOST('projectid', 'int');
 
 		print '<tr><td class="titlefieldcreate">'.$langs->trans("Project").'</td><td id="project-input-container" >';
 
-		$numproject = $formproject->select_projects((!empty($societe->id) ? $societe->id : -1), $projectid, 'projectid', 0, 0, 1, 1);
+		$numproject = $formproject->select_projects((!empty($societe->id) ? $societe->id : -1), $projectid, 'projectid', 0, 0, 1, 1, 0, 0, 0, '', 0, 0, 'maxwidth500');
 
 		print ' <a href="'.DOL_URL_ROOT.'/projet/card.php?socid='.$societe->id.'&action=create"><span class="fa fa-plus-circle valignmiddle paddingleft" title="'.$langs->trans("AddProject").'"></span></a>';
 		$urloption = '?action=create&donotclearsession=1';
@@ -1092,6 +1104,7 @@ if ($action == 'create')
 		print '<input type="hidden" name="origin" size="10" value="'.GETPOST('origin').'">';
 	}
 
+	$reg = array();
 	if (GETPOST("datep") && preg_match('/^([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])$/', GETPOST("datep"), $reg))
 	{
 		$object->datep = dol_mktime(0, 0, 0, $reg[2], $reg[3], $reg[1]);
@@ -1105,7 +1118,7 @@ if ($action == 'create')
     // Description
     print '<tr><td class="tdtop">'.$langs->trans("Description").'</td><td>';
     require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-    $doleditor = new DolEditor('note', (GETPOST('note', 'none') ?GETPOST('note', 'none') : $object->note), '', 180, 'dolibarr_notes', 'In', true, true, $conf->fckeditor->enabled, ROWS_4, '90%');
+    $doleditor = new DolEditor('note', (GETPOST('note', 'none') ? GETPOST('note', 'none') : $object->note_private), '', 180, 'dolibarr_notes', 'In', true, true, $conf->fckeditor->enabled, ROWS_4, '90%');
     $doleditor->Create();
     print '</td></tr>';
 
@@ -1171,7 +1184,7 @@ if ($id > 0)
 		$object->contactid   = GETPOST("contactid", 'int');
 		$object->fk_project  = GETPOST("projectid", 'int');
 
-		$object->note = GETPOST("note", 'none');
+		$object_private = GETPOST("note", 'none');
 	}
 
 	if ($result2 < 0 || $result3 < 0 || $result4 < 0 || $result5 < 0)
@@ -1411,6 +1424,19 @@ if ($id > 0)
 			print $form->select_dolusers($object->userdoneid > 0 ? $object->userdoneid : -1, 'doneby', 1);
 			print '</td></tr>';
 		}
+		// Tags-Categories
+        if ($conf->categorie->enabled) {
+			print '<tr><td>'.$langs->trans("Categories").'</td><td colspan="3">';
+			$cate_arbo = $form->select_all_categories(Categorie::TYPE_ACTIONCOMM, '', 'parent', 64, 0, 1);
+			$c = new Categorie($db);
+			$cats = $c->containing($object->id, Categorie::TYPE_ACTIONCOMM);
+			$arrayselected = array();
+			foreach ($cats as $cat) {
+				$arrayselected[] = $cat->id;
+			}
+			print $form->multiselectarray('categories', $cate_arbo, $arrayselected, '', 0, '', 0, '100%');
+			print "</td></tr>";
+		}
 
 		print '</table>';
 
@@ -1510,7 +1536,7 @@ if ($id > 0)
         print '<tr><td class="tdtop">'.$langs->trans("Description").'</td><td>';
         // Editeur wysiwyg
         require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-        $doleditor = new DolEditor('note', $object->note, '', 200, 'dolibarr_notes', 'In', true, true, $conf->fckeditor->enabled, ROWS_5, '90%');
+        $doleditor = new DolEditor('note', $object->note_private, '', 200, 'dolibarr_notes', 'In', true, true, $conf->fckeditor->enabled, ROWS_5, '90%');
         $doleditor->Create();
         print '</td></tr>';
 
@@ -1541,79 +1567,79 @@ if ($id > 0)
 
 
 		// Clone event
-		if($action == 'clone')
+		if ($action == 'clone')
 		{
-			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . GETPOST('id'), $langs->trans('ToClone'), $langs->trans('ConfirmCloneEvent', $object->label), 'confirm_clone', $formquestion, 'yes', 1);
+			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.GETPOST('id'), $langs->trans('ToClone'), $langs->trans('ConfirmCloneEvent', $object->label), 'confirm_clone', $formquestion, 'yes', 1);
 
 			print $formconfirm;
 		}
 
-		$linkback='';
+		$linkback = '';
 		// Link to other agenda views
-		$linkback.=img_picto($langs->trans("BackToList"), 'object_list', 'class="hideonsmartphone pictoactionview"');
-		$linkback.='<a href="'.DOL_URL_ROOT.'/comm/action/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
-		$linkback.='</li>';
-		$linkback.='<li class="noborder litext">';
-		$linkback.=img_picto($langs->trans("ViewCal"), 'object_calendar', 'class="hideonsmartphone pictoactionview"');
-		$linkback.='<a href="'.DOL_URL_ROOT.'/comm/action/index.php?action=show_month&year='.dol_print_date($object->datep, '%Y').'&month='.dol_print_date($object->datep, '%m').'&day='.dol_print_date($object->datep, '%d').'">'.$langs->trans("ViewCal").'</a>';
-		$linkback.='</li>';
-		$linkback.='<li class="noborder litext">';
-		$linkback.=img_picto($langs->trans("ViewWeek"), 'object_calendarweek', 'class="hideonsmartphone pictoactionview"');
-		$linkback.='<a href="'.DOL_URL_ROOT.'/comm/action/index.php?action=show_week&year='.dol_print_date($object->datep, '%Y').'&month='.dol_print_date($object->datep, '%m').'&day='.dol_print_date($object->datep, '%d').'">'.$langs->trans("ViewWeek").'</a>';
-		$linkback.='</li>';
-		$linkback.='<li class="noborder litext">';
-		$linkback.=img_picto($langs->trans("ViewDay"), 'object_calendarday', 'class="hideonsmartphone pictoactionview"');
-		$linkback.='<a href="'.DOL_URL_ROOT.'/comm/action/index.php?action=show_day&year='.dol_print_date($object->datep, '%Y').'&month='.dol_print_date($object->datep, '%m').'&day='.dol_print_date($object->datep, '%d').'">'.$langs->trans("ViewDay").'</a>';
-		$linkback.='</li>';
-		$linkback.='<li class="noborder litext">';
-		$linkback.=img_picto($langs->trans("ViewPerUser"), 'object_calendarperuser', 'class="hideonsmartphone pictoactionview"');
-		$linkback.='<a href="'.DOL_URL_ROOT.'/comm/action/peruser.php?action=show_peruser&year='.dol_print_date($object->datep, '%Y').'&month='.dol_print_date($object->datep, '%m').'&day='.dol_print_date($object->datep, '%d').'">'.$langs->trans("ViewPerUser").'</a>';
+		$linkback .= img_picto($langs->trans("BackToList"), 'object_list-alt', 'class="hideonsmartphone pictoactionview"');
+		$linkback .= '<a href="'.DOL_URL_ROOT.'/comm/action/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
+		$linkback .= '</li>';
+		$linkback .= '<li class="noborder litext">';
+		$linkback .= img_picto($langs->trans("ViewCal"), 'object_calendar', 'class="hideonsmartphone pictoactionview"');
+		$linkback .= '<a href="'.DOL_URL_ROOT.'/comm/action/index.php?action=show_month&year='.dol_print_date($object->datep, '%Y').'&month='.dol_print_date($object->datep, '%m').'&day='.dol_print_date($object->datep, '%d').'">'.$langs->trans("ViewCal").'</a>';
+		$linkback .= '</li>';
+		$linkback .= '<li class="noborder litext">';
+		$linkback .= img_picto($langs->trans("ViewWeek"), 'object_calendarweek', 'class="hideonsmartphone pictoactionview"');
+		$linkback .= '<a href="'.DOL_URL_ROOT.'/comm/action/index.php?action=show_week&year='.dol_print_date($object->datep, '%Y').'&month='.dol_print_date($object->datep, '%m').'&day='.dol_print_date($object->datep, '%d').'">'.$langs->trans("ViewWeek").'</a>';
+		$linkback .= '</li>';
+		$linkback .= '<li class="noborder litext">';
+		$linkback .= img_picto($langs->trans("ViewDay"), 'object_calendarday', 'class="hideonsmartphone pictoactionview"');
+		$linkback .= '<a href="'.DOL_URL_ROOT.'/comm/action/index.php?action=show_day&year='.dol_print_date($object->datep, '%Y').'&month='.dol_print_date($object->datep, '%m').'&day='.dol_print_date($object->datep, '%d').'">'.$langs->trans("ViewDay").'</a>';
+		$linkback .= '</li>';
+		$linkback .= '<li class="noborder litext">';
+		$linkback .= img_picto($langs->trans("ViewPerUser"), 'object_calendarperuser', 'class="hideonsmartphone pictoactionview"');
+		$linkback .= '<a href="'.DOL_URL_ROOT.'/comm/action/peruser.php?action=show_peruser&year='.dol_print_date($object->datep, '%Y').'&month='.dol_print_date($object->datep, '%m').'&day='.dol_print_date($object->datep, '%d').'">'.$langs->trans("ViewPerUser").'</a>';
 
 		//$linkback.=$out;
 
-		$morehtmlref='<div class="refidno">';
+		$morehtmlref = '<div class="refidno">';
 		// Thirdparty
 		//$morehtmlref.='<br>'.$langs->trans('ThirdParty') . ' : ' . $object->thirdparty->getNomUrl(1);
 		// Project
-		if (! empty($conf->projet->enabled))
+		if (!empty($conf->projet->enabled))
 		{
 		    $langs->load("projects");
 		    //$morehtmlref.='<br>'.$langs->trans('Project') . ' ';
-		    $morehtmlref.=$langs->trans('Project') . ' ';
+		    $morehtmlref .= $langs->trans('Project').' ';
     		if ($user->rights->agenda->allactions->create ||
 	       	    (($object->authorid == $user->id || $object->userownerid == $user->id) && $user->rights->agenda->myactions->create))
 		    {
 		        if ($action != 'classify') {
-					$morehtmlref.='<a class="editfielda" href="' . $_SERVER['PHP_SELF'] . '?action=classify&amp;id=' . $object->id . '">' . img_edit($langs->transnoentitiesnoconv('SetProject')) . '</a> : ';
+					$morehtmlref .= '<a class="editfielda" href="'.$_SERVER['PHP_SELF'].'?action=classify&amp;id='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('SetProject')).'</a> : ';
                 }
                 if ($action == 'classify') {
                     //$morehtmlref.=$form->form_project($_SERVER['PHP_SELF'] . '?id=' . $object->id, $object->socid, $object->fk_project, 'projectid', 0, 0, 1, 1);
-                    $morehtmlref.='<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'">';
-                    $morehtmlref.='<input type="hidden" name="action" value="classin">';
-                    $morehtmlref.='<input type="hidden" name="token" value="'.newToken().'">';
-                    $morehtmlref.=$formproject->select_projects($object->socid, $object->fk_project, 'projectid', $maxlength, 0, 1, 0, 1, 0, 0, '', 1);
-                    $morehtmlref.='<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
-                    $morehtmlref.='</form>';
+                    $morehtmlref .= '<form method="post" action="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'">';
+                    $morehtmlref .= '<input type="hidden" name="action" value="classin">';
+                    $morehtmlref .= '<input type="hidden" name="token" value="'.newToken().'">';
+                    $morehtmlref .= $formproject->select_projects($object->socid, $object->fk_project, 'projectid', $maxlength, 0, 1, 0, 1, 0, 0, '', 1);
+                    $morehtmlref .= '<input type="submit" class="button valignmiddle" value="'.$langs->trans("Modify").'">';
+                    $morehtmlref .= '</form>';
                 } else {
-                    $morehtmlref.=$form->form_project($_SERVER['PHP_SELF'] . '?id=' . $object->id, $object->socid, $object->fk_project, 'none', 0, 0, 0, 1);
+                    $morehtmlref .= $form->form_project($_SERVER['PHP_SELF'].'?id='.$object->id, $object->socid, $object->fk_project, 'none', 0, 0, 0, 1);
                 }
 		    } else {
-		        if (! empty($object->fk_project)) {
+		        if (!empty($object->fk_project)) {
 		            $proj = new Project($db);
 		            $proj->fetch($object->fk_project);
-		            $morehtmlref.='<a href="'.DOL_URL_ROOT.'/projet/card.php?id=' . $object->fk_project . '" title="' . $langs->trans('ShowProject') . '">';
-		            $morehtmlref.=$proj->ref;
-		            $morehtmlref.='</a>';
-		            if ($proj->title) $morehtmlref.=' - '.$proj->title;
+		            $morehtmlref .= '<a href="'.DOL_URL_ROOT.'/projet/card.php?id='.$object->fk_project.'" title="'.$langs->trans('ShowProject').'">';
+		            $morehtmlref .= $proj->ref;
+		            $morehtmlref .= '</a>';
+		            if ($proj->title) $morehtmlref .= ' - '.$proj->title;
 		        } else {
-		            $morehtmlref.='';
+		            $morehtmlref .= '';
 		        }
 		    }
 		}
-		$morehtmlref.='</div>';
+		$morehtmlref .= '</div>';
 
 
-		dol_banner_tab($object, 'id', $linkback, ($user->socid?0:1), 'id', 'ref', $morehtmlref);
+		dol_banner_tab($object, 'id', $linkback, ($user->socid ? 0 : 1), 'id', 'ref', $morehtmlref);
 
 	    print '<div class="fichecenter">';
 
@@ -1716,6 +1742,12 @@ if ($id > 0)
 				print $tmpuser->getNomUrl(1);
 			}
 			print '</td></tr>';
+		}
+		// Categories
+		if ($conf->categorie->enabled) {
+			print '<tr><td class="valignmiddle">'.$langs->trans("Categories").'</td><td colspan="3">';
+			print $form->showCategories($object->id, Categorie::TYPE_ACTIONCOMM, 1);
+			print "</td></tr>";
 		}
 
 		print '</table>';
