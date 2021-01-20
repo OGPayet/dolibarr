@@ -129,7 +129,7 @@ class FormProduct extends \FormProduct
 			$warehouseStatus[] = Entrepot::STATUS_OPEN_INTERNAL;
 		}
 
-		$sql = "SELECT e.rowid, e.label, e.description, e.fk_parent";
+		$sql = "SELECT e.rowid, e.ref, e.description, e.fk_parent";
 		if (!empty($fk_product))
 		{
 			if (!empty($batch))
@@ -169,7 +169,7 @@ class FormProduct extends \FormProduct
 
 		if(!empty($exclude)) $sql.= ' AND e.rowid NOT IN('.$this->db->escape(implode(',', $exclude)).')';
 
-		if ($sumStock && empty($fk_product)) $sql.= " GROUP BY e.rowid, e.label, e.description, e.fk_parent";
+		if ($sumStock && empty($fk_product)) $sql.= " GROUP BY e.rowid, e.ref, e.description, e.fk_parent";
 		$sql.= " ORDER BY ";
 		if (!empty($fk_product)) {
             $sql .= " entrepot_fav DESC,";
@@ -181,7 +181,7 @@ class FormProduct extends \FormProduct
                 $sql .= " ps.reel DESC, ";
             }
         }
-        $sql .= " e.label ASC";
+        $sql .= " e.ref ASC";
 
 		dol_syslog(get_class($this).'::loadWarehouses '.$sql, LOG_DEBUG);
 		$resql = $this->db->query($sql);
@@ -194,7 +194,7 @@ class FormProduct extends \FormProduct
 				$obj = $this->db->fetch_object($resql);
 				if ($sumStock) $obj->stock = price2num($obj->stock,5);
 				$this->cache_warehouses[$obj->rowid]['id'] =$obj->rowid;
-				$this->cache_warehouses[$obj->rowid]['label']=$obj->label;
+				$this->cache_warehouses[$obj->rowid]['label']=$obj->ref;
 				$this->cache_warehouses[$obj->rowid]['parent_id']=$obj->fk_parent;
 				$this->cache_warehouses[$obj->rowid]['description'] = $obj->description;
 				$this->cache_warehouses[$obj->rowid]['stock'] = $obj->stock;

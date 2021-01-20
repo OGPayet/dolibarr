@@ -64,7 +64,7 @@ class FormProduct
 
 		if (empty($fk_product) && count($this->cache_warehouses)) return 0;    // Cache already loaded and we do not want a list with information specific to a product
 
-		$sql = "SELECT e.rowid, e.label, e.description";
+		$sql = "SELECT e.rowid, e.ref, e.description";
 		if (!empty($fk_product))
 		{
 			if (!empty($batch))
@@ -100,8 +100,8 @@ class FormProduct
 			$sql.= " AND e.statut = 1";
 		}
 
-		if ($sumStock && empty($fk_product)) $sql.= " GROUP BY e.rowid, e.label, e.description";
-		$sql.= " ORDER BY e.label";
+		if ($sumStock && empty($fk_product)) $sql.= " GROUP BY e.rowid, e.ref, e.description";
+		$sql.= " ORDER BY e.ref";
 
 		dol_syslog(get_class($this).'::loadWarehouses', LOG_DEBUG);
 		$resql = $this->db->query($sql);
@@ -114,7 +114,7 @@ class FormProduct
 				$obj = $this->db->fetch_object($resql);
 				if ($sumStock) $obj->stock = price2num($obj->stock,5);
 				$this->cache_warehouses[$obj->rowid]['id'] =$obj->rowid;
-				$this->cache_warehouses[$obj->rowid]['label']=$obj->label;
+				$this->cache_warehouses[$obj->rowid]['label']=$obj->ref;
 				$this->cache_warehouses[$obj->rowid]['description'] = $obj->description;
 				$this->cache_warehouses[$obj->rowid]['stock'] = $obj->stock;
 				$i++;

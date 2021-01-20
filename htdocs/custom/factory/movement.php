@@ -24,7 +24,7 @@
 /**
  *  \file	   htdocs/factory/movement.php
  *  \ingroup	factory
- *  \brief	  list des mouvement de stock associé à l'OF
+ *  \brief	  list des mouvement de stock associï¿½ ï¿½ l'OF
  */
 
 $res=@include("../main.inc.php");					// For root directory
@@ -82,7 +82,7 @@ $form = new Form($db);
 
 $productid=0;
 if ($id || $ref) {
-	// chargement l'of et le produit associé
+	// chargement l'of et le produit associï¿½
 	$result = $factory->fetch($id, $ref);
 	$result = $product->fetch($factory->fk_product);
 	$id = $factory->id;
@@ -221,7 +221,7 @@ print '</td>';
 // tableau de description de la composition du produit
 print '<td valign=top>';
 
-// indique si on a déjà une composition de présente ou pas
+// indique si on a dï¿½jï¿½ une composition de prï¿½sente ou pas
 $compositionpresente=0;
 
 $prods_arbo =$factory->getChildsOF($id);
@@ -279,14 +279,14 @@ print '</tr></table>';
 
 print '<br><br>';
 print_fiche_titre($langs->trans("FactoryMovement"), '', '');
-// list des mouvements associés à l'of
+// list des mouvements associï¿½s ï¿½ l'of
 
 $productstatic=new Product($db);
 $movement=new MouvementStock($db);
 $form=new Form($db);
 
 $sql = "SELECT p.rowid, p.ref as product_ref, p.label as produit, p.fk_product_type as type,";
-$sql.= " e.label as stock, e.rowid as entrepot_id, e.lieu,";
+$sql.= " e.ref as stock, e.rowid as entrepot_id, e.lieu,";
 $sql.= " m.rowid as mid, m.value, m.datem, m.label, m.fk_origin, m.origintype";
 //$sql.= ", m.inventorycode, m.batch, m.eatby, m.sellby";
 $sql.= " FROM (".MAIN_DB_PREFIX."entrepot as e,";

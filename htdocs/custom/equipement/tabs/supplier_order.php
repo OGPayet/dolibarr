@@ -97,7 +97,7 @@ $object->fetch_thirdparty();
 
 // List of lines to serialize
 $dispatched_sql = "SELECT p.ref, p.label, p.description, p.fk_product_type, SUM(IFNULL(eq.quantity, 0)) as nb_serialized,";
-$dispatched_sql .= " e.rowid as warehouse_id, e.label as entrepot,";
+$dispatched_sql .= " e.rowid as warehouse_id, e.ref as entrepot,";
 $dispatched_sql .= " cfd.rowid as dispatchlineid, cfd.fk_product, cfd.qty, cfd.eatby, cfd.sellby, cfd.batch, cfd.comment, cfd.status";
 $dispatched_sql .= " FROM " . MAIN_DB_PREFIX . "product as p,";
 $dispatched_sql .= " " . MAIN_DB_PREFIX . "commande_fournisseur_dispatch as cfd";

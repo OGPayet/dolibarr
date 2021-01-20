@@ -1482,7 +1482,7 @@ $movement=new MouvementStock($db);
 $form=new Form($db);
 
 $sql = "SELECT p.rowid, p.ref as product_ref, p.label as produit, p.fk_product_type as type,";
-$sql.= " e.label as stock, e.rowid as entrepot_id, e.lieu,";
+$sql.= " e.ref as stock, e.rowid as entrepot_id, e.lieu,";
 $sql.= " m.rowid as mid, m.value, m.datem, m.label, m.fk_origin, m.origintype";
 //$sql.= ", m.inventorycode, m.batch, m.eatby, m.sellby";
 $sql.= " FROM (".MAIN_DB_PREFIX."entrepot as e,";

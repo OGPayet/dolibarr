@@ -713,7 +713,7 @@ function synergiestech_get_principal_stocks_tooltip_for_product($langs, $conf, $
         $sumStock = 0;
 
         if ($principal_warehouse_id > 0) {
-            $sql = "SELECT e.rowid, e.label, e.fk_parent, IFNULL(ps.reel, 0) as stock";
+            $sql = "SELECT e.rowid, e.ref, e.fk_parent, IFNULL(ps.reel, 0) as stock";
             $sql .= " FROM " . MAIN_DB_PREFIX . "entrepot as e";
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "product_stock as ps on ps.fk_entrepot = e.rowid AND ps.fk_product = '" . $product_id . "'";
             $sql .= " WHERE e.entity IN (" . getEntity('stock') . ")";
@@ -728,7 +728,7 @@ function synergiestech_get_principal_stocks_tooltip_for_product($langs, $conf, $
 
             while ($obj = $db->fetch_object($resql)) {
                 $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['id'] = $obj->rowid;
-                $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['label'] = $obj->label;
+                $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['label'] = $obj->ref;
                 $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['parent_id'] = $obj->fk_parent;
                 $cache_synergiestech_principal_stocks[$product_id][$obj->rowid]['stock'] = $obj->stock;
             }

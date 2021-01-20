@@ -86,7 +86,7 @@ class FormProduct
 			$warehouseStatus[] = Entrepot::STATUS_OPEN_INTERNAL;
 		}
 
-		$sql = "SELECT e.rowid, e.label, e.description, e.fk_parent";
+		$sql = "SELECT e.rowid, e.ref, e.description, e.fk_parent";
 		if (!empty($fk_product))
 		{
 			if (!empty($batch))
@@ -124,8 +124,8 @@ class FormProduct
 
 		if (!empty($exclude)) $sql.= ' AND e.rowid NOT IN('.implode(',', $exclude).')';
 
-		if ($sumStock && empty($fk_product)) $sql.= " GROUP BY e.rowid, e.label, e.description, e.fk_parent";
-		$sql.= " ORDER BY e.label";
+		if ($sumStock && empty($fk_product)) $sql.= " GROUP BY e.rowid, e.ref, e.description, e.fk_parent";
+		$sql.= " ORDER BY e.ref";
 
 		dol_syslog(get_class($this).'::loadWarehouses', LOG_DEBUG);
 		$resql = $this->db->query($sql);
@@ -138,7 +138,7 @@ class FormProduct
 				$obj = $this->db->fetch_object($resql);
 				if ($sumStock) $obj->stock = price2num($obj->stock,5);
 				$this->cache_warehouses[$obj->rowid]['id'] =$obj->rowid;
-				$this->cache_warehouses[$obj->rowid]['label']=$obj->label;
+				$this->cache_warehouses[$obj->rowid]['label']=$obj->ref;
 				$this->cache_warehouses[$obj->rowid]['parent_id']=$obj->fk_parent;
 				$this->cache_warehouses[$obj->rowid]['description'] = $obj->description;
 				$this->cache_warehouses[$obj->rowid]['stock'] = $obj->stock;

@@ -295,7 +295,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
 //        $texte = $langs->trans("ProductsAndServices");
 //    }
 
-    $sql = 'SELECT DISTINCT e.rowid, e.label, e.entity,e.statut,e.fk_parent, ';
+    $sql = 'SELECT DISTINCT e.rowid, e.ref, e.entity,e.statut,e.fk_parent, ';
 //    $sql.= ' e.fk_product_type, e.duration, e.tosell, e.tobuy, e.seuil_stock_alerte, e.desiredstock,';
 //    $sql.= ' e.tobatch, e.accountancy_code_sell, e.accountancy_code_buy,';
     $sql .= ' e.datec as date_creation, e.tms as date_update ';
@@ -329,8 +329,8 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
         if ($search_type == 1) $sql .= " AND e.fk_product_type = 1";
         else $sql .= " AND e.fk_product_type <> 1";
     }
-    if ($sref) $sql .= natural_search('e.ref', $sref);
-    if ($snom) $sql .= natural_search('e.label', $snom);
+    //if ($sref) $sql .= natural_search('e.ref', $sref);
+    if ($snom) $sql .= natural_search('e.ref', $snom);
     if ($sbarcode) $sql .= natural_search('e.barcode', $sbarcode);
     if (isset($status) && dol_strlen($status) > 0 && $status != -1) $sql .= " AND e.statut = ".$db->escape($status);
     if (isset($tobuy) && dol_strlen($tobuy) > 0 && $tobuy != -1) $sql .= " AND e.tobuy = ".$db->escape($tobuy);
@@ -734,7 +734,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
                 $product_static->id         = $obj->rowid;
                 $product_static->ref        = $obj->ref;
                 $product_static->ref_fourn  = $obj->ref_supplier;
-                $product_static->label      = $obj->label;
+                $product_static->label      = $obj->ref;
                 $product_static->type       = $obj->fk_product_type;
 //                $product_static->status_buy = $obj->tobuy;
 //                $product_static->status     = $obj->tosell;
@@ -770,7 +770,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
 //			    }
                 // Label
                 if (!empty($arrayfields['e.label']['checked'])) {
-                    print '<td>'.dol_trunc($obj->label, 40).'</td>';
+                    print '<td>'.dol_trunc($obj->ref, 40).'</td>';
                     if (!$i) $totalarray['nbfield'] ++;
                 }
 
@@ -947,7 +947,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
                     if (!empty($conf->use_javascript_ajax) && $user->rights->produit->creer && !empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
                         //Bug ajax_machin
                         $product_static->element='entrepot';
-                        print ajax_object_onoff($product_static, 'statut', 'statut', 'ProductStatusOnSell', 'ProductStatusNotOnSell');
+                        print ajax_object_onoff($product_static, 'statut', 'status', 'ProductStatusOnSell', 'ProductStatusNotOnSell');
                     } else {
                         print $product_static->LibStatut($obj->statut, 5, 0);
                     }
