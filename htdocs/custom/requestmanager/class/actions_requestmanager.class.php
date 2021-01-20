@@ -555,7 +555,8 @@ SCRIPT;
      */
     function printTopRightMenu($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf, $langs, $user;
+		global $conf, $langs, $user;
+		$contexts = explode(':', $parameters['context']);
 
         if (in_array('toprightmenu', explode(':', $parameters['context']))) {
             if ($user->rights->requestmanager->lire) {

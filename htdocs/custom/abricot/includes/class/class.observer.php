@@ -1,18 +1,18 @@
 <?php
 
 class TObserver {
-
-
-
+	
+	
+	
 }
 
 class TConstraint {
-
+	
 	static function check(&$value, &$TConstraint,$autoset=false) {
-
+		
 		if(empty($TConstraint)) return true;
 		else {
-
+			
 			if(isset($TConstraint['min'])) {
 				if($value<$TConstraint['min'])return TConstraint::setCheck($value, $TConstraint['min'], $autoset);
 			}
@@ -23,10 +23,10 @@ class TConstraint {
 				if(is_null($value)) return false;
 			}
 		}
-
-		return true;
+		
+		return true;		
 	}
-
+	
 	static function setCheck(&$value, $contraint, $set) {
 		if($set) {
 			$value = $contraint;
@@ -36,5 +36,5 @@ class TConstraint {
 			return false;
 		}
 	}
-
+	
 }

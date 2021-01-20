@@ -105,3 +105,4 @@ Calendar._TT["TT_DATE_FORMAT"] = "%d de %B de %Y";
 
 Calendar._TT["WK"] = "sem";
 Calendar._TT["TIME"] = "Hora:";
+

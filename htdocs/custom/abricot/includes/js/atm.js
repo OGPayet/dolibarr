@@ -26,7 +26,7 @@ function TListviewUrl_OrderBy(url,tblname,orderColumnOld,orderTypOld,orderColumn
         var orderTypNew='A';
         if (orderColumnOld>"" && orderColumnNew>"" && orderColumnOld==orderColumnNew && orderTypOld=='A')
                 orderTypNew='D';
-
+        
 		document.location.href=modifyUrl(modifyUrl(modifyUrl(url,"orderColumn",orderColumnNew),"orderTyp",orderTypNew),"tblname",tblname);
 }
 function modifyUrl(strURL,paramName,paramNewValue){
@@ -49,11 +49,11 @@ function modifyUrl(strURL,paramName,paramNewValue){
 function showPopup(strUrl,strFormName,strClickField,w,h){
         var strAdresse="";
 		strAdresse+=strUrl;
-
+		
 		if((strFormName!='')||(strClickField!='')){
 			strAdresse+="?";
 		}
-
+		
         if(strFormName!=''){
 			strAdresse+="FORM="+strFormName;
 		}
@@ -63,7 +63,7 @@ function showPopup(strUrl,strFormName,strClickField,w,h){
         while (j<l){
             var i = strClickField.indexOf(';',j);
             if (i==-1) i=l;
-
+			
 			if((param!='')||(strFormName!='')){
 				param+='&';
 			}
@@ -111,7 +111,7 @@ function TDBListview_PreviousPage(pageNumber,tblname) {
 
         if (pageNumber>0){
                 pageNumber--;
-
+               
                 document.location.href=modifyUrl(modifyUrl(document.location.href,"pageNumber",pageNumber),"tblname",tblname);
                 }
 }
@@ -124,7 +124,7 @@ function TDBListview_NextPage(pageNumber,nbPage,tblname) {
 
         if (pageNumber<nbPage){
                 pageNumber++;
-
+                
                 document.location.href=modifyUrl(modifyUrl(document.location.href,"pageNumber",pageNumber),"tblname",tblname);
         }
 }
@@ -134,7 +134,7 @@ function TDBListview_GoToPage(pageNumber,nbPage,tblname){
 		tblname=".";
 	}
         if (pageNumber<=nbPage && pageNumber>=0){
-
+                
                 document.location.href=modifyUrl(modifyUrl(document.location.href,"pageNumber",pageNumber),"tblname",tblname);
         }
 }
@@ -148,7 +148,7 @@ function TDBListviewUrl_PreviousPage(url,pageNumber,tblname) {
 
         if (pageNumber>0){
                 pageNumber--;
-
+               
                 document.location.href=modifyUrl(modifyUrl(url,"pageNumber",pageNumber),"tblname",tblname);
                 }
 }
@@ -161,7 +161,7 @@ function TDBListviewUrl_NextPage(url,pageNumber,nbPage,tblname) {
 
         if (pageNumber<nbPage){
                 pageNumber++;
-
+                
                 document.location.href=modifyUrl(modifyUrl(url,"pageNumber",pageNumber),"tblname",tblname);
         }
 }
@@ -171,7 +171,7 @@ function TDBListviewUrl_GoToPage(url,pageNumber,nbPage,tblname){
 		tblname=".";
 	}
         if (pageNumber<=nbPage && pageNumber>=0){
-
+                
                 document.location.href=modifyUrl(modifyUrl(url,"pageNumber",pageNumber),"tblname",tblname);
         }
 }
@@ -192,12 +192,12 @@ function LinkForm2(strNomForm,strFormData){
                     }
                 }
 				forms[i].submit();
-		}
-	}
-
+        	}
+    	}
+		
     }
-
-
+  
+ 
   window.opener=null;
   self.close();
 }

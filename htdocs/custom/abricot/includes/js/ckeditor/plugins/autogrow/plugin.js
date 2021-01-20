@@ -115,7 +115,7 @@
 								var scrollable = getScrollable( editor );
 								scrollable.removeStyle( 'overflow' );
 							}
-							else
+ 							else
 								resizeEditor( editor );
 						}
 					});

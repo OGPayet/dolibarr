@@ -62,7 +62,7 @@ class ExtendedEcm extends EcmFiles
 	 * @param  string $fullpath    Full path of file (relative path to document directory)
 	 * @return int                 <0 if KO, 0 if not found, >0 if OK
 	 */
-	public function fetch($id, $ref = null, $fullpath = '')
+	public function fetch($id, $ref = null, $fullpath = '', $hashoffile = '', $hashforshare = '', $src_object_type = '', $src_object_id = 0)
 	{
 		$result = parent::fetch($id, $ref, $fullpath);
 		if ($result > 0) {

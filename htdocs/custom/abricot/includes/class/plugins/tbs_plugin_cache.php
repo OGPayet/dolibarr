@@ -43,7 +43,7 @@ class clsTbsCacheSytem {
 		$Res = false;
 		if ($Dir===false) $Dir = $TBS->CacheDir;
 		if (!isset($this->CacheFile[$TBS->_Mode])) $this->CacheFile[$TBS->_Mode] = false;
-
+		
 		if ($Action===TBS_CACHECANCEL) { // Cancel cache save if any
 			$this->CacheFile[$TBS->_Mode] = false;
 		} elseif (($CacheId === '*') and ($Action===TBS_CACHEDELETE)) {
@@ -93,9 +93,9 @@ class clsTbsCacheSytem {
 				}
 			}
 		}
-
+	
 		return $Res;
-
+			
 	}
 
 	function BeforeShow(&$Render) {

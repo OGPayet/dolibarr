@@ -4,16 +4,16 @@
  Copyright (C) 2013-2015 ATM Consulting <support@atm-consulting.fr>
 
  This program and all files within this directory and sub directory
- is free software: you can redistribute it and/or modify it under
- the terms of the GNU General Public License as published by the
- Free Software Foundation, either version 3 of the License, or any
+ is free software: you can redistribute it and/or modify it under 
+ the terms of the GNU General Public License as published by the 
+ Free Software Foundation, either version 3 of the License, or any 
  later version.
-
+ 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
+ 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,11 +22,11 @@
 
 function __get($varName, $default=null, $type='', $maxlength=0) {
      $var = isset($_REQUEST[$varName]) ? $_REQUEST[$varName] : $default;
-
+	 
 	 if($maxlength>0) {
-		$var = substr($var, 0, $maxlength);
+	 	$var = substr($var, 0, $maxlength);
 	 }
-
+	 
 	 if(!empty($type)) {
 	 /*
 	  Les valeurs possibles pour le paramètre type sont :
@@ -40,15 +40,15 @@ function __get($varName, $default=null, $type='', $maxlength=0) {
 	  */
 		settype($var, $type);
 	 }
-
+	 
 	 return $var;
-}
+} 
 function __val(&$valueObject, $default='', $type='string',$noempty=false) {
-
+     
 	 if(!isset($valueObject))$value=$default;
 	 elseif ($noempty && empty($valueObject))$value=$default;
 	 else $value = $valueObject;
-
+	 
 	 if(!empty($type)) {
 	 /*
 	  Les valeurs possibles pour le paramètre type sont :
@@ -62,20 +62,20 @@ function __val(&$valueObject, $default='', $type='string',$noempty=false) {
 	  */
 		settype($value, $type);
 	 }
-
+	 
 	 return $value;
-}
+} 
 function __out($data, $type='', $callback='') {
-
+	
 	if(empty($type)) {
 		if(isset($_REQUEST['gz'])) $type = 'gz';
 		else if(isset($_REQUEST['gz2']))$type = 'gz2';
 		elseif(isset($_REQUEST['json'])) $type='json';
 		elseif(isset($_REQUEST['jsonp'])) $type='jsonp';
 	}
-
-
-
+	
+	
+	
 	if($type==='gz') {
 		$s = serialize($data);
 		print gzdeflate($s,9);
@@ -105,16 +105,16 @@ function __out($data, $type='', $callback='') {
 function getStandartJS() {
 	?><script language="JavaScript" src="<?php echo COREHTTP?>includes/js/jquery-1.9.1.min.js"></script><?php
 	?><script language="JavaScript" src="<?php echo COREHTTP?>includes/js/jquery-ui-1.8.6.custom.min.js"></script><?php
-
+		
 	?><script language="JavaScript" src="<?php echo COREHTTP?>includes/js/dataTable/js/jquery.dataTables.min.js"></script><?php
 	?><link href="<?php echo COREHTTP?>includes/js/dataTable/css/jquery.dataTables.css" rel="stylesheet" type="text/css" /><?php
-
+	
 }
 function getStandartCSS() {
-
+	
 }
 
-function _htmlentities($val){
+function _htmlentities($val){ 
 	if(defined('USE_UTF8') && USE_UTF8){
 		$val = htmlentities($val, ENT_COMPAT, "UTF-8");
 	}else{
@@ -127,22 +127,22 @@ function _strtolower($str){
 	if(defined('USE_UTF8')&&(USE_UTF8==true)){
 		$encoding = 'utf-8';
 	}
-	return mb_strtolower($str,$encoding);
+  	return mb_strtolower($str,$encoding);
 }
 
 function pre($t, $all=false){
   if($all) {
-	print '<pre>'. print_r($t, true) .'</pre>';
-  }
+  	print '<pre>'. print_r($t, true) .'</pre>';
+  }	
   else {
-	var_dump($t);
+  	var_dump($t);
   }
-
+  
 }
-/**
- * @param string $str unicode and ulrencoded string
- * @return string decoded string
- */
+/** 
+ * @param string $str unicode and ulrencoded string 
+ * @return string decoded string 
+ */ 
 function utf8_urldecode($str,$quotes = null,$charset = null){
     $str = str_replace("\\","",$str);
     $str = preg_replace_callback('/%u([0-9a-f]{4})/i',create_function('$arr','return "&#".hexdec($arr[1]).";";'),$str);
@@ -163,17 +163,17 @@ function decode_special_caracters($element){
 /**
  * Fonction de conversion des éléments d'un tableau en UTF-8
  * Encodage appliqué sur les clés et les valeurs
- * Fonction récursive
+ * Fonction récursive 
  * @param array $array Le tableau à encoder
  * @return array Tableau identiques avec données en UTF-8
  */
 function arrayConvertUTF8 ($array, $encode=true, $special_caracters=false) {
 	$tmp = array();
-
+	
 	if(is_array($array)) {
-
+		
 		foreach ($array as $k => $v) {
-
+	
 			if(is_array($v) || is_object($v)) {
 				if($encode) {
 					$tmp[utf8_encode($k)] = arrayConvertUTF8($v, $encode);
@@ -187,9 +187,9 @@ function arrayConvertUTF8 ($array, $encode=true, $special_caracters=false) {
 					$tmp[utf8_urldecode($k)] = utf8_decode($v);
 				}
 			}
-
+			 
 		}
-
+		
 	}
 	else{
 		if($encode) {
@@ -198,8 +198,8 @@ function arrayConvertUTF8 ($array, $encode=true, $special_caracters=false) {
 			$tmp = utf8_decode($array);
 		}
 	}
-
-
+	
+	
 	return $tmp;
 }
 
@@ -222,12 +222,12 @@ function in_http($url, $ttl=3600) {
 	$f->ttl = $ttl;
 	//$f->to_log=true;
 	return $f->file_get($url);
-}
+} 
 function _debug() {
 	if(isset($_REQUEST['DEBUG'])) {
 		return true;
 	}
-
+	
 	return false;
 }
 function _fnumber($i,$dec=0){
@@ -243,13 +243,13 @@ function _str_cut($s,$len = 120){
 		$r = substr($s,0,$len);
 		$pos = strrpos($r," ");
 		$r = substr($r,0,$pos);
-
+		
 		$last_car = substr($r,-1);
 		if($last_car=="."){
 			$r = substr($r,0,-1)."...";
 		}
 		else{
-			$r=$r."...";
+			$r=$r."...";	
 		}
 	}
 	else{
@@ -272,13 +272,14 @@ function array_delete_value($array,$search) {
  */
 function _in_js($s){
   $js="";
-
+  
   $trans=array("'"=>"\'","\r"=>"");
-
+  
   $var = explode("\n", $s);
   foreach ($var as $ligne) {
-	 $js.="document.writeln('".strtr($ligne, $trans)."');\r\n";
+  	 $js.="document.writeln('".strtr($ligne, $trans)."');\r\n";
   }
 
   return $js;
 }
+

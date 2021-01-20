@@ -329,7 +329,7 @@ class EventConfidentialityDefaultDictionaryLine extends DictionaryLine
      * @param   string	$value          Value to show
      * @return	string					Formatted value
      */
-    function showOutputField($fieldName, $value = null)
+    function showOutputFieldAD($fieldName, $value = null)
     {
         if ($fieldName == 'action_type') {
             if (isset($this->dictionary->fields[$fieldName])) {
@@ -367,7 +367,7 @@ class EventConfidentialityDefaultDictionaryLine extends DictionaryLine
 	 * @param  int     $objectid       Current object id
 	 * @return string
 	 */
-	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+	function showInputFieldAD($fieldName, $value = null, $keyprefix = '', $keysuffix = '', $objectid = 0, $options_only = 0)
     {
         if ($fieldName == 'action_type') {
             // Load action type infos into cache

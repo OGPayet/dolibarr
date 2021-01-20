@@ -1,15 +1,15 @@
 <?php
-
+ 
 /**
  * Version standardisee de la classe photo
- *
+ * 
  * date 2 mars 2011 - 10:41:35
- *
+ * 
  * @author maxime
  * @version 1.4.2.5
  * @copyright 2006
  * @subpackage Essential
- **/
+ **/  
 class TPhoto extends TObjetStd {
 	function TPhoto(){
 		$this->set_table(PHOTO_TABLE);
@@ -27,17 +27,17 @@ class TPhoto extends TObjetStd {
 		$this->width=1;
 		// Définit si le retaillage est homotéthique (false) ou découpant (true)
 		$this->set_in_place=false;
-
+		
 		// Définit si stockage dans des dossiers datés
 		$this->stock_dating_folder=true;
 	}
 
 	function resizeImage($src,$rata=100, $size_concern="all", $dest="",$cadre=true){
-		// $size_concern="all","height","width"
+  		// $size_concern="all","height","width"
         list($width, $height, $type) = getimagesize($src);
-
+        
         $redim=false;
-
+        
         if($width>$rata && $width>$height && $size_concern=="all"){
                         $p = $height / $width;
                         $newwidth = $rata;
@@ -62,19 +62,19 @@ class TPhoto extends TObjetStd {
                         $newwidth = $width;
                         $newheight = $height;
         }
-
+        
         $thumb = imagecreatetruecolor($newwidth, $newheight);
-
-        $kek=imagecolorallocate($thumb,255,255,255);
+        
+        $kek=imagecolorallocate($thumb,255,255,255); 
         imagefill ( $thumb, 0, 0, $kek);
-
+        
         if($dest==""){
                 $img=$src;
         }
         else{
                 $img=$dest;
         }
-
+        
         if($type==1){
                 $source= imagecreatefromgif($src);
                 $img = substr($img,0,-4).".jpg";
@@ -90,11 +90,11 @@ class TPhoto extends TObjetStd {
                 if($newwidth<$rata || $newheight<$rata){
                         $redim=true;
                 }
-
+                
         }
 
         imagecopyresampled ( $thumb, $source, 0, 0, 0, 0, $newwidth, $newheight, $width, $height );
-
+        
 
         if($this->stock_dating_folder){
 	      $this->_test_and_cree_folders($img,'');
@@ -102,17 +102,17 @@ class TPhoto extends TObjetStd {
 
         if($newwidth!=$width || $newheight!=$height || $redim){
                 imagejpeg($thumb,$img,80);
-        }
-
+        }       
+            
         if($cadre==true){
-		cadre_image($thumb,$rata,$newheight);
+        	cadre_image($thumb,$rata,$newheight);
         }
-
+        
         if($newwidth!=$width || $newheight!=$height || $redim){
                 imagejpeg($thumb,$img,80);
         }
         imagedestroy($thumb);
-                return basename($img);
+                return basename($img);  
 	}
 
 	function resizeImage_XY($src,$img,$xrata=70, $yrata=32, $force_newheight=false){
@@ -122,7 +122,7 @@ class TPhoto extends TObjetStd {
         $redim=false;
         $newwidth=0;$newheight=0;
         $this->_get_newdimension($xrata, $yrata, $width, $height, $newwidth, $newheight);
-
+                        
         $thumb = imagecreatetruecolor($xrata, $yrata);
 
 		if($force_newheight){
@@ -130,10 +130,10 @@ class TPhoto extends TObjetStd {
 		      }else{
 		  $thumb = imagecreatetruecolor($xrata, $yrata);
 		}
-
-		$kek=imagecolorallocate($thumb,255,255,255);
+		              
+		$kek=imagecolorallocate($thumb,255,255,255); 
 		imagefill ( $thumb, 0, 0, $kek);
-
+		
 		if($type==1){
 		      $source= imagecreatefromgif($src);
 		      $img = substr($img,0,-4).".jpg";
@@ -144,7 +144,7 @@ class TPhoto extends TObjetStd {
 		}
 		else{
 		      $source= imagecreatefromjpeg($src);
-
+		      
 		}
 		if($force_newheight){
 			$dst_y = 0;
@@ -152,23 +152,23 @@ class TPhoto extends TObjetStd {
 			$dst_y = ($yrata-$newheight) / 2;
 		}
 		$dst_x = ($xrata-$newwidth) / 2;
-
+		
 		imagecopyresampled ( $thumb, $source, $dst_x, $dst_y, 0, 0, $newwidth, $newheight, $width, $height );
-
+		
 		$photo = new TPhoto();
 		if($photo->stock_dating_folder){
 			$photo->_test_and_cree_folders($img,'');
 		}
-
+		
 		imagejpeg($thumb,$img,80);
 		imagedestroy($thumb);
-
-		return $img;
+		
+		return $img;  
 	}
-	function _test_and_cree_folders($fichier1="",$dir=""){
-	// patch correctif:
+  	function _test_and_cree_folders($fichier1="",$dir=""){
+    	// patch correctif:
 	    if(strlen($fichier1)>0 && (substr($fichier1, -1))=='/')$fichier1 .='dummy.file';
-
+	
 	    @ mkdir(dirname( $dir.$fichier1 ), 0777, true);
 	    return true;
 	}
@@ -178,11 +178,11 @@ class TPhoto extends TObjetStd {
 	    $prefix='';
 	    if($this->stock_dating_folder){
 	        $date_rep = date("Ymd");
-			$prefix = $date_rep.'/';
-			$this->_test_and_cree_folders($prefix,DIR_IMGORIGINE);
-			//$prefix .= '_';
+	  		$prefix = $date_rep.'/';
+	  		$this->_test_and_cree_folders($prefix,DIR_IMGORIGINE);
+	  		//$prefix .= '_';
 	    }
-
+		
 	    if(is_string($file)){
 			$trans=array(" "=>"%20");
 			$image_name = $prefix.date("Ymd_His")."_".basename($file);
@@ -191,7 +191,7 @@ class TPhoto extends TObjetStd {
 			$image_name = $prefix.date("Ymd_His")."_"._url_format($file['name'], false, true);
 			if(!copy($file['tmp_name'],DIR_IMGORIGINE.$image_name))return false;
 		}
-
+	
 			$this->fichier1 = $image_name;
 			return true;
 			//$this->fichier1 = $this->retaille_image("normal", false, true); // on force l'image chargée é un certain format
@@ -205,8 +205,8 @@ class TPhoto extends TObjetStd {
 
 		return file_get_contents($url);
 
-	}
-
+	}	
+ 
 	function retaille_image($mode="normal", $cadre=false, $force=false, $w=0, $h=0){
 		/**
 		 * Retaille l'image selon le mode choisi
@@ -354,12 +354,12 @@ class TPhoto extends TObjetStd {
 			}
 
 			if($mode=="miniature" || $this->set_in_place==true){
-
+					
 				$src_x = 0;
 				$src_y = 0;
 				$new_yrata=0;
 				$new_xrata=0;
-
+				
 				$this->_get_dimension_for_in_place($src_x, $src_y, $new_xrata, $new_yrata, $width, $height, $xrata, $yrata);
 
 
@@ -395,47 +395,47 @@ class TPhoto extends TObjetStd {
 		}
 
 	}
-
+		 
 	function _fill_image_transparent($img){
-
+	
 		if($img!=""){
 			list($width, $height, $type) = getimagesize($img);
 			$thumb = imagecreatetruecolor($width, 250);
-
+						
 			$source= imagecreatefromjpeg($img);
-			imagecopyresampled($thumb, $source, 0, 0, 0, 0, $width, $height, $width, $height);
-
-			$kek=imagecolorallocatealpha($thumb,56,34,21,50);
-			imagefilledrectangle  ($thumb, 305, 0, $width-1, $height-1, $kek);
-
-			$kek2=imagecolorallocate($thumb,200,200,200);
-
+			imagecopyresampled($thumb, $source, 0, 0, 0, 0, $width, $height, $width, $height);				
+		
+			$kek=imagecolorallocatealpha($thumb,56,34,21,50); 
+			imagefilledrectangle  ($thumb, 305, 0, $width-1, $height-1, $kek);	
+			
+			$kek2=imagecolorallocate($thumb,200,200,200); 
+			
 			$w=$width;
 			$h=250;
-
+			
 			imageline($thumb, 0, 0, $w-1, 0, $kek2);
 			imageline($thumb, $w-1, 0, $w-1, $h-1, $kek2);
 			imageline($thumb, $w-1, $h-1, 0, $h-1, $kek2);
 			imageline($thumb, 0, $h-1, 0, 0, $kek2);
-
+		
 			$img_final = "tr-".basename($img);
 			imagejpeg($thumb,DIR_FILEIMG_UNIQUE.$img_final,80);
-
-
-
+			
+			
+			
 			return DIR_HTTPIMG_UNIQUE.$img_final;
-
+		
 		}
 		else{
 			return "";
 		}
-
+	
 	}
-
+		
 	function _get_dimension_for_in_place(&$src_x, &$src_y, &$new_xrata, &$new_yrata, $width, $height, $xrata, $yrata){
 		/*
 		 * Dimension avec rognage homotéthique
-		 */
+		 */	
 		//cas 1 : w = 200 ; h = 140
 		//cas 2 : w = 200 ; h = 450
 		//cas 3 : 400x319
@@ -448,7 +448,7 @@ class TPhoto extends TObjetStd {
 			if($width>$height){ // cas 1
 				$new_xrata = $height * 4 / 3; //w=187 | w=425?!
 				$new_yrata= $height; //h=140
-
+					
 			}
 			else { //cas 2
 				$new_yrata = $width * 3 / 4; // h=150
@@ -473,7 +473,7 @@ class TPhoto extends TObjetStd {
 			$src_x = abs($width - $new_xrata) / 2; //src_x = 200-187 /2 = 8
 
 			$src_y = abs($height - $new_yrata) / 2; //src_y = 450-150 / 2 = 150
-
+			
 		}
 	}
 
@@ -487,7 +487,7 @@ class TPhoto extends TObjetStd {
 
 	function _get_newdimension($xrata, $yrata, $width, $height, &$newwidth, &$newheight){
 		/**
-		 * Calcul les nouvelles dimension de l'image é partir de bornes maximum
+		 * Calcul les nouvelles dimension de l'image é partir de bornes maximum 
 		 * 15/11/2006 16:39:22 Alexis ALGOUD
 		 **/
 		if($width>$xrata && $width>$height){
@@ -515,3 +515,5 @@ class TPhoto extends TObjetStd {
 		}
 	}
 }
+
+

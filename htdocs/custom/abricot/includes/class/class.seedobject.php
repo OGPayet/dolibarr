@@ -25,8 +25,7 @@
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 
-//if ((float) DOL_VERSION < 7.0)
-if (false)
+if ((float) DOL_VERSION < 7.0)
 {
 	class SeedObjectDolibarr extends CommonObject
 	{
@@ -669,55 +668,30 @@ class SeedObject extends SeedObjectDolibarr
      */
 	public function fetch($id, $loadChild = true, $ref = null)
     {
-	$res = $this->fetchCommon($id, $ref);
-	if($res>0) {
-		if ($loadChild) $this->fetchChild();
-	}
+    	$res = $this->fetchCommon($id, $ref);
+    	if($res>0) {
+    		if ($loadChild) $this->fetchChild();
+    	}
 
         if(!empty($this->isextrafieldmanaged))
         {
             $this->fetch_optionals();
         }
 
-	return $res;
+    	return $res;
 	}
 
     /**
-     * @param int  $limit       Limit element returned
-     * @param bool $loadChild   used to load children from database
+     * @param int   $limit     Limit element returned
+     * @param bool  $loadChild used to load children from database
+     * @param array $TFilter
      * @return array
      */
-    public function fetchAll($limit = 0, $loadChild = true, $TFilter = array())
-    {
-        $TRes = array();
-
-        $sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.$this->table_element.' WHERE 1';
-        if (!empty($TFilter))
-        {
-            foreach ($TFilter as $field => $value)
-            {
-                $sql.= ' AND '.$field.' = '.$this->quote($value, $this->fields[$field]);
-            }
-        }
-        if ($limit) $sql.= ' LIMIT '.$limit;
-
-        $resql = $this->db->query($sql);
-        if ($resql)
-        {
-            while ($obj = $this->db->fetch_object($resql))
-            {
-                $o = new static($this->db);
-                $o->fetch($obj->rowid, $loadChild);
-
-                $TRes[] = $o;
-            }
-        }
-
-        return $TRes;
+    public function fetchAll($limit = 0, $loadChild = true, $TFilter = []) {
+        return $this->fetchByArray($limit, $TFilter, $loadChild, false);
     }
 
-
-	/**
+    /**
 	 *	Get object and children from database on custom field
 	 *
 	 *	@param      string		$key       		key of object to load
@@ -725,28 +699,54 @@ class SeedObject extends SeedObjectDolibarr
 	 * 	@param		bool		$loadChild		used to load children from database
 	 *	@return     int         				>0 if OK, <0 if KO, 0 if not found
 	 */
-	public function fetchBy($key, $field, $loadChild = true)
-	{
-
+    public function fetchBy($key, $field, $loadChild = true) {
 	    if(empty($this->fields[$field])) return false;
 
-	    $resql = $this->db->query("SELECT rowid FROM ".MAIN_DB_PREFIX.$this->table_element." WHERE ".$field."=".$this->quote($key, $this->fields[$field])." LIMIT 1 ");
-
-	    if(! $resql)
-	    {
-		    $this->error = $this->db->lasterror();
-		    $this->errors[] = $this->error;
-		    return -1;
-	    }
-
-        $objp = $this->db->fetch_object($resql);
-        if (!$objp) return 0;
-
-        $res = $this->fetch($objp->rowid);
-
-
-	    return $res;
+        return $this->fetchByArray(1, array($field => $key), $loadChild);
 	}
+
+    /**
+     * @param   int     $limit
+     * @param   array   $TFilter
+     * @param   bool    $loadChild
+     * @param   bool    $justFetchIfOnlyOneResult   This parameter affect the function return type only if the query return one result;
+     *                                              true : it will fetch $this and return an integer;
+     *                                              false : it will return an array with objects inside
+     * @return  int|array                           >0 if OK, <0 if KO, 0 if not found or array with all objects inside
+     */
+    public function fetchByArray($limit = 0, $TFilter = array(), $loadChild = true, $justFetchIfOnlyOneResult = true) {
+        $sql = 'SELECT rowid';
+        $sql.= ' FROM '.MAIN_DB_PREFIX.$this->table_element;
+        $sql.= ' WHERE 1 = 1';
+
+        foreach($TFilter as $key => $field) {
+            $sql.= ' AND '.$this->db->escape($key).' = '.$this->quote($field, $this->fields[$key]);
+        }
+        if(! empty($limit)) $sql.= ' LIMIT '.$this->db->escape($limit);
+
+        $resql = $this->db->query($sql);
+        if(! $resql) {
+            $this->error = $this->db->lasterror();
+		    $this->errors[] = $this->error;
+            return -1;
+        }
+
+        $nbRow = $this->db->num_rows($resql);
+
+        $TRes = array();
+        while($obj = $this->db->fetch_object($resql)) {
+            if($justFetchIfOnlyOneResult) {
+                return $this->fetch($obj->rowid, $loadChild);
+            }
+
+            $o = new static($this->db);
+            $o->fetch($obj->rowid, $loadChild);
+            $TRes[] = $o;
+        }
+
+        if($justFetchIfOnlyOneResult) return 0;
+        return $TRes;
+    }
 
     /**
      * Function to instantiate a new child
@@ -1025,10 +1025,10 @@ class SeedObject extends SeedObjectDolibarr
      */
     public function setDate($field, $date)
     {
-		if (empty($date))
-		{
-			$this->{$field} = null;
-		}
+	  	if (empty($date))
+	  	{
+	  		$this->{$field} = null;
+	  	}
 		else
         {
 			require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
@@ -1102,23 +1102,23 @@ class SeedObject extends SeedObjectDolibarr
 	    $keys=array();
 	    $values = array();
 	    foreach ($fieldvalues as $k => $v) {
-		$keys[] = $k;
-		$values[] = $this->quote($v, $this->fields[$k]);
+	    	$keys[] = $k;
+	    	$values[] = $this->quote($v, $this->fields[$k]);
 	    }
 
 	    $this->db->begin();
 
 	    if (! $error)
 	    {
-	    $sql = 'INSERT INTO '.MAIN_DB_PREFIX.$this->table_element;
-		$sql.= ' ('.implode( ", ", $keys ).')';
-		$sql.= ' VALUES ('.implode( ", ", $values ).')';
+    	    $sql = 'INSERT INTO '.MAIN_DB_PREFIX.$this->table_element;
+    		$sql.= ' ('.implode( ", ", $keys ).')';
+    		$sql.= ' VALUES ('.implode( ", ", $values ).')';
 
 			$res = $this->db->query( $sql );
-	    if ($res===false) {
-	        $error++;
-	        $this->errors[] = $this->db->lasterror();
-	    }
+    	    if ($res===false) {
+    	        $error++;
+    	        $this->errors[] = $this->db->lasterror();
+    	    }
 	    }
 
         if (! $error) {
@@ -1175,8 +1175,8 @@ class SeedObject extends SeedObjectDolibarr
 				return 0;
 			}
 
-		if ($obj = $this->db->fetch_object($res))
-		{
+    		if ($obj = $this->db->fetch_object($res))
+    		{
                 $this->id = $id;
                 $this->set_vars_by_db($obj);
 
@@ -1184,13 +1184,13 @@ class SeedObject extends SeedObjectDolibarr
                 $this->tms = $this->db->idate($obj->tms);
 
                 return $this->id;
-		}
-		else
-		{
-			$this->error = $this->db->lasterror();
-			$this->errors[] = $this->error;
-			return -1;
-		}
+    		}
+    		else
+    		{
+    			$this->error = $this->db->lasterror();
+    			$this->errors[] = $this->error;
+    			return -1;
+    		}
 		}
 		else
 		{
@@ -1239,12 +1239,12 @@ class SeedObject extends SeedObjectDolibarr
 		$this->db->begin();
 		if (! $error)
 		{
-		$res = $this->db->query($sql);
-		if ($res===false)
-		{
-		    $error++;
-	        $this->errors[] = $this->db->lasterror();
-		}
+    		$res = $this->db->query($sql);
+    		if ($res===false)
+    		{
+    		    $error++;
+    	        $this->errors[] = $this->db->lasterror();
+    		}
 		}
 
 		if (! $error && ! $notrigger) {
@@ -1293,16 +1293,16 @@ class SeedObject extends SeedObjectDolibarr
 
 	    if (! $error)
 	    {
-		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.$this->table_element.' WHERE rowid='.$this->id;
+    		$sql = 'DELETE FROM '.MAIN_DB_PREFIX.$this->table_element.' WHERE rowid='.$this->id;
 
-		$res = $this->db->query($sql);
-		if($res===false) {
-		    $error++;
-		    $this->errors[] = $this->db->lasterror();
-		}
+    		$res = $this->db->query($sql);
+    		if($res===false) {
+    		    $error++;
+    		    $this->errors[] = $this->db->lasterror();
+    		}
 	    }
 
-	// Commit or rollback
+    	// Commit or rollback
 		if ($error) {
 		    $this->db->rollback();
 		    return -1;
@@ -1388,12 +1388,12 @@ class SeedObject extends SeedObjectDolibarr
 			$charset = $conf->db->character_set;
 
 			$sql = "CREATE TABLE " . MAIN_DB_PREFIX . $this->table_element . " (
-				rowid integer AUTO_INCREMENT PRIMARY KEY
-				,date_creation datetime DEFAULT NULL
-				,tms timestamp
-				,KEY date_creation (date_creation)
-				,KEY tms (tms)
-				) ENGINE=InnoDB DEFAULT CHARSET=" . $charset;
+ 				rowid integer AUTO_INCREMENT PRIMARY KEY
+ 				,date_creation datetime DEFAULT NULL
+ 				,tms timestamp
+ 				,KEY date_creation (date_creation)
+ 				,KEY tms (tms)
+ 				) ENGINE=InnoDB DEFAULT CHARSET=" . $charset;
 
             if (!empty($conf->db->dolibarr_main_db_collation)) $sql .= ' COLLATE='.$conf->db->dolibarr_main_db_collation;
 
@@ -1445,13 +1445,13 @@ class SeedObject extends SeedObjectDolibarr
                 $charset = $conf->db->character_set;
 
                 $sql = "CREATE TABLE " . MAIN_DB_PREFIX . $this->table_element . "_extrafields (
-				rowid integer AUTO_INCREMENT PRIMARY KEY
-				,tms timestamp
-				,fk_object integer
-				,import_key varchar(14)
-				,KEY tms (tms)
-				, UNIQUE fk_object (fk_object)
-				) ENGINE=InnoDB DEFAULT CHARSET=" . $charset;
+ 				rowid integer AUTO_INCREMENT PRIMARY KEY
+ 				,tms timestamp
+ 				,fk_object integer
+ 				,import_key varchar(14)
+ 				,KEY tms (tms)
+ 				, UNIQUE fk_object (fk_object)
+ 				) ENGINE=InnoDB DEFAULT CHARSET=" . $charset;
 
                 if (!empty($conf->db->dolibarr_main_db_collation)) $sql .= ' COLLATE='.$conf->db->dolibarr_main_db_collation;
 

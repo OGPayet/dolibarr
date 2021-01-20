@@ -793,7 +793,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
      * @param   string	$value          Value to show
      * @return	string					Formatted value
      */
-    function showOutputField($fieldName, $value = null)
+    function showOutputFieldAD($fieldName, $value = null)
     {
         global $langs;
 
@@ -931,7 +931,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
 	 * @param  int     $objectid       Current object id
 	 * @return string
 	 */
-	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+	function showInputFieldAD($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0, $options_only = 0)
     {
         if ($fieldName == 'next_status') {
             dol_include_once('/requestmanager/class/requestmanager.class.php');

@@ -31,7 +31,7 @@ class ActionsMyfield // extends CommonObject
 	 *  @return	   void
 	 */
 
-// sur les fiches en création (sans tabs) on appel quand même le bon trigger
+// sur les fiches en crï¿½ation (sans tabs) on appel quand mï¿½me le bon trigger
 function formObjectOptions($parameters, $object, $action)
 {
 //	global $conf, $langs, $db, $user;
@@ -57,7 +57,7 @@ function doActions($parameters, $object, $action)
 			$label = $currfield['label'];
 			$keyvalue= array_search ($label, array_column($arrayfields, 'label'));
 			$arraykeys=array_keys($arrayfields);
-			// si autorisé en mode lecture
+			// si autorisï¿½ en mode lecture
 			if ($user_specials_rights['read']) {
 				if ($keyvalue !== false) {
 					if ($currfield['active'] == 2) {
@@ -75,14 +75,14 @@ function doActions($parameters, $object, $action)
 	}
 }
 
-// sur toute les fiches / on gère la mise à jour des nom
+// sur toute les fiches / on gï¿½re la mise ï¿½ jour des nom
 function printCommonFooter($parameters, $object, $action)
 {
 	global  $langs, $db, $user, $conf;
 	// check if db is not close -> bad writing of page
 	if ($db->connected) {
 
-		if ($conf->global->MYFIELD_INPUT_BACKGROUND) {
+		if (property_exists($conf->global, 'MYFIELD_INPUT_BACKGROUND') && $conf->global->MYFIELD_INPUT_BACKGROUND) {
 			print "<script>\n";
 			print "jQuery(document).ready(function () {\n";
 
@@ -93,7 +93,7 @@ function printCommonFooter($parameters, $object, $action)
 			print "</script>\n";
 		}
 
-		if ($conf->global->MYFIELD_ENABLE_SMALL_BUTTON =="1")
+		if (property_exists($conf->global, 'MYFIELD_ENABLE_SMALL_BUTTON') && $conf->global->MYFIELD_ENABLE_SMALL_BUTTON =="1")
 			print '<script src="'.dol_buildpath('/myfield/js/jquery.chgbutton.js', 1).'"></script>';
 
 		dol_include_once('/myfield/class/myfield.class.php');
@@ -110,14 +110,14 @@ function printCommonFooter($parameters, $object, $action)
 			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user, $currfield['querydisplay']);
 	//		print "/// user read=".$user_specials_rights['read']."\n";
 	//		print "/// user write=".$user_specials_rights['write']."\n";
-			// on mémorise la ligne du tableau et les colonnes de celui-ci
+			// on mï¿½morise la ligne du tableau et les colonnes de celui-ci
 			$label = $currfield['label'];
 			$namevalue=getNameValue($label);
 			print $namevalue.'=$(\'td:contains("'.str_replace("'", "\'", $label).'")\').filter(function () {return ($(this).text() == "'.$label.'")}).parent();'."\n";
 
 			if ($user_specials_rights['read']) {
 			//var_dump($currfield);
-				// Déplacement
+				// Dï¿½placement
 				if ($currfield['movefield'] < 0) {
 					for ($i=0; $i < (-1 * $currfield['movefield']); $i++)
 						print $namevalue.".next().after(".$namevalue.");"."\n";
@@ -168,7 +168,7 @@ function printCommonFooter($parameters, $object, $action)
 					// if click on the empty area : they reappear
 					$bvisibility=true;
 				}
-				if ($currfield['color']) {	// si la première colonne contient le libellé
+				if ($currfield['color']) {	// si la premiï¿½re colonne contient le libellï¿½
 					if (strrpos($parameters['context'], "thirdpartycard") == 0)
 						print $namevalue.'.attr("bgcolor", "'.$currfield['color'].'");'."\n";
 					else {
@@ -191,13 +191,13 @@ function printCommonFooter($parameters, $object, $action)
 				}
 				if ($currfield['sizefield'] > 0) // change size of input field
 					print $namevalue.'.find("input").attr("size", "'.$currfield['sizefield'].'");'."\n";
-				// on désactive la zone de saisie si on y a pas l'accès
+				// on dï¿½sactive la zone de saisie si on y a pas l'accï¿½s
 				if ($user_specials_rights['write'] == 0) {
 					print "// not read"."\n";
 					print $namevalue.'.find("input").attr("disabled", "disabled");'."\n";
 					print $namevalue.'.find("select").attr("disabled", "disabled");'."\n";
 				} else {
-					// si la zone n'est pas désactivé et quelle est obligatoire
+					// si la zone n'est pas dï¿½sactivï¿½ et quelle est obligatoire
 					if ($currfield['compulsory'] == 1) {
 						print $namevalue.'.find("input").attr("required", "required");'."\n";
 						print $namevalue.'.find("select").attr("required", "required");'."\n";
@@ -256,7 +256,7 @@ function printCommonFooter($parameters, $object, $action)
 			print $namevalue.'=$(\'.mainmenuaspan:contains("'.str_replace("'", "\'", $label).'")\');'."\n";
 			print $namevalue.'='.$namevalue.'.filter(function () {return ($(this).text()== "'.str_replace("'", "\'", $label).'")});';
 
-			// Déplacement
+			// Dï¿½placement
 			if ($currfield['movefield'] < 0) {
 				for ($i=0; $i < (-1 * $currfield['movefield']); $i++)
 					print $namevalue.".parent().parent().parent().prev().before(".$namevalue.".parent().parent().parent());"."\n";
@@ -288,7 +288,7 @@ function printCommonFooter($parameters, $object, $action)
 			print $namevalue.'=$(\'a.vmenu:contains("'.str_replace("'", "\'", $label).'")\');'."\n";
 			print $namevalue.'='.$namevalue.'.filter(function () {return ($(this).text()== "'.str_replace("'", "\'", $label).'")});';
 
-			// Déplacement
+			// Dï¿½placement
 			if ($currfield['movefield'] < 0) {
 				for ($i=0; $i < (-1 * $currfield['movefield']); $i++)
 					print $namevalue.".parent().parent().next().after(".$namevalue.".parent().parent());"."\n";
@@ -315,13 +315,13 @@ function printCommonFooter($parameters, $object, $action)
 		foreach ($listfield  as $currfield) {
 			$user_specials_rights = $myField->getUserSpecialsRights($currfield['rowid'], $user, $currfield['querydisplay']);
 			$label = $currfield['label'];
-			// pour les sous menu ambigue, on ajoute le menu principal avec # en séparation
+			// pour les sous menu ambigue, on ajoute le menu principal avec # en sï¿½paration
 			if (strpos($label, "#") > 0) {
 				$tblmenu=explode("#", $label);
 				$namevalueparent=getNameValue($tblmenu[0]);
 				$label=str_replace("'", "\'", $tblmenu[1]);
 				$namevalue=getNameValue($label);
-				// on récupère le parent puis le menu en dessous
+				// on rï¿½cupï¿½re le parent puis le menu en dessous
 				print $namevalueparent.'=$(\'a.vmenu:contains("'.str_replace("'", "\'", $tblmenu[0]).'")\').parent().parent();'."\n";
 				print $namevalue.'='.$namevalueparent.'.find(\'a.vsmenu:contains("'.$label.'")\');'."\n";
 			} else {
@@ -330,7 +330,7 @@ function printCommonFooter($parameters, $object, $action)
 			}
 			print $namevalue.'='.$namevalue.'.filter(function () {return ($(this).text() == "'.$label.'")});';
 
-			// Déplacement
+			// Dï¿½placement
 			if ($currfield['movefield'] < 0) {
 				for ($i=0; $i < (-1 * $currfield['movefield']); $i++)
 					print $namevalue.".parent().next().after(".$namevalue.".parent());"."\n";
@@ -364,7 +364,7 @@ function printCommonFooter($parameters, $object, $action)
 	return -1;
 }
 
-// pour gérer la désactivation des onglets et des menus
+// pour gï¿½rer la dï¿½sactivation des onglets et des menus
 function printTabsHead($parameters, $object, $action)
 {
 	global $user, $db, $conf;
@@ -378,7 +378,7 @@ function printTabsHead($parameters, $object, $action)
 	print "<script>"."\n";
 	print 'jQuery(document).ready(function () {'."\n";
 
-	// le context de l'onglet correspond à au nom de l'onglet
+	// le context de l'onglet correspond ï¿½ au nom de l'onglet
 	$listfield = $myField->get_all_myfield($parameters['currentcontext'], 1);
 
 	foreach ($listfield  as $currfield) {
@@ -388,7 +388,7 @@ function printTabsHead($parameters, $object, $action)
 
 		print $namevalue.'=$(\'a.tab:contains("'.str_replace("'", "\'", $label).'")\');'."\n";
 
-		// Déplacement
+		// Dï¿½placement
 		if ($currfield['movefield'] < 0) {
 			for ($i=0; $i < (-1 * $currfield['movefield']);$i++)
 				print $namevalue.".parent().prev().before(".$namevalue.".parent());"."\n";
@@ -416,7 +416,7 @@ function printTabsHead($parameters, $object, $action)
 	print "});";
 	print "</script>";
 
-	// todo verif la présence du champs à show/hide sur la page (sinon on affiche pas le champs)
+	// todo verif la prï¿½sence du champs ï¿½ show/hide sur la page (sinon on affiche pas le champs)
 	$listfield = $myField->get_all_myfield($parameters['context'], 0);
 
 	$bvisibility=false;
@@ -446,7 +446,7 @@ function printTabsHead($parameters, $object, $action)
 // fonctions de refactoring
 function getNameValue($label)
 {
-	// on vire tous les caractères pouvant géner
+	// on vire tous les caractï¿½res pouvant gï¿½ner
 	$namevalue=str_replace(" ", "_", $label);
 	return "mf".preg_replace('#[^A-Za-z0-9]+#', '_', $namevalue);
 }

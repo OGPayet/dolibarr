@@ -61,7 +61,7 @@ class tbsByPage {
 			$Src->RecSaving = true;
 
 			// Read records
-			$Src->RecBuffer = array();
+		 	$Src->RecBuffer = array();
 			$RecNum = 0;
 			$Modulo = 0;
 			$ModuloStop = $this->PageSize + 1;
@@ -88,7 +88,7 @@ class tbsByPage {
 				}
 				$Src->RecSaving = true;
 			}
-
+			
 			$Src->DataClose(); // Close the real recordset source
 
 		}
@@ -105,7 +105,7 @@ class tbsByPage {
 	function AfterMergeBlock(&$Buffer,&$Src) {
 		if (!isset($Src->ByPage)) return;
 		if ($this->RecKnown==-1) $Src->RecNum = $this->RecNbr;
-	}
+	}	
 
 }
 

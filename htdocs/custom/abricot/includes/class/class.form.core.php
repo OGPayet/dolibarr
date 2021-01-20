@@ -171,11 +171,11 @@ function hidden_js($array){
 
 	}
 
-	$field = '<input type="hidden" name="'.$pName.'" value="'.$pVal.'" id="'.$pId.'"  '.$plus.' class="'.$class.'">';
+  	$field = '<input type="hidden" name="'.$pName.'" value="'.$pVal.'" id="'.$pId.'"  '.$plus.' class="'.$class.'">';
 
 
 
-	return $field;
+  	return $field;
 }
 
 
@@ -550,9 +550,9 @@ function texte($pLib,$pName,$pVal,$pTaille,$pTailleMax=0,$plus='',$class="text",
   if ($pTailleMax==0)
      $pTailleMax=$pTaille;
   if ($this->type_aff!='view'){
-	$field='<input class="'.$class.'" type="text" id="'.$pName.'" name="'
-	.$pName.'" value="'.strtr($pVal,$this->trans).'" size="'.$pTaille.'" maxlength="'
-	.$pTailleMax.'" '.$plus.'>'."\n";
+  	$field='<input class="'.$class.'" type="text" id="'.$pName.'" name="'
+  	.$pName.'" value="'.strtr($pVal,$this->trans).'" size="'.$pTaille.'" maxlength="'
+  	.$pTailleMax.'" '.$plus.'>'."\n";
 
  }
   else
@@ -581,11 +581,11 @@ function number($pLib,$pName,$pVal,$pTaille,$step=1,$min=null,$max=null,$pTaille
   if ($pTailleMax==0)
      $pTailleMax=$pTaille;
   if ($this->type_aff!='view'){
-	$field='<input class="'.$class.'" step="'.$step.'" type="number" id="'.$pName.'" name="'
-	.$pName.'" value="'.strtr($pVal,$this->trans).'" size="'.$pTaille.'" maxlength="'.$pTailleMax.'" '
-	.(!is_null($min) ? ' min="'.$min.'" ' :'')
-	.(!is_null($max) ? ' max="'.$max.'" ' :'')
-	.$plus.'>'."\n";
+  	$field='<input class="'.$class.'" step="'.$step.'" type="number" id="'.$pName.'" name="'
+  	.$pName.'" value="'.strtr($pVal,$this->trans).'" size="'.$pTaille.'" maxlength="'.$pTailleMax.'" '
+  	.(!is_null($min) ? ' min="'.$min.'" ' :'')
+  	.(!is_null($max) ? ' max="'.$max.'" ' :'')
+  	.$plus.'>'."\n";
 
  }
   else
@@ -632,10 +632,10 @@ global $langs,$db;
 		$time = $pVal;
 	}
 	else if(strpos($pVal,'-')!==false ) {
-			$time = strtotime($pVal);
+	  		$time = strtotime($pVal);
 	}
 	else {
-			$time = Tools::get_time($pVal);
+	  		$time = Tools::get_time($pVal);
 	}
 
 	if ($this->type_aff!='view'){
@@ -656,16 +656,16 @@ function calendrier($pLib,$pName,$pVal,$pTaille=12,$pTailleMax=10,$plus='',$clas
 
 
   if(empty($pVal)) {
-	$dateValue='';
+  	$dateValue='';
   }
   else if((is_numeric($pVal) && $pVal<=0) || substr($pVal,0,10)=='0000-00-00') {
-	$dateValue='';
+  	$dateValue='';
   }
   elseif(strpos($pVal,'-')!==false || strpos($pVal,'/')!==false ) {
-		$dateValue = $pVal;
+  		$dateValue = $pVal;
   }
   else {
-		$dateValue =  date($format,$pVal);
+  		$dateValue =  date($format,$pVal);
   }
 
 
@@ -681,18 +681,18 @@ function calendrier($pLib,$pName,$pVal,$pTaille=12,$pTailleMax=10,$plus='',$clas
 
     $field .= '<script type="text/javascript">
                $(function() {
-			        $( "#'.$id.'" ).datepicker({
-					 showAnim: ""
-					 ,constrainInput: true
-					 ,changeYear: true
-					 ,autoSize: false
-					 ,dateFormat: "dd/mm/yy"
+  			        $( "#'.$id.'" ).datepicker({
+  			        	 showAnim: ""
+  			        	 ,constrainInput: true
+  			        	 ,changeYear: true
+  			        	 ,autoSize: false
+  			        	 ,dateFormat: "dd/mm/yy"
 					});
-			    });
+  			    });
                </script>';
   }
   else {
-		$field = $dateValue;
+  		$field = $dateValue;
   }
 
 
@@ -711,13 +711,13 @@ function timepicker($pLib,$pName,$pVal,$pTaille=12,$pTailleMax=10,$plus='',$clas
 
 
   if(empty($pVal)) {
-	$dateValue='';
+  	$dateValue='';
   }
   elseif(strpos($pVal,':')!==false  ) {
-		$dateValue = $pVal;
+  		$dateValue = $pVal;
   }
   else {
-		$dateValue =  date($format,$pVal);
+  		$dateValue =  date($format,$pVal);
   }
 
 
@@ -742,17 +742,17 @@ function timepicker($pLib,$pName,$pVal,$pTaille=12,$pTailleMax=10,$plus='',$clas
 
             $(document).ready(function() {
 		        $( "#'.$id.'" ).timepicker({
-				 timeFormat: "'.$format.'"
-				 ,setTime: '.strtotime(date('Y-m-d').' '.$dateValue).'
-				 ,step: 15
-				 ,minTime: "'.$minTime.'"
-				 ,maxTime: "'.$maxTime.'"
+		        	 timeFormat: "'.$format.'"
+		        	 ,setTime: '.strtotime(date('Y-m-d').' '.$dateValue).'
+		        	 ,step: 15
+		        	 ,minTime: "'.$minTime.'"
+		        	 ,maxTime: "'.$maxTime.'"
 				});
 		    });
 	</script>';
   }
   else {
-		$field = $dateValue;
+  		$field = $dateValue;
   }
 
 
@@ -1135,10 +1135,10 @@ function zonetexte($pLib,$pName,$pVal,$pTaille,$pHauteur=5,$plus='',$class='text
   }
 
   if ($this->type_aff!='view'){
-	$field = "<textarea class='$class' name=\"$pName\" id=\"$pId\" cols=\"$pTaille\" rows=\"$pHauteur\" $plus>$pVal</textarea>\n";
+  	$field = "<textarea class='$class' name=\"$pName\" id=\"$pId\" cols=\"$pTaille\" rows=\"$pHauteur\" $plus>$pVal</textarea>\n";
   }
   else{
-	$field = $pVal;
+  	$field = $pVal;
   }
   if($nl2br && $this->type_aff=='view') $field = nl2br($field);
 //    $field = $pVal;
@@ -1203,11 +1203,11 @@ global $app;
       $field = "<INPUT class='text_readonly' TYPE='TEXT' READONLY TABINDEX=-1 NAME='$pName' VALUE=\"$pVal\" SIZE='$pTaille' MAXLENGTH='$pTailleMax' $plus>\n ";
   }
   else if ($pVal=="") {
-		$field = "<b>Aucun fichier li�</b>";
+  		$field = "<b>Aucun fichier li�</b>";
 
   }
   else {
-	$field = "<a class=lienquit href=\"javascript:showPopup('../dlg/get_file.php','','$pFile',400,400);\">".$pVal."</a>";
+    	$field = "<a class=lienquit href=\"javascript:showPopup('../dlg/get_file.php','','$pFile',400,400);\">".$pVal."</a>";
   }
 //      $field = $pVal;
   if ($lib != '')
@@ -1450,9 +1450,9 @@ function combo($pLib,$pName,$pListe,$pDefault,$pTaille=1,$onChange='',$plus='',$
 	$field.="<!-- options -->";
     if ($showEmpty)
     {
-	//echo 'test';
-	$textforempty=' ';
-	if (! empty($conf->use_javascript_ajax)) $textforempty='&nbsp;';	// If we use ajaxcombo, we need &nbsp; here to avoid to have an empty element that is too small.
+    	//echo 'test';
+    	$textforempty=' ';
+    	if (! empty($conf->use_javascript_ajax)) $textforempty='&nbsp;';	// If we use ajaxcombo, we need &nbsp; here to avoid to have an empty element that is too small.
         $valueofempty=-1;
 
 		if($showEmpty<0){
@@ -1462,15 +1462,15 @@ function combo($pLib,$pName,$pListe,$pDefault,$pTaille=1,$onChange='',$plus='',$
         $field.='<option value="'.($show_empty < 0 ? $show_empty : -1).'"'.( $pDefault==$valueofempty ?' selected':'').'>'.$textforempty.'</option>'."\n";     // id is -2 because -1 is already "do not contact"
     }
 
-	$field.=$this->_combo_option($pListe, $pDefault);
+  	$field.=$this->_combo_option($pListe, $pDefault);
 
   $field .="</SELECT>";
 
   if ($this->type_aff =='view'){
     if (isset($pListe["$pDefault"])){
-	if(is_array($pListe["$pDefault"])) {
-			$val = $pListe["$pDefault"]['label'];
-		}
+    	if(is_array($pListe["$pDefault"])) {
+  			$val = $pListe["$pDefault"]['label'];
+  		}
 		else {
 			$val=$pListe["$pDefault"];
 		}
@@ -1530,8 +1530,8 @@ private function _combo_option($Tab, $pDefault) {
 		}
 		else {
 			$moreAttributs = '';
-			if(is_array($option)) {
-				$libelle = $option['label'];
+	  		if(is_array($option)) {
+	  			$libelle = $option['label'];
 
 				foreach($option as $k=>$v) {
 
@@ -1541,7 +1541,7 @@ private function _combo_option($Tab, $pDefault) {
 
 				}
 
-			}
+	  		}
 			else {
 				$libelle = $option;
 			}
@@ -1551,10 +1551,10 @@ private function _combo_option($Tab, $pDefault) {
 			(is_array($pDefault) && !in_array($val,$pDefault))
 			||  !is_array($pDefault) && (($val!=$pDefault && !$this->strict_string_compare) || ((string)$val!==(string)$pDefault && $this->strict_string_compare))
 			){
-			   $seleted=false;
+		  	   $seleted=false;
 			}
-			else{
-				$seleted=true;
+		  	else{
+		  	  	$seleted=true;
 			}
 
 			 $field .= '<option value="'.$val.'" '.$moreAttributs.($seleted ? 'selected="selected"' : '').'>'.$libelle."</option>\n";
@@ -1625,7 +1625,7 @@ function comboOptGroup($pLib,$pName,$pListe,$pDefault,$pTaille=1,$onChange='',$p
       $field.=" onChange=\"$onChange\"";
   }
   if($plus!=''){
-		$field.=" ".$plus;
+  		$field.=" ".$plus;
   }
 
   $field.=">\n";
@@ -1647,7 +1647,7 @@ function comboOptGroup($pLib,$pName,$pListe,$pDefault,$pTaille=1,$onChange='',$p
         $field .= "<OPTION VALUE=\"$val\">$libelle</OPTION>\n";
       else
         $field .= "<OPTION VALUE=\"$val\" SELECTED>$libelle</OPTION>\n";
-	}
+  	}
   }
   if($label_group!==false) $field .= "</OPTGROUP>\n";
   $field .="</SELECT>";
@@ -1681,7 +1681,7 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
   if($enLigne) $field.="<TR>\n";
   while (list ($val, $libelle) = each ($pListe))
   {
-	if(!$enLigne) $field.="<TR>\n";
+  	if(!$enLigne) $field.="<TR>\n";
     $field .= "<TD>$libelle</TD>";
     if ($val == $pDefault)
        $checked = "CHECKED";
@@ -1689,7 +1689,7 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
        $checked = " ";
     $field .= "<TD><INPUT TYPE='CHECKBOX' NAME='$pName' VALUE=\"$val\" "
                   . " $checked $plus> </TD>\n";
-	if(!$enLigne) $field.="\n</TR>\n";
+  	if(!$enLigne) $field.="\n</TR>\n";
   }
   if($enLigne) $field.="\n</TR>";
   $field .= "</TABLE>";
@@ -1753,7 +1753,7 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
 				else $field='<span class="no-check">'. (isset($check_visu['no']) ? $check_visu['no'] : 'Non') .'</span>';
 	  }
 	  else {
-			$field = "<INPUT TYPE='CHECKBOX' CLASS='$class' NAME='$pName' ID='$id' VALUE=\"$pVal\" $checkedVal $plus />\n";
+	  		$field = "<INPUT TYPE='CHECKBOX' CLASS='$class' NAME='$pName' ID='$id' VALUE=\"$pVal\" $checkedVal $plus />\n";
 	  }
 	  if($order=='case_after')  return $pLib." ".$field;
 	  else return $field.' '.$pLib;
@@ -1894,7 +1894,7 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
 	    $field ="<TABLE class='form' BORDER=0>\n";
 		if($enligne == true) $field.="<TR>\n";
 	    while (list ($val, $libelle) = each ($pListe)){
-		if($enligne == false) $field.="<TR>\n";
+	    	if($enligne == false) $field.="<TR>\n";
 	        $field .= "<TD>$libelle</TD>";
 	        if ($val == $pDefault){
 	            $checked = "CHECKED";
@@ -1906,7 +1906,7 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
 			if($enligne == false)$field.="\n</TR>\n";
 		}
 		if($enligne == true)$field.="\n</TR>";
-		$field .= "</TABLE>";
+  		$field .= "</TABLE>";
 	    if ($this->type_aff =='VIEW'){
 	      $field = $pListe[$pDefault];
 		}
@@ -2018,7 +2018,7 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
 						if($pVal=='')$pVal='Supprimer';
 						if($url!=''){
 							//la page se rafraichi sur elle meme, meme en popin car c'est l'action suivant qui fera le rafraichissement.
-							if((substr($url,0,4)=='http')||($url{0}=='?')){
+							if((substr($url,0,4)=='http')||($url[0]=='?')){
 								$url = "document.location.href='".$url."&mode=popin'";
 							}
 							else{
@@ -2043,7 +2043,7 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
 					case 'close':
 						if($pVal=='')$pVal='Fermer';
 						if($url!=''){
-							if((substr($url,0,4)=='http')||($url{0}=='?')){
+							if((substr($url,0,4)=='http')||($url[0]=='?')){
 								$url = "document.location.href='".$url."&mode=popin'";
 							}
 							else{
@@ -2151,7 +2151,7 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
 		$nb_split = (($nb_aff/2)<10)?round($nb_aff/2):10;
 
 		// Init var base
-		$i=$pMin;
+	   	$i=$pMin;
 		$pName_unique=$pName;
 		if($pDefault<$pMin || $pDefault>$pMax) $pDefault=null;
 		if(isset($pId))
@@ -2236,8 +2236,8 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
 				<!-- Insertion du css une seule fois -->
 				if (!$("link[href=\''.dol_buildpath('/abricot/includes/css/radio_js_number.css',1).'\']").length)
 				{
-				$(\'<link href="'.dol_buildpath('/abricot/includes/css/radio_js_number.css',1).'" rel="stylesheet">\').appendTo("head");
-			}
+	    			$(\'<link href="'.dol_buildpath('/abricot/includes/css/radio_js_number.css',1).'" rel="stylesheet">\').appendTo("head");
+	    		}
 			});
 		</script>';
 	    return $field;
@@ -2245,3 +2245,4 @@ function checkbox($pLib,$pName,$pListe,$pDefault, $plus="", $enLigne=true){
 
 
 }
+

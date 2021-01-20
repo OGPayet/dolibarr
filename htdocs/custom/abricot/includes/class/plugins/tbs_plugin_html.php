@@ -59,9 +59,9 @@ function f_Html_MergeItems(&$Txt,$ValueLst,$PrmLst,$PosBeg,$PosEnd) {
 		$ItemTag = 'input';
 		$ItemPrm = 'checked';
 	}
-
+	
 	if (is_array($ValueLst)) {
-		$ValNbr = count($ValueLst);
+		$ValNbr = count($ValueLst);		
 	} else {
 		$ValueLst = array($ValueLst);
 		$ValNbr = 1;
@@ -116,7 +116,7 @@ function f_Html_MergeItems(&$Txt,$ValueLst,$PrmLst,$PosBeg,$PosEnd) {
 				}
 
 			}
-
+			
 			if ($DelTbsTag) $ZoneSrc = substr_replace($ZoneSrc,'',$PosBegZ,$PosEndZ-$PosBegZ+1);
 
 			// Now, we going to scan all of the item tags
@@ -127,7 +127,7 @@ function f_Html_MergeItems(&$Txt,$ValueLst,$PrmLst,$PosBeg,$PosEnd) {
 
 				// we get the value of the item
 				$ItemValue = false;
-
+			
 				if ($IsList) {
 					// Look for the end of the item
 					$OptCPos = strpos($ZoneSrc,'<',$ItemLoc->PosEnd+1);
@@ -151,7 +151,7 @@ function f_Html_MergeItems(&$Txt,$ValueLst,$PrmLst,$PosBeg,$PosEnd) {
 					$Pos = $ItemLoc->PosEnd;
 				}
 
-				// Check the value and select the current item
+				// Check the value and select the current item 
 				if ($ItemValue!==false) {
 					$x = array_search($ItemValue,$ValueLst,false);
 					if ($x!==false) {

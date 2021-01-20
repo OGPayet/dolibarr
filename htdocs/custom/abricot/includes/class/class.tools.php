@@ -347,23 +347,23 @@ class Tools{
 
 			$f1=fopen($file,"r");
 			if($f1!=false){
-				while(!feof($f1)){
-					$ligne = trim(fgets($f1));
-					if($ligne!=""){
-						$TLigne =explode("\t", $ligne);
+			  	while(!feof($f1)){
+			  		$ligne = trim(fgets($f1));
+			  		if($ligne!=""){
+			  			$TLigne =explode("\t", $ligne);
 
-						@$key=$TLigne[0];
-						@$value=$TLigne[1];
+			  			@$key=$TLigne[0];
+			  			@$value=$TLigne[1];
 
-						$TSecteur=explode(",", $key);
-						$nb=count($TSecteur);
-						for($i=0;$i<$nb;$i++){
-							$sect = $TSecteur[$i];
-						$Tab[$sect]=$value;
+			  			$TSecteur=explode(",", $key);
+			  			$nb=count($TSecteur);
+			  			for($i=0;$i<$nb;$i++){
+				  			$sect = $TSecteur[$i];
+				          	$Tab[$sect]=$value;
 				        } // for
-					} // if
-				} // while
-				fclose($f1);
+			  		} // if
+			  	} // while
+		  		fclose($f1);
 			}
 
 			return $Tab;
