@@ -10,10 +10,6 @@ CKEDITOR.editorConfig = function( config )
 	// http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.config.html
 	config.enterMode = CKEDITOR.ENTER_BR;
 	config.resize_enabled = false;
-	config.language = 'fr';
-    config.scayt_ignoreWordsWithNumbers = true;
-	config.scayt_sLang = 'fr_FR';
-	config.scayt_autoStartup = true;
 	//config.resize_maxHeight = 3000;
 	//config.resize_maxWidth = 3000;
 	//config.height = '300px';
@@ -38,7 +34,7 @@ CKEDITOR.editorConfig = function( config )
 	[
 	    ['Templates','NewPage'],
 	    ['Save'],
-	    // ['Maximize','Preview'],
+	    ['Maximize','Preview'],
 	    ['PasteText','PasteFromWord','-','Print', 'SpellChecker', 'Scayt'],	// 'Cut','Copy','Paste','-', are useless, can be done with right click, even on smarpthone
 	    ['Undo','Redo','-','Find','Replace','-','SelectAll','RemoveFormat'],
 	    ['CreateDiv','ShowBlocks'],
@@ -57,7 +53,7 @@ CKEDITOR.editorConfig = function( config )
 	// Used for mailing fields
 	config.toolbar_dolibarr_mailings = 
 	[
-	 	// ['Maximize','Preview'],
+	 	['Maximize','Preview'],
 	 	['SpellChecker', 'Scayt'],
 	 	['Undo','Redo','-','Find','Replace'],
 	 	['CreateDiv','ShowBlocks'],
@@ -72,7 +68,7 @@ CKEDITOR.editorConfig = function( config )
 	// Used for notes fields
 	config.toolbar_dolibarr_notes =
 	[
-	 	// ['Maximize'],
+	 	['Maximize'],
 	 	['SpellChecker', 'Scayt'],		// 'Cut','Copy','Paste','-', are useless, can be done with right click, even on smarpthone
 	 	['Undo','Redo','-','Find','Replace'],
 	    ['Format','Font','FontSize'],
@@ -86,7 +82,7 @@ CKEDITOR.editorConfig = function( config )
 	// Used for details lines
 	config.toolbar_dolibarr_details =
 	[
-	 	// ['Maximize'],
+	 	['Maximize'],
 	 	['SpellChecker', 'Scayt'],		// 'Cut','Copy','Paste','-', are useless, can be done with right click, even on smarpthone
 	    ['Format','FontSize'],
 	    ['Bold','Italic','Underline','Strike','-','TextColor','RemoveFormat'],	// ,'Subscript','Superscript' useless
@@ -99,7 +95,7 @@ CKEDITOR.editorConfig = function( config )
 	// Used for mailing fields
 	config.toolbar_dolibarr_readonly =
 	[
-	 	// ['Maximize'],
+	 	['Maximize'],
 	 	['Find'],
 	 	['Source']
 	];	

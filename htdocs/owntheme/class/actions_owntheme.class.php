@@ -17,6 +17,7 @@ class ActionsOWNTHEME
 		    <script>
 		        $(window).on('load',function(){
 		            $('#ob_loadding').remove();
+		            sizes_calc();
 		        });
 		    </script>
 	    </div>
@@ -60,7 +61,7 @@ class ActionsOWNTHEME
 		}
 
 		// if ( !empty($conf->global->OWNTHEME_FIXED_MENU) )	{
-		//	echo "\n" . 'var fixed_menu = false;' ;
+			echo "\n" . 'var fixed_menu = true;' ;
 		// } else {
 		// 	echo "\n" . 'var fixed_menu = false;' ;
 		// }

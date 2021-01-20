@@ -103,7 +103,7 @@ class mybox extends ModeleBoxes
 		// Use configuration value for max lines count
 		$this->max = $max;
 
-		//include_once DOL_DOCUMENT_ROOT . "/owntheme/class/owntheme.class.php";
+
 
 		// Populate the head at runtime
 		$text = $langs->trans("Module OwnTheme", $max);
