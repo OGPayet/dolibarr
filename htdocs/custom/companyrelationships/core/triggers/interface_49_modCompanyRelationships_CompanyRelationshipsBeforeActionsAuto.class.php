@@ -63,7 +63,6 @@ class InterfaceCompanyRelationshipsBeforeActionsAuto extends DolibarrTriggers
 	 */
 	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
 	{
-        return 0;
         if (empty($conf->agenda->enabled)) return 0;     // Module not active, we do nothing
 
 		$key = 'MAIN_AGENDA_ACTIONAUTO_'.$action;

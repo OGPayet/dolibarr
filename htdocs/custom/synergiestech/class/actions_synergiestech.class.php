@@ -2818,32 +2818,43 @@ SCRIPT;
                         "name" => '',
                     );
                     break;
-				case 'requestmanager':
-				$parameters['whitelist_of_properties'] = array(
-                        "id" => '', "fk_parent"=>'',"ref"=>'',"ref_ext"=>'',"socid_origin"=>'',"socid"=>'',"socid_benefactor"=>'',"label"=>'',"description"=>'',"fk_type"=>'',"fk_category"=>'',"fk_source"=>'',"fk_urgency"=>'',"fk_impact"=>'',"fk_priority"=>'',"fk_reason_resolution"=>'',"requester_ids"=>'',"statut"=>'',"statut_type"=>'',"entity"=>'',"date_creation"=>'',"date_modification"=>'',"linkedObjectsIds"=>'',"thirdparty_origin"=>'',"thirdparty"=>'',"thirdparty_benefactor"=>'',"children_request_ids"=>'',"children_request_list"=>''
+                case 'requestmanager':
+                    $parameters['whitelist_of_properties'] = array(
+                        "id" => '', 'entity' => '', "fk_parent" => '', "ref" => '', "ref_ext" => '', "socid_origin" => '', "socid" => '', "socid_benefactor" => '', "socid_watcher" => '', "availability_for_thirdparty_principal" => '', "availability_for_thirdparty_benefactor" => '', "availability_for_thirdparty_watcher" => '', "label" => '', "description" => '', "fk_type" => '', "fk_category" => '', "fk_source" => '', "fk_urgency" => '', "fk_impact" => '', "fk_priority" => '', "fk_reason_resolution" => '', "requester_ids" => '', "statut" => '', "statut_type" => '', "entity" => '', "date_creation" => '', "date_modification" => '', "linkedObjectsIds" => '', "thirdparty_origin" => '', "thirdparty" => '', "thirdparty_benefactor" => '', "thirdparty_watcher" => '', "children_request_ids" => '', "children_request_list" => ''
                     );
-				break;
+                    break;
                 case 'societe':
                     $parameters['whitelist_of_properties_linked_object'] = array(
-                        "name" => '',"nom" => '', "name_alias" => '', "address" => '',"zip" => '', "town" => '',
+                        "name" => '', "nom" => '', "name_alias" => '', "address" => '', "zip" => '', "town" => '',
                         "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => ''
                     );
-					$parameters['whitelist_of_properties'] = array(
-            "name" => '', "nom" => '', "name_alias" => '', "address" => '', "zip" => '', "town" => '',
-            "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
-            "phone" => '', "fax" => '', "email" => '', "code_client" => '',
-            "code_fournisseur" => '',"ref" => '',
-            "id" => '', "linkedObjectsIds" => '',"thirdparty_principal_ids" => '',
-                        "thirdparty_benefactor_ids" => ''
-        );
-		break;
-		case 'propal':
-		if (DolibarrApiAccess::$user->societe_id > 0) {
-		$parameters['blacklist_of_properties'] = array(
-            "lines" => ''
-        );
-		}
-					
+                    $parameters['whitelist_of_properties'] = array(
+                        "name" => '', 'entity' => '', "nom" => '', "name_alias" => '', "address" => '', "zip" => '', "town" => '',
+                        "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
+                        "phone" => '', "fax" => '', "email" => '', "code_client" => '',
+                        "code_fournisseur" => '', "ref" => '',
+                        "id" => '', "linkedObjectsIds" => '', "thirdparty_principal_ids" => '',
+                        "thirdparty_benefactor_ids" => '', "thirdparty_watcher_ids" => ''
+                    );
+                    $parameters['blacklist_of_properties'] = array(
+                        "ref_ext" => ''
+                    );
+                    break;
+                case 'propal':
+                    if (DolibarrApiAccess::$user->societe_id > 0) {
+                        $parameters['blacklist_of_properties'] = array(
+                            "lines" => '',
+                            "array_options" => array("options_sitevalue" => '', "options_companyrelationships_availability_principal" => '', "options_companyrelationships_availability_benefactor" => '')
+                        );
+                        $parameters['whitelist_of_properties'] = array(
+                            "id" => '', 'entity' => '', "ref" => '', "ref_client" => '',
+                            "total_ht" => '', "total_tva" => '', "total_ttc" => '',
+                            "socid" => '', "fk_project" => '', "statut" => '', "statut_libelle" => '',
+                            "date_validation" => '', "date" => '', "fin_validite" => '', "date_livraison" => '', "shipping_method_id" => '',
+                            "availability_id" => '', "availability_code" => '', "availability" => '', "fk_address" => '', "mode_reglement_id" => '',
+                            "mode_reglement_code" => '', "mode_reglement" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => ''
+                        );
+                    }
                     break;
                 case 'propaldet':
                     if (DolibarrApiAccess::$user->societe_id > 0) {

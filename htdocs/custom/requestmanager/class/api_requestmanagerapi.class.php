@@ -472,21 +472,21 @@ class RequestManagerApi extends DolibarrApi {
     }
 
     /**
-	 *  Get lines of the given request
-	 *
+   	 *  Get lines of the given request
+   	 *
      * @url	GET {id}/lines
      *
      * @param   int     $id                 Id of the request
-	 *
-	 * @return  array                       List of request line
+   	 *
+   	 * @return  array                       List of request line
      *
      * @throws  401     RestException       Insufficient rights
      * @throws  403     RestException       Access unauthorized
      * @throws  404     RestException       Request not found
      * @throws  500     RestException       Error when retrieve request
      * @throws  500     RestException       Error when retrieve the request lines
-	 */
-	function getLines($id)
+   	 */
+   	function getLines($id)
     {
         if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
             throw new RestException(401, "Insufficient rights");
@@ -1040,7 +1040,7 @@ class RequestManagerApi extends DolibarrApi {
      * @param   int             $id                 ID of the request
      * @param   int             $message_id         ID of the request message (event) (=0 if not message)
      * @param	string	        $sortfield		    Sort criteria ('','fullname','relativename','name','date','size')
-	 * @param	string	        $sortorder		    Sort order ('asc' or 'desc')
+   	 * @param	string	        $sortorder		    Sort order ('asc' or 'desc')
      *
      * @return  array                               Files list of the request or request message
      *
@@ -2037,7 +2037,7 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
      */
-	function _cleanObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+   	function _cleanObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
     {
         if (!empty($object->element)) {
             $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties);
@@ -2077,7 +2077,7 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
      */
-	function _cleanSubObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+   	function _cleanSubObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
     {
         if (!empty($object->element)) {
             $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties, true);
@@ -2128,7 +2128,7 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @throws  500         RestException       Error while retrieve the custom whitelist of properties for the object type
      */
-	function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object=false)
+   	function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object=false)
     {
         global $hookmanager;
 

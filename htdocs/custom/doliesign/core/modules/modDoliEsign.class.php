@@ -85,16 +85,16 @@ class modDoliEsign extends DolibarrModules
 		// for specific path of parts (eg: /doliesign/core/modules/barcode)
 		// for specific css file (eg: /doliesign/css/doliesign.css.php)
 		$this->module_parts = array(
-						'triggers' => 1,                                 	// Set this to 1 if module has its own trigger directory (core/triggers)
+		                        	'triggers' => 1,                                 	// Set this to 1 if module has its own trigger directory (core/triggers)
 									'login' => 0,                                    	// Set this to 1 if module has its own login method directory (core/login)
 									'substitutions' => 1,                            	// Set this to 1 if module has its own substitution function file (core/substitutions)
 									'menus' => 0,                                    	// Set this to 1 if module has its own menus handler directory (core/menus)
 									'theme' => 0,                                    	// Set this to 1 if module has its own theme directory (theme)
-						'tpl' => 0,                                      	// Set this to 1 if module overwrite template dir (core/tpl)
+		                        	'tpl' => 0,                                      	// Set this to 1 if module overwrite template dir (core/tpl)
 									'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 									'models' => 1,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 									'css' => array('/doliesign/css/doliesign.css.php'),	// Set this to relative path of css file if module has its own css file
-									//'js' => array(''),          // Set this to relative path of js file if module must load a js on all pages
+	 								//'js' => array(''),          // Set this to relative path of js file if module must load a js on all pages
 									'hooks' => array('data'=>array('admin','emailtemplates','propalcard','propallist','interventioncard','interventionlist','ordercard','orderlist','contractcard','contractlist'), 'entity'=>'0') 	// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context 'all'
 		                        );
 
@@ -187,9 +187,9 @@ class modDoliEsign extends DolibarrModules
         // Boxes/Widgets
 		// Add here list of php file(s) stored in doliesign/core/boxes that contains class to show a widget.
         $this->boxes = array(
-		//0=>array('file'=>'doliesignwidget1.php@doliesign','note'=>'Widget provided by DoliEsign','enabledbydefaulton'=>'Home'),
-		//1=>array('file'=>'doliesignwidget2.php@doliesign','note'=>'Widget provided by DoliEsign'),
-		//2=>array('file'=>'doliesignwidget3.php@doliesign','note'=>'Widget provided by DoliEsign')
+        	//0=>array('file'=>'doliesignwidget1.php@doliesign','note'=>'Widget provided by DoliEsign','enabledbydefaulton'=>'Home'),
+        	//1=>array('file'=>'doliesignwidget2.php@doliesign','note'=>'Widget provided by DoliEsign'),
+        	//2=>array('file'=>'doliesignwidget3.php@doliesign','note'=>'Widget provided by DoliEsign')
         );
 
 
@@ -247,8 +247,8 @@ class modDoliEsign extends DolibarrModules
 									'url'=>'/doliesign/core/netlogic.php',
 									'langs'=>'other',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 									'position'=>1000+$r,
-									'enabled'=>'1',	//
-									'perms'=>'$user->rights->doliesign->read',			                // Use 'perms'=>'$user->rights->viralsync->level1->level2' if you want your menu with a permission rules
+									'enabled'=>'$conf->doliesign->enabled',	//
+									'perms'=>'$user->admin',			                // Use 'perms'=>'$user->rights->viralsync->level1->level2' if you want your menu with a permission rules
 									'target'=>'',
 									'user'=>0);                // 0=Menu for internal users, 1=external users, 2=both*/
 			}

@@ -36,7 +36,7 @@ WebServerVersion=Version du serveur web
 Extrafield=Attribut supplémentaire
 Extrafields=Attributs supplémentaires
 DefaultSerialMode=Mode de sérialisation suggéré par défaut
-## PERMISSIONS
+## PERMISSIONS 
 Permission160071=Voir les équipements
 Permission160072=Créer/modifier des équipements
 Permission160073=Supprimer des équipements
@@ -151,7 +151,7 @@ EquipementUnitaire=Equipement unique
 NoLotForThisEquipement=Pas de lot pour cet équipement
 NoUnitEquipementLeft=Pas assez d'équipement unitaire
 QtyEquipementNeed=Nb d'équipements à joindre
-ErrorQuantityMustLower=La quantité saisie pour le lot '%s' doit être inférieure à '%s'
+ErrorQuantityMustLower=La quantité saisie pour le lot '%s' doit être inférieure à '%s' 
 RelatedEquipement=Equipement associé
 EquipementAdded=Equipement(s) ajouté(s)
 ExtraFieldsEquip=Attributs supplémentaires (équipements)
@@ -362,5 +362,30 @@ ErrorEquipementAddProductComponent=Impossible d'ajouter ce composat à cet équi
 SuccessEquipementAddProduct=Ajout réalisé avec succès
 EquipementAddProductLine=Ajouter un composant à cet équipement
 
+#
+# Factory
+#
+EquipementLost             = Equipement perdu
+EquipementUsed             = Equipement utilisé
+EquipementWarehouseForLost = Entrepôt rebut
+
+#
+# Success
+#
+EquipementSuccessSave = Equipement enregistré avec succès
+
+#
+# Error
+#
+EquipementErrorAlreadyExistsForProduct  = Les numéros de séries "%s" existent déjà pour le produit "%s"
+EquipementErrorAlreadyExistsForSupplier = Le numéro de série %s existe déjà pour le fournisseur %s
+EquipementErrorNbAddEquipement          = Le nombre d'équipements renseignés ne correspond pas avec la quantité à créer
+EquipementErrorQtyToShip                = Le nombre d'équipements renseignés ne correspond pas avec la quantité à expédier
+EquipementErrorQtyToBuild               = Le nombre d'équipements renseignés ne correspond pas avec la quantité à fabriquer
+EquipementErrorQtyToUse                 = Le nombre d'équipements renseignés ne correspond pas avec la quantité à utiliser
+EquipementErrorQtyLost                  = Le nombre d'équipements renseignés ne correspond pas avec la quantité perdue
+EquipementErrorReferenceAlreadyUsed     = Equipement déjà utilisé
+EquipementErrorWarehouseLostNone        = Aucun entrepôt rebut n'a été sélectionné
+EquipementErrorStatusNotDefined         = Statut non défini dans le dictionnaire des etats d'équipements : %s
 
 LinkToEquipement=Lier à un équipement

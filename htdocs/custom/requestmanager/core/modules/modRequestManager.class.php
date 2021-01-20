@@ -127,21 +127,23 @@ class modRequestManager extends DolibarrModules
         //                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
         // );
         $this->const = array(
-            0 => array('REQUESTMANAGER_REF_ADDON','chaine','mod_requestmanager_ref_simple','','current',0),
-            1 => array('REQUESTMANAGER_REF_UNIVERSAL_MASK','chaine','RI{yy}{mm}-{000000}','','current',0),
-            2 => array('REQUESTMANAGER_REFEXT_ADDON','chaine','mod_requestmanager_refext_simple','','current',0),
-            3 => array('REQUESTMANAGER_REFEXT_UNIVERSAL_MASK','chaine','RE{yy}{mm}-{000000}','','current',0),
-            4 => array('REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED','chaine','top','','current',0),
-            5 => array('REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED','chaine','top','','current',0),
-            6 => array('REQUESTMANAGER_CREATE_NOTIFY','chaine','1','','current',0),
-            7 => array('REQUESTMANAGERMESSAGE_CREATE_NOTIFY','chaine','1','','current',0),
-            8 => array('REQUESTMANAGER_SET_ASSIGNED_NOTIFY','chaine','1','','current',0),
-            9 => array('REQUESTMANAGER_STATUS_MODIFY_NOTIFY','chaine','1','','current',0),
-            10 => array('REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL','chaine','1','','current',0),
-            11 => array('REQUESTMANAGER_CHRONOMETER_ACTIVATE','chaine','0','','current',0),
-            12 => array('REQUESTMANAGER_CHRONOMETER_TIME','chaine','20','','current',0),
-            13 => array('REQUESTMANAGER_CHRONOMETER_COLOR','chaine','red','','current',0),
-            //14 => array('REQUESTMANAGER_CHRONOMETER_SOUND','chaine','','','current',0),
+            0 => array('REQUESTMANAGER_REF_ADDON','chaine','mod_requestmanager_ref_simple','',0,'current',0),
+            1 => array('REQUESTMANAGER_REF_UNIVERSAL_MASK','chaine','RI{yy}{mm}-{000000}','',0,'current',0),
+            2 => array('REQUESTMANAGER_REFEXT_ADDON','chaine','mod_requestmanager_refext_simple','',0,'current',0),
+            3 => array('REQUESTMANAGER_REFEXT_UNIVERSAL_MASK','chaine','RE{yy}{mm}-{000000}','',0,'current',0),
+            4 => array('REQUESTMANAGER_POSITION_BLOC_OBJECT_LINKED','chaine','top','',0,'current',0),
+            5 => array('REQUESTMANAGER_POSITION_LINK_NEW_OBJECT_LINKED','chaine','top','',0,'current',0),
+            6 => array('REQUESTMANAGER_CREATE_NOTIFY','chaine','1','',0,'current',0),
+            7 => array('REQUESTMANAGERMESSAGE_CREATE_NOTIFY','chaine','1','',0,'current',0),
+            8 => array('REQUESTMANAGER_SET_ASSIGNED_NOTIFY','chaine','1','',0,'current',0),
+            9 => array('REQUESTMANAGER_STATUS_MODIFY_NOTIFY','chaine','1','',0,'current',0),
+            10 => array('REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_EMAIL','chaine','1','',0,'current',0),
+            11 => array('REQUESTMANAGER_CHRONOMETER_ACTIVATE','chaine','0','',0,'current',0),
+            12 => array('REQUESTMANAGER_CHRONOMETER_TIME','chaine','20','',0,'current',0),
+            13 => array('REQUESTMANAGER_CHRONOMETER_COLOR','chaine','red','',0,'current',0),
+            //14 => array('REQUESTMANAGER_CHRONOMETER_SOUND','chaine','','',0,'current',0),
+            15 => array('REQUESTMANAGER_TIMESLOTS_ACTIVATE','chaine','0','',0,'current',0),
+            16 => array('REQUESTMANAGER_TIMESLOTS_PERIODS','chaine','1W 08h00 - 5W 12h00, 1W 14h00 - 5W 18h00','',0,'current',0),
         );
 
         // Array to add new pages in new tabs
@@ -171,6 +173,7 @@ class modRequestManager extends DolibarrModules
         $this->tabs = array(
             'thirdparty:+rm_request_list:SUBSTITUTION_RMLISTTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->lire:/requestmanager/list.php?socid=__ID__',
             'thirdparty:+rm_request_planning_list:SUBSTITUTION_RMPLANNINGLISTTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->planning->lire:/requestmanager/list.php?planning=1&socid=__ID__',
+            'requestmanager:+history:History:history@history:$user->rights->history->read&&$conf->history->enabled:/history/history.php?type_object=requestmanager&id=__ID__',
             //'product:+requestmanager_product:SUBSTITUTION_requestmanagerTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->lire:/requestmanager/product_tab.php?id=__ID__',
         );
 
@@ -583,13 +586,11 @@ class modRequestManager extends DolibarrModules
             }
         }
 
+        // Delete extrafields
+        $extrafields->delete('rm_ipbx', 'actioncomm');
+
         // activate event type in modAgenda
         dolibarr_set_const($this->db, 'AGENDA_USE_EVENT_TYPE', 1, 'chaine', 0, '', $conf->entity);
-
-        // Create extrafields
-        include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-        $extrafields = new ExtraFields($this->db);
-		$result=$extrafields->addExtraField('rm_ipbx', $langs->trans('RequestManagerIPBX'), 'int', 1,  10, 'actioncomm',   1, 1, '', null, 0, '', 0, 1, '', '');
 
 		return $this->_init($sql, $options);
 	}
@@ -609,3 +610,4 @@ class modRequestManager extends DolibarrModules
 		return $this->_remove($sql, $options);
 	}
 }
+

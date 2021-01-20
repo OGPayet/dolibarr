@@ -47,6 +47,7 @@ class RequestManagerNotify
     const TYPE_STATUS_MODIFIED = 2;
     const TYPE_MESSAGE_ADDED = 3;
     const TYPE_REQUEST_CREATED = 4;
+    const TYPE_REQUEST_CREATED_OUT_OF_TIME = 5;
 
     /**
      * Const notify to
@@ -316,20 +317,20 @@ class RequestManagerNotify
      *  Send notification to the assigned, requesters, watchers for a type of notification
      *
      * @param   string	        $subject             Topic/Subject of mail
-	 * @param   array|string	$sendto              List of recipients emails  (RFC 2822: "Name firstname <email>" or "email" or "<email>")
-	 * @param   string	        $from                Sender email               (RFC 2822: "Name firstname <email>" or "email" or "<email>")
-	 * @param   string	        $body                Body message
-	 * @param   array	        $filename_list       List of files to attach (full path of filename on file system)
-	 * @param   array	        $mimetype_list       List of MIME type of attached files
-	 * @param   array	        $mimefilename_list   List of attached file name in message
-	 * @param   array|string	$sendtocc            Email cc
-	 * @param   array|string	$sendtobcc           Email bcc (Note: This is autocompleted with MAIN_MAIL_AUTOCOPY_TO if defined)
-	 * @param   int		        $deliveryreceipt     Ask a delivery receipt
-	 * @param   int		        $msgishtml           1=String IS already html, 0=String IS NOT html, -1=Unknown make autodetection (with fast mode, not reliable)
-	 * @param   string	        $errors_to      	 Email for errors-to
-	 * @param   string	        $css                 Css option
-	 * @param   string          $moreinheader        More in header. $moreinheader must contains the "\r\n" (TODO not supported for other MAIL_SEND_MODE different than 'phpmail' and 'smtps' for the moment)
-	 * @param   string          $sendcontext      	 'standard', 'emailing', ...
+   	 * @param   array|string	$sendto              List of recipients emails  (RFC 2822: "Name firstname <email>" or "email" or "<email>")
+   	 * @param   string	        $from                Sender email               (RFC 2822: "Name firstname <email>" or "email" or "<email>")
+   	 * @param   string	        $body                Body message
+   	 * @param   array	        $filename_list       List of files to attach (full path of filename on file system)
+   	 * @param   array	        $mimetype_list       List of MIME type of attached files
+   	 * @param   array	        $mimefilename_list   List of attached file name in message
+   	 * @param   array|string	$sendtocc            Email cc
+   	 * @param   array|string	$sendtobcc           Email bcc (Note: This is autocompleted with MAIN_MAIL_AUTOCOPY_TO if defined)
+   	 * @param   int		        $deliveryreceipt     Ask a delivery receipt
+   	 * @param   int		        $msgishtml           1=String IS already html, 0=String IS NOT html, -1=Unknown make autodetection (with fast mode, not reliable)
+   	 * @param   string	        $errors_to      	 Email for errors-to
+   	 * @param   string	        $css                 Css option
+   	 * @param   string          $moreinheader        More in header. $moreinheader must contains the "\r\n" (TODO not supported for other MAIL_SEND_MODE different than 'phpmail' and 'smtps' for the moment)
+   	 * @param   string          $sendcontext      	 'standard', 'emailing', ...
      * @return  int                                  <0 if KO, >0 if OK
      */
     private function _sendEmail($subject, $sendto, $from, $body, $filename_list=array(), $mimetype_list=array(), $mimefilename_list=array(), $sendtocc="", $sendtobcc="", $deliveryreceipt=0, $msgishtml=0, $errors_to='', $css='', $moreinheader='', $sendcontext='standard')
@@ -482,12 +483,12 @@ class RequestManagerNotify
      *
      * @param   RequestManager      $requestmanager     RequestManager instance
      * @param   string	            $subject            Topic/Subject of mail
-	 * @param   array|string        $sendto             List of recipients emails  (RFC 2822: "Name firstname <email>" or "email" or "<email>")
-	 * @param   string	            $from               Sender email               (RFC 2822: "Name firstname <email>" or "email" or "<email>")
-	 * @param   string	            $body               Body message
-	 * @param   array	            $attachedfiles      List of files to attach array( 'paths' => full path of filename on file system, 'mimes' => List of MIME type of attached files, 'names' => List of attached file name in message )
-	 * @param   array|string        $sendtocc           Email cc
-	 * @param   array|string        $sendtobcc          Email bcc (Note: This is autocompleted with MAIN_MAIL_AUTOCOPY_TO if defined)
+   	 * @param   array|string        $sendto             List of recipients emails  (RFC 2822: "Name firstname <email>" or "email" or "<email>")
+   	 * @param   string	            $from               Sender email               (RFC 2822: "Name firstname <email>" or "email" or "<email>")
+   	 * @param   string	            $body               Body message
+   	 * @param   array	            $attachedfiles      List of files to attach array( 'paths' => full path of filename on file system, 'mimes' => List of MIME type of attached files, 'names' => List of attached file name in message )
+   	 * @param   array|string        $sendtocc           Email cc
+   	 * @param   array|string        $sendtobcc          Email bcc (Note: This is autocompleted with MAIN_MAIL_AUTOCOPY_TO if defined)
      * @param   string              $other              Other information add to the description of the event
      * @return  int                                     <0 if KO, >0 if OK
      */

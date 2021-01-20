@@ -465,13 +465,14 @@ function companyrelationships_show_companyrelationships($conf, $langs, $db, $obj
         print '<input type="text" class="flat" name="' . $prefix . 'search_addressphone" size="20" value="' . dol_escape_htmltag($search_addressphone) . '">';
         print '</td>';
 
-        // Public space availability
-        print '<td class="liste_titre">&nbsp;</td>';
+        // principal and benefactor companies
+        print '<td class="liste_titre"></td>';
+        print '<td class="liste_titre"></td>';
 
         // Status
-        print '<td class="liste_titre maxwidthonsmartphone">';
-        print $form->selectarray($prefix . 'search_status', array('-1' => '', '0' => $companystatic->LibStatut(0, 1), '1' => $companystatic->LibStatut(1, 1)), $search_status);
-        print '</td>';
+        //print '<td class="liste_titre maxwidthonsmartphone">';
+        //print $form->selectarray($prefix . 'search_status', array('-1' => '', '0' => $companystatic->LibStatut(0, 1), '1' => $companystatic->LibStatut(1, 1)), $search_status);
+        //print '</td>';
 
         // Edit
         print '<td class="liste_titre" align="right">';

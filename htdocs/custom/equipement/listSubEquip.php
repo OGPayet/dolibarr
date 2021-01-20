@@ -364,14 +364,14 @@ if ($result) {
 		print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->dateo), 'day')."</td>\n";
 		print "<td nowrap align='center'>".dol_print_date($db->jdate($objp->datee), 'day')."</td>\n";
 
-        print '<td align="right">';
-        if($objp->etatequiplibelle)
-        {
-            print $langs->trans($objp->etatequiplibelle);
-        }
-        print '</td>';
+		print '<td align="right">';
+       		if($objp->etatequiplibelle)
+        	{
+            		print $langs->trans($objp->etatequiplibelle);
+        	}
+        	print '</td>';
 
-		print '<td align="right">'.$equipementstatic->LibStatut($objp->fk_statut, 5).'</td>';
+        	print '<td align="right">'.$equipementstatic->LibStatut($objp->fk_statut, 5).'</td>';
 		print "</tr>\n";
 		$i++;
 	}

@@ -202,20 +202,20 @@ class RequestManager extends CommonObject
      */
     public $socid_watcher;
     /**
-	 * @var Societe A related thirdparty origin
-	 * @see fetch_thirdparty_origin()
-	 */
-	public $thirdparty_origin;
+   	 * @var Societe A related thirdparty origin
+   	 * @see fetch_thirdparty_origin()
+   	 */
+   	public $thirdparty_origin;
     /**
-	 * @var Societe A related thirdparty bill
-	 * @see fetch_thirdparty()
-	 */
-	public $thirdparty;
+   	 * @var Societe A related thirdparty bill
+   	 * @see fetch_thirdparty()
+   	 */
+   	public $thirdparty;
     /**
-	 * @var Societe A related thirdparty benefactor
-	 * @see fetch_thirdparty_benefactor()
-	 */
-	public $thirdparty_benefactor;
+   	 * @var Societe A related thirdparty benefactor
+   	 * @see fetch_thirdparty_benefactor()
+   	 */
+   	public $thirdparty_benefactor;
     /**
      * @var Societe A related thirdparty benefactor
      * @see fetch_thirdparty_benefactor()

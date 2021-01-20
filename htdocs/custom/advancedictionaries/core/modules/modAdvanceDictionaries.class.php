@@ -91,7 +91,7 @@ class modAdvanceDictionaries extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/mymodule/css/mymodule.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/mymodule/js/mymodule.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/mymodule/js/mymodule.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2',...) // Set here all hooks context managed by module. You can also set hook context 'all'
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
@@ -155,8 +155,8 @@ class modAdvanceDictionaries extends DolibarrModules
 
 		if (! isset($conf->advancedictionaries) || ! isset($conf->advancedictionaries->enabled))
         {
-		$conf->advancedictionaries=new stdClass();
-		$conf->advancedictionaries->enabled=0;
+        	$conf->advancedictionaries=new stdClass();
+        	$conf->advancedictionaries->enabled=0;
         }
 
         // Dictionaries
@@ -327,3 +327,4 @@ class modAdvanceDictionaries extends DolibarrModules
 	}
 
 }
+

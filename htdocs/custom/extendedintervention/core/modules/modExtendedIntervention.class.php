@@ -69,7 +69,7 @@ class modExtendedIntervention extends DolibarrModules
         $this->editor_url = 'http://www.open-dsi.fr';
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.6';
+        $this->version = '4.0.12';
         // Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Name of image file used for this module.
@@ -287,7 +287,6 @@ class modExtendedIntervention extends DolibarrModules
         // Intervention
         $result=$extrafields->addExtraField('ei_type', $langs->trans('ExtendedInterventionType'), 'sellist', 0,  '', 'fichinter',   0, 1, '', array('options'=>array('c_extendedintervention_type:label:rowid::active = 1'=>null)), 1, '', 1, 0, '', '');
         // Contract
-        // TODO a refaire pour compatibilité avec le module general ExtendedContract
         $result=$extrafields->addExtraField('generalites', $langs->trans('ExtendedInterventionContractGeneralSeparatorTitle'), 'separate', 0,  '', 'contrat',   0, 0, '', '', 0, '', 0, 0, '', '');
         $result=$extrafields->addExtraField('startdate', $langs->trans('ExtendedInterventionContractGeneralStartDate'), 'date', 6,  '', 'contrat',   0, 0, '', '', 1, '', 1, 0, '', '');
         $result=$extrafields->addExtraField('duration', $langs->trans('ExtendedInterventionContractGeneralDuration'), 'int', 7,  '10', 'contrat',   0, 0, '', '', 1, '', 1, 0, '', '');
@@ -318,3 +317,4 @@ class modExtendedIntervention extends DolibarrModules
 		return $this->_remove($sql, $options);
 	}
 }
+

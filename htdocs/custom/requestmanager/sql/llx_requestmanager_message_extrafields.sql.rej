@@ -1,9 +1,0 @@
-diff a/htdocs/custom/requestmanager/sql/llx_requestmanager_message_extrafields.sql b/htdocs/custom/requestmanager/sql/llx_requestmanager_message_extrafields.sql	(rejected hunks)
-@@ -13,7 +13,6 @@
- --
- -- You should have received a copy of the GNU General Public License
- -- along with this program. If not, see <http://www.gnu.org/licenses/>.
----
- -- ===================================================================
- 
- create table llx_requestmanager_message_extrafields
