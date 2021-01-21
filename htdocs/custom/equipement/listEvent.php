@@ -85,7 +85,7 @@ $search_expedition=GETPOST('search_expedition', 'alpha');
 llxHeader();
 
 $sql = "SELECT";
-$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.label,";
+$sql.= " e.ref as refEquipement, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.ref as refEntrepot,";
 $sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn,";
 $sql.= " e.fk_soc_client, scli.nom as CompanyClient, e.fk_etatequipement, et.libelle as etatequiplibelle,";
 $sql.= " ee.datee, ee.dateo, eet.libelle as equipevttypelibelle, ee.fk_equipementevt_type,";
@@ -108,10 +108,10 @@ $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."expedition as exp on ee.fk_expedition = exp
 $sql.= " WHERE e.entity = ". getEntity('equipement');
 $sql.= " and e.rowid=ee.fk_equipement";
 
-if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
+if ($search_ref)			$sql .= " AND refEquipement like '%".$db->escape($search_ref)."%'";
 if ($search_refProduct)		$sql .= " AND p.ref like '%".$db->escape($search_refProduct)."%'";
 if ($search_company_fourn)	$sql .= " AND sfou.nom like '%".$db->escape($search_company_fourn)."%'";
-if ($search_entrepot)		$sql .= " AND ent.label like '%".$db->escape($search_entrepot)."%'";
+if ($search_entrepot)		$sql .= " AND refEntrepot like '%".$db->escape($search_entrepot)."%'";
 if ($search_company_client)	$sql .= " AND scli.nom like '%".$db->escape($search_company_client)."%'";
 
 if ($search_intervention)	$sql .= " AND fi.ref like '%".$db->escape($search_intervention)."%'";
@@ -152,7 +152,7 @@ if ($result) {
 					$langs->trans("Fournisseur"), $_SERVER["PHP_SELF"], "sfou.nom", "",
 					$urlparam, '', $sortfield, $sortorder
 	);
-	print_liste_field_titre($langs->trans("Entrepot"), $_SERVER["PHP_SELF"], "ent.label", "", $urlparam, '', $sortfield, $sortorder);
+	print_liste_field_titre($langs->trans("Entrepot"), $_SERVER["PHP_SELF"], "ent.ref", "", $urlparam, '', $sortfield, $sortorder);
 	print_liste_field_titre($langs->trans("CompanyClient"), $_SERVER["PHP_SELF"], "scli.nom", "", $urlparam, '', $sortfield, $sortorder);
 	print_liste_field_titre($langs->trans("Dateo"), $_SERVER["PHP_SELF"], "e.dateo", "", $urlparam, '', $sortfield, $sortorder);
 	print_liste_field_titre($langs->trans("Datee"), $_SERVER["PHP_SELF"], "e.datee", "", $urlparam, '', $sortfield, $sortorder);
@@ -220,7 +220,7 @@ if ($result) {
 		print "<tr $bc[$var]>";
 		print "<td>";
 		$equipementstatic->id=$objp->rowid;
-		$equipementstatic->ref=$objp->ref;
+		$equipementstatic->ref=$objp->refEquipement;
 		print $equipementstatic->getNomUrl(1, 1); // To events cards
 		print "</td>";
 

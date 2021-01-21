@@ -154,9 +154,9 @@ $head = dol_fiche_head($head, 'card', $langs->trans("Equipement"), 0, 'equipemen
 
 
 $sql = "SELECT";
-$sql.= " e.ref, e.rowid, e.fk_statut, e.numversion, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.label,";
+$sql.= " e.ref, e.rowid, e.fk_statut, e.numversion, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.ref,";
 $sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn, e.fk_facture_fourn, ff.ref as refFactureFourn,";
-$sql.= " e.quantity, scli.nom as CompanyClient, e.fk_facture, f.facnumber as refFacture,";
+$sql.= " e.quantity, scli.nom as CompanyClient, e.fk_facture, f.ref as refFacture,";
 $sql.= " e.datee, e.dateo, ee.libelle as etatequiplibelle";
 
 $sql.= " FROM ".MAIN_DB_PREFIX."equipement as e";
@@ -174,7 +174,7 @@ if ($search_refProduct)		$sql.= " AND p.rowid =".$search_refProduct;
 if ($search_company_fourn)	$sql.= " AND sfou.nom like '%".$db->escape($search_company_fourn)."%'";
 if ($search_reffact_fourn)	$sql.= " AND ff.ref like '%".$db->escape($search_reffact_fourn)."%'";
 if ($search_company_client)	$sql.= " AND scli.nom like '%".$db->escape($search_company_client)."%'";
-if ($search_reffact_client)	$sql.= " AND f.facnumber like '%".$db->escape($search_reffact_client)."%'";
+if ($search_reffact_client)	$sql.= " AND f.ref like '%".$db->escape($search_reffact_client)."%'";
 if ($search_etatequipement)	$sql.= " AND e.fk_etatequipement =".$search_etatequipement;
 
 $sql.= " ORDER BY ".$sortfield." ".$sortorder;

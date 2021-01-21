@@ -113,7 +113,7 @@ $fieldstosearchall = array(
     'p.label' => 'ProductDescription',
     'sfou.nom' => "SupplierName",
     'scli.nom' => 'CustomerName',
-    'f.facnumber' => 'CustomerInvoiceRef',
+    'f.ref' => 'CustomerInvoiceRef',
     'ff.ref' => 'SupplierInvoiceRef',
     'e.datec' => 'DateCreate',
     'e.dateo' => 'DateOpen',
@@ -142,7 +142,7 @@ $arrayfields = array(
     'ff.ref' => array('label' => $langs->trans("SupplierInvoiceRef"), 'checked' => 1, 'enabled' => $user->rights->fournisseur->facture->lire),
 
     'scli.nom' => array('label' => $langs->trans("CustomerName"), 'checked' => 0),
-    'f.facnumber' => array('label' => $langs->trans("FacNumber"), 'checked' => 1, 'enabled' => $user->rights->facture->lire),
+    'f.ref' => array('label' => $langs->trans("FacNumber"), 'checked' => 1, 'enabled' => $user->rights->facture->lire),
 
     'e.dateo' => array('label' => $langs->trans("DateOpen"), 'checked' => 0, 'position' => 500),
     'e.datee' => array('label' => $langs->trans("DateEnd"), 'checked' => 0, 'position' => 500),
@@ -288,16 +288,18 @@ if ($sall) $sql = 'SELECT DISTINCT';
 $sql .= " e.ref, e.rowid as equipementid, e.fk_statut, e.fk_product, p.ref as refproduit, p.label as labelproduit,";
 $sql .= " e.fk_entrepot, e.quantity, e.tms, e.numversion, e.description, e.note_private,";
 $sql .= " e.fk_soc_fourn, sfou.nom as CompanyFourn, e.fk_commande_fourn, cf.ref as refCommFourn, e.fk_facture_fourn, ff.ref as refFactureFourn,";
-$sql .= " e.fk_soc_client, scli.nom as CompanyClient, e.fk_facture, f.facnumber as refFacture,";
-$sql .= " e.datec, e.datee, e.dateo, e.dated, ee.libelle as etatequiplibelle";
-// Add fields from extrafields
-foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
+$sql .= " e.fk_soc_client, scli.nom as CompanyClient, e.fk_facture, f.ref as refFacture,";
+$sql .= " e.datec, e.datee, e.dateo, e.dated, ee.libelle as etatequiplibelle, ";
+/// Add fields from extrafields
+if (!empty($extrafields->attributes[$object->table_element]['label']))
+foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? "ef.".$key.' as options_'.$key.', ' : '');
 // Add fields from hooks
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
-$sql .= $hookmanager->resPrint;
+$sql .= preg_replace('/^,/', '', $hookmanager->resPrint);
+$sql = preg_replace('/,\s*$/', '', $sql);
 $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as e";
-if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "equipement_extrafields as ef on (e.rowid = ef.fk_object)";
+if (is_array($extrafields->attributes[$object->table_element]['label']) && count($extrafields->attributes[$object->table_element]['label'])) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX.$object->table_element."_extrafields as ef on (e.rowid = ef.fk_object)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_equipement_etat as ee on e.fk_etatequipement = ee.rowid";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as sfou on e.fk_soc_fourn = sfou.rowid";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "entrepot as ent on e.fk_entrepot = ent.rowid";
@@ -315,7 +317,7 @@ if ($search_company_fourn) $sql .= " AND sfou.nom like '%" . $db->escape($search
 if ($search_reffact_fourn) $sql .= " AND ff.ref like '%" . $db->escape($search_reffact_fourn) . "%'";
 if ($search_reforder_fourn) $sql .= " AND cf.ref like '%" . $db->escape($search_reforder_fourn) . "%'";
 if ($search_company_client) $sql .= " AND scli.nom like '%" . $db->escape($search_company_client) . "%'";
-if ($search_reffact_client) $sql .= " AND f.facnumber like '%" . $db->escape($search_reffact_client) . "%'";
+if ($search_reffact_client) $sql .= " AND f.ref like '%" . $db->escape($search_reffact_client) . "%'";
 if ($search_note_private) $sql .= " AND e.note_private like '%" . $db->escape($search_note_private) . "%'";
 if ($search_entrepot >= 0) $sql .= " AND ent.rowid =" . $search_entrepot;
 if ($search_etatequipement >= 0) $sql .= " AND e.fk_etatequipement =" . $search_etatequipement;
@@ -482,7 +484,7 @@ if ($resql) {
         print '<input class="flat" type="text" size="8" name="search_company_client" value="' . $search_company_client . '">';
         print '</td>';
     }
-    if (!empty($arrayfields['f.facnumber']['checked'])) {
+    if (!empty($arrayfields['f.ref']['checked'])) {
         print '<td class="liste_titre">';
         print '<input class="flat" type="text" size="8" name="search_reffact_client" value="' . $search_reffact_client . '">';
         print '</td>';
@@ -559,7 +561,7 @@ if ($resql) {
     if (!empty($arrayfields['cf.ref']['checked'])) print_liste_field_titre($arrayfields['cf.ref']['label'], $_SERVER["PHP_SELF"], "cf.ref", "", $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['ff.ref']['checked'])) print_liste_field_titre($arrayfields['ff.ref']['label'], $_SERVER["PHP_SELF"], "ff.ref", "", $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['scli.nom']['checked'])) print_liste_field_titre($arrayfields['scli.nom']['label'], $_SERVER["PHP_SELF"], "scli.nom", "", $param, '', $sortfield, $sortorder);
-    if (!empty($arrayfields['f.facnumber']['checked'])) print_liste_field_titre($arrayfields['f.facnumber']['label'], $_SERVER["PHP_SELF"], "f.facnumber", "", $param, '', $sortfield, $sortorder);
+    if (!empty($arrayfields['f.ref']['checked'])) print_liste_field_titre($arrayfields['f.ref']['label'], $_SERVER["PHP_SELF"], "f.ref", "", $param, '', $sortfield, $sortorder);
     if (!empty($arrayfields['e.dateo']['checked'])) print_liste_field_titre($arrayfields['e.dateo']['label'], $_SERVER["PHP_SELF"], "e.dateo", "", $param, 'align="center" class="nowrap"', $sortfield, $sortorder);
     if (!empty($arrayfields['e.datee']['checked'])) print_liste_field_titre($arrayfields['e.datee']['label'], $_SERVER["PHP_SELF"], "e.datee", "", $param, 'align="center" class="nowrap"', $sortfield, $sortorder);
     if (!empty($arrayfields['e.dated']['checked'])) print_liste_field_titre($arrayfields['e.dated']['label'], $_SERVER["PHP_SELF"], "e.dated", "", $param, 'align="center" class="nowrap"', $sortfield, $sortorder);
@@ -712,7 +714,7 @@ if ($resql) {
             if (!$i) $totalarray['nbfield']++;
         }
 
-        if (!empty($arrayfields['f.facnumber']['checked'])) {
+        if (!empty($arrayfields['f.ref']['checked'])) {
             print '<td class="nocellnopadd">';
             if ($obj->fk_facture > 0) {
                 $facturestatic = new Facture($db);
