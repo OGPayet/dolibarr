@@ -56,7 +56,7 @@ top_httphead();
 
 print '<!-- Ajax page called with url '.dol_escape_htmltag($_SERVER["PHP_SELF"]).'?'.dol_escape_htmltag($_SERVER["QUERY_STRING"]).' -->'."\n";
 
-if (in_array($field, array('status'))) {
+if (in_array($field, array('status', 'statut'))) {
 	$result = restrictedArea($user, $element, $id);
 } elseif ($element == 'product' && in_array($field, array('tosell', 'tobuy', 'tobatch'))) {	// Special case for products
 	$result = restrictedArea($user, 'produit|service', $id, 'product&product', '', '', 'rowid');
