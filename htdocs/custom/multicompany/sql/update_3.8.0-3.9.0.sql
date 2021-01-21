@@ -11,7 +11,7 @@ create table llx_entity_thirdparty
   entity			integer DEFAULT 1 NOT NULL,	-- multi company id
   fk_entity			integer NOT NULL,
   fk_soc			integer NOT NULL
-
+  
 ) ENGINE=innodb;
 
 ALTER TABLE llx_entity_thirdparty ADD UNIQUE INDEX idx_entity_thirdparty_fk_soc (entity, fk_entity, fk_soc);

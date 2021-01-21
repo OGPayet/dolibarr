@@ -1,5 +1,5 @@
 -- ============================================================================
--- Copyright (C) 2010-2017 Regis Houssin  <regis.houssin@inodbox.com>
+-- Copyright (C) 2010-2019 Regis Houssin  <regis.houssin@inodbox.com>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@ create table llx_entity
   datec				datetime,
   fk_user_creat		integer,
   options			text,
-  visible			tinyint DEFAULT 1 NOT NULL,
+  visible			tinyint DEFAULT 1 NOT NULL,		-- 0 not visible, 1 visible, 2 template
   active			tinyint DEFAULT 1 NOT NULL,
   rang				smallint DEFAULT 0 NOT NULL
-
+  
 ) ENGINE=innodb;

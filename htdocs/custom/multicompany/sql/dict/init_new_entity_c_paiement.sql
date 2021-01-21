@@ -1,4 +1,4 @@
--- Copyright (C) 2009-2017 Regis Houssin  <regis.houssin@inodbox.com>
+-- Copyright (C) 2009-2018 Regis Houssin  <regis.houssin@inodbox.com>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -25,14 +25,13 @@
 --
 -- llx_c_paiement
 --
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values ( 0, '',    '-',                 3,1,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values ( 1, 'TIP', 'TIP',               2,0,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values ( 2, 'VIR', 'Virement',          2,1,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values ( 3, 'PRE', 'Prélèvement',       2,1,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values ( 4, 'LIQ', 'Espèces',           2,1,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values ( 6, 'CB',  'Carte Bancaire',    2,1,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values ( 7, 'CHQ', 'Chèque',            2,1,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values (50, 'VAD', 'Paiement en ligne', 2,0,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values (51, 'TRA', 'Traite',            2,0,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values (52, 'LCR', 'LCR',               2,0,__ENTITY__);
-insert into llx_c_paiement (id,code,libelle,type,active,entity) values (53, 'FAC', 'Factor',            2,0,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('TIP', 'TIP',				2,0,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('VIR', 'Transfer',		2,1,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('PRE', 'Debit order',		2,1,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('LIQ', 'Cash',			2,1,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('CB',  'Credit card',		2,1,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('CHQ', 'Cheque',			2,1,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('VAD', 'Online payment',	2,0,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('TRA', 'Traite',			2,0,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('LCR', 'LCR',				2,0,__ENTITY__);
+insert into llx_c_paiement (code,libelle,type,active,entity) values ('FAC', 'Factor',			2,0,__ENTITY__);

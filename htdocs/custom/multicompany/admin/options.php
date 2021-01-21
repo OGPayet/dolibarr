@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2011-2017 Regis Houssin  <regis.houssin@inodbox.com>
+/* Copyright (C) 2011-2020	Regis Houssin	<regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,69 +28,70 @@ if (! $res && file_exists($_SERVER['DOCUMENT_ROOT']."/main.inc.php"))
 if (! $res) $res=@include("../../../main.inc.php");			// For "custom" directory
 
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
-if (! class_exists('ActionsMulticompany')) {
-	require '../class/actions_multicompany.class.php';
-}
+dol_include_once('/multicompany/class/actions_multicompany.class.php', 'ActionsMulticompany');
 
-$langs->load("admin");
-$langs->load('multicompany@multicompany');
+$langs->loadLangs(array('admin', 'multicompany@multicompany'));
 
 // Security check
-if (empty($user->admin) || !empty($user->entity)) accessforbidden();
+if (empty($user->admin) || ! empty($user->entity)) {
+	accessforbidden();
+}
 
+$action=GETPOST('action','alpha');
 
-$action=GETPOST('action');
-
-$object = New ActionsMulticompany($db);
+$object = new ActionsMulticompany($db);
 
 
 /*
  * Action
  */
-if (preg_match('/set_(.*)/',$action,$reg))
-{
-    $code=$reg[1];
-    if (dolibarr_set_const($db, $code, 1, 'chaine', 0, '', 0) > 0)
-    {
-        Header("Location: ".$_SERVER["PHP_SELF"]);
-        exit;
-    }
-    else
-    {
-        dol_print_error($db);
-    }
-}
 
-if (preg_match('/del_(.*)/',$action,$reg))
-{
-    $code=$reg[1];
-    if (dolibarr_del_const($db, $code, 0) > 0)
-    {
-        Header("Location: ".$_SERVER["PHP_SELF"]);
-        exit;
-    }
-    else
-    {
-        dol_print_error($db);
-    }
-}
 
 /*
  * View
  */
 
-llxHeader('',$langs->trans("MultiCompanySetup"));
+$extrajs = array(
+	'/multicompany/core/js/lib_head.js'
+);
+
+$help_url='EN:Module_MultiCompany|FR:Module_MultiSoci&eacute;t&eacute;';
+llxHeader('', $langs->trans("MultiCompanySetup"), $help_url,'','','',$extrajs);
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
-print_fiche_titre($langs->trans("MultiCompanySetup"),$linkback,'multicompany@multicompany');
-
-print '<br>';
+print load_fiche_titre($langs->trans("MultiCompanySetup"),$linkback,'multicompany@multicompany',0,'multicompany_title');
 
 $head = multicompany_prepare_head();
-dol_fiche_head($head, 'options', $langs->trans("ModuleSetup"));
+dol_fiche_head($head, 'options', $langs->trans("ModuleSetup"), -1);
+
+$level = checkMultiCompanyVersion();
+if ($level === 1 || $level === -1)
+{
+	$text = $langs->trans("MultiCompanyIsOlderThanDolibarr");
+	if ($level === -1) $text = $langs->trans("DolibarrIsOlderThanMulticompany");
+
+	print '<div class="multicompany_checker">';
+	dol_htmloutput_mesg($text, '', 'warning', 1);
+	print '</div>';
+
+}
 
 $form=new Form($db);
-$var=true;
+
+$hidden=true;
+$checkconfig = checkMulticompanyAutentication();
+if ($checkconfig !== true) {
+	if (! empty($conf->global->MULTICOMPANY_HIDE_LOGIN_COMBOBOX)) {
+		$hidden=false;
+	}
+	print '<div id="mc_hide_login_combobox_error"'.($hidden ? ' style="display:none;"' : '').'>'.get_htmloutput_mesg($langs->trans("ErrorMulticompanyConfAuthentication"),'','error',1).'</div>';
+} else {
+	if (empty($conf->global->MULTICOMPANY_HIDE_LOGIN_COMBOBOX)) {
+		$hidden=false;
+	}
+	print '<div id="dol_hide_login_combobox_error"'.($hidden ? ' style="display:none;"' : '').'>'.get_htmloutput_mesg($langs->trans("ErrorDolibarrConfAuthentication"),'','error',1).'</div>';
+}
+
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre">';
 print '<td>'.$langs->trans("Parameters").'</td>'."\n";
@@ -99,18 +100,123 @@ print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 print '</tr>';
 
 /*
- * Formulaire parametres divers
+ * System parameters
  */
 
 // Login page combobox activation
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("HideLoginCombobox").'</td>';
+print '<tr class="oddeven">';
+print '<td><span class="fa fa-cogs"></span><span class="multiselect-title">'.$langs->trans("HideLoginCombobox").'</span></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">';
+if ($checkconfig !== true) {
+	$input = array(
+		'showhide' => array(
+			'#mc_hide_login_combobox_error'
+		)
+	);
+} else {
+	$input = array(
+		'hideshow' => array(
+			'#dol_hide_login_combobox_error'
+		)
+	);
+}
+$input['hideshow'][] = '#changeloginlogo';
+$input['hideshow'][] = '#changeloginbackground';
+$input['del'] = array('MULTICOMPANY_LOGIN_LOGO_BY_ENTITY', 'MULTICOMPANY_LOGIN_BACKGROUND_BY_ENTITY');
+print ajax_mcconstantonoff('MULTICOMPANY_HIDE_LOGIN_COMBOBOX', $input, 0);
+print '</td></tr>';
+
+// Replace entity logo in login page
+print '<tr id="changeloginlogo" class="oddeven"'.(! empty($conf->global->MULTICOMPANY_HIDE_LOGIN_COMBOBOX) ? ' style="display:none;"' : '').'>';
+print '<td><span class="fa fa-cogs"></span><span class="multiselect-title">'.$langs->trans("EntityLogoInLoginPage").'</span></td>';
 print '<td align="center" width="20">&nbsp;</td>';
 
 print '<td align="center" width="100">';
-print ajax_constantonoff('MULTICOMPANY_HIDE_LOGIN_COMBOBOX', '', 0);
+$input = array(
+	'showhide' => array(
+		'#changeloginbackground'
+	),
+	'del' => array(
+		'MULTICOMPANY_LOGIN_BACKGROUND_BY_ENTITY'
+	)
+);
+print ajax_mcconstantonoff('MULTICOMPANY_LOGIN_LOGO_BY_ENTITY', $input, 0);
 print '</td></tr>';
+
+// Replace entity background in login page
+print '<tr id="changeloginbackground" class="oddeven"'.(empty($conf->global->MULTICOMPANY_LOGIN_LOGO_BY_ENTITY) ? ' style="display:none;"' : '').'>';
+print '<td><span class="fa fa-cogs"></span><span class="multiselect-title">'.$langs->trans("EntityBackgroundInLoginPage").'</span></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">';
+print ajax_mcconstantonoff('MULTICOMPANY_LOGIN_BACKGROUND_BY_ENTITY', '', 0);
+print '</td></tr>';
+
+// Disable the new dropdown menu
+print '<tr id="disabledropdownmenu" class="oddeven">';
+print '<td><span class="fa fa-cogs"></span><span class="multiselect-title">'.$langs->trans("DisableSwitchEntityDropdownMenu").'</span></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">';
+$input = array(
+	'reload' => true
+);
+print ajax_mcconstantonoff('MULTICOMPANY_DROPDOWN_MENU_DISABLED', $input, 0);
+print '</td></tr>';
+
+// Hide/View top menu entity label
+print '<tr id="showtopmenuentitylabel" class="oddeven">';
+print '<td><span class="fa fa-cogs"></span><span class="multiselect-title">'.$langs->trans("ShowTopMenuEntityLabel").'</span></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">';
+$input = array(
+	'reload' => true
+);
+print ajax_mcconstantonoff('MULTICOMPANY_NO_TOP_MENU_ENTITY_LABEL', $input, 0, 1);
+print '</td></tr>';
+
+// Active by default during create
+print '<tr class="oddeven">';
+print '<td><span class="fa fa-cogs"></span><span class="multiselect-title">'.$langs->trans("EntityActiveByDefault").'</span></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">';
+$input = array(
+	'showhide' => array(
+		'#visiblebydefault'
+	),
+	'del' => array(
+		'MULTICOMPANY_VISIBLE_BY_DEFAULT'
+	)
+);
+print ajax_mcconstantonoff('MULTICOMPANY_ACTIVE_BY_DEFAULT', $input, 0);
+print '</td></tr>';
+
+// Visible by default during create
+print '<tr id="visiblebydefault" class="oddeven"'.(empty($conf->global->MULTICOMPANY_ACTIVE_BY_DEFAULT) ? ' style="display:none;"' : '').'>';
+print '<td><span class="fa fa-cogs"></span><span class="multiselect-title">'.$langs->trans("EntityVisibleByDefault").'</span></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">';
+print ajax_mcconstantonoff('MULTICOMPANY_VISIBLE_BY_DEFAULT', '', 0);
+print '</td></tr>';
+
+// Template management
+$text = img_picto('', 'info','class="linkobject"');
+$htmltext = $langs->trans("TemplateOfEntityManagementInfo");
+
+print '<tr id="template" class="oddeven">';
+print '<td><span class="fa fa-cogs"></span><span class="multiselect-title">'.$langs->trans("TemplateOfEntityManagement").' '.$form->textwithtooltip('',$htmltext,2,1,$text).'</span></td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">';
+print ajax_mcconstantonoff('MULTICOMPANY_TEMPLATE_MANAGEMENT', '', 0);
+print '</td></tr>';
+
+/*
+ * Sharings parameters
+ */
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans("Parameters").'</td>'."\n";
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
+print '</tr>';
 
 /* Mode de gestion des droits :
  * Mode Off : mode Off : pyramidale. Les droits et les groupes sont gérés dans chaque entité : les utilisateurs appartiennent au groupe de l'entity pour obtenir leurs droits
@@ -120,91 +226,87 @@ print '</td></tr>';
 $text = img_picto('', 'info','class="linkobject"');
 $htmltext = $langs->trans("GroupModeTransversalInfoFull");
 
-$var=!$var;
-print '<tr '.$bc[$var].'>';
-print '<td>'.$langs->trans("GroupModeTransversal").' '.$form->textwithtooltip('',$htmltext,2,1,$text).'</td>';
+print '<tr class="oddeven">';
+print '<td><span class="fa fa-users"></span><span class="multiselect-title">'.$langs->trans("GroupModeTransversal").' '.$form->textwithtooltip('',$htmltext,2,1,$text).'</span></td>';
 print '<td align="center" width="20">&nbsp;</td>';
 
 print '<td align="center" width="100">';
 $input = array(
-		'alert' => array(
-				'set' => array(
-						'info' => true,
-						'yesButton' => $langs->trans('Ok'),
-						'title' => $langs->transnoentities('GroupModeTransversalTitle'),
-						'content' => img_warning().' '.$langs->trans('GroupModeTransversalInfo')
-				)
+	'alert' => array(
+		'set' => array(
+			'info' => true,
+			'height' => 200,
+			'yesButton' => $langs->trans('Ok'),
+			'title' => $langs->transnoentities('GroupModeTransversalTitle'),
+			'content' => img_warning().' '.$langs->trans('GroupModeTransversalInfo')
 		)
+	)
 );
-print ajax_constantonoff('MULTICOMPANY_TRANSVERSE_MODE', $input, 0);
+print ajax_mcconstantonoff('MULTICOMPANY_TRANSVERSE_MODE', $input, 0);
 print '</td></tr>';
 
 // Enable global sharings
-if (! empty($conf->societe->enabled) || ! empty($conf->product->enabled) || ! empty($conf->service->enabled) || ! empty($conf->categorie->enabled))
+if (! empty($conf->societe->enabled)
+	|| ! empty($conf->product->enabled)
+	|| ! empty($conf->service->enabled)
+	|| ! empty($conf->categorie->enabled)
+	|| ! empty($conf->adherent->enabled)
+	|| ! empty($conf->agenda->enabled))
 {
-	$var=!$var;
-	print '<tr '.$bc[$var].'>';
-	print '<td>'.$langs->trans("EnableGlobalSharings").'</td>';
+	print '<tr class="oddeven">';
+	print '<td><span class="fa fa-project-diagram"></span><span class="multiselect-title">'.$langs->trans("EnableGlobalSharings").'</span></td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 
 	print '<td align="center" width="100">';
 	$input = array(
-			'alert' => array(
-					'set' => array(
-							'info' => true,
-							'yesButton' => $langs->trans('Ok'),
-							'title' => $langs->transnoentities('GlobalSharings'),
-							'content' => img_warning().' '.$langs->trans('GlobalSharingsInfo')
-					)
-			),
-			'showhide' => array(
-					'#sharetitle',
-					'#shareproduct',
-					'#sharethirdparty',
-					'#sharecategory',
-					'#sharebank',
-					'#shareexpensereport',
-					'#shareproject',
-					'#sharemember'
-			),
-			'hide' => array(
-					'#sharetitle',
-					'#shareinvoice',
-					'#shareinvoicenumber',
-					'#shareproduct',
-					'#shareproductprice',
-					'#sharestock',
-					'#sharethirdparty',
-					'#shareagenda',
-					'#sharecategory',
-					'#sharebank',
-					'#shareexpensereport',
-					'#shareproject',
-					'#sharemember'
-			),
-			'del' => array(
-					'MULTICOMPANY_INVOICE_SHARING_ENABLED',
-					'MULTICOMPANY_INVOICENUMBER_SHARING_ENABLED',
-					'MULTICOMPANY_PRODUCT_SHARING_ENABLED',
-					'MULTICOMPANY_PRODUCTPRICE_SHARING_ENABLED',
-					'MULTICOMPANY_STOCK_SHARING_ENABLED',
-					'MULTICOMPANY_THIRDPARTY_SHARING_ENABLED',
-					'MULTICOMPANY_AGENDA_SHARING_ENABLED',
-					'MULTICOMPANY_CATEGORY_SHARING_ENABLED',
-					'MULTICOMPANY_BANKACCOUNT_SHARING_ENABLED',
-					'MULTICOMPANY_EXPENSEREPORT_SHARING_ENABLED',
-					'MULTICOMPANY_PROJECT_SHARING_ENABLED',
-					'MULTICOMPANY_MEMBER_SHARING_ENABLED'
+		'alert' => array(
+			'set' => array(
+				'info' => true,
+				'yesButton' => $langs->trans('Ok'),
+				'title' => $langs->transnoentities('GlobalSharings'),
+				'content' => img_warning().' '.$langs->trans('GlobalSharingsInfo')
 			)
+		),
+		'showhide' => array(
+			'#shareelementtitle',
+			'#sharethirdparty'
+		),
+		'hide' => array(
+			'#shareelementtitle',
+			'#shareobjecttitle',
+			'#sharethirdparty'
+		),
+		'del' => array(
+			'MULTICOMPANY_THIRDPARTY_SHARING_ENABLED'
+		)
 	);
-	print ajax_constantonoff('MULTICOMPANY_SHARINGS_ENABLED', $input, 0);
+	foreach ($object->sharingelements as $key => $values)
+	{
+		if (! isset($values['disable'])) {
+			if (isset($values['input']) && isset($values['input']['global'])) {
+				if (isset($values['input']['global']['showhide']) && $values['input']['global']['showhide'] === true) {
+					if (! isset($input['showhide'])) $input['showhide'] = array();
+					array_push($input['showhide'], '#share'.$key);
+				}
+				if (isset($values['input']['global']['hide']) && $values['input']['global']['hide'] === true) {
+					if (! isset($input['hide'])) $input['hide'] = array();
+					array_push($input['hide'], '#share'.$key);
+				}
+				if (isset($values['input']['global']['del']) && $values['input']['global']['del'] === true) {
+					if (! isset($input['del'])) $input['del'] = array();
+					array_push($input['del'], 'MULTICOMPANY_'.strtoupper($key).'_SHARING_ENABLED');
+				}
+			}
+		}
+	}
+	print ajax_mcconstantonoff('MULTICOMPANY_SHARINGS_ENABLED', $input, 0);
 	print '</td></tr>';
 }
 
 $text = img_picto('', 'info','class="linkobject"');
 $htmltext = $langs->trans("GlobalSharingsInfo");
 
-print '<tr class="liste_titre" id="sharetitle" '.(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? 'style="display:none;"' : '').'>';
+print '<tr class="liste_titre" id="shareelementtitle"'.(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
 print '<td>'.$langs->trans("ActivatingShares").' '.$form->textwithtooltip('',$htmltext,2,1,$text).'</td>'."\n";
 print '<td align="center" width="20">&nbsp;</td>';
 print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
@@ -213,212 +315,153 @@ print '</tr>';
 // Share thirparties and contacts
 if (! empty($conf->societe->enabled))
 {
-	$var=!$var;
-	print '<tr id="sharethirdparty" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("ShareThirdpartiesAndContacts").'</td>';
+	print '<tr id="sharethirdparty" class="oddeven"'.(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
+	print '<td><span class="fa fa-'.$object->sharingelements['thirdparty']['icon'].'"></span><span class="multiselect-title">'.$langs->trans("ShareThirdpartiesAndContacts").'</span></td>';
 	print '<td align="center" width="20">&nbsp;</td>';
 
 	print '<td align="center" width="100">';
 	$input = array(
-			'showhide' => array(
-					'#shareinvoice',
-					'#shareinvoicenumber',
-					'#shareagenda'
-			),
-			'del' => array(
-					'MULTICOMPANY_INVOICE_SHARING_ENABLED',
-					'MULTICOMPANY_INVOICENUMBER_SHARING_ENABLED',
-					'MULTICOMPANY_AGENDA_SHARING_ENABLED'
-			)
+		'showhide' => array(
+			'#shareobjecttitle'
+		)
 	);
-	print ajax_constantonoff('MULTICOMPANY_THIRDPARTY_SHARING_ENABLED', $input, 0);
+	foreach ($object->sharingelements as $key => $values)
+	{
+		if (! isset($values['disable']) && ($values['type'] === 'object' || $values['type'] === 'objectnumber'))
+		{
+			if (isset($values['input']) && isset($values['input']['thirdparty'])) {
+				if (isset($values['input']['thirdparty']['showhide']) && $values['input']['thirdparty']['showhide'] === true) {
+					if (! isset($input['showhide'])) $input['showhide'] = array();
+					array_push($input['showhide'], '#share'.$key);
+				}
+				if (isset($values['input']['thirdparty']['hide']) && $values['input']['thirdparty']['hide'] === true) {
+					if (! isset($input['hide'])) $input['hide'] = array();
+					array_push($input['hide'], '#share'.$key);
+				}
+				if (isset($values['input']['thirdparty']['del']) && $values['input']['thirdparty']['del'] === true) {
+					if (! isset($input['del'])) $input['del'] = array();
+					array_push($input['del'], 'MULTICOMPANY_'.strtoupper($key).'_SHARING_ENABLED');
+				}
+			}
+		}
+	}
+	print ajax_mcconstantonoff('MULTICOMPANY_THIRDPARTY_SHARING_ENABLED', $input, 0);
 	print '</td></tr>';
 }
 
-// Share invoices and invoices number
-if (! empty($conf->facture->enabled) && ! empty($conf->societe->enabled))
+// Elements sharings
+$text = img_picto('', 'info','class="linkobject"');
+
+foreach ($object->sharingelements as $element => $params)
 {
-	/*if (!empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) && !empty($conf->global->MULTICOMPANY_THIRDPARTY_SHARING_ENABLED))
-		$var=!$var;
-	$display=(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) || empty($conf->global->MULTICOMPANY_THIRDPARTY_SHARING_ENABLED) ? ' style="display:none;"' : '');
-	print '<tr id="shareinvoice" '.$bc[$var].$display.'>';
-	print '<td>'.$langs->trans("ShareInvoices").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
+	if (! isset($params['disable']) && $params['type'] === 'element')
+	{
+		$tooltip = null;
+		$display = ! empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED);
+		$module = ((isset($object->sharingmodulename[$element]) && !empty($object->sharingmodulename[$element])) ? $object->sharingmodulename[$element] : $element);
+		$enabled = (! empty($params['enable']) ? dol_eval($params['enable'], 1) : $conf->$module->enabled);
+		if (! empty($enabled))
+		{
+			$icon = (! empty($params['icon'])?$params['icon']:'cogs');
 
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_INVOICE_SHARING_ENABLED', '', 0);
-	print '</td></tr>';*/
+			if (! empty($params['lang'])) {
+				$langs->load($params['lang']);
+			}
 
-	//if (!empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) && !empty($conf->global->MULTICOMPANY_THIRDPARTY_SHARING_ENABLED))
-		$var=!$var;
-	$display=(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) || empty($conf->global->MULTICOMPANY_THIRDPARTY_SHARING_ENABLED) ? ' style="display:none;"' : '');
-	print '<tr id="shareinvoicenumber" '.$bc[$var].$display.'>';
-	print '<td>'.$langs->trans("ShareInvoicesNumber").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
+			if (! empty($params['tooltip'])) {
+				$htmltext = $langs->trans($params['tooltip']);
+				$tooltip = $form->textwithtooltip('', $htmltext, 2, 1, $text);
+			}
 
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_INVOICENUMBER_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
+			if (! empty($params['display'])) {
+				$display = ($display && dol_eval($params['display'], 1));
+			}
+
+			$display = ($display ? '' : ' style="display:none;"');
+
+			print '<tr id="share'.$element.'" class="oddeven"'.$display.'>';
+			print '<td><span class="fa fa-'.$icon.'"></span>';
+			print '<span class="multiselect-title">'.$langs->trans("Share".ucfirst($element)).(! empty($tooltip) ? ' '.$tooltip : '').'</span></td>';
+			print '<td align="center" width="20">&nbsp;</td>';
+
+			print '<td align="center" width="100">';
+
+			$input = array();
+			foreach ($object->sharingelements as $key => $values) {
+				if (! isset($values['disable']) && isset($values['input']) && isset($values['input'][$element])) {
+					if (isset($values['input'][$element]['showhide']) && $values['input'][$element]['showhide'] === true) {
+						if (! isset($input['showhide'])) $input['showhide'] = array();
+						array_push($input['showhide'], '#share'.$key);
+					}
+					if (isset($values['input'][$element]['hide']) && $values['input'][$element]['hide'] === true) {
+						if (! isset($input['hide'])) $input['hide'] = array();
+						array_push($input['hide'], '#share'.$key);
+					}
+					if (isset($values['input'][$element]['del']) && $values['input'][$element]['del'] === true) {
+						if (! isset($input['del'])) $input['del'] = array();
+						array_push($input['del'], 'MULTICOMPANY_'.strtoupper($key).'_SHARING_ENABLED');
+					}
+				}
+			}
+
+			print ajax_mcconstantonoff('MULTICOMPANY_'.strtoupper($element).'_SHARING_ENABLED', $input, 0);
+			print '</td></tr>';
+		}
+	}
 }
 
-// Share agendas
-if (! empty($conf->agenda->enabled) && ! empty($conf->societe->enabled))
+// Objects sharings
+$text = img_picto('', 'info','class="linkobject"');
+$htmltext = $langs->trans("ObjectSharingsInfo");
+$display=(! empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) && ! empty($conf->global->MULTICOMPANY_THIRDPARTY_SHARING_ENABLED) ? '' : ' style="display:none;"');
+print '<tr class="liste_titre" id="shareobjecttitle"'.$display.'>';
+print '<td>'.$langs->trans("ActivatingObjectShares").' '.$form->textwithtooltip('', $htmltext, 2, 1, $text).'</td>'."\n";
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
+print '</tr>';
+
+foreach ($object->sharingelements as $element => $params)
 {
-	if (!empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) && !empty($conf->global->MULTICOMPANY_THIRDPARTY_SHARING_ENABLED))
-		$var=!$var;
-	$display=(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) || empty($conf->global->MULTICOMPANY_THIRDPARTY_SHARING_ENABLED) ? ' style="display:none;"' : '');
-	print '<tr id="shareagenda" '.$bc[$var].$display.'>';
-	print '<td>'.$langs->trans("ShareAgenda").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
+	if (! isset($params['disable']) && ($params['type'] === 'object' || $params['type'] === 'objectnumber'))
+	{
+		$tooltip = null;
+		$display = ! empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED);
+		$module = ((isset($object->sharingmodulename[$element]) && !empty($object->sharingmodulename[$element])) ? $object->sharingmodulename[$element] : $element);
+		$enabled = (! empty($params['enable']) ? dol_eval($params['enable'], 1) : $conf->$module->enabled);
+		if (! empty($enabled))
+		{
+			$icon = (! empty($params['icon'])?$params['icon']:'cogs');
 
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_AGENDA_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
-}
+			if (! empty($params['lang'])) {
+				$langs->load($params['lang']);
+			}
 
-// Share products/services
-if (! empty($conf->product->enabled) || ! empty($conf->service->enabled))
-{
-	if (!empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED))
-		$var=!$var;
-	print '<tr id="shareproduct" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("ShareProductsAndServices").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
+			if (! empty($params['tooltip'])) {
+				$htmltext = $langs->trans($params['tooltip']);
+				$tooltip = $form->textwithtooltip('', $htmltext, 2, 1, $text);
+			}
 
-	print '<td align="center" width="100">';
-	$input = array(
-			'showhide' => array(
-					'#shareproductprice',
-					'#sharestock'
-			),
-			'del' => array(
-					'MULTICOMPANY_PRODUCTPRICE_SHARING_ENABLED',
-					'MULTICOMPANY_STOCK_SHARING_ENABLED'
-			)
-	);
-	print ajax_constantonoff('MULTICOMPANY_PRODUCT_SHARING_ENABLED', $input, 0);
-	print '</td></tr>';
+			if (! empty($params['display'])) {
+				$display = ($display && dol_eval($params['display'], 1));
+			}
 
-	if (!empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED))
-		$var=!$var;
-	print '<tr id="shareproductprice" '.$bc[$var].(empty($conf->global->MULTICOMPANY_PRODUCT_SHARING_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("ShareProductsAndServicesPrices").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
+			$display = ($display ? '' : ' style="display:none;"');
 
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_PRODUCTPRICE_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
-}
+			print '<tr id="share'.$element.'" class="oddeven"'.$display.'>';
+			print '<td><span class="fa fa-'.$icon.'"></span>';
+			print '<span class="multiselect-title">'.$langs->trans("Share".ucfirst($element)).(! empty($tooltip) ? ' '.$tooltip : '').'</span></td>';
+			print '<td align="center" width="20">&nbsp;</td>';
 
-// Share stocks
-if (! empty($conf->stock->enabled) && (! empty($conf->product->enabled) || ! empty($conf->service->enabled)))
-{
-	if (!empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED))
-		$var=!$var;
-	$display=(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) || empty($conf->global->MULTICOMPANY_PRODUCT_SHARING_ENABLED) ? ' style="display:none;"' : '');
-	print '<tr id="sharestock" '.$bc[$var].$display.'>';
-	print '<td>'.$langs->trans("ShareStock").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_STOCK_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
-}
-
-// Share categories
-if (! empty($conf->categorie->enabled))
-{
-	if (!empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED))
-		$var=!$var;
-	print '<tr id="sharecategory" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("ShareCategories").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_CATEGORY_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
-}
-
-// Share banks
-if (! empty($conf->banque->enabled))
-{
-	$var=!$var;
-	print '<tr id="sharebank" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("ShareBank").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_BANKACCOUNT_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
-}
-
-// Share expenses reports
-if (! empty($conf->expensereport->enabled))
-{
-	$var=!$var;
-	print '<tr id="shareexpensereport" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("ShareExpenseReport").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_EXPENSEREPORT_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
-}
-
-//share projects
-if (! empty($conf->projet->enabled))
-{
-        $var=!$var;
-        print '<tr id="shareproject" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-        print '<td>'.$langs->trans("ShareProject").'</td>';
-        print '<td align="center" width="20">&nbsp;</td>';
-
-        print '<td align="center" width="100">';
-        print ajax_constantonoff('MULTICOMPANY_PROJECT_SHARING_ENABLED', '', 0);
-        print '</td></tr>';
-}
-
-// Share members
-if (! empty($conf->adherent->enabled))
-{
-	$var=!$var;
-	print '<tr id="sharemember" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("ShareMembers").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_MEMBER_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
-}
-
-// Share equipements
-if (! empty($conf->equipement->enabled))
-{
-	$var=!$var;
-	print '<tr id="sharemember" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("SharedEquipements").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_EQUIPEMENT_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
-}
-
-// Share contract
-if (! empty($conf->contrat->enabled))
-{
-	$var=!$var;
-	print '<tr id="sharemember" '.$bc[$var].(empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) ? ' style="display:none;"' : '').'>';
-	print '<td>'.$langs->trans("SharedContrat").'</td>';
-	print '<td align="center" width="20">&nbsp;</td>';
-
-	print '<td align="center" width="100">';
-	print ajax_constantonoff('MULTICOMPANY_CONTRACT_SHARING_ENABLED', '', 0);
-	print '</td></tr>';
+			print '<td align="center" width="100">';
+			$input = array();
+			print ajax_mcconstantonoff('MULTICOMPANY_'.strtoupper($element).'_SHARING_ENABLED', $input, 0);
+			print '</td></tr>';
+		}
+	}
 }
 
 // Dictionnaries
-if (1 == 2 && ! empty($object->sharingdicts)) // TODO wait Dolibarr 7.0 ?
+if (1==2 && ! empty($object->sharingdicts))
 {
 	$text = img_picto('', 'info','class="linkobject"');
 	$htmltext = $langs->trans("DictsSharingsInfo");
@@ -429,15 +472,14 @@ if (1 == 2 && ! empty($object->sharingdicts)) // TODO wait Dolibarr 7.0 ?
 	print '<td align="center" width="100">'.$langs->trans("Value").'</td>'."\n";
 	print '</tr>';
 
-	foreach ($object->sharingdicts as $dict)
+	foreach ($object->sharingdicts as $dict => $data)
 	{
-		$var=!$var;
-		print '<tr id="share'.$dict.'" '.$bc[$var].'>';
+		print '<tr id="share'.$dict.'" class="oddeven">';
 		print '<td>'.$langs->trans("Share".ucfirst($dict)).'</td>';
 		print '<td align="center" width="20">&nbsp;</td>';
 
 		print '<td align="center" width="100">';
-		print ajax_constantonoff('MULTICOMPANY_'.strtoupper($dict).'_SHARING_DISABLED', '', 0);
+		print ajax_mcconstantonoff('MULTICOMPANY_'.strtoupper($dict).'_SHARING_DISABLED', '', 0);
 		print '</td></tr>';
 	}
 }

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Copyright (C) 2010-2016 Regis Houssin  <regis.houssin@inodbox.com>
+-- Copyright (C) 2010-2017 Regis Houssin  <regis.houssin@inodbox.com>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
 
 create table llx_entity_thirdparty
 (
-  rowid				integer AUTO_INCREMENT PRIMARY KEY,
-  entity			integer DEFAULT 1 NOT NULL,	-- multi company id
-  fk_entity			integer NOT NULL,
-  fk_soc			integer NOT NULL
-
+  rowid			integer AUTO_INCREMENT PRIMARY KEY,
+  entity		integer DEFAULT 1 NOT NULL,	-- multi company id
+  fk_entity		integer NOT NULL,
+  fk_soc		integer NOT NULL
+  
 ) ENGINE=innodb;

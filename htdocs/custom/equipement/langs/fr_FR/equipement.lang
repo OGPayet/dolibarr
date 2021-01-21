@@ -389,3 +389,7 @@ EquipementErrorWarehouseLostNone        = Aucun entrepôt rebut n'a été sélec
 EquipementErrorStatusNotDefined         = Statut non défini dans le dictionnaire des etats d'équipements : %s
 
 LinkToEquipement=Lier à un équipement
+
+ShareEquipement = Activer le partage des Equipements
+EQUIPEMENTSharing = Partage des équipements
+EQUIPEMENTSharingDescription = Sélection des entités qui partageront leurs équipements avec cette entité.

@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2010-2016	Regis Houssin	<regis.houssin@inodbox.com>
+/* Copyright (C) 2010-2020	Regis Houssin	<regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,105 +19,68 @@
 /**
  *      \file       /multicompany/core/triggers/interface_25_modMulticompany_MulticompanyWorkflow.class.php
  *      \ingroup    multicompany
- *      \brief      Trigger file for create milticompany data
+ *      \brief      Trigger file for create multicompany data
  */
 
+require_once DOL_DOCUMENT_ROOT.'/core/triggers/dolibarrtriggers.class.php';
 
 /**
  *      \class      InterfaceMulticompanyWorkflow
  *      \brief      Classe des fonctions triggers des actions personnalisees du module multicompany
  */
 
-class InterfaceMulticompanyWorkflow
+class InterfaceMulticompanyWorkflow extends DolibarrTriggers
 {
-    private $db;
+    public $family = 'multicompany';
+
+    public $description = "Triggers of this module allows to create multicompany data";
 
     /**
-     *   Constructor
+     * Version of the trigger
      *
-     *   @param      DoliDB		$db		Database handler
+     * @var string
      */
-    public function __construct($db)
-    {
-        $this->db = $db;
-
-        $this->name = preg_replace('/^Interface/i','',get_class($this));
-        $this->family = "multicompany";
-        $this->description = "Triggers of this module allows to create multicompany data";
-        $this->version = '4.0.0';            // 'development', 'experimental', 'dolibarr' or version
-        $this->picto = 'multicompany@multicompany';
-    }
-
+    public $version = self::VERSION_DOLIBARR;
 
     /**
-     * Trigger name
      *
-     * 	@return		string	Name of trigger file
+     * @var string Image of the trigger
      */
-    public function getName()
-    {
-        return $this->name;
-    }
+    public $picto = 'multicompany@multicompany';
 
-    /**
-     * Trigger description
-     *
-     * 	@return		string	Description of trigger file
-     */
-    public function getDesc()
-    {
-        return $this->description;
-    }
+	/**
+	 * Function called when a Dolibarrr business event is done.
+	 * All functions "runTrigger" are triggered if file is inside directory htdocs/core/triggers or htdocs/module/core/triggers (and declared)
+	 *
+	 * Following properties may be set before calling trigger. The may be completed by this trigger to be used for writing the event into database:
+	 * $object->id (id of entity)
+	 * $object->element (element type of object)
+	 *
+	 * 	@param		string		$action		Event action code
+	 * 	@param		Object		$object		Object
+	 * 	@param		User		$user		Object user
+	 * 	@param		Translate	$langs		Object langs
+	 * 	@param		conf		$conf		Object conf
+	 * 	@return		int						<0 if KO, 0 if no triggered ran, >0 if OK
+	 */
+	public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
+	{
+		// Mettre ici le code a executer en reaction de l'action
+		// Les donnees de l'action sont stockees dans $object
 
-    /**
-     * Trigger version
-     *
-     * 	@return		string	Version of trigger file
-     */
-    public function getVersion()
-    {
-        global $langs;
-        $langs->load("admin");
-
-        if ($this->version == 'development') return $langs->trans("Development");
-        elseif ($this->version == 'experimental') return $langs->trans("Experimental");
-        elseif ($this->version == 'dolibarr') return DOL_VERSION;
-        elseif ($this->version) return $this->version;
-        else return $langs->trans("Unknown");
-    }
-
-     /**
-     * Function called when a Dolibarrr business event is done.
-     * All functions "run_trigger" are triggered if file
-     * is inside directory core/triggers
-     *
-     * 	@param		string		$action		Event action code
-     * 	@param		Object		$object		Object
-     * 	@param		User		$user		Object user
-     * 	@param		Translate	$langs		Object langs
-     * 	@param		conf		$conf		Object conf
-     * 	@return		int						<0 if KO, 0 if no triggered ran, >0 if OK
-     */
-    public function run_trigger($action, $object, $user, $langs, $conf)
-    {
-        // Mettre ici le code a executer en reaction de l'action
-        // Les donnees de l'action sont stockees dans $object
-
-        if ($action == 'COMPANY_CREATE' || $action == 'COMPANY_MODIFY')
-        {
-		$linked_entity = GETPOST('linked_entity', 'int', 2); // limit to POST
-
-		if ($linked_entity > 0)
+		/*if ($action == 'COMPANY_CREATE')
 		{
-			dol_syslog("Trigger '".$this->name."' for action '$action' launched by ". __FILE__ .". id=".$object->rowid);
+			$entity = GETPOST('new_entity', 'int', 2); // limit to POST
 
+			if ($entity > 0)
+			{
+				dol_syslog("Trigger '".$this->name."' for action '$action' launched by ". __FILE__ .". id=".$object->rowid);
 
-
-			return $ret;
-		}
-        }
+				return $ret;
+			}
+		}*/
 
 		return 0;
-    }
+	}
 
 }

@@ -530,7 +530,7 @@ class modSynergiesTech extends DolibarrModules
 	 */
 	public function init($options = '')
 	{
-		global $langs;
+		global $langs, $conf;
 		$langs->load("synergiestech@synergiestech");
 
 		$sql = array();
@@ -563,6 +563,26 @@ class modSynergiesTech extends DolibarrModules
 			}
 		}
 
+		//We add shared element for multicompany
+        $arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+        foreach ($arrayOfElement as $index => $param) {
+            if (is_array($param["sharingelements"]) && array_key_exists("contract", $param["sharingelements"])) {
+                unset($arrayOfElement[$index]);
+                break;
+            }
+        }
+        $arrayOfElement[] =
+            array("sharingelements" =>
+            array('contract' => array(
+                'type' => 'object',
+                'icon' => 'file-pdf-o',
+                'enable' => '! empty($conf->contrat->enabled)',
+                'display' => '! empty($conf->global->MULTICOMPANY_CONTRACT_SHARING_ENABLED)',
+                'active' => true
+            ),));
+        dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
+
+
 		return $this->_init($sql, $options);
 	}
 
@@ -577,6 +597,16 @@ class modSynergiesTech extends DolibarrModules
 	public function remove($options = '')
 	{
 		$sql = array();
+		global $conf;
+        $arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+        foreach ($arrayOfElement as $index => $param) {
+            if (is_array($param["sharingelements"]) && array_key_exists("contract", $param["sharingelements"])) {
+                unset($arrayOfElement[$index]);
+                break;
+            }
+        }
+
+        dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
 
 		return $this->_remove($sql, $options);
 	}

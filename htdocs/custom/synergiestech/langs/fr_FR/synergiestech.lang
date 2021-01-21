@@ -323,3 +323,7 @@ SynergiesTechListOfIntervention = interventions
 SynergiesTechListOfProposal = Devis
 SynergiesTechListOfOrder = Commmandes
 SynergiesTechListOfInvoice = Factures
+
+ShareContract = Activer le partage des Contrats
+CONTRACTSharing = Partage des contrats
+CONTRACTSharingDescription = Sélection des entités qui partageront leurs contrats avec cette entité.

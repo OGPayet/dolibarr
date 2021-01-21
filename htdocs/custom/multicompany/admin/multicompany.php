@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2009-2017 Regis Houssin  <regis.houssin@inodbox.com>
+/* Copyright (C) 2009-2018	Regis Houssin	<regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,19 +27,19 @@ if (! $res && file_exists($_SERVER['DOCUMENT_ROOT']."/main.inc.php"))
 	$res=@include($_SERVER['DOCUMENT_ROOT']."/main.inc.php"); // Use on dev env only
 if (! $res) $res=@include("../../../main.inc.php");			// For "custom" directory
 
-require_once '../class/actions_multicompany.class.php';
+dol_include_once('/multicompany/class/actions_multicompany.class.php', 'ActionsMulticompany');
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formadmin.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formcompany.class.php';
 
-$langs->load("admin");
-$langs->load("languages");
-$langs->load('multicompany@multicompany');
+$langs->loadLangs(array('admin', 'languages', 'multicompany@multicompany'));
 
-if (! $user->admin || $user->entity) accessforbidden();
+if (! $user->admin || $user->entity) {
+	accessforbidden();
+}
 
-$action=GETPOST('action','alpha');
+$action=GETPOST('action', 'alpha');
 
 $object = new ActionsMulticompany($db);
 
@@ -51,7 +51,7 @@ $formcompany=new FormCompany($db);
  * Actions
  */
 
-$object->doActions($action);
+$object->doAdminActions($action);
 
 //$test = new DaoMulticompany($db);
 //$test->deleteEntityRecords(4);
@@ -60,24 +60,68 @@ $object->doActions($action);
  * View
  */
 
-$extrajs = array('/multicompany/inc/multiselect/js/ui.multiselect.js');
-$extracss = array('/multicompany/inc/multiselect/css/ui.multiselect.css');
+$extrajs='';
+$extracss='';
 
-llxHeader('',$langs->trans("MultiCompanySetup"),'','','','',$extrajs,$extracss);
+if (empty($action) || $action == "update" || $action == "add") {
+	$extrajs = array(
+		'/multicompany/inc/datatables/js/jquery.dataTables.min.js',
+		//'/multicompany/inc/datatables/responsive/js/dataTables.responsive.min.js',
+		'/multicompany/inc/datatables/buttons/js/dataTables.buttons.min.js',
+		'/multicompany/inc/datatables/buttons/js/buttons.colVis.min.js',
+		'/multicompany/inc/datatables/buttons/js/buttons.html5.min.js'
+	);
+	$extracss = array(
+		'/multicompany/inc/datatables/css/jquery.dataTables.min.css',
+		//'/multicompany/inc/datatables/responsive/css/responsive.dataTables.min.css',
+		'/multicompany/inc/datatables/buttons/css/buttons.dataTables.min.css'
+	);
+} else if (! empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED)) {
+	$extrajs = array(
+		'/multicompany/inc/multiselect/js/multiselect.min.js',
+		//'/multicompany/inc/multiselect/js/multiselect.js'
+	);
+	$extracss = array(
+		'/multicompany/inc/multiselect/css/bootstrap-iso.min.css'
+	);
+}
+
+$help_url='EN:Module_MultiCompany|FR:Module_MultiSoci&eacute;t&eacute;';
+llxHeader('', $langs->trans("MultiCompanySetup"), $help_url, '', '', '', $extrajs, $extracss);
 
 $linkback='<a href="'.DOL_URL_ROOT.'/admin/modules.php">'.$langs->trans("BackToModuleList").'</a>';
-print_fiche_titre($langs->trans("MultiCompanySetup"),$linkback,'multicompany@multicompany');
-
-print '<br>';
+print load_fiche_titre($langs->trans("MultiCompanySetup"), $linkback, 'multicompany@multicompany', 0, 'multicompany_title');
 
 $head = multicompany_prepare_head();
-dol_fiche_head($head, 'entities', $object->getTitle(GETPOST("action")));
+dol_fiche_head($head, 'entities', $object->getTitle($action), -1);
+
+$level = checkMultiCompanyVersion();
+if ($level === 1 || $level === -1)
+{
+	$text = $langs->trans("MultiCompanyIsOlderThanDolibarr");
+	if ($level === -1) $text = $langs->trans("DolibarrIsOlderThanMulticompany");
+
+	print '<div class="multicompany_checker">';
+	dol_htmloutput_mesg($text, '', 'warning', 1);
+	print '</div>';
+
+}
 
 // Assign template values
 $object->assign_values($action);
 
+// Isolate Boostrap for avoid conflicts
+if (! empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) && ! empty($action) && $action != "update" && $action != "add") {
+	print '<div class="bootstrap-iso">';
+}
+
 // Show the template
 $object->display();
+
+// Isolate Boostrap for avoid conflicts
+if (! empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED) && ! empty($action) && $action != "update" && $action != "add") {
+	print '</div>';
+}
 
 // Card end
 dol_fiche_end();
