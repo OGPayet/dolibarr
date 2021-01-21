@@ -947,7 +947,7 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
                     if (!empty($conf->use_javascript_ajax) && $user->rights->produit->creer && !empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
                         //Bug ajax_machin
                         $product_static->element='entrepot';
-                        print ajax_object_onoff($product_static, 'statut', 'status', 'ProductStatusOnSell', 'ProductStatusNotOnSell');
+                        print ajax_object_onoff($product_static, 'statut', 'statut', 'ProductStatusOnSell', 'ProductStatusNotOnSell');
                     } else {
                         print $product_static->LibStatut($obj->statut, 5, 0);
                     }

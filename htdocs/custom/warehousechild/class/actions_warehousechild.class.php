@@ -56,7 +56,7 @@ class Actionswarehousechild
     /**
      * Constructor
      *
-     *  @param		DoliDB		$db      Database handler
+     *  @param      DoliDB      $db      Database handler
      */
     public function __construct($db)
     {
@@ -75,7 +75,7 @@ class Actionswarehousechild
     public function updateSession($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
-//header('Location: http://www.exampe.com/');
+        //header('Location: http://www.exampe.com/');
         $error = 0; // Error counter
 
         /*
@@ -88,16 +88,16 @@ class Actionswarehousechild
             dol_include_once('/warehousechild/core/lib/warehousechild.lib.php');
 
             hackDefaultWarehouse();
-////            print('Module context: ');
-////            var_dump($object->context);
-//            if (!$error) {
-//                $this->results   = array('myreturn' => 999);
-//                $this->resprints = 'A text to show';
-//                return 0;                                    // or return 1 to replace standard code
-//            } else {
-//                $this->errors[] = 'Error message';
-//                return -1;
-//            }
+            ////            print('Module context: ');
+            ////            var_dump($object->context);
+            //            if (!$error) {
+            //                $this->results   = array('myreturn' => 999);
+            //                $this->resprints = 'A text to show';
+            //                return 0;                                    // or return 1 to replace standard code
+            //            } else {
+            //                $this->errors[] = 'Error message';
+            //                return -1;
+            //            }
         }
         return 0;
     }
@@ -155,7 +155,7 @@ class Actionswarehousechild
         $error = 0; // Error counter
 
         if (in_array($parameters['currentcontext'], array('somecontext1', 'somecontext2'))) {  // do something only for the context 'somecontext'
-            $this->resprints = '<option value="0"'.($disabled ? ' disabled="disabled"' : '').'>'.$langs->trans("warehousechildMassAction").'</option>';
+            $this->resprints = '<option value="0"' . ($disabled ? ' disabled="disabled"' : '') . '>' . $langs->trans("warehousechildMassAction") . '</option>';
         }
 
         if (!$error) {
@@ -164,5 +164,25 @@ class Actionswarehousechild
             $this->errors[] = 'Error message';
             return -1;
         }
+    }
+
+    /**
+     * Overloading the addMoreMassActions function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function restrictedArea($parameters, &$object, &$action, $hookmanager)
+    {
+        global $user;
+        $feature = $parameters["features"];
+        $objectId = $parameters["objectid"];
+        if ($feature == "entrepot" && !empty($objectId) && $user->rights->stock->lire) {
+            return 1;
+        }
+        return 0;
     }
 }
