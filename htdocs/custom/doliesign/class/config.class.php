@@ -165,7 +165,7 @@ class DoliEsignConfig extends CommonObject
 		);
 		if (! empty($conf->global->MAIN_SUPPORT_SHARED_CONTACT_BETWEEN_THIRDPARTIES)) $this->elementList["societe"] = $langs->trans('ThirdParty');
 
-		complete_elementList_with_modules($this->elementList);
+		//complete_elementList_with_modules($this->elementList);
 
 		asort($this->elementList);
 
