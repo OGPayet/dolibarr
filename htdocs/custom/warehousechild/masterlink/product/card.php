@@ -103,6 +103,7 @@ use \FormBarCode as FormBarCode;
 use \DolEditor as DolEditor;
 use \Categorie as Categorie;
 use \GenericObject as GenericObject;
+use \ProductCombination as ProductCombination;
 // Load translation files required by the page
 $langs->loadLangs(array('products', 'other', 'warehousechild@warehousechild'));
 if (!empty($conf->stock->enabled)) $langs->load("stocks");
