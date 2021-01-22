@@ -3112,7 +3112,7 @@ SCRIPT;
         global $db;
 
         $contexts = explode(':', $parameters['context']);
-        $contextWhenDisplayBannerTab = array('thirdpartycard','commcard');
+        $contextWhenDisplayBannerTab = array('thirdpartycard','commcard','thirdpartycomm');
         $contextsThatShouldActivateThisHook = array_intersect($contexts, $contextWhenDisplayBannerTab);
 
         if (count($contextsThatShouldActivateThisHook) > 0 && $object->client > 0) {
