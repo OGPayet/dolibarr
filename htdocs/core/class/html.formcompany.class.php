@@ -693,7 +693,12 @@ class FormCompany extends Form
 			return $socid;
 		} else {
 			// Search to list thirdparties
-			$sql = "SELECT s.rowid, s.nom as name FROM";
+			//----------------------------------------------------
+            // Modification - Open-Dsi - Begin
+			//$sql = "SELECT s.rowid, s.nom as name FROM";
+			$sql = "SELECT s.rowid, s.nom as name, s.name_alias, s.client, s.fournisseur, s.code_client, s.code_fournisseur, s.zip, s.town FROM";
+            // Modification - Open-Dsi - End
+            //----------------------------------------------------
 			$sql .= " ".MAIN_DB_PREFIX."societe as s";
 			$sql .= " WHERE s.entity IN (".getEntity('societe').")";
 			// For ajax search we limit here. For combo list, we limit later
@@ -723,17 +728,55 @@ class FormCompany extends Form
 						if ($i == 0) $firstCompany = $obj->rowid;
 						$disabled = 0;
 						if (is_array($limitto) && count($limitto) && !in_array($obj->rowid, $limitto)) $disabled = 1;
-						if ($selected > 0 && $selected == $obj->rowid)
-						{
-							print '<option value="'.$obj->rowid.'"';
-							if ($disabled) print ' disabled';
-							print ' selected>'.dol_trunc($obj->name, 24).'</option>';
-							$firstCompany = $obj->rowid;
-						} else {
-							print '<option value="'.$obj->rowid.'"';
-							if ($disabled) print ' disabled';
-							print '>'.dol_trunc($obj->name, 24).'</option>';
-						}
+						                        //----------------------------------------------------
+                        // Modification - Open-Dsi - Begin
+                        print '<option value="' . $obj->rowid . '"';
+                        if ($disabled) print ' disabled';
+                        if ($selected > 0 && $selected == $obj->rowid) {
+                            print ' selected';
+                            $firstCompany = $obj->rowid;
+                        }
+                        print '>';
+
+                        $label = '';
+                        if ($conf->global->SOCIETE_ADD_REF_IN_LIST) {
+                            if (($obj->client) && (!empty($obj->code_client))) {
+                                $label = $obj->code_client . ' - ';
+                            }
+                            if (($obj->fournisseur) && (!empty($obj->code_fournisseur))) {
+                                $label .= $obj->code_fournisseur . ' - ';
+                            }
+                            $label .= ' ' . $obj->name;
+                        } else {
+                            $label = $obj->name;
+                        }
+
+                        if (!empty($obj->name_alias)) {
+                            $label = '(' . $label . ')';
+
+                            if (!empty($obj->town)) {
+                                $label = $obj->town . ' ' . $label;
+                            }
+
+                            if (!empty($obj->zip)) {
+                                $label = $obj->zip . ' - ' . $label;
+                            }
+                            $label = $obj->name_alias . ' - ' . $label;
+                        } else {
+                            if (!empty($obj->zip)) {
+                                $label = $label . ' - ' . $obj->zip;
+                            }
+                            if (!empty($obj->town)) {
+                                $label = $label . ' - ' . $obj->town;
+                            }
+                        }
+
+                        print $label;
+
+                        print '</option>';
+                        // Modification - Open-Dsi - End
+                        //----------------------------------------------------
+
 						$i++;
 					}
 				}

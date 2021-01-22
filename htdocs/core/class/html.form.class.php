@@ -1277,7 +1277,26 @@ class Form
 
 					if (!empty($obj->name_alias)) {
 						$label .= ' ('.$obj->name_alias.')';
+						//OPEN-DSI SYNERGIES TECH : ajout du ZIP et town dans l'affichage des listes de tiers
+						//BEGIN
+						if(!empty($obj->town)) {
+							$label=$obj->town . ' ' . $label;
+						}
+						if(!empty($obj->zip)) {
+							$label=$obj->zip .' - '.$label;
+						}
+						$label=$obj->name_alias . ' - ' . $label;
 					}
+					else
+					{
+						if(!empty($obj->zip)) {
+							$label=$label . ' - ' . $obj->zip;
+						}
+						if(!empty($obj->town)) {
+							$label=$label . ' - ' . $obj->town;
+						}
+					}
+					//END
 
 					if ($showtype)
 					{
@@ -1287,8 +1306,10 @@ class Form
 						if ($obj->fournisseur) $label .= ($obj->client ? ', ' : '').$langs->trans("Supplier");
 						if ($obj->client || $obj->fournisseur) $label .= ')';
 					}
-
-					if (!empty($conf->global->COMPANY_SHOW_ADDRESS_SELECTLIST)) {
+					//OPEN-DSI SYNERGIES TECH : ajout du ZIP et town dans l'affichage des listes de tiers
+					//BEGIN
+					if (!empty($conf->global->COMPANY_SHOW_ADDRESS_SELECTLIST) && false) {
+					//END
 						$label .= ($obj->address ? ' - '.$obj->address : '').($obj->zip ? ' - '.$obj->zip : '').($obj->town ? ' '.$obj->town : '');
 						if (!empty($obj->country_code)) {
 							$label .= ', '.$langs->trans('Country'.$obj->country_code);
