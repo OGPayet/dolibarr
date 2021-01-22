@@ -7196,7 +7196,7 @@ class Form
 
 						print '<tr class="oddeven">';
 						print '<td class="left">';
-						print '<input type="radio" name="idtolinkto" value='.$objp->rowid.'>';
+						print '<input type="checkbox" name="idtolinkto[]" value='.$objp->rowid.'>';
 						print '</td>';
 						print '<td class="center">'.$objp->ref.'</td>';
 						print '<td>'.$objp->ref_client.'</td>';
