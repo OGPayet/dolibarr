@@ -135,23 +135,16 @@ if (! empty($socid) && ! empty($action) && ! empty($htmlname))
             }
             $others[] = '<option value="' . $company['key'] . '"' . $selected . '>' . $company['label'] . '</option>';
         }
-    }
+	}
+	$arrayEmpty = array();
     if ($showempty) {
         if ($hasAtLeastOneSelected) {
-            $arrayempty = array('<option value="">&nbsp;</option>');
+            $arrayEmpty[] = '<option value="-1">&nbsp;</option>';
         } else {
-            $arrayempty = array('<option value="" selected="selected">&nbsp;</option>');
+            $arrayEmpty[] = '<option value="-1" selected="selected">&nbsp;</option>';
         }
-        if (empty($arrayresult)) {
-            $arrayempty[] ='<option value="">&nbsp;</option>';
-        }
-
-        $options = array_merge($arrayresult, $arrayempty, $others);
-    } else {
-        $options = array_merge($arrayresult, $others);
-    }
-
-
+	}
+	$options = array_merge($arrayEmpty, $arrayresult, $others);
     $return['value'] = implode('', $options);
     $return['num']   = $form->result['nbofthirdparties'];
     $return['error'] = $form->error;
