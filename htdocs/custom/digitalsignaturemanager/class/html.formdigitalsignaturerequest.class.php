@@ -564,7 +564,8 @@ class FormDigitalSignatureRequest
 			'showFromUserAddForm' => $userCanAddLine ? 1 : null,
 			'showFreeAddForm' => $userCanAddLine ? 1 : null
 		);
-		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
+		$activatedOfActionColumns = array_values(array_filter($numberOfActionColumnPerComponentsDisplayed));
+		$neededActionColumn = empty($activatedOfActionColumns) ? 0 :max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
 
 		print '<div class="div-table-responsive-no-min">';
 		print '<div class="titre"><h3>' . $langs->trans('DigitalSignatureManagerPeopleList') . '</h3></div>';
@@ -687,7 +688,8 @@ class FormDigitalSignatureRequest
 			'showEditForm' => $isALineBeingEdited ? count(array_filter(array(true, $userCanChangeOrder))) : null,
 			'showAddForm' => $userCanAddLine ? 1 : null,
 		);
-		$neededActionColumn = max(array_values(array_filter($numberOfActionColumnPerComponentsDisplayed)));
+		$activatedActionColumn = array_values(array_filter($numberOfActionColumnPerComponentsDisplayed));
+		$neededActionColumn = empty($activatedActionColumn) ? 0 : max($activatedActionColumn);
 
 		print '<div class="div-table-responsive-no-min">';
 		print '<div class="titre"><h3>' . $langs->trans('DigitalSignatureManagerCheckBoxList') . '</h3></div>';

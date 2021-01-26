@@ -47,7 +47,7 @@ class FormProduct extends \FormProduct
      *
      *  @throws \Exception
 	 */
-	function selectWarehouses($selected='',$htmlname='idwarehouse',$filterstatus='',$empty=0,$disabled=0,$fk_product=0,$empty_label='', $showstock=0, $forcecombo=0, $events=array(), $morecss='minwidth200', $exclude='', $showfullpath=1)
+	function selectWarehouses($selected = '', $htmlname = 'idwarehouse', $filterstatus = '', $empty = 0, $disabled = 0, $fk_product = 0, $empty_label = '', $showstock = 0, $forcecombo = 0, $events = array(), $morecss = 'minwidth200', $exclude = '', $showfullpath = 1, $stockMin = false, $orderBy = 'e.ref')
 	{
 
 		global $conf,$langs,$user;
@@ -103,7 +103,7 @@ class FormProduct extends \FormProduct
      *
      * @throws \Exception
 	 */
-	function loadWarehouses($fk_product=0, $batch = '', $status='', $sumStock = true, $exclude='')
+	function loadWarehouses($fk_product = 0, $batch = '', $status = '', $sumStock = true, $exclude = '', $stockMin = false, $orderBy = 'e.ref')
 	{
 		global $conf, $langs;
 

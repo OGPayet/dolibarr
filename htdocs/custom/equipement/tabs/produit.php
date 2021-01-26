@@ -54,9 +54,9 @@ $page = GETPOST('page', 'int');
 if ($page == -1) {
 	$page = 0;
 }
-$offset = $conf->liste_limit * $page;
-$pageprev = $page - 1;
-$pagenext = $page + 1;
+$offset = (int) $conf->liste_limit * (int) $page;
+$pageprev = (int) $page - 1;
+$pagenext = (int) $page + 1;
 
 if (! $sortorder) $sortorder="DESC";
 if (! $sortfield) $sortfield="e.datec";

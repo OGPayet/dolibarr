@@ -56,9 +56,9 @@ $sortfield = GETPOST("sortfield",'alpha');
 $sortorder = GETPOST("sortorder",'alpha');
 $page = GETPOST("page",'int');
 if ($page == -1) { $page = 0; }
-$offset = $conf->liste_limit * $page;
-$pageprev = $page - 1;
-$pagenext = $page + 1;
+$offset = (int) $conf->liste_limit * (int) $page;
+$pageprev = (int) $page - 1;
+$pagenext = (int) $page + 1;
 if (! $sortfield) $sortfield="p.fk_parent, p.ref";
 if (! $sortorder) $sortorder="ASC";
 
