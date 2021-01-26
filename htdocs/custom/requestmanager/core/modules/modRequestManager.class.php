@@ -290,16 +290,46 @@ class modRequestManager extends DolibarrModules
         $this->menu = array();            // List of menus to add
         $r = 0;
 
-        $this->menu[$r] = array(
+        // $this->menu[$r] = array(
+        //     'fk_menu' => '',
+        //     'type' => 'top',
+        //     'titre' => 'RequestManagerMenuTop',
+        //     'mainmenu' => 'requestmanager',
+        //     'url' => '/requestmanager/list.php?mylist=1',
+        //     'langs' => 'requestmanager@requestmanager',
+        //     'position' => 100,
+        //     'enabled' => '$conf->requestmanager->enabled',
+        //     'perms' => '$user->rights->requestmanager->lire',
+        //     'target' => '',
+        //     'user' => 0
+        // );
+		// $r++;
+
+		$this->menu[$r] = array(
             'fk_menu' => '',
             'type' => 'top',
             'titre' => 'RequestManagerMenuTop',
             'mainmenu' => 'requestmanager',
-            'url' => '/requestmanager/list.php?mylist=1',
+            'url' => '/requestmanager/lists_follow.php',
             'langs' => 'requestmanager@requestmanager',
-            'position' => 100,
+            'position' => 360,
             'enabled' => '$conf->requestmanager->enabled',
             'perms' => '$user->rights->requestmanager->lire',
+            'target' => '',
+            'user' => 0
+        );
+        $r++;
+
+        $this->menu[$r] = array(
+            'fk_menu' => '',
+            'type' => 'top',
+            'titre' => 'RequestManagerMenuTopCreateFast',
+            'mainmenu' => 'requestmanager',
+            'url' => '/requestmanager/createfast.php',
+            'langs' => 'requestmanager@requestmanager',
+            'position' => 361,
+            'enabled' => '$conf->requestmanager->enabled',
+            'perms' => '$user->rights->requestmanager->creer',
             'target' => '',
             'user' => 0
         );

@@ -181,13 +181,9 @@ $arrayfields = array(
     'rm.tms' => array('label' => $langs->trans("DateModificationShort"), 'checked' => 0, 'position' => 500),
     'rm.fk_status' => array('label' => $langs->trans("Status"), 'checked' => 1, 'position' => 1000),
 );
-// Extra fields
-if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
-{
-    foreach($extrafields->attribute_label as $key => $val)
-    {
-        $arrayfields["ef.".$key]=array('label'=>$extrafields->attribute_label[$key], 'checked'=>$extrafields->attribute_list[$key], 'position'=>$extrafields->attribute_pos[$key], 'enabled'=>$extrafields->attribute_perms[$key]);
-    }
+// Add fields from extrafields
+if (!empty($extrafields->attributes[$object->table_element]['label'])) {
+	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? "ef.".$key.' as options_'.$key.', ' : '');
 }
 
 $object = new RequestManager($db);	// To be passed as parameter of executeHooks that need
@@ -538,14 +534,16 @@ SCRIPT;
     $sql .= ' rm.datec, rm.tms,';
     $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
     $sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail,';
-    $sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details';
-    // Add fields from extrafields
-	if (!empty($extrafields->attributes[$object->table_element]['label']))
-	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? ", ef.".$key.' as options_'.$key : '');
-	// Add fields from hooks
-    $parameters = array();
-    $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
-    $sql .= $hookmanager->resPrint;
+    $sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details, ';
+// Add fields from extrafields
+if (!empty($extrafields->attributes[$object->table_element]['label'])) {
+	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? "ef.".$key.' as options_'.$key.', ' : '');
+}
+// Add fields from hooks
+$parameters = array();
+$reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters, $object); // Note that $action and $object may have been modified by hook
+$sql .= preg_replace('/^,/', '', $hookmanager->resPrint);
+$sql = preg_replace('/,\s*$/', '', $sql);
     $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_request_type as crmrt on (crmrt.rowid = rm.fk_type)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_category as crmc on (crmc.rowid = rm.fk_category)";
