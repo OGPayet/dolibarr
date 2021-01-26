@@ -1771,6 +1771,10 @@ class AccountancyExport
 	 */
 	public function exportCegidSynergies($objectLines) {
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+		require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+		require_once DOL_DOCUMENT_ROOT.'/core/modules/supplier_invoice/modules_facturefournisseur.php';
+		require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.facture.class.php';
+		require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.class.php';
 
 		global $conf, $langs;
 
