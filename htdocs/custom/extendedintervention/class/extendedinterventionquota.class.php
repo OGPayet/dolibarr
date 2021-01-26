@@ -18,9 +18,9 @@
  */
 
 /**
- *	\file       extendedintervention/core/class/extendedinterventionquota.class.php
+ *  \file       extendedintervention/core/class/extendedinterventionquota.class.php
  *  \ingroup    extendedintervention
- *	\brief      File of class to manage quota of the intervention
+ *  \brief      File of class to manage quota of the intervention
  */
 
 if (!class_exists('ComposerAutoloaderInit7e289d877b5289c34886bc66da322d02', false)) {
@@ -29,7 +29,7 @@ if (!class_exists('ComposerAutoloaderInit7e289d877b5289c34886bc66da322d02', fals
 use Carbon\Carbon;
 
 /**
- *	Class to manage quota of the intervention
+ *  Class to manage quota of the intervention
  */
 class ExtendedInterventionQuota
 {
@@ -257,19 +257,22 @@ class ExtendedInterventionQuota
 
         $effective_date = null;
         if (!empty($effective_date_t)) {
-            $effective_date = Carbon::parse($effective_date_t);
+            $effective_date = self::getCarbonDate($effective_date_t);
         }
 
         $termination_date = null;
         if (!empty($termination_date_t)) {
-            $termination_date = Carbon::parse($termination_date_t);
+            $termination_date = self::getCarbonDate($termination_date_t);
         }
 
         $contract_closed_date = null;
         if (is_array($contract->lines)) {
             foreach ($contract->lines as $line) {
-                if (!empty($line->date_cloture) && (!isset($contract_closed_date) || $line->date_cloture < $contract_closed_date->timestamp)) $contract_closed_date = Carbon::createFromTimestamp($line->date_cloture);
-                elseif (!empty($line->date_fin_validite) && (!isset($contract_closed_date) || $line->date_fin_validite < $contract_closed_date->timestamp)) $contract_closed_date = Carbon::createFromTimestamp($line->date_fin_validite);
+                if (!empty($line->date_cloture) && (!isset($contract_closed_date) || $line->date_cloture < $contract_closed_date->timestamp)) {
+                    $contract_closed_date = Carbon::createFromTimestamp($line->date_cloture);
+                } elseif (!empty($line->date_fin_validite) && (!isset($contract_closed_date) || $line->date_fin_validite < $contract_closed_date->timestamp)) {
+                    $contract_closed_date = Carbon::createFromTimestamp($line->date_fin_validite);
+                }
             }
         }
 
@@ -278,12 +281,18 @@ class ExtendedInterventionQuota
             $begin_date = $effective_date;
             $end_date = null;
             $last_end_date = null;
-            if (empty($tacit_renewal)) $end_date = $begin_date->copy()->addMonths($duration)->subDay();
-            if (isset($termination_date) && (!isset($end_date) || $termination_date < $end_date)) $end_date = $termination_date;
-            if (isset($contract_closed_date) && (!isset($end_date) || $contract_closed_date < $end_date)) $end_date = $contract_closed_date;
-            $begin_date->setTime(0,0);
+            if (empty($tacit_renewal)) {
+                $end_date = $begin_date->copy()->addMonths($duration)->subDay();
+            }
+            if (isset($termination_date) && (!isset($end_date) || $termination_date < $end_date)) {
+                $end_date = $termination_date;
+            }
+            if (isset($contract_closed_date) && (!isset($end_date) || $contract_closed_date < $end_date)) {
+                $end_date = $contract_closed_date;
+            }
+            $begin_date->setTime(0, 0);
             if (isset($end_date)) {
-                $end_date->setTime(0,0);
+                $end_date->setTime(0, 0);
                 $last_end_date = $end_date->copy()->subDay();
             }
 
@@ -320,7 +329,7 @@ class ExtendedInterventionQuota
      * @param   int         $fk_c_intervention_type     Show only this intervention type (if defined)
      * @return  string                                  HTML bloc list of count by type of intervention for the contracts
      */
-    public function showBlockCountInterventionOfContract($contract_list, $fk_c_intervention_type=0)
+    public function showBlockCountInterventionOfContract($contract_list, $fk_c_intervention_type = 0)
     {
         global $conf, $langs;
         $out = '';
@@ -336,12 +345,12 @@ class ExtendedInterventionQuota
 
                 if (!empty($table)) {
                     if ($nb_contract > 0) { //modif par Alexis Laurier - on affiche toujours le titre de chaque sous tableau - on y indique également la formule (la valeur de l'extrafield donc)
-						$extrafields_contract = new ExtraFields($this->db);
-						$extralabels_contract = $extrafields_contract->fetch_name_optionals_label($contract->element);
+                        $extrafields_contract = new ExtraFields($this->db);
+                        $extralabels_contract = $extrafields_contract->fetch_name_optionals_label($contract->element);
 
-						$contract->fetch_optionals();
+                        $contract->fetch_optionals();
 
-						$title = $contract->ref . " - " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']);
+                        $title = $contract->ref . " - " . $extrafields_contract->showOutputField('formule', $contract->array_options['options_formule']);
 
                         $table = load_fiche_titre($langs->trans("ExtendedInterventionQuotaForContract", $title), '', '') . $table;
                     }
@@ -400,7 +409,7 @@ SCRIPT;
      * @param   int         $fk_c_intervention_type     Show only this intervention type (if defined)
      * @return  string                                  HTML table list of count by type of intervention for a contract of a company
      */
-    public function showTableCountInterventionOfContract(&$contract, $fk_c_intervention_type=0)
+    public function showTableCountInterventionOfContract(&$contract, $fk_c_intervention_type = 0)
     {
         global $conf, $langs;
 
@@ -408,11 +417,15 @@ SCRIPT;
         $langs->load('extendedintervention@extendedintervention');
         $out = '';
 
-        if (empty($conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_ONLY_TYPE_OF_INTERVENTION)) $fk_c_intervention_type = 0;
+        if (empty($conf->global->EXTENDEDINTERVENTION_QUOTA_SHOW_ONLY_TYPE_OF_INTERVENTION)) {
+            $fk_c_intervention_type = 0;
+        }
 
         // Get intervention types counted
         $filter = array('count' => 1);
-        if ($fk_c_intervention_type > 0) $filter['rowid'] = array($fk_c_intervention_type);
+        if ($fk_c_intervention_type > 0) {
+            $filter['rowid'] = array($fk_c_intervention_type);
+        }
         dol_include_once('/advancedictionaries/class/dictionary.class.php');
         $inter_type_dictionary = Dictionary::getDictionary($this->db, 'extendedintervention', 'extendedinterventiontype');
         $inter_type_dictionary->fetch_lines(1, $filter, array('label' => 'ASC'));
@@ -426,16 +439,19 @@ SCRIPT;
             foreach ($company_counts['periods'] as $period) {
                 $out .= '<td align="center"' . (!empty($period['last_period']) || !empty($period['in_period']) ? ' style="background-color: ' . (!empty($period['last_period']) ? 'orange' : 'lightblue') . ';"' : '') . '>' .
                     $langs->trans('DateFromTo', dol_print_date($period['begin'], 'day'), dol_print_date($period['end'], 'day')) .
-                    (!empty($period['last_period']) || !empty($period['in_period']) ? '&nbsp;' . $this->form->textwithpicto('',
-                            (!empty($period['in_period']) ? $langs->trans('ExtendedInterventionCurrentPeriod') : '') .
+                    (!empty($period['last_period']) || !empty($period['in_period']) ? '&nbsp;' . $this->form->textwithpicto(
+                        '',
+                        (!empty($period['in_period']) ? $langs->trans('ExtendedInterventionCurrentPeriod') : '') .
                             (!empty($period['last_period']) && !empty($period['in_period']) ? '<br>' : '') .
-                            (!empty($period['last_period']) ? $langs->trans('ExtendedInterventionEndOfTheContract') : ''), 1, 'help') : '') .
+                        (!empty($period['last_period']) ? $langs->trans('ExtendedInterventionEndOfTheContract') : ''),
+                        1,
+                        'help'
+                    ) : '') .
                     '</td>';
             }
             $out .= '</tr>';
 
             foreach ($inter_type_dictionary->lines as $line) {
-
                 //We try to find the max number of intervention of each type done per period
                 $max = 0;
                 if (!empty($company_counts['types'][$line->id])) {
@@ -453,15 +469,24 @@ SCRIPT;
                         if ($period['max'] > 0 || $max > 0) {
                             $founded = true;
                             $label = $period['current'] . ' / ' . $period['max'];
-                            if ($period['current'] < $period['max']) $label = '<span style="color: green;">' . $label . '</span>';
-                            elseif ($period['current'] > $period['max'] + $period['free']) $label = '<span style="color: red;">' . $label . '</span>';
+                            if ($period['current'] < $period['max']) {
+                                $label = '<span style="color: green;">' . $label . '</span>';
+                            } elseif ($period['current'] > $period['max'] + $period['free']) {
+                                $label = '<span style="color: red;">' . $label . '</span>';
+                            }
 
                             // Set more info
                             $more_info = '';
                             $toprint = array();
-                            if (!empty($period['free'])) $toprint[] = $langs->trans('ExtendedInterventionFree') . ' : ' . $period['free'];
-                            if (!empty($period['forced'])) $toprint[] = $langs->trans('ExtendedInterventionForced') . ' : ' . $period['forced'];
-                            if (!empty($toprint)) $more_info = '&nbsp;' . $this->form->textwithpicto('', implode('<br>', $toprint), 1, 'warning');
+                            if (!empty($period['free'])) {
+                                $toprint[] = $langs->trans('ExtendedInterventionFree') . ' : ' . $period['free'];
+                            }
+                            if (!empty($period['forced'])) {
+                                $toprint[] = $langs->trans('ExtendedInterventionForced') . ' : ' . $period['forced'];
+                            }
+                            if (!empty($toprint)) {
+                                $more_info = '&nbsp;' . $this->form->textwithpicto('', implode('<br>', $toprint), 1, 'warning');
+                            }
 
                             $subout .= '<td align="center"' . (!empty($company_counts['periods'][$period_idx]['in_period']) ? ' style="background-color: lightblue;"' : '') . '>' . $label . $more_info . '</td>';
                         } else {
@@ -470,7 +495,9 @@ SCRIPT;
                     }
                     $subout .= '</tr>';
 
-                    if ($founded) $out .= $subout;
+                    if ($founded) {
+                        $out .= $subout;
+                    }
                 }
             }
 
@@ -492,14 +519,18 @@ SCRIPT;
         global $conf;
         $now = dol_now();
 
-        if (!($fk_c_intervention_type > 0)) return false;
+        if (!($fk_c_intervention_type > 0)) {
+            return false;
+        }
 
         $periods = $this->getPeriodOfContract($contract);
         $info = $this->getInfoInterventionOfContract($contract->id);
         $contract_counts = isset($info[$fk_c_intervention_type]['count']) ? $info[$fk_c_intervention_type]['count'] : 0;
 
         foreach ($periods as $period) {
-            if ($now < $period['begin'] || $period['end'] < $now) continue;
+            if ($now < $period['begin'] || $period['end'] < $now) {
+                continue;
+            }
 
             // Get forced intervention
             $sql = "SELECT COUNT(*) AS nb_current" .
@@ -658,5 +689,15 @@ SCRIPT;
         }
 
         return 1;
+    }
+
+    public static function getCarbonDate($date)
+    {
+        if (is_string($date)) {
+            return Carbon::parse($date);
+        } elseif (is_int($date)) {
+            return Carbon::createFromTimestamp($date);
+        }
+        return Carbon::parse($date);
     }
 }
