@@ -61,6 +61,7 @@ class AccountancyExport
 	public static $EXPORT_TYPE_GESTIMUMV5 = 135;
 	public static $EXPORT_TYPE_FEC = 1000;
 	public static $EXPORT_TYPE_FEC2 = 1010;
+	public static $EXPORT_TYPE_CEGID_SYNERGIES = 9999;
 
 
 	/**
@@ -123,6 +124,7 @@ class AccountancyExport
 			self::$EXPORT_TYPE_GESTIMUMV5 => $langs->trans('Modelcsv_Gestinum_v5'),
 			self::$EXPORT_TYPE_FEC => $langs->trans('Modelcsv_FEC'),
 			self::$EXPORT_TYPE_FEC2 => $langs->trans('Modelcsv_FEC2'),
+			self::$EXPORT_TYPE_CEGID_SYNERGIES => $langs->trans('Modelcsv_CEGID_synergies')
 		);
 
 		ksort($listofexporttypes, SORT_NUMERIC);
@@ -158,6 +160,7 @@ class AccountancyExport
 			self::$EXPORT_TYPE_GESTIMUMV5 => 'gestimumv5',
 			self::$EXPORT_TYPE_FEC => 'fec',
 			self::$EXPORT_TYPE_FEC2 => 'fec2',
+			self::$EXPORT_TYPE_CEGID_SYNERGIES => 'cegidsynergies'
 		);
 
 		return $formatcode[$type];
@@ -243,6 +246,9 @@ class AccountancyExport
 					'label' => $langs->trans('Modelcsv_FEC2'),
 					'ACCOUNTING_EXPORT_FORMAT' => 'txt',
 				),
+				self::$EXPORT_TYPE_CEGID_SYNERGIES => array(
+					'label' => $langs->trans('Modelcsv_CEGID_synergies')
+				)
 			),
 			'cr'=> array(
 				'1' => $langs->trans("Unix"),
@@ -333,6 +339,9 @@ class AccountancyExport
 				break;
 			case self::$EXPORT_TYPE_FEC2 :
 				$this->exportFEC2($TData);
+				break;
+			case self::$EXPORT_TYPE_CEGID_SYNERGIES :
+				$this->exportCegidSynergies($TData);
 				break;
 			default:
 				$this->errors[] = $langs->trans('accountancy_error_modelnotfound');
@@ -1751,6 +1760,149 @@ class AccountancyExport
 				print $this->end_line;
 			}
 		}
+	}
+
+	/**
+	 * Export format : CEGID Synergies
+	 *
+	 * @param array $objectLines data
+	 *
+	 * @return void
+	 */
+	public function exportCegidSynergies($objectLines) {
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+
+		global $conf, $langs;
+
+        $error = false;
+        $now = dol_now();
+        $exportDate = dol_print_date($now, '%Y%m%d%H%M%S');
+        $prefix = !empty($conf->global->ACCOUNTING_EXPORT_PREFIX_SPEC) ? $conf->global->ACCOUNTING_EXPORT_PREFIX_SPEC . '_' : '';
+        $filename = $prefix . "journal_bookkepping_" . $exportDate;
+
+        // Repertoire temporaire
+        $tmpPath = DOL_DATA_ROOT . "/tmp/bookkepping_" . $exportDate;
+        mkdir($tmpPath, 0775, true);
+
+        // Creation de l'export coala
+        $format = $conf->global->ACCOUNTING_EXPORT_FORMAT;
+        $exportPath = $tmpPath . "/" . $filename . ".".$format;
+        $file = @fopen($exportPath, 'w');
+        if ($file) {
+            $factures = array();
+            // Coala export
+            foreach ($objectLines as $line) {
+                $date = dol_print_date($line->doc_date, '%d%m%Y');
+				$separator = ";";
+
+				fwrite($file, $date.$separator);
+				fwrite($file, $line->code_journal . $separator);
+				fwrite($file, length_accountg($line->numero_compte) . $separator);
+				fwrite($file, length_accounta($line->subledger_account) . $separator);
+				fwrite($file, $line->sens . $separator);
+				fwrite($file, price($line->montant) . $separator);
+				fwrite($file, $line->label_operation . $separator);
+				fwrite($file, $line->doc_ref);
+				fwrite($file, $this->end_line);
+
+                if (!isset($factures[$line->doc_ref])) {
+					if($line->doc_type == "supplier_invoice") {
+						preg_match_all("/\\((.*?)\\)/", dol_sanitizeFileName($line->doc_ref), $matches);
+						$doc_ref = $matches[1][0];
+						$dir = $conf->fournisseur->dir_output . "/facture/".$line->fk_doc."/".$line->fk_docdet."/". $doc_ref;
+
+						if(is_dir($dir."/")) {
+							$files = scandir($dir."/");
+							foreach($files as $document) {
+								if ($document != "." && $document != "..") {
+									$facturefilepath = $dir . "/" . $document;
+
+									if (file_exists($facturefilepath) && !is_dir($facturefilepath)) {
+										$factures[$doc_ref][] = $facturefilepath;
+									}
+								}
+							}
+						}
+					} else {
+						$doc_ref = dol_sanitizeFileName($line->doc_ref);
+						$dir = $conf->facture->dir_output . "/" . $doc_ref;
+
+						if(is_dir($dir."/")) {
+							$files = scandir($dir."/");
+							foreach($files as $document) {
+								if ($document != "." && $document != "..") {
+									$facturefilepath = $dir . "/" . $document;
+
+									if (file_exists($facturefilepath) && !is_dir($facturefilepath)) {
+										$factures[$doc_ref][] = $facturefilepath;
+									}
+								}
+							}
+						}
+					}
+                }
+            }
+            @fclose($file);
+
+            // Creation du zip
+            $zipPath = $tmpPath . "/" . $filename . ".zip";
+            $zip = new ZipArchive();
+            if ($zip->open($zipPath, ZipArchive::CREATE) === TRUE) {
+                if (!$zip->addFile($exportPath, $filename . ".".$format)) {
+                    $this->errors[] = $langs->trans('ErrorAddExportCSVInZipFile', $exportPath);
+                    $error = true;
+                }
+
+                // Copy des factures
+                foreach ($factures as $ref => $array) {
+					$static_facture = new Facture($this->db);
+					$static_facture_fournisseur = new FactureFournisseur($this->db);
+                    $static_facture->fetch('', $ref);
+                    $static_facture->fetch_thirdparty();
+
+					foreach($array as $facture) {
+						if($static_facture->id > 0) {
+							$name_file = basename($facture);
+							$societeName = isset($static_facture->thirdparty)?dol_sanitizeFileName($static_facture->thirdparty->name):'';
+
+							if (!$zip->addFile($facture, $ref.'_'.$societeName.'_'.$name_file)) {
+								$this->errors[] = $langs->trans('ErrorAddFactureInZipFile', $ref, $facture);
+								$error = true;
+							}
+						} else {
+							$static_facture_fournisseur->fetch('', $ref);
+							$societe = new Fournisseur($this->db);
+							$societe->fetch($static_facture_fournisseur->socid);
+
+							$name_file = basename($facture);
+							$societeName = isset($societe->name_alias)?dol_sanitizeFileName($societe->name).'_'.dol_sanitizeFileName($societe->name_alias):dol_sanitizeFileName($societe->name);
+
+							if (!$zip->addFile($facture, $ref.'_'.$societeName.'_'.$name_file)) {
+								$this->errors[] = $langs->trans('ErrorAddFactureInZipFile', $ref, $facture);
+								$error = true;
+							}
+						}
+					}
+                }
+
+                $zip->close();
+
+                if (!$error) {
+                    // Download File
+                    header('Content-Type: application/zip');
+                    header('Content-Disposition: attachment;filename=' . $filename . '.zip');
+                    header('Cache-Control: Public, must-revalidate');
+                    header('Pragma: public');
+                    readfile($zipPath);
+                }
+
+                dol_delete_dir_recursive($tmpPath);
+            } else {
+                $this->errors[] = $langs->trans('ErrorCreateZipFile', $zipPath);
+            }
+        } else {
+            $this->errors[] = $langs->trans('ErrorCreateCsvFile', $exportPath);
+        }
 	}
 
 	/**
