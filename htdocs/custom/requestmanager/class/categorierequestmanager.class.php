@@ -127,7 +127,7 @@ class CategorieRequestManager extends Categorie
      *
      * @return  int             1 : OK, -1 : erreur SQL, -2 : id not defined, -3 : Already linked
      */
-    function add_type($obj, $type)
+    function add_type($obj, $type = '')
     {
         global $conf, $user;
 
@@ -348,7 +348,7 @@ class CategorieRequestManager extends Categorie
      * @param   int     $nocolor     0
      * @return	array
      */
-    function print_all_ways($sep = " &gt;&gt; ", $url='', $nocolor=0)
+    function print_all_ways($sep = ' &gt;&gt; ', $url = '', $nocolor = 0, $addpicto = 0)
     {
         $ways = array();
 
