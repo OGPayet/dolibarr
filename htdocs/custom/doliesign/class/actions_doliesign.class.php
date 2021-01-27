@@ -504,7 +504,7 @@ class ActionsDoliEsign
 				// OpenDSI & Alexis LAURIER
 				// We add Propal::STATUS_AWAIT = 5 which is between Propal::STATUS_DRAFT = 0 && Propal::STATUS_VALIDATED = 1
 				// So proposals are draft is status is Propal::STATUS_DRAFT or Propal::STATUS_AWAIT
-				if($object->statut == Propal::STATUS_AWAIT) $active = false;
+				//if($object->statut == Propal::STATUS_AWAIT) $active = false;
 				$maxStatus = Propal::STATUS_SIGNED;
 			}
 			elseif ($parameters['currentcontext'] == 'ordercard' && count($config->fetchListId('commande')) > 0) {
