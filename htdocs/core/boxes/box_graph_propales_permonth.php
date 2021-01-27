@@ -53,8 +53,10 @@ class box_graph_propales_permonth extends ModeleBoxes
 		global $user;
 
 		$this->db = $db;
-
-		$this->hidden = !($user->rights->propale->lire);
+		//Modification - Open-DSI - Begin
+		global $conf;
+		$this->hidden=! ($user->rights->propale->lire && (!$conf->synergiestech->enabled ||$user->rights->synergiestech->stats->customerpropalwidget));
+		//Modification - Open-DSI - End
 	}
 
 	/**
@@ -96,8 +98,9 @@ class box_graph_propales_permonth extends ModeleBoxes
 		$socid = 0;
 		if ($user->socid) $socid = $user->socid;
 		if (!$user->rights->societe->client->voir || $socid) $prefix .= 'private-'.$user->id.'-'; // If user has no permission to see all, output dir is specific to user
-
-		if ($user->rights->propale->lire)
+		//Modification - Open-DSI - Begin
+		if ($user->rights->propale->lire && (!$conf->synergiestech->enabled || $user->rights->synergiestech->stats->customerpropalwidget))
+		//Modification - Open-DSI - End
 		{
 			$param_year = 'DOLUSERCOOKIE_box_'.$this->boxcode.'_year';
 			$param_shownb = 'DOLUSERCOOKIE_box_'.$this->boxcode.'_shownb';

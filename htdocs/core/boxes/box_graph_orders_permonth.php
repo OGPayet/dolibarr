@@ -53,8 +53,10 @@ class box_graph_orders_permonth extends ModeleBoxes
 		global $user;
 
 		$this->db = $db;
-
-		$this->hidden = !($user->rights->commande->lire);
+		//Modification - Open-DSI - Begin
+		global $conf;
+		$this->hidden = ! ($user->rights->commande->lire && (!$conf->synergiestech->enabled || $user->rights->synergiestech->stats->customerorderwidget));
+		//Modification - Open-DSI - End
 	}
 
 	/**
@@ -95,7 +97,9 @@ class box_graph_orders_permonth extends ModeleBoxes
 		if ($user->socid) $socid = $user->socid;
 		if (!$user->rights->societe->client->voir || $socid) $prefix .= 'private-'.$user->id.'-'; // If user has no permission to see all, output dir is specific to user
 
-		if ($user->rights->commande->lire)
+		//Modification - Open-DSI - Begin
+		if ($user->rights->commande->lire && (!$conf->synergiestech->enabled || $user->rights->synergiestech->stats->customerorderwidget))
+		//Modification - Open-DSI - End
 		{
 			$langs->load("orders");
 

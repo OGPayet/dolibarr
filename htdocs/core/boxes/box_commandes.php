@@ -151,11 +151,18 @@ class box_commandes extends ModeleBoxes
 						'text' => $societestatic->getNomUrl(1),
 						'asis' => 1,
 					);
+					//Modification - Open-DSI - Begin
+					if(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerorder)
+					{
+					//Modification - Open-DSI - End
 
-					$this->info_box_contents[$line][] = array(
-						'td' => 'class="nowraponall right"',
-						'text' => price($objp->total_ht, 0, $langs, 0, -1, -1, $conf->currency),
-					);
+						$this->info_box_contents[$line][] = array(
+							'td' => 'class="nowraponall right"',
+							'text' => price($objp->total_ht, 0, $langs, 0, -1, -1, $conf->currency),
+						);
+					//Modification - Open-DSI - Begin
+					}
+					//Modification - Open-DSI - End
 
 					if (!empty($conf->global->ORDER_BOX_LAST_ORDERS_SHOW_VALIDATE_USER)) {
 						if ($objp->fk_user_valid > 0) $userstatic->fetch($objp->fk_user_valid);
