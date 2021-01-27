@@ -251,7 +251,7 @@ if (empty($reshook))
 			else setEventMessages($langs->trans($object->error), null, 'errors');
 		}
 	}
-	
+
 	// Approbation
 	else if ($action == 'confirm_await' && $confirm == 'yes' &&
         ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->propal->creer))
@@ -1757,7 +1757,7 @@ if ($action == 'create')
 	else if ($action == 'ask_deleteline') {
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id . '&lineid=' . $lineid, $langs->trans('DeleteProductLine'), $langs->trans('ConfirmDeleteProductLine'), 'confirm_deleteline', '', 0, 1);
 	}
-	
+
 	// Confirmation awaiting proposal
 	else if ($action == 'await') {
 		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id . '&lineid=' . $lineid, $langs->trans('AwaitingProp'), $langs->trans('ConfirmAwaitingProp'), 'confirm_await', '', 0, 1);
@@ -2323,7 +2323,7 @@ if ($action == 'create')
 				// Hierarchy
 				$hierarchy_user = new User($db);
 				$hierarchy_user->fetch($object->user_author_id);
-					
+
 				// Awainting
 				if ($object->statut == Propal::STATUS_DRAFT && $object->total_ttc >= 0 && count($object->lines) > 0)
 				{
@@ -2348,7 +2348,7 @@ if ($action == 'create')
 				// Validate
 				if ($object->statut == Propal::STATUS_AWAIT)
 				{
-					//if($user->id == $hierarchy_user->fk_user || $user->admin ==1) {					
+					//if($user->id == $hierarchy_user->fk_user || $user->admin ==1) {
 						if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->propal->creer))
 						|| (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->propal->propal_advance->validate)))
 						{
