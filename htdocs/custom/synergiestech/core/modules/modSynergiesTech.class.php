@@ -180,6 +180,8 @@ class modSynergiesTech extends DolibarrModules
 			'thirdparty:+listOfIntervention:SynergiesTechListOfIntervention:synergiestech@synergiestech:$user->rights->ficheinter->lire:/fichinter/list.php?socid=__ID__',
 			'thirdparty:+listOfInvoice:SynergiesTechListOfInvoice:synergiestech@synergiestech:$user->rights->facture->lire:/compta/facture/list.php?socid=__ID__',
 			'thirdparty:-document::!$user->rights->synergiestech->documents->thirdparty',
+			'order:-documents::!$user->rights->synergiestech->documents->customerorder',
+			'propal:-document::!$user->rights->synergiestech->documents->customerpropal',
 		);
 
 		if (!isset($conf->synergiestech) || !isset($conf->synergiestech->enabled)) {

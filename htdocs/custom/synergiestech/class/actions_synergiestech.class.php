@@ -3530,7 +3530,7 @@ SCRIPT;
 			$userCanDownloadFile = $isUserAllowedToSeePrice && $isUserAllowedToDowloadFile;
 
 		}
-		else if($modulePart == 'order') {
+		else if($modulePart == 'commande') {
 			$userCanDownloadFile = $user->rights->synergiestech->documents->customerorder;
 		}
 		else if($modulePart == 'societe') {
@@ -3538,25 +3538,6 @@ SCRIPT;
 		}
 
 		if(!$userCanDownloadFile)
-		{
-			accessforbidden();
-			return 1;
-		}
-	}
-	/**
-	 * Overloading the printTabsHead function : replacing the parent's function with the one below
-	 *
-	 * @param   array           $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          $action         Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	public function printTabsHead($parameters, &$object, &$action, $hookmanager)
-	{
-		global $user;
-		$contexts = explode(':', $parameters['context']);
-		if(in_array("thirdpartydocument", $contexts) && !$user->rights->synergiestech->documents->thirdparty)
 		{
 			accessforbidden();
 			return 1;
