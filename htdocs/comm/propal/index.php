@@ -242,11 +242,29 @@ if (!empty($conf->propal->enabled)) {
 				print '<tr class="oddeven">';
 				print '<td class="nowrap">'.$propalstatic->getNomUrl(1).'</td>';
 				print '<td class="nowrap">'.$companystatic->getNomUrl(1, 'customer', 16).'</td>';
-				print '<td class="nowrap right">'.price(!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc).'</td>';
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
+					print '<td class="right tdamount">'.price(!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc).'</td>';
+				} else {
+					print '<td class="right tdamount"></td>';
+				}
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
 				print '</tr>';
 
 				$i++;
-				$total += (!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc);
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
+					$total += (!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc);
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+				}
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
 			}
 		}
 
@@ -388,13 +406,31 @@ if (!empty($conf->propal->enabled) && $user->rights->propale->lire) {
 
 				print '<td class="left">'.$companystatic->getNomUrl(1, 'customer', 44).'</td>';
 				print '<td class="right">'.dol_print_date($db->jdate($obj->dp), 'day').'</td>';
-				print '<td class="right">'.price(!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc).'</td>';
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
+					print '<td class="right">'.price(!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc).'</td>';
+				} else {
+					print '<td class="right"></td>';
+				}
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
 				print '<td align="center" width="14">'.$propalstatic->LibStatut($obj->fk_statut, 3).'</td>';
 
 				print '</tr>';
 
 				$i++;
-				$total += (!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc);
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
+					$total += (!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc);
+				//-------------------------------------------------------------------------------
+				// Modification - Open-DSI - Begin
+				}
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
 			}
 		}
 
