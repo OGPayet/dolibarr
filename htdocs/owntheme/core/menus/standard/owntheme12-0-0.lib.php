@@ -613,7 +613,7 @@ function print_text_menu_entry($text, $showmode, $url, $id, $idsel, $classname, 
 				print $text;
 			print '</div>';
 		print '</a>';
-		
+
 	} elseif ($showmode == 2) {
 		print '<div class="'.$id.' '.$idsel.' topmenuimage tmenudisabled"><span class="'.$id.'" id="mainmenuspan_'.$idsel.'"></span></div>';
 		print '<a class="tmenudisabled" id="mainmenua_'.$idsel.'" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">';
@@ -1506,7 +1506,7 @@ function print_left_owntheme_menu($db, $menu_array_before, $menu_array_after, &$
 				if ($usemenuhider || empty($leftmenu) || $leftmenu == "withdraw") {
 				    $newmenu->add("/compta/prelevement/create.php?mainmenu=bank", $langs->trans("NewStandingOrder"), 1, $user->rights->prelevement->bons->creer);
 
-				    $newmenu->add("/compta/prelevement/bons.php?mainmenu=bank", $langs->trans("WithdrawalsReceipts"), 1, $user->rights->prelevement->bons->lire);
+				    $newmenu->add("/compta/prelevement/orders_list.php?mainmenu=bank", $langs->trans("WithdrawalsReceipts"), 1, $user->rights->prelevement->bons->lire);
 				    $newmenu->add("/compta/prelevement/list.php?mainmenu=bank", $langs->trans("WithdrawalsLines"), 1, $user->rights->prelevement->bons->lire);
 				    $newmenu->add("/compta/prelevement/rejets.php?mainmenu=bank", $langs->trans("Rejects"), 1, $user->rights->prelevement->bons->lire);
 				    $newmenu->add("/compta/prelevement/stats.php?mainmenu=bank", $langs->trans("Statistics"), 1, $user->rights->prelevement->bons->lire);
@@ -2122,7 +2122,7 @@ function print_left_owntheme_menu($db, $menu_array_before, $menu_array_after, &$
 		print '</li>'."\n";
 		print '</ul>'."\n";
 		print '</nav>'."\n";
-		
+
 		?>
 		<script type="text/javascript" src="<?php echo dol_buildpath('/owntheme/js/jquery.slimscroll.min.js',2);?>"></script>
 		<script type="text/javascript">
