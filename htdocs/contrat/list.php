@@ -233,11 +233,31 @@ if ($search_user > 0)
 	$sql .= ", ".MAIN_DB_PREFIX."element_contact as ec";
 	$sql .= ", ".MAIN_DB_PREFIX."c_type_contact as tc";
 }
+//------------------------------------------------------------
+// Modification - Open-DSI - Begin
+$parameters=array();
+$reshook=$hookmanager->executeHooks('printFieldListFrom',$parameters);    // Note that $action and $object may have been modified by hook
+$sql.=$hookmanager->resPrint;
+// Modification - Open-DSI - End
+//------------------------------------------------------------
 $sql .= " WHERE c.fk_soc = s.rowid ";
 $sql .= ' AND c.entity IN ('.getEntity('contract').')';
 if ($search_product_category > 0) $sql .= " AND cp.fk_categorie = ".$search_product_category;
-if ($socid) $sql .= " AND s.rowid = ".$db->escape($socid);
-if (!$user->rights->societe->client->voir && !$socid) $sql .= " AND s.rowid = sc.fk_soc AND sc.fk_user = ".$user->id;
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+if (!$user->rights->societe->client->voir && !($socid > 0)) { // Internal user with no permission to see all
+    $sql .= " AND (c.fk_soc = sc.fk_soc";
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = sc.fk_soc";
+    $sql .= " )";
+    $sql .= " AND sc.fk_user = " . $user->id;
+}
+if ($socid > 0) {
+    $sql .= " AND (c.fk_soc = " . $socid;
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = " . $socid;
+    $sql .= " )";
+}
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
 $sql .= dolSqlDateFilter('c.date_contrat', $day, $month, $year);
 if ($search_name) $sql .= natural_search('s.nom', $search_name);
 if ($search_email) $sql .= natural_search('s.email', $search_email);

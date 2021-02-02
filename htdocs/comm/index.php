@@ -190,11 +190,33 @@ if (!empty($conf->propal->enabled) && $user->rights->propal->lire) {
 				print '<tr class="oddeven">';
 				print '<td class="nowrap tdoverflowmax100">'.$propalstatic->getNomUrl(1).'</td>';
 				print '<td class="nowrap tdoverflowmax100">'.$companystatic->getNomUrl(1, 'customer').'</td>';
-				print '<td class="nowrap right tdamount">'.price((!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc)).'</td>';
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+                    print '<td align="right" class="nowrap">' . price($obj->total_ht) . '</td>';
+                    $total += $obj->total_ht;
+                } else {
+                    print '<td align="right" class="nowrap"></td>';
+                }
+                print '</tr>';
+				$i++;
+                // Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				print '</tr>';
 
 				$i++;
+				//-------------------------------------------------------------------------------
+				// Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+                // Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				$total += (!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc);
+				//-------------------------------------------------------------------------------
+				// Modification - Open-DSI - Begin
+				}
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
+
 			}
 		}
 
@@ -339,11 +361,30 @@ if (!empty($conf->commande->enabled) && $user->rights->commande->lire) {
 				print '<tr class="oddeven">';
 				print '<td class="nowrap tdoverflowmax100">'.$orderstatic->getNomUrl(1).'</td>';
 				print '<td class="nowrap tdoverflowmax100">'.$companystatic->getNomUrl(1, 'customer').'</td>';
-				print '<td class="nowrap right tdamount">'.price(!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc).'</td>';
+ 				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+                    print '<td align="right" class="nowrap">' . price($obj->total_ttc) . '</td>';
+                    $total += $obj->total_ttc;
+                } else {
+                    print '<td align="right" class="nowrap"></td>';
+				}
+				// Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				print '</tr>';
 
 				$i++;
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+                // Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				$total += (!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc);
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+				}
+				// Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 			}
 		}
 
@@ -734,8 +775,18 @@ if (!empty($conf->propal->enabled) && $user->rights->propal->lire) {
 				if ($i >= $max) {
 					$othernb += 1;
 					$i++;
-					$total += $obj->total_ht;
-					$total_ttc += $obj->total_ttc;
+					//-------------------------------------------------------------------------------
+                	// Modification - Open-DSI - Begin
+                	if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
+					//-------------------------------------------------------------------------------
+                	// Modification - Open-DSI - End
+						$total += $obj->total_ht;
+						$total_ttc += $obj->total_ttc;
+					//-------------------------------------------------------------------------------
+                	// Modification - Open-DSI - Begin
+					}
+					//-------------------------------------------------------------------------------
+                	// Modification - Open-DSI - End
 					continue;
 				}
 
@@ -778,14 +829,33 @@ if (!empty($conf->propal->enabled) && $user->rights->propal->lire) {
 
 				print '<td class="nowrap">'.$companystatic->getNomUrl(1, 'customer', 44).'</td>';
 				print '<td class="right tddate">'.dol_print_date($db->jdate($obj->dp), 'day').'</td>';
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
 				print '<td class="right tdamount">'.price(!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc).'</td>';
+				}
+				else {
+					print '<td class="right tdamount"></td>';
+				}
+				// Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				print '<td align="center" width="14">'.$propalstatic->LibStatut($obj->fk_statut, 3).'</td>';
 
 				print '</tr>';
 
 				$i++;
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+  				// Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				$total += $obj->total_ht;
 				$total_ttc += $obj->total_ttc;
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+				}
+				// Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 			}
 
 			if ($othernb) {
@@ -888,14 +958,33 @@ if (!empty($conf->commande->enabled) && $user->rights->commande->lire) {
 
 				print '<td class="nowrap">'.$companystatic->getNomUrl(1, 'customer', 44).'</td>';
 				print '<td class="right tddate">'.dol_print_date($db->jdate($obj->dp), 'day').'</td>';
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
 				print '<td class="right tdamount">'.price(!empty($conf->global->MAIN_DASHBOARD_USE_TOTAL_HT) ? $obj->total_ht : $obj->total_ttc).'</td>';
+				} else {
+					print '<td class="right tdamount"></td>';
+				}
+				// Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 				print '<td align="center" width="14">'.$orderstatic->LibStatut($obj->fk_statut, $obj->billed, 3).'</td>';
 
 				print '</tr>';
 
 				$i++;
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+                if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+				// Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
+
 				$total += $obj->total_ht;
 				$total_ttc += $obj->total_ttc;
+				//-------------------------------------------------------------------------------
+                // Modification - Open-DSI - Begin
+				}
+				// Modification - Open-DSI - End
+                //-------------------------------------------------------------------------------
 			}
 
 			if ($othernb) {

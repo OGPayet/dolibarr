@@ -360,8 +360,18 @@ if ((!empty($conf->product->enabled) || !empty($conf->service->enabled)) && ($us
 						}
 					}
 					print '<td class="nowrap right">';
+					//-------------------------------------------------------------------------------
+					// Modification - Open-DSI - Begin
+					if($user->rights->synergiestech->product_line_price->lire) {
+					//-------------------------------------------------------------------------------
+					// Modification - Open-DSI - End
 					if (isset($objp->price_base_type) && $objp->price_base_type == 'TTC') print price($objp->price_ttc).' '.$langs->trans("TTC");
 					else print price($objp->price).' '.$langs->trans("HT");
+					//-------------------------------------------------------------------------------
+					// Modification - Open-DSI - Begin
+					}
+					//-------------------------------------------------------------------------------
+					// Modification - Open-DSI - End
 					print '</td>';
 				}
 				print '<td class="right nowrap width25"><span class="statusrefsell">';

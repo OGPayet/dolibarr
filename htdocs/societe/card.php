@@ -2250,6 +2250,13 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action))
 
 		dol_banner_tab($object, 'socid', $linkback, ($user->socid ? 0 : 1), 'rowid', 'nom');
 
+		//-------------------------------------------------------------------------------
+        // Modification - Begin
+        // Hook
+        $parameters = array();
+        $reshook = $hookmanager->executeHooks('addBannerTab', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+        // Modification - End
+        //-------------------------------------------------------------------------------
 
 		print '<div class="fichecenter">';
 		print '<div class="fichehalfleft">';

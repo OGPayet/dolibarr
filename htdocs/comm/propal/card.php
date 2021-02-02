@@ -2264,6 +2264,11 @@ if ($action == 'create')
 
 	print '<table class="border tableforfield centpercent">';
 
+	//-------------------------------------------------------------------------------
+    // Modification - Open-DSI - Begin
+    if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+  	// Modification - Open-DSI - End
+	//-------------------------------------------------------------------------------
 	if (!empty($conf->multicurrency->enabled) && ($object->multicurrency_code != $conf->currency))
 	{
 		// Multicurrency Amount HT
@@ -2310,6 +2315,11 @@ if ($action == 'create')
 	print '<tr><td>'.$langs->trans('AmountTTC').'</td>';
 	print '<td class="nowrap">'.price($object->total_ttc, '', $langs, 0, - 1, - 1, $conf->currency).'</td>';
 	print '</tr>';
+	//-------------------------------------------------------------------------------
+    // Modification - Open-DSI - Begin
+}
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
 
 	// Statut
 	//print '<tr><td height="10">' . $langs->trans('Status') . '</td><td class="left" colspan="2">' . $object->getLibStatut(4) . '</td></tr>';
@@ -2525,7 +2535,12 @@ if ($action == 'create')
 	if ($action != 'presend')
 	{
 		print '<div class="fichecenter"><div class="fichehalfleft">';
-		print '<a name="builddoc"></a>'; // ancre
+		//-------------------------------------------------------------------------------
+        // Modification - Open-DSI - Begin
+        if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
+		// Modification - Open-DSI - End
+		//-------------------------------------------------------------------------------
+			print '<a name="builddoc"></a>'; // ancre
 		/*
 		 * Documents generes
 		 */
@@ -2536,6 +2551,12 @@ if ($action == 'create')
 		$delallowed = $usercancreate;
 
 		print $formfile->showdocuments('propal', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', 0, '', $soc->default_lang, '', $object);
+		//-------------------------------------------------------------------------------
+        // Modification - Open-DSI - Begin
+	}
+	// Modification - Open-DSI - End
+	//-------------------------------------------------------------------------------
+
 
 		// Show links to link elements
 		$linktoelem = $form->showLinkToObjectBlock($object, null, array('propal'));

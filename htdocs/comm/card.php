@@ -261,6 +261,14 @@ if ($object->id > 0)
 
 	dol_banner_tab($object, 'socid', $linkback, ($user->socid ? 0 : 1), 'rowid', 'nom');
 
+	//-------------------------------------------------------------------------------
+	// Modification - Begin
+	// Hook
+	$parameters = array();
+	$reshook = $hookmanager->executeHooks('addBannerTab', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+	// Modification - End
+	//-------------------------------------------------------------------------------
+
 	print '<div class="fichecenter"><div class="fichehalfleft">';
 
 	print '<div class="underbanner clearboth"></div>';
@@ -626,8 +634,16 @@ if ($object->id > 0)
 		if ($link) $boxstat .= '<a href="'.$link.'" class="boxstatsindicator thumbstat nobold nounderline">';
 		$boxstat .= '<div class="boxstats" title="'.dol_escape_htmltag($text).'">';
 		$boxstat .= '<span class="boxstatstext">'.img_object("", $icon).' <span>'.$text.'</span></span><br>';
-		$boxstat .= '<span class="boxstatsindicator">'.price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency).'</span>';
-		$boxstat .= '</div>';
+//-------------------------------------------------------------------------------
+		// Modification - Open-DSI - Begin
+		if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+			$boxstat .= '<span class="boxstatsindicator">' . price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency) . '</span>';
+		} else {
+			$boxstat .= '<span class="boxstatsindicator">&nbsp;</span>';
+		}
+		// Modification - Open-DSI - End
+		//-------------------------------------------------------------------------------
+				$boxstat .= '</div>';
 		if ($link) $boxstat .= '</a>';
 	}
 
@@ -644,8 +660,16 @@ if ($object->id > 0)
 		if ($link) $boxstat .= '<a href="'.$link.'" class="boxstatsindicator thumbstat nobold nounderline">';
 		$boxstat .= '<div class="boxstats" title="'.dol_escape_htmltag($text).'">';
 		$boxstat .= '<span class="boxstatstext">'.img_object("", $icon).' <span>'.$text.'</span></span><br>';
-		$boxstat .= '<span class="boxstatsindicator">'.price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency).'</span>';
-		$boxstat .= '</div>';
+//-------------------------------------------------------------------------------
+		// Modification - Open-DSI - Begin
+		if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+			$boxstat .= '<span class="boxstatsindicator">' . price($outstandingTotal, 1, $langs, 1, -1, -1, $conf->currency) . '</span>';
+		} else {
+			$boxstat .= '<span class="boxstatsindicator">&nbsp;</span>';
+		}
+		// Modification - Open-DSI - End
+		//-------------------------------------------------------------------------------
+				$boxstat .= '</div>';
 		if ($link) $boxstat .= '</a>';
 	}
 
@@ -769,7 +793,15 @@ if ($object->id > 0)
 					print " ".img_warning();
 				}
 				print '</td><td class="right" width="80px">'.dol_print_date($db->jdate($objp->dp), 'day')."</td>\n";
-				print '<td class="right" style="min-width: 60px">'.price($objp->total_ht).'</td>';
+				//-------------------------------------------------------------------------------
+				// Modification - Open-DSI - Begin
+				if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+					print '<td class="right" style="min-width: 60px">' . price($objp->total_ht) . '</td>';
+				} else {
+					print '<td class="right" style="min-width: 60px"></td>';
+				}
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
 				print '<td class="right" style="min-width: 60px" class="nowrap">'.$propal_static->LibStatut($objp->fk_statut, 5).'</td></tr>';
 				$i++;
 			}
@@ -851,7 +883,15 @@ if ($object->id > 0)
 				print '<td class="nowrap">';
 				print $commande_static->getNomUrl(1);
 				print '</td><td class="right" width="80px">'.dol_print_date($db->jdate($objp->dc), 'day')."</td>\n";
-				print '<td class="right" style="min-width: 60px">'.price($objp->total_ht).'</td>';
+				//-------------------------------------------------------------------------------
+				// Modification - Open-DSI - Begin
+				if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+					print '<td class="right" style="min-width: 60px">' . price($objp->total_ht) . '</td>';
+				} else {
+					print '<td class="right" style="min-width: 60px"></td>';
+				}
+				// Modification - Open-DSI - End
+				//-------------------------------------------------------------------------------
 				print '<td class="right" style="min-width: 60px" class="nowrap">'.$commande_static->LibStatut($objp->fk_statut, $objp->facture, 5).'</td></tr>';
 				$i++;
 			}

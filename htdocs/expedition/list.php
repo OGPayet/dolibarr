@@ -206,9 +206,24 @@ $formfile = new FormFile($db);
 $companystatic = new Societe($db);
 $formcompany = new FormCompany($db);
 $shipment = new Expedition($db);
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+    if ($socid > 0)
+	{
+		$soc = new Societe($db);
+		$soc->fetch($socid);
+		$title = $langs->trans('ListOfSendings') . ' - '.$soc->name;
+	}
+	else
+	{
+	    $title = $langs->trans('ListOfSendings');
+	}
+	$helpurl = 'EN:Module_Shipments|FR:Module_Exp&eacute;ditions|ES:M&oacute;dulo_Expediciones';
+llxHeader('', $title, $helpurl);
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
 
-$helpurl = 'EN:Module_Shipments|FR:Module_Exp&eacute;ditions|ES:M&oacute;dulo_Expediciones';
-llxHeader('', $langs->trans('ListOfSendings'), $helpurl);
+
 
 $sql = 'SELECT';
 if ($sall || $search_product_category > 0) $sql = 'SELECT DISTINCT';
@@ -253,15 +268,22 @@ if ($search_user > 0)
 $sql .= " WHERE e.entity IN (".getEntity('expedition').")";
 if ($search_product_category > 0) $sql .= " AND cp.fk_categorie = ".$search_product_category;
 if ($socid > 0) $sql .= ' AND s.rowid = '.$socid;
-if (!$user->rights->societe->client->voir && !$socid)	// Internal user with no permission to see all
-{
-	$sql .= " AND e.fk_soc = sc.fk_soc";
-	$sql .= " AND sc.fk_user = ".$user->id;
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+if (!$user->rights->societe->client->voir && !($socid > 0)) { // Internal user with no permission to see all
+    $sql .= " AND (e.fk_soc = sc.fk_soc";
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = sc.fk_soc";
+    $sql .= " )";
+    $sql .= " AND sc.fk_user = " . $user->id;
 }
-if ($socid)
-{
-	$sql .= " AND e.fk_soc = ".$socid;
+if ($socid > 0) {
+    $sql .= " AND (e.fk_soc = " . $socid;
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = " . $socid;
+    $sql .= " )";
 }
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
+
 if ($search_status <> '' && $search_status >= 0) {
 	$sql .= " AND e.fk_statut = ".$search_status;
 }
@@ -367,9 +389,11 @@ if ($resql)
 	print '<input type="hidden" name="action" value="list">';
 	print '<input type="hidden" name="sortfield" value="'.$sortfield.'">';
 	print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
-
-	print_barre_liste($langs->trans('ListOfSendings'), $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'dolly', 0, $newcardbutton, '', $limit, 0, 0, 1);
-
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+	print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'dolly', 0, $newcardbutton, '', $limit, 0, 0, 1);
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - End
 	$topicmail = "SendShippingRef";
 	$modelmail = "shipping_send";
 	$objecttmp = new Expedition($db);

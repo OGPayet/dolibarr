@@ -75,9 +75,14 @@ $pagenext = $page + 1;
 if (!$sortorder) $sortorder = "DESC";
 if (!$sortfield)
 {
- 	$sortfield = "f.ref";
-}
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) $sortfield="fd.date";
+	else $sortfield="f.ref";
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
 
+}
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $object = new Fichinter($db);
 $hookmanager->initHooks(array('interventionlist'));
@@ -98,7 +103,11 @@ $fieldstosearchall = array(
 	'fd.description'=>'DescriptionOfLine',
 );
 if (empty($user->socid)) $fieldstosearchall["f.note_private"] = "NotePrivate";
-if (!empty($conf->global->FICHINTER_DISABLE_DETAILS)) unset($fieldstosearchall['fd.description']);
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+if (! empty($conf->global->FICHINTER_DISABLE_DETAILS) || !empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) unset($fieldstosearchall['fd.description']);
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - End
 
 // Definition of fields for list
 $arrayfields = array(
@@ -112,9 +121,9 @@ $arrayfields = array(
 	'f.note_public'=>array('label'=>'NotePublic', 'checked'=>0, 'position'=>510, 'enabled'=>(empty($conf->global->MAIN_LIST_ALLOW_PUBLIC_NOTES))),
 	'f.note_private'=>array('label'=>'NotePrivate', 'checked'=>0, 'position'=>511, 'enabled'=>(empty($conf->global->MAIN_LIST_ALLOW_PRIVATE_NOTES))),
 	'f.fk_statut'=>array('label'=>'Status', 'checked'=>1, 'position'=>1000),
-	'fd.description'=>array('label'=>"DescriptionOfLine", 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) ? 1 : 0),
-	'fd.date'=>array('label'=>'DateOfLine', 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) ? 1 : 0),
-	'fd.duree'=>array('label'=>'DurationOfLine', 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) ? 1 : 0),
+	'fd.description'=>array('label'=>"DescriptionOfLine", 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST) ? 1 : 0),
+	'fd.date'=>array('label'=>'DateOfLine', 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST) ? 1 : 0),
+	'fd.duree'=>array('label'=>'DurationOfLine', 'checked'=>1, 'enabled'=>empty($conf->global->FICHINTER_DISABLE_DETAILS) && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST) ? 1 : 0),
 );
 // Extra fields
 include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
@@ -198,7 +207,7 @@ foreach ($arrayfields as $tmpkey => $tmpval)
 
 $sql = "SELECT";
 $sql .= " f.ref, f.rowid, f.fk_statut as status, f.description, f.datec as date_creation, f.tms as date_update, f.note_public, f.note_private,";
-if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && $atleastonefieldinlines) $sql .= " fd.rowid as lineid, fd.description as descriptiondetail, fd.date as dp, fd.duree,";
+if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && $atleastonefieldinlines && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) $sql .= " fd.rowid as lineid, fd.description as descriptiondetail, fd.date as dp, fd.duree,";
 $sql .= " s.nom as name, s.rowid as socid, s.client, s.fournisseur, s.email, s.status as thirdpartystatus";
 if (!empty($conf->projet->enabled)) {
 	$sql .= ", pr.rowid as projet_id, pr.ref as projet_ref, pr.title as projet_title";
@@ -222,7 +231,7 @@ if (!empty($conf->contrat->enabled)) {
 	$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."contrat as c on f.fk_contrat = c.rowid";
 }
 if (is_array($extrafields->attributes[$object->table_element]['label']) && count($extrafields->attributes[$object->table_element]['label'])) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX.$object->table_element."_extrafields as ef on (f.rowid = ef.fk_object)";
-if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && $atleastonefieldinlines) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."fichinterdet as fd ON fd.fk_fichinter = f.rowid";
+if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && $atleastonefieldinlines && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."fichinterdet as fd ON fd.fk_fichinter = f.rowid";
 if (!$user->rights->societe->client->voir && empty($socid)) $sql .= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
 $sql .= ", ".MAIN_DB_PREFIX."societe as s";
 $sql .= " WHERE f.entity IN (".getEntity('intervention').")";
@@ -240,16 +249,27 @@ if ($search_contrat_ref) {
 	$sql .= natural_search('c.ref', $search_contrat_ref);
 }
 if ($search_desc) {
-	if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && $atleastonefieldinlines) $sql .= natural_search(array('f.description', 'fd.description'), $search_desc);
+	if (empty($conf->global->FICHINTER_DISABLE_DETAILS) && $atleastonefieldinlines && empty($conf->global->FICHINTER_DISABLE_DETAILS_LIST)) $sql .= natural_search(array('f.description', 'fd.description'), $search_desc);
 	else $sql .= natural_search(array('f.description'), $search_desc);
 }
 if ($search_status != '' && $search_status >= 0) {
 	$sql .= ' AND f.fk_statut = '.urlencode($search_status);
 }
-if (!$user->rights->societe->client->voir && empty($socid))
-	$sql .= " AND s.rowid = sc.fk_soc AND sc.fk_user = ".$user->id;
-if ($socid)
-	$sql .= " AND s.rowid = ".$socid;
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+if (!$user->rights->societe->client->voir && !($socid > 0)) { // Internal user with no permission to see all
+    $sql .= " AND (f.fk_soc = sc.fk_soc";
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = sc.fk_soc";
+    $sql .= " )";
+    $sql .= " AND sc.fk_user = " . $user->id;
+}
+if ($socid > 0) {
+    $sql .= " AND (f.fk_soc = " . $socid;
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = " . $socid;
+    $sql .= " )";
+}
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
 if ($sall) {
 	$sql .= natural_search(array_keys($fieldstosearchall), $sall);
 }
@@ -462,6 +482,13 @@ if ($resql)
 	if (!empty($arrayfields['pr.ref']['checked']))         print_liste_field_titre($arrayfields['pr.ref']['label'], $_SERVER["PHP_SELF"], "pr.ref", "", $param, '', $sortfield, $sortorder);
 	if (!empty($arrayfields['c.ref']['checked']))          print_liste_field_titre($arrayfields['c.ref']['label'], $_SERVER["PHP_SELF"], "c.ref", "", $param, '', $sortfield, $sortorder);
 	if (!empty($arrayfields['f.description']['checked']))  print_liste_field_titre($arrayfields['f.description']['label'], $_SERVER["PHP_SELF"], "f.description", "", $param, '', $sortfield, $sortorder);
+	//-------------------------------------------------------------------------------
+	// Modification - Open-DSI - Begin
+	if (! empty($arrayfields['fd.description']['checked'])) print_liste_field_titre($arrayfields['fd.description']['label'],$_SERVER["PHP_SELF"],'');
+    if (! empty($arrayfields['fd.date']['checked']))        print_liste_field_titre($arrayfields['fd.date']['label'],$_SERVER["PHP_SELF"],"fd.date","",$param,'align="center"',$sortfield,$sortorder);
+    if (! empty($arrayfields['fd.duree']['checked']))       print_liste_field_titre($arrayfields['fd.duree']['label'],$_SERVER["PHP_SELF"],"fd.duree","",$param,'align="right"',$sortfield,$sortorder);
+	// Modification - Open-DSI - End
+    //-------------------------------------------------------------------------------
 	// Extra fields
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
 	// Hook fields

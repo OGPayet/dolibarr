@@ -154,14 +154,18 @@ $arrayfields = array(
 	'typent.code'=>array('label'=>"ThirdPartyType", 'checked'=>$checkedtypetiers, 'position'=>55),
 	'c.date_commande'=>array('label'=>"OrderDateShort", 'checked'=>1, 'position'=>60),
 	'c.date_delivery'=>array('label'=>"DateDeliveryPlanned", 'checked'=>1, 'enabled'=>empty($conf->global->ORDER_DISABLE_DELIVERY_DATE), 'position'=>65),
-	'c.total_ht'=>array('label'=>"AmountHT", 'checked'=>1, 'position'=>75),
-	'c.total_vat'=>array('label'=>"AmountVAT", 'checked'=>0, 'position'=>80),
-	'c.total_ttc'=>array('label'=>"AmountTTC", 'checked'=>0, 'position'=>85),
-	'c.multicurrency_code'=>array('label'=>'Currency', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1), 'position'=>90),
-	'c.multicurrency_tx'=>array('label'=>'CurrencyRate', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1), 'position'=>95),
-	'c.multicurrency_total_ht'=>array('label'=>'MulticurrencyAmountHT', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1), 'position'=>100),
-	'c.multicurrency_total_vat'=>array('label'=>'MulticurrencyAmountVAT', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1), 'position'=>105),
-	'c.multicurrency_total_ttc'=>array('label'=>'MulticurrencyAmountTTC', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1), 'position'=>110),
+	//-------------------------------------------------------------------------------
+	// Modification - Open-DSI - Begin
+	'c.total_ht'=>array('label'=>"AmountHT", 'checked'=>1, 'position'=>75, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+	'c.total_vat'=>array('label'=>"AmountVAT", 'checked'=>0, 'position'=>80, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+	'c.total_ttc'=>array('label'=>"AmountTTC", 'checked'=>0, 'position'=>85, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+	'c.multicurrency_code'=>array('label'=>'Currency', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)), 'position'=>90),
+	'c.multicurrency_tx'=>array('label'=>'CurrencyRate', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)), 'position'=>95),
+	'c.multicurrency_total_ht'=>array('label'=>'MulticurrencyAmountHT', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)), 'position'=>100),
+	'c.multicurrency_total_vat'=>array('label'=>'MulticurrencyAmountVAT', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)), 'position'=>105),
+	'c.multicurrency_total_ttc'=>array('label'=>'MulticurrencyAmountTTC', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)), 'position'=>110),
+	// Modification - Open-DSI - End
+	//-------------------------------------------------------------------------------
 	'u.login'=>array('label'=>"Author", 'checked'=>1, 'position'=>10, 'position'=>115),
 	'c.datec'=>array('label'=>"DateCreation", 'checked'=>0, 'position'=>500, 'position'=>120),
 	'c.tms'=>array('label'=>"DateModificationShort", 'checked'=>0, 'position'=>500, 'position'=>125),
@@ -311,8 +315,21 @@ if ($search_user > 0)
 $sql .= ' WHERE c.fk_soc = s.rowid';
 $sql .= ' AND c.entity IN ('.getEntity('commande').')';
 if ($search_product_category > 0) $sql .= " AND cp.fk_categorie = ".$search_product_category;
-if ($socid > 0) $sql .= ' AND s.rowid = '.$socid;
-if (!$user->rights->societe->client->voir && !$socid) $sql .= " AND s.rowid = sc.fk_soc AND sc.fk_user = ".$user->id;
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+if (!$user->rights->societe->client->voir && !($socid > 0)) { // Internal user with no permission to see all
+    $sql .= " AND (c.fk_soc = sc.fk_soc";
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = sc.fk_soc";
+    $sql .= " )";
+    $sql .= " AND sc.fk_user = " . $user->id;
+}
+if ($socid > 0) {
+    $sql .= " AND (c.fk_soc = " . $socid;
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = " . $socid;
+    $sql .= " )";
+}
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
 if ($search_ref) $sql .= natural_search('c.ref', $search_ref);
 if ($search_ref_customer) $sql .= natural_search('c.ref_client', $search_ref_customer);
 if ($sall) $sql .= natural_search(array_keys($fieldstosearchall), $sall);
@@ -975,12 +992,20 @@ if ($resql)
 			if ($generic_commande->hasDelay()) {
 				print img_picto($langs->trans("Late").' : '.$generic_commande->showDelay(), "warning");
 			}
-
-			$filename = dol_sanitizeFileName($obj->ref);
-			$filedir = $conf->commande->multidir_output[$conf->entity].'/'.dol_sanitizeFileName($obj->ref);
-			$urlsource = $_SERVER['PHP_SELF'].'?id='.$obj->rowid;
-			print $formfile->getDocumentsLink($generic_commande->element, $filename, $filedir);
-
+			//-------------------------------------------------------------------------------
+			// Modification - Open-DSI - Begin
+			if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerorder) {
+			// Modification - Open-DSI - End
+			//-------------------------------------------------------------------------------
+				$filename = dol_sanitizeFileName($obj->ref);
+				$filedir = $conf->commande->multidir_output[$conf->entity].'/'.dol_sanitizeFileName($obj->ref);
+				$urlsource = $_SERVER['PHP_SELF'].'?id='.$obj->rowid;
+				print $formfile->getDocumentsLink($generic_commande->element, $filename, $filedir);
+			//-------------------------------------------------------------------------------
+			// Modification - Open-DSI - Begin
+			}
+			// Modification - Open-DSI - End
+			//-------------------------------------------------------------------------------
 			print '</td>';
 			if (!$i) $totalarray['nbfield']++;
 		}

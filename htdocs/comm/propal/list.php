@@ -166,19 +166,24 @@ $arrayfields = array(
 	'p.fin_validite'=>array('label'=>"DateEnd", 'checked'=>1),
 	'p.date_livraison'=>array('label'=>"DeliveryDate", 'checked'=>0),
 	'ava.rowid'=>array('label'=>"AvailabilityPeriod", 'checked'=>0),
-	'p.total_ht'=>array('label'=>"AmountHT", 'checked'=>1),
-	'p.total_vat'=>array('label'=>"AmountVAT", 'checked'=>0),
-	'p.total_ttc'=>array('label'=>"AmountTTC", 'checked'=>0),
-	'p.total_ht_invoiced'=>array('label'=>"AmountInvoicedHT", 'checked'=>0, 'enabled'=>!empty($conf->global->PROPOSAL_SHOW_INVOICED_AMOUNT)),
-	'p.total_invoiced'=>array('label'=>"AmountInvoicedTTC", 'checked'=>0, 'enabled'=>!empty($conf->global->PROPOSAL_SHOW_INVOICED_AMOUNT)),
-	'p.multicurrency_code'=>array('label'=>'Currency', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1)),
-	'p.multicurrency_tx'=>array('label'=>'CurrencyRate', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1)),
-	'p.multicurrency_total_ht'=>array('label'=>'MulticurrencyAmountHT', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1)),
-	'p.multicurrency_total_vat'=>array('label'=>'MulticurrencyAmountVAT', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1)),
-	'p.multicurrency_total_ttc'=>array('label'=>'MulticurrencyAmountTTC', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1)),
-	'p.multicurrency_total_ht_invoiced'=>array('label'=>'MulticurrencyAmountInvoicedHT', 'checked'=>0, 'enabled'=>!empty($conf->multicurrency->enabled) && !empty($conf->global->PROPOSAL_SHOW_INVOICED_AMOUNT)),
-	'p.multicurrency_total_invoiced'=>array('label'=>'MulticurrencyAmountInvoicedTTC', 'checked'=>0, 'enabled'=>!empty($conf->multicurrency->enabled) && !empty($conf->global->PROPOSAL_SHOW_INVOICED_AMOUNT)),
-	'u.login'=>array('label'=>"Author", 'checked'=>1, 'position'=>10),
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+'p.total_ht'=>array('label'=>$langs->trans("AmountHT"), 'checked'=>1, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+'p.total_vat'=>array('label'=>$langs->trans("AmountVAT"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+'p.total_ttc'=>array('label'=>$langs->trans("AmountTTC"), 'checked'=>0, 'enabled'=>(!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+'p.total_ht_invoiced'=>array('label'=>"AmountInvoicedHT", 'checked'=>0, 'enabled'=>!empty($conf->global->PROPOSAL_SHOW_INVOICED_AMOUNT) && (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+'p.total_invoiced'=>array('label'=>"AmountInvoicedTTC", 'checked'=>0, 'enabled'=>!empty($conf->global->PROPOSAL_SHOW_INVOICED_AMOUNT) && (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+'p.multicurrency_code'=>array('label'=>'Currency', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal))),
+'p.multicurrency_tx'=>array('label'=>'CurrencyRate', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal))),
+'p.multicurrency_total_ht'=>array('label'=>'MulticurrencyAmountHT', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal))),
+'p.multicurrency_total_vat'=>array('label'=>'MulticurrencyAmountVAT', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal))),
+'p.multicurrency_total_ttc'=>array('label'=>'MulticurrencyAmountTTC', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal))),
+'p.multicurrency_total_ht_invoiced'=>array('label'=>'MulticurrencyAmountInvoicedHT', 'checked'=>0, 'enabled'=>!empty($conf->multicurrency->enabled) && !empty($conf->global->PROPOSAL_SHOW_INVOICED_AMOUNT) && (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+'p.multicurrency_total_invoiced'=>array('label'=>'MulticurrencyAmountInvoicedTTC', 'checked'=>0, 'enabled'=>!empty($conf->multicurrency->enabled) && !empty($conf->global->PROPOSAL_SHOW_INVOICED_AMOUNT) && (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal)),
+
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
+'u.login'=>array('label'=>"Author", 'checked'=>1, 'position'=>10),
 	'sale_representative'=>array('label'=>"SaleRepresentativesOfThirdParty", 'checked'=>1),
 	'p.datec'=>array('label'=>"DateCreation", 'checked'=>0, 'position'=>500),
 	'p.tms'=>array('label'=>"DateModificationShort", 'checked'=>0, 'position'=>500),
@@ -353,7 +358,21 @@ if ($search_categ_cus > 0)			$sql .= " AND cc.fk_categorie = ".$db->escape($sear
 if ($search_categ_cus == -2)		$sql .= " AND cc.fk_categorie IS NULL";
 
 if ($search_product_category > 0)	$sql .= " AND cp.fk_categorie = ".$db->escape($search_product_category);
-if ($socid > 0) $sql .= ' AND s.rowid = '.$socid;
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+if (!$user->rights->societe->client->voir && !($socid > 0)) { // Internal user with no permission to see all
+    $sql .= " AND (p.fk_soc = sc.fk_soc";
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = sc.fk_soc";
+    $sql .= " )";
+    $sql .= " AND sc.fk_user = " . $user->id;
+}
+if ($socid > 0) {
+    $sql .= " AND (p.fk_soc = " . $socid;
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = " . $socid;
+    $sql .= " )";
+}
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
 if ($search_status != '' && $search_status != '-1')
 {
 	$sql .= ' AND p.fk_statut IN ('.$db->sanitize($db->escape($search_status)).')';
@@ -488,6 +507,11 @@ if ($resql)
 	print '<input type="hidden" name="sortfield" value="'.$sortfield.'">';
 	print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
 	print '<input type="hidden" name="contextpage" value="'.$contextpage.'">';
+//-------------------------------------------------------------------------------
+    // Modification - Open-DSI - Begin
+    if ($socid > 0) print '<input type="hidden" name="socid" value="'.$socid.'">';
+    // Modification - Open-DSI - End
+    //-------------------------------------------------------------------------------
 
 	print_barre_liste($title, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, $massactionbutton, $num, $nbtotalofrecords, 'propal', 0, $newcardbutton, '', $limit, 0, 0, 1);
 
@@ -1261,9 +1285,17 @@ if ($resql)
 		print '<td class="nowrap" align="center">';
 		if ($massactionbutton || $massaction)   // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
 		{
-			$selected = 0;
-			if (in_array($obj->rowid, $arrayofselected)) $selected = 1;
-			print '<input id="cb'.$obj->rowid.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->rowid.'"'.($selected ? ' checked="checked"' : '').'>';
+			//Modification - Open-DSI - Begin
+			$selected=0;
+		if (in_array($obj->rowid, $arrayofselected)) $selected=1;
+			if (!$conf->synergiestech->enabled ||
+			($user->rights->synergiestech->documents->customerpropal &&
+			(empty($obj->options_sitevalue) ||
+			($user->rights->synergiestech->propal->installation_value&&!empty($obj->options_sitevalue)))))
+			{
+		print '<input id="cb'.$obj->rowid.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->rowid.'"'.($selected?' checked="checked"':'').'>';
+			}
+						//Modification - Open-DSI - End
 		}
 		print '</td>';
 		if (!$i) $totalarray['nbfield']++;

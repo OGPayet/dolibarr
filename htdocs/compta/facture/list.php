@@ -463,9 +463,22 @@ if ($search_user > 0)
 
 $sql .= ' WHERE f.fk_soc = s.rowid';
 $sql .= ' AND f.entity IN ('.getEntity('invoice').')';
-if (!$user->rights->societe->client->voir && !$socid) $sql .= " AND s.rowid = sc.fk_soc AND sc.fk_user = ".$user->id;
 if ($search_product_category > 0) $sql .= " AND cp.fk_categorie = ".$db->escape($search_product_category);
-if ($socid > 0) $sql .= ' AND s.rowid = '.$socid;
+//-------------------------------------------------------------------------------
+// Modification - Open-DSI - Begin
+if (!$user->rights->societe->client->voir && !($socid > 0)) { // Internal user with no permission to see all
+    $sql .= " AND (f.fk_soc = sc.fk_soc";
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = sc.fk_soc";
+    $sql .= " )";
+    $sql .= " AND sc.fk_user = " . $user->id;
+}
+if ($socid > 0) {
+    $sql .= " AND (f.fk_soc = " . $socid;
+    if ($conf->companyrelationships->enabled) $sql .= " OR ef.companyrelationships_fk_soc_benefactor = " . $socid;
+    $sql .= " )";
+}
+// Modification - Open-DSI - End
+//-------------------------------------------------------------------------------
 if ($userid)
 {
 	if ($userid == -1) $sql .= ' AND f.fk_user_author IS NULL';
@@ -1584,6 +1597,8 @@ if ($resql)
 			{
 				print '<td class="right nowrap">'.price($marginInfo['total_margin']).'</td>';
 				if (!$i) $totalarray['nbfield']++;
+				if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'total_margin';
+				$totalarray['val']['total_margin'] += $marginInfo['total_margin'];
 			}
 			// Total margin rate
 			if (!empty($arrayfields['total_margin_rate']['checked']))
