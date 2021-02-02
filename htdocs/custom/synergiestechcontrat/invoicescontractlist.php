@@ -292,7 +292,8 @@ $sql .= ' SUM(' . $db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL 
 $sql .= ' SUM(' . $db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '" . $db->idate($now - $conf->contrat->services->expires->warning_delay) . "')", 1, 0) . ') as nb_late,';
 $sql .= ' SUM(' . $db->ifsql("cd.statut=5", 1, 0) . ') as nb_closed';
 // Add fields from extrafields
-foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
+if (!empty($extrafields->attributes[$object->table_element]['label']))
+	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? ", ef.".$key.' as options_'.$key : '');
 // Add fields from hooks
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
@@ -304,14 +305,14 @@ $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_departements as state on (state.rowi
 if ($search_sale > 0 || (!$user->rights->societe->client->voir && !$socid)) $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc";
 $sql .= ", " . MAIN_DB_PREFIX . "contrat as c";
 $sql .= (!empty($search_invoices) ? " INNER" : " LEFT") . " JOIN (";
-$sql .= "   SELECT ee.fk_source AS contract_id, f.facnumber AS invoice_ref, f.total AS invoice_total_ht, f.tva AS invoice_total_vat, f.total_ttc as invoice_total_ttc";
+$sql .= "   SELECT ee.fk_source AS contract_id, f.ref AS invoice_ref, f.total AS invoice_total_ht, f.tva AS invoice_total_vat, f.total_ttc as invoice_total_ttc";
 $sql .= "   FROM " . MAIN_DB_PREFIX . "facture AS f";
 $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "element_element AS ee ON ee.sourcetype = 'contrat' AND ee.fk_target = f.rowid AND ee.targettype = 'facture'";
 $sql .= "   WHERE f.fk_statut = 0";
 $sql .= " ) as ci ON (ci.contract_id = c.rowid)";
 if ($search_invoices != '' || $search_invoices_total_ht != '' || $search_invoices_total_vat != '' || $search_invoices_total_ttc != '') {
 }
-if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contrat_extrafields as ef on (c.rowid = ef.fk_object)";
+if (is_array($extrafields->attributes[$object->table_element]['label']) && count($extrafields->attributes[$object->table_element]['label'])) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields as ef on (c.rowid = ef.fk_object)";
 $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "contratdet as cd ON c.rowid = cd.fk_contrat";
 if ($search_product_category > 0) $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'categorie_product as cp ON cp.fk_product=cd.fk_product';
 if ($search_user > 0) {
@@ -377,8 +378,8 @@ $sql .= " GROUP BY c.rowid, c.ref, c.datec, c.tms, c.date_contrat, c.statut, c.r
 $sql .= ' s.rowid, s.nom, s.town, s.zip, s.fk_pays, s.client, s.code_client,';
 $sql .= " typent.code,";
 $sql .= " state.code_departement, state.nom";
-// Add fields from extrafields
-foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key : '');
+// // Add fields from extrafields
+// foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key : '');
 // Add where from hooks
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListGroupBy', $parameters);    // Note that $action and $object may have been modified by hook
@@ -498,12 +499,9 @@ if ($resql) {
     if ($search_status != '')               $param .= '&search_status=' . $search_status;
     if ($show_files)                        $param .= '&show_files=' . $show_files;
     if ($optioncss != '')                   $param .= '&optioncss=' . $optioncss;
-    // Add $param from extra fields
-    foreach ($search_array_options as $key => $val) {
-        $crit = $val;
-        $tmpkey = preg_replace('/search_options_/', '', $key);
-        if ($val != '') $param .= '&search_options_' . $tmpkey . '=' . urlencode($val);
-    }
+
+	// Add $param from extra fields
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_param.tpl.php';
 
     // List of mass actions available
     $arrayofmassactions =  array();
@@ -679,24 +677,7 @@ if ($resql) {
         print '</td>';
     }
     // Extra fields
-    if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
-        foreach ($extrafields->attribute_label as $key => $val) {
-            if (!empty($arrayfields["ef." . $key]['checked'])) {
-                $align = $extrafields->getAlignFlag($key);
-                $typeofextrafield = $extrafields->attribute_type[$key];
-                print '<td class="liste_titre' . ($align ? ' ' . $align : '') . '">';
-                if (in_array($typeofextrafield, array('varchar', 'int', 'double', 'select'))) {
-                    $crit = $val;
-                    $tmpkey = preg_replace('/search_options_/', '', $key);
-                    $searchclass = '';
-                    if (in_array($typeofextrafield, array('varchar', 'select'))) $searchclass = 'searchstring';
-                    if (in_array($typeofextrafield, array('int', 'double'))) $searchclass = 'searchnum';
-                    print '<input class="flat' . ($searchclass ? ' ' . $searchclass : '') . '" size="4" type="text" name="search_options_' . $tmpkey . '" value="' . dol_escape_htmltag($search_array_options['search_options_' . $tmpkey]) . '">';
-                }
-                print '</td>';
-            }
-        }
-    }
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_input.tpl.php';
     // Fields from hook
     $parameters = array('arrayfields' => $arrayfields);
     $reshook = $hookmanager->executeHooks('printFieldListOption', $parameters);    // Note that $action and $object may have been modified by hook
@@ -754,17 +735,8 @@ if ($resql) {
     if (!empty($arrayfields['invoices_total_vat']['checked']))  print_liste_field_titre($arrayfields['invoices_total_vat']['label'], $_SERVER["PHP_SELF"], "ci.invoice_total_vat", "", $param, 'align="right"', $sortfield, $sortorder);
     // Total amount TTC of the invoices draft of this contract
     if (!empty($arrayfields['invoices_total_ttc']['checked']))  print_liste_field_titre($arrayfields['invoices_total_ttc']['label'], $_SERVER["PHP_SELF"], "ci.invoice_total_ttc", "", $param, 'align="right"', $sortfield, $sortorder);
-    // Extra fields
-    if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
-        foreach ($extrafields->attribute_label as $key => $val) {
-            if (!empty($arrayfields["ef." . $key]['checked'])) {
-                $align = $extrafields->getAlignFlag($key);
-                $sortonfield = "ef." . $key;
-                if (!empty($extrafields->attribute_computed[$key])) $sortonfield = '';
-                print_liste_field_titre($extralabels[$key], $_SERVER["PHP_SELF"], $sortonfield, "", $param, ($align ? 'align="' . $align . '"' : ''), $sortfield, $sortorder);
-            }
-        }
-    }
+    	// Extra fields
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_input.tpl.php';
     // Hook fields
     $parameters = array('arrayfields' => $arrayfields);
     $reshook = $hookmanager->executeHooks('printFieldListTitle', $parameters);    // Note that $action and $object may have been modified by hook
@@ -963,7 +935,7 @@ if ($resql) {
         }
 
         // Extra fields
-        include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_list_print_fields.tpl.php';
+		include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_print_fields.tpl.php';
         // Fields from hook
         $parameters = array('totalarray' => &$totalarray, 'arrayfields' => $arrayfields, 'obj' => $obj);
         $reshook = $hookmanager->executeHooks('printFieldListValue', $parameters);    // Note that $action and $object may have been modified by hook

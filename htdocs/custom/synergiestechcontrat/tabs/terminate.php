@@ -44,7 +44,7 @@ $action=GETPOST('action','alpha');
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
 $result=restrictedArea($user, 'contrat', $id);
-if (!$user->rights->contrat->terminate) accessforbidden();
+if (!$user->rights->synergiestechcontrat->terminate) accessforbidden();
 
 $langs->load("link");
 if (empty($relativepathwithnofile)) $relativepathwithnofile='';
