@@ -179,6 +179,7 @@ class modSynergiesTech extends DolibarrModules
 			'thirdparty:+listOfOrder:SynergiesTechListOfOrder:synergiestech@synergiestech:$user->rights->commande->lire:/commande/list.php?socid=__ID__',
 			'thirdparty:+listOfIntervention:SynergiesTechListOfIntervention:synergiestech@synergiestech:$user->rights->ficheinter->lire:/fichinter/list.php?socid=__ID__',
 			'thirdparty:+listOfInvoice:SynergiesTechListOfInvoice:synergiestech@synergiestech:$user->rights->facture->lire:/compta/facture/list.php?socid=__ID__',
+			'thirdparty:-document::!$user->rights->synergiestech->documents->thirdparty',
 		);
 
 		if (!isset($conf->synergiestech) || !isset($conf->synergiestech->enabled)) {
@@ -423,6 +424,12 @@ class modSynergiesTech extends DolibarrModules
 		$this->rights[$r][5] = 'validateWithoutCheck';
 		$r++;
 
+		$this->rights[$r][0] = 500129;
+		$this->rights[$r][1] = "Accéder aux fichiers des tiers";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'documents';
+		$this->rights[$r][5] = 'thirdparty';
+		$r++;
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
 		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
