@@ -714,6 +714,14 @@ if ($resql)
 			$event->ponctuel = 1;
 		}
 
+		//---------------------------------------------
+        // Modification - Open-DSI - Begin
+		$parameters = array();
+		$reshook = $hookmanager->executeHooks('afterSQLFetch', $parameters, $event, $action); // Note that $action and $object may have been modified by some hooks
+		if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+        // Modification - Open-DSI - End
+        //---------------------------------------------
+
 		// Check values
 		if ($event->date_end_in_calendar < $firstdaytoshow || $event->date_start_in_calendar >= $lastdaytoshow)	{
 			// This record is out of visible range

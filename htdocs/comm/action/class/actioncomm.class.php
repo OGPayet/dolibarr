@@ -779,7 +779,24 @@ class ActionComm extends CommonObject
 				$this->elementtype = $obj->elementtype;
 
 				$this->fetchResources();
-			}
+				//---------------------------------------------
+           	    // Modification - Open-DSI - Begin
+          		$db = $this->db;
+           		if (!is_object($hookmanager)) {
+                	// Add hook
+                	include_once DOL_DOCUMENT_ROOT.'/core/class/hookmanager.class.php';
+                	$hookmanager = new HookManager($this->db);
+        		}
+				$hookmanager->initHooks(array('actiondao'));
+				$parameters = array('num'=>&$num);
+				$reshook = $hookmanager->executeHooks('afterObjectFetch', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
+				if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+            }
+            if(!$this->db) {
+				$this->db = $db;
+			// Modification - Open-DSI - End
+            //---------------------------------------------
+            }
 			$this->db->free($resql);
 		} else {
 			$this->error = $this->db->lasterror();

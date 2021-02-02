@@ -641,6 +641,18 @@ if ($resql)
 	{
 		$obj = $db->fetch_object($resql);
 
+		//---------------------------------------------
+        // Modification - Open-DSI - Begin
+		$parameters = array();
+		$reshook = $hookmanager->executeHooks('afterSQLFetch', $parameters, $obj, $action); // Note that $action and $object may have been modified by some hooks
+		if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+		if(empty($obj->id)) {
+			$i++;
+			continue;
+		}
+        // Modification - Open-DSI - End
+        //---------------------------------------------
+
 		// Discard auto action if option is on
 		if (!empty($conf->global->AGENDA_ALWAYS_HIDE_AUTO) && $obj->type_code == 'AC_OTH_AUTO')
 		{
