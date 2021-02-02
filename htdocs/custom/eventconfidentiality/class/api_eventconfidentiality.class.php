@@ -29,10 +29,6 @@ require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
  */
 class EventConfidentialityApi extends DolibarrApi {
     /**
-     * @var DoliDb      $db         Database object
-     */
-    static protected $db;
-    /**
      * @var string Error
      */
     public $error = '';
@@ -53,7 +49,7 @@ class EventConfidentialityApi extends DolibarrApi {
         global $db, $user;
 
         $user = DolibarrApiAccess::$user;
-        self::$db = $db;
+        $this->db = $db;
     }
 
     /**
@@ -76,7 +72,7 @@ class EventConfidentialityApi extends DolibarrApi {
         }
 
         dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-        $eventconfidentiality = new EventConfidentiality(self::$db);
+        $eventconfidentiality = new EventConfidentiality($this->db);
         $default_tags = $eventconfidentiality->getDefaultTags($element_type, $action_type_id);
         if (!is_array($default_tags)) {
             throw new RestException(500, "Error when retrieve default tags information", [ 'details' => $this->_getErrors($eventconfidentiality) ]);

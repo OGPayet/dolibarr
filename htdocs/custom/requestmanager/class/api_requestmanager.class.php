@@ -31,10 +31,6 @@ dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
  */
 class RequestManagerApi extends DolibarrApi {
     /**
-     * @var DoliDb      $db         Database object
-     */
-    static protected $db;
-    /**
      * @var string Error
      */
     public $error = '';
@@ -151,7 +147,7 @@ class RequestManagerApi extends DolibarrApi {
         global $conf, $db, $langs, $user;
 
         $user = DolibarrApiAccess::$user;
-        self::$db = $db;
+        $this->db = $db;
         $langs->load('requestmanager@requestmanager');
 
         // Specific case for the whitelist of the user object
@@ -252,7 +248,7 @@ class RequestManagerApi extends DolibarrApi {
             $sqlFilter = ' AND rmau.fk_user = ' . DolibarrApiAccess::$user->id;
 
             require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
-            $usergroup_static = new UserGroup(self::$db);
+            $usergroup_static = new UserGroup( $this->db);
             $groupslist = $usergroup_static->listGroupsForUser(DolibarrApiAccess::$user->id);
             if (!empty($groupslist)) {
                 $myGroups = implode(',', array_keys($groupslist));
@@ -306,20 +302,20 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " GROUP BY t.rowid";
 
         // Set Order and Limit
-        $sql .= self::$db->order($sort_field, $sort_order);
+        $sql .= $this->db->order($sort_field, $sort_order);
         if ($limit) {
             if ($page < 0) {
                 $page = 0;
             }
             $offset = $limit * $page;
 
-            $sql .= self::$db->plimit($limit, $offset);
+            $sql .= $this->db->plimit($limit, $offset);
         }
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
-            while ($obj = self::$db->fetch_object($resql)) {
-                $requestmanager = new RequestManager(self::$db);
+            while ($obj = $this->db->fetch_object($resql)) {
+                $requestmanager = new RequestManager( $this->db);
                 if ($requestmanager->fetch($obj->rowid) > 0) {
                     $requestmanager->fetch_assigned(1);
                     $requestmanager->fetch_requesters(1);
@@ -354,9 +350,9 @@ class RequestManagerApi extends DolibarrApi {
                 }
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve request list", [ 'details' => [ self::$db->lasterror() ]]);
+            throw new RestException(500, "Error when retrieve request list", [ 'details' => [ $this->db->lasterror() ]]);
         }
 
         return $obj_ret;
@@ -383,7 +379,7 @@ class RequestManagerApi extends DolibarrApi {
         $this->_validate($request_data);
 
         // todo remplir auto le socid_origin, socid et socid_benefactor si un utilisateur externe ?
-        $requestmanager = new RequestManager(self::$db);
+        $requestmanager = new RequestManager( $this->db);
         foreach ($request_data as $field => $value) {
             $requestmanager->$field = $value;
         }
@@ -598,7 +594,7 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
-        $requestline = new RequestManagerLine(self::$db);
+        $requestline = new RequestManagerLine( $this->db);
         $result = $requestline->fetch($line_id);
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
@@ -667,7 +663,7 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
-        $requestline = new RequestManagerLine(self::$db);
+        $requestline = new RequestManagerLine( $this->db);
         $result = $requestline->fetch($line_id);
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
@@ -708,7 +704,7 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
-        $requestmanager_message = new RequestManagerMessage(self::$db);
+        $requestmanager_message = new RequestManagerMessage( $this->db);
         $result = $requestmanager_message->fetch($message_id);
         if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
             throw new RestException(404, "Request message not found");
@@ -767,7 +763,7 @@ class RequestManagerApi extends DolibarrApi {
         $this->_validateMessage($request_message_data);
 
         dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
-        $formrequestmanagermessage = new FormRequestManagerMessage(self::$db, $requestmanager);
+        $formrequestmanagermessage = new FormRequestManagerMessage( $this->db, $requestmanager);
 
         // Add attached files
         if (isset($request_message_data['attached_files'])) {
@@ -781,7 +777,7 @@ class RequestManagerApi extends DolibarrApi {
             $request_message_data['attached_files'] = $formrequestmanagermessage->get_attached_files();
         }
 
-        $requestmanager_message = new RequestManagerMessage(self::$db);
+        $requestmanager_message = new RequestManagerMessage( $this->db);
         foreach ($request_message_data as $field => $value) {
             $requestmanager_message->$field = $value;
         }
@@ -909,7 +905,7 @@ class RequestManagerApi extends DolibarrApi {
         }
         // Event confidentiality support
         if ($conf->eventconfidentiality->enabled) {
-            $eventconfidentiality = new EventConfidentiality(self::$db);
+            $eventconfidentiality = new EventConfidentiality( $this->db);
             $tags_list = $eventconfidentiality->getConfidentialTagsOfUser(DolibarrApiAccess::$user);
             if (!is_array($tags_list)) {
                 throw new RestException(500, 'Error when retrieve tags list of the user', [ 'details' => $this->_getErrors($eventconfidentiality) ]);
@@ -943,22 +939,22 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         // Set Order and Limit
-        $sql .= self::$db->order($sort_field.', t.id', $sort_order.','.$sort_order);
+        $sql .= $this->db->order($sort_field.', t.id', $sort_order.','.$sort_order);
         if ($limit) {
             if ($page < 0) {
                 $page = 0;
             }
             $offset = $limit * $page;
 
-            $sql .= self::$db->plimit($limit, $offset);
+            $sql .= $this->db->plimit($limit, $offset);
         }
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
             require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-            while ($obj = self::$db->fetch_object($resql)) {
+            while ($obj = $this->db->fetch_object($resql)) {
                 if ($obj->code == 'AC_RM_PRIV' || $obj->code == 'AC_RM_IN' || $obj->code == 'AC_RM_OUT') {
-                    $requestmanager_message = new RequestManagerMessage(self::$db);
+                    $requestmanager_message = new RequestManagerMessage( $this->db);
                     if ($requestmanager_message->fetch($obj->id) > 0 && $requestmanager_message->id > 0) {
                         $requestmanager_message->fetch_knowledge_base();
                         $requestmanager_message->fetch_optionals();
@@ -972,7 +968,7 @@ class RequestManagerApi extends DolibarrApi {
                         $obj_ret[] = $this->_cleanObjectData($requestmanager_message);
                     }
                 } else {
-                    $event = new ActionComm(self::$db);
+                    $event = new ActionComm( $this->db);
                     if ($event->fetch($obj->id) > 0 && $event->id > 0) {
                         $event->fetch_optionals();
                         $event->fetch_contact();
@@ -987,9 +983,9 @@ class RequestManagerApi extends DolibarrApi {
                 }
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve request events list", [ 'details' => [ self::$db->lasterror() ]]);
+            throw new RestException(500, "Error when retrieve request events list", [ 'details' => [ $this->db->lasterror() ]]);
         }
 
         return $obj_ret;
@@ -1064,7 +1060,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         if ($message_id > 0) {
-            $requestmanager_message = new RequestManagerMessage(self::$db);
+            $requestmanager_message = new RequestManagerMessage( $this->db);
             $result = $requestmanager_message->fetch($message_id);
             if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
                 throw new RestException(404, "Request message not found");
@@ -1074,7 +1070,7 @@ class RequestManagerApi extends DolibarrApi {
                 // List documents of the request message
                 if ($conf->eventconfidentiality->enabled) {
                     dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-                    $eventconfidentiality = new EventConfidentiality(self::$db);
+                    $eventconfidentiality = new EventConfidentiality( $this->db);
 
                     // Get mode for the user and event
                     $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $requestmanager_message->id);
@@ -1150,7 +1146,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         if ($message_id > 0) {
-            $requestmanager_message = new RequestManagerMessage(self::$db);
+            $requestmanager_message = new RequestManagerMessage( $this->db);
             $result = $requestmanager_message->fetch($message_id);
             if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
                 throw new RestException(404, "Request message not found");
@@ -1160,7 +1156,7 @@ class RequestManagerApi extends DolibarrApi {
                 // List documents of the request message
                 if ($conf->eventconfidentiality->enabled) {
                     dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-                    $eventconfidentiality = new EventConfidentiality(self::$db);
+                    $eventconfidentiality = new EventConfidentiality( $this->db);
 
                     // Get mode for the user and event
                     $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $requestmanager_message->id);
@@ -1286,7 +1282,7 @@ class RequestManagerApi extends DolibarrApi {
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
 
         // Set filters for phones into extra fields
-        $extrafields = new ExtraFields(self::$db);
+        $extrafields = new ExtraFields( $this->db);
         $extralabels = $extrafields->fetch_name_optionals_label('societe');
         foreach ($extrafields->attributes['societe']['type'] as $key => $type) {
             if ($type == '') {
@@ -1294,7 +1290,7 @@ class RequestManagerApi extends DolibarrApi {
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(sef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
             }
         }
-        $extrafields = new ExtraFields(self::$db);
+        $extrafields = new ExtraFields( $this->db);
         $extralabels = $extrafields->fetch_name_optionals_label('socpeople');
         foreach ($extrafields->attributes['socpeople']['type'] as $key => $type) {
             if ($type == '') {
@@ -1312,21 +1308,21 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " AND sc.statut = 1";
         $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
-            if ($obj = self::$db->fetch_object($resql)) {
+            if ($obj = $this->db->fetch_object($resql)) {
                 $socid = $obj->socid;
                 $contactid = $obj->contactid;
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve company / contact", ['details' => [self::$db->lasterror()]]);
+            throw new RestException(500, "Error when retrieve company / contact", ['details' => [ $this->db->lasterror()]]);
         }
 
         if ($socid > 0) {
             require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-            $societe = new Societe(self::$db);
+            $societe = new Societe( $this->db);
             $result = $societe->fetch($socid);
             if ($result < 0) {
                 throw new RestException(500, "Error when retrieve company information", ['details' => $this->_getErrors($requestmanager)]);
@@ -1351,7 +1347,7 @@ class RequestManagerApi extends DolibarrApi {
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
 
         // Set filters for phones into extra fields
-        $extrafields = new ExtraFields(self::$db);
+        $extrafields = new ExtraFields( $this->db);
         $extralabels = $extrafields->fetch_name_optionals_label('user');
         foreach ($extrafields->attributes['user']['type'] as $key => $type) {
             if ($type == '') {
@@ -1368,19 +1364,19 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " AND (u.fk_soc = 0 OR u.fk_soc IS NULL)";
         $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
-            if ($obj = self::$db->fetch_object($resql)) {
+            if ($obj = $this->db->fetch_object($resql)) {
                 $userid = $obj->userid;
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve internal user", ['details' => [self::$db->lasterror()]]);
+            throw new RestException(500, "Error when retrieve internal user", ['details' => [ $this->db->lasterror()]]);
         }
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-        $actioncomm = new ActionComm(self::$db);
+        $actioncomm = new ActionComm( $this->db);
 
         // Begin date
         //--------------------------------------------------
@@ -1559,7 +1555,7 @@ class RequestManagerApi extends DolibarrApi {
         if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
 
         // Set filters for phones into extra fields
-        $extrafields = new ExtraFields(self::$db);
+        $extrafields = new ExtraFields( $this->db);
         $extralabels = $extrafields->fetch_name_optionals_label('user');
         foreach ($extrafields->attributes['user']['type'] as $key => $type) {
             if ($type == '') {
@@ -1579,15 +1575,15 @@ class RequestManagerApi extends DolibarrApi {
         $sql .= " AND (u.fk_soc = 0 OR u.fk_soc IS NULL)";
         $sql .= " AND (" . implode(' OR ', $phones) . ")";
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
-            if ($obj = self::$db->fetch_object($resql)) {
+            if ($obj = $this->db->fetch_object($resql)) {
                 $userid = $obj->userid;
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve internal user", ['details' => [self::$db->lasterror()]]);
+            throw new RestException(500, "Error when retrieve internal user", ['details' => [ $this->db->lasterror()]]);
         }
 
 
@@ -1598,15 +1594,15 @@ class RequestManagerApi extends DolibarrApi {
         $sql = "SELECT ac.id";
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm AS ac";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields AS acef ON acef.fk_object = ac.id";
-        $sql .= " WHERE acef.rm_ipbx_id = '" . self::$db->escape($unique_id) . "'";
+        $sql .= " WHERE acef.rm_ipbx_id = '" . $this->db->escape($unique_id) . "'";
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
-            if ($obj = self::$db->fetch_object($resql)) {
+            if ($obj = $this->db->fetch_object($resql)) {
                 $actioncommid = $obj->id;
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         }
 
         if ($actioncommid == 0) {
@@ -1614,7 +1610,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-        $actioncomm = new ActionComm(self::$db);
+        $actioncomm = new ActionComm( $this->db);
         $result = $actioncomm->fetch($actioncommid);
         if ($result < 0) {
             throw new RestException(500, "Error when retrieve calling event", ['details' => $this->_getErrors($actioncomm)]);
@@ -1626,7 +1622,7 @@ class RequestManagerApi extends DolibarrApi {
         //--------------------------------------------------
         if ($actioncomm->socid > 0) {
             require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-            $societe = new Societe(self::$db);
+            $societe = new Societe( $this->db);
             $result = $societe->fetch($actioncomm->socid);
             if ($result < 0) {
                 throw new RestException(500, "Error when retrieve company information", ['details' => $this->_getErrors($requestmanager)]);
@@ -1821,7 +1817,7 @@ class RequestManagerApi extends DolibarrApi {
      */
     function _getRequestManagerObject($request_id)
     {
-        $requestmanager = new RequestManager(self::$db);
+        $requestmanager = new RequestManager( $this->db);
         $result = $requestmanager->fetch($request_id);
         if ($result == 0) {
             throw new RestException(404, "Request not found");
@@ -1909,7 +1905,7 @@ class RequestManagerApi extends DolibarrApi {
 
         if ($id > 0) {
             require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
-            $user = new User(self::$db);
+            $user = new User( $this->db);
             if ($user->fetch($id) > 0) {
                 $result = $user;
             }

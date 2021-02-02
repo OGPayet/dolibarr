@@ -1029,9 +1029,9 @@ class Setup extends DolibarrApi
 	{
 		$list = array();
 
-		if (!DolibarrApiAccess::$user->admin) {
-			throw new RestException(401, 'Only an admin user can get list of extrafields');
-		}
+		// if (!DolibarrApiAccess::$user->admin) {
+		// 	throw new RestException(401, 'Only an admin user can get list of extrafields');
+		// }
 
 		if ($type == 'thirdparty') {
 			$type = 'societe';

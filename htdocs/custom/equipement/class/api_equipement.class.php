@@ -26,10 +26,7 @@ dol_include_once('/equipement/class/equipement.class.php');
  * @class  DolibarrApiAccess {@requires user,external}
  */
 class EquipementApi extends DolibarrApi {
-    /**
-     * @var DoliDb      $db         Database object
-     */
-    static protected $db;
+
     /**
      * @var array       $FIELDS     Mandatory fields, checked when create and update object
      */
@@ -134,7 +131,7 @@ class EquipementApi extends DolibarrApi {
         global $db, $user;
 
         $user = DolibarrApiAccess::$user;
-        self::$db = $db;
+        $this->db = $db;
 
         dol_include_once('/equipement/core/modules/equipement/mod_atlantic.php');
         dol_include_once("/equipement/core/modules/equipement/mod_arctic.php");
@@ -215,20 +212,20 @@ class EquipementApi extends DolibarrApi {
         $sql .= " GROUP BY t.rowid";
 
         // Set Order and Limit
-        $sql .= self::$db->order($sort_field, $sort_order);
+        $sql .= $this->db->order($sort_field, $sort_order);
         if ($limit) {
             if ($page < 0) {
                 $page = 0;
             }
             $offset = $limit * $page;
 
-            $sql .= self::$db->plimit($limit, $offset);
+            $sql .= $this->db->plimit($limit, $offset);
         }
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
-            while ($obj = self::$db->fetch_object($resql)) {
-                $equipment = new Equipement(self::$db);
+            while ($obj = $this->db->fetch_object($resql)) {
+                $equipment = new Equipement($this->db);
                 if ($equipment->fetch($obj->rowid) > 0) {
                     $equipment->fetch_optionals();
                     $equipment->fetch_product();
@@ -236,9 +233,9 @@ class EquipementApi extends DolibarrApi {
                 }
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve equipment list", ['details' => [self::$db->lasterror()]]);
+            throw new RestException(500, "Error when retrieve equipment list", ['details' => [$this->db->lasterror()]]);
         }
 
         return $obj_ret;
@@ -266,7 +263,7 @@ class EquipementApi extends DolibarrApi {
         // Check mandatory fields
         $this->_validate($equipment_data);
 
-        $equipment = new Equipement(self::$db);
+        $equipment = new Equipement($this->db);
         foreach ($equipment_data as $field => $value) {
             if ($field == 'ref') {
                 $equipment->SerialFourn = $value;
@@ -1090,7 +1087,7 @@ class EquipementApi extends DolibarrApi {
         // Get equipment object
         $equipment = $this->_getEquipmentObject($id);
 
-        $equipmentline = new Equipementevt(self::$db);
+        $equipmentline = new Equipementevt($this->db);
         $result = $equipmentline->fetch($line_id);
         if ($result == 0 || ($result > 0 && $equipmentline->fk_equipement != $equipment->id)) {
             throw new RestException(404, "Equipment line (event) not found");
@@ -1149,7 +1146,7 @@ class EquipementApi extends DolibarrApi {
         // Get equipment object
         $equipment = $this->_getEquipmentObject($id);
 
-        $equipmentline = new Equipementevt(self::$db);
+        $equipmentline = new Equipementevt($this->db);
         $result = $equipmentline->fetch($line_id);
         if ($result == 0 || ($result > 0 && $equipmentline->fk_equipement != $equipment->id)) {
             throw new RestException(404, "Equipment line (event) not found");
@@ -1189,9 +1186,9 @@ class EquipementApi extends DolibarrApi {
         $sql .= " FROM " . MAIN_DB_PREFIX . "c_equipementevt_type as t";
         $sql .= " ORDER BY t.rowid";
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
-            while ($obj = self::$db->fetch_object($resql)) {
+            while ($obj = $this->db->fetch_object($resql)) {
                 $obj_ret[] = array(
                     'rowid' => $obj->rowid,
                     'code' => $obj->code,
@@ -1202,9 +1199,9 @@ class EquipementApi extends DolibarrApi {
                 );
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve event type equipments list", ['details' => [self::$db->lasterror()]]);
+            throw new RestException(500, "Error when retrieve event type equipments list", ['details' => [$this->db->lasterror()]]);
         }
 
         return $obj_ret;
@@ -1235,9 +1232,9 @@ class EquipementApi extends DolibarrApi {
         $sql .= " FROM " . MAIN_DB_PREFIX . "c_equipement_etat as t";
         $sql .= " ORDER BY t.rowid";
 
-        $resql = self::$db->query($sql);
+        $resql = $this->db->query($sql);
         if ($resql) {
-            while ($obj = self::$db->fetch_object($resql)) {
+            while ($obj = $this->db->fetch_object($resql)) {
                 $obj_ret[] = array(
                     'rowid' => $obj->rowid,
                     'code' => $obj->code,
@@ -1248,9 +1245,9 @@ class EquipementApi extends DolibarrApi {
                 );
             }
 
-            self::$db->free($resql);
+            $this->db->free($resql);
         } else {
-            throw new RestException(500, "Error when retrieve status equipments list", ['details' => [self::$db->lasterror()]]);
+            throw new RestException(500, "Error when retrieve status equipments list", ['details' => [$this->db->lasterror()]]);
         }
 
         return $obj_ret;
@@ -1269,7 +1266,7 @@ class EquipementApi extends DolibarrApi {
      */
     function _getEquipmentObject($equipment_id)
     {
-        $equipment = new Equipement(self::$db);
+        $equipment = new Equipement($this->db);
         $result = $equipment->fetch($equipment_id);
         if ($result == 0) {
             throw new RestException(404, "Equipment not found");

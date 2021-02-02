@@ -108,6 +108,7 @@ class modSynergiesTech extends DolibarrModules
 			'models' => 1,
 			'triggers' => 1,
 			'hooks' => array('globalapi', 'requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
+			'moduleforexternal' => 1,
 		);
 
 		// Data directories to create when module is enabled.

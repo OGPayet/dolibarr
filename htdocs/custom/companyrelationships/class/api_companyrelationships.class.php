@@ -139,7 +139,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 		'user' => array(
 			"id" => '', "employee" => '', "gender" => '', "email" => '', "skype" => '', "job" => '', "signature" => '',
 			"address" => '', "zip" => '', "town" => '', "state_id" => '', "state_code" => '', "state" => '', "office_phone" => '',
-			"office_fax" => '', "user_mobile" => '', "entity" => '', "datec" => '', "datem" => '', "socid" => '', "contactid" => '',
+			"office_fax" => '', "user_mobile" => '', "entity" => '', "datec" => '', "datem" => '', "socid" => '', "contact_id" => '',
 			"fk_member" => '', "fk_user" => '', "datelastlogin" => '', "datepreviouslogin" => '', "statut" => '', "photo" => '',
 			"lang" => '', "users" => '', "parentof" => '', "thm" => '', "tjm" => '', "salary" => '', "salaryextra" => '',
 			"weeklyhours" => '', "color" => '', "dateemployment" => '', "array_options" => '', "ref" => '', "ref_ext" => '',
@@ -415,7 +415,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 
 			// get API user
 			$user = DolibarrApiAccess::$user;
-			$userSocId = $user->societe_id;
+			$userSocId = $user->socid;
 
 			// If external user: Check permission for external users
 			if ($userSocId > 0) {
@@ -497,7 +497,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 
 		// get API user
 		$user = DolibarrApiAccess::$user;
-		$userSocId = $user->societe_id;
+		$userSocId = $user->socid;
 
 		// If external user: Check permission for external users
 		if ($userSocId > 0) {
@@ -724,7 +724,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 		// get API user
-		$userSocId = DolibarrApiAccess::$user->societe_id;
+		$userSocId = DolibarrApiAccess::$user->socid;
 
 		// If the internal user must only see his customers, force searching by him
 		$search_sale = 0;
@@ -753,7 +753,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$sql .= ")";
 
 			// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-			$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+			$socids = DolibarrApiAccess::$user->socid ? DolibarrApiAccess::$user->socid : $thirdparty_ids;
 			if ($socids) {
 				$sql .= ' OR (t.entity IN (' . getEntity('societe') . ')';
 				$sql .= " AND t.fk_soc IN (" . $socids . "))";
@@ -1452,7 +1452,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 		// get API user
-		$userSocId = DolibarrApiAccess::$user->societe_id;
+		$userSocId = DolibarrApiAccess::$user->socid;
 
 		// If the internal user must only see his customers, force searching by him
 		$search_sale = 0;
@@ -1481,7 +1481,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$sql .= ")";
 
 			// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-			$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+			$socids = DolibarrApiAccess::$user->socid ? DolibarrApiAccess::$user->socid : $thirdparty_ids;
 			if ($socids) {
 				$sql .= ' OR (t.entity IN (' . getEntity('commande') . ')';
 				$sql .= " AND t.fk_soc IN (" . $socids . "))";
@@ -2257,10 +2257,10 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 		// get API user
-		$userSocId = DolibarrApiAccess::$user->societe_id;
+		$userSocId = DolibarrApiAccess::$user->socid;
 
 		// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-		$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+		$socids = DolibarrApiAccess::$user->socid ? DolibarrApiAccess::$user->socid : $thirdparty_ids;
 
 		// If the internal user must only see his customers, force searching by him
 		$search_sale = 0;
@@ -2295,7 +2295,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$sql .= ")";
 
 			// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-			$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+			$socids = DolibarrApiAccess::$user->socid ? DolibarrApiAccess::$user->socid : $thirdparty_ids;
 			if ($socids) {
 				$sql .= ' OR (t.entity IN (' . getEntity('facture') . ')';
 				// Filter by status
@@ -2823,7 +2823,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 		// get API user
-		$userSocId = DolibarrApiAccess::$user->societe_id;
+		$userSocId = DolibarrApiAccess::$user->socid;
 
 		// If the internal user must only see his customers, force searching by him
 		$search_sale = 0;
@@ -2870,7 +2870,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$sql .= ")";
 
 			// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-			$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+			$socids = DolibarrApiAccess::$user->socid ? DolibarrApiAccess::$user->socid : $thirdparty_ids;
 			if ($socids) {
 				$sql .= ' OR (t.entity IN (' . getEntity('intervention') . ')';
 				$sql .= " AND t.fk_soc IN (" . $socids . "))";
@@ -3513,7 +3513,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 		// get API user
-		$userSocId = DolibarrApiAccess::$user->societe_id;
+		$userSocId = DolibarrApiAccess::$user->socid;
 
 		// If the internal user must only see his customers, force searching by him
 		$search_sale = 0;
@@ -3542,7 +3542,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$sql .= ")";
 
 			// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-			$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+			$socids = DolibarrApiAccess::$user->socid ? DolibarrApiAccess::$user->socid : $thirdparty_ids;
 			if ($socids) {
 				$sql .= ' OR (t.entity IN (' . getEntity('expedition') . ')';
 				$sql .= " AND t.fk_soc IN (" . $socids . "))";
@@ -3911,7 +3911,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 		// get API user
-		$userSocId = DolibarrApiAccess::$user->societe_id;
+		$userSocId = DolibarrApiAccess::$user->socid;
 
 		// If the internal user must only see his customers, force searching by him
 		$search_sale = 0;
@@ -3941,7 +3941,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 
 
 			// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-			$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+			$socids = DolibarrApiAccess::$user->socid ? DolibarrApiAccess::$user->socid : $thirdparty_ids;
 			if ($socids) {
 				$sql .= ' OR (t.entity IN (' . getEntity('contrat') . ')';
 				$sql .= " AND t.fk_soc IN (" . $socids . "))";
@@ -4569,7 +4569,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 		// get API user
-		$userSocId = DolibarrApiAccess::$user->societe_id;
+		$userSocId = DolibarrApiAccess::$user->socid;
 
 		// If the internal user must only see his customers, force searching by him
 		$search_sale = 0;
@@ -4625,7 +4625,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$sql .= ")";
 
 			// case of external user, $thirdparty_ids param is ignored and replaced by user's socid
-			$socids = DolibarrApiAccess::$user->societe_id ? DolibarrApiAccess::$user->societe_id : $thirdparty_ids;
+			$socids = DolibarrApiAccess::$user->socid ? DolibarrApiAccess::$user->socid : $thirdparty_ids;
 			if ($socids) {
 				$sql .= " OR (";
 				$sql .= "t.entity IN (" . getEntity('societe') . ")";
@@ -4633,7 +4633,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 				$sql .= ")";
 			}
 
-			$sql .= " GROUP BY rowid";
+			//$sql .= " GROUP BY rowid";
 		}
 
 		// Add sql filters
@@ -4723,8 +4723,8 @@ class CompanyRelationshipsApi extends DolibarrApi
 		$company_ids = array();
 		$company_details = array();
 
-		if (DolibarrApiAccess::$user->societe_id > 0) {
-			$company_ids[DolibarrApiAccess::$user->societe_id] = DolibarrApiAccess::$user->societe_id;
+		if (DolibarrApiAccess::$user->socid > 0) {
+			$company_ids[DolibarrApiAccess::$user->socid] = DolibarrApiAccess::$user->socid;
 		}
 
 		// Get all ids of my companies where i'm a commercial
@@ -4964,7 +4964,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];
 			$sqlprotectagainstexternalsapi = $check_access['sqlprotectagainstexternalsapi'];
 
-			if (DolibarrApiAccess::$user->societe_id > 0) {
+			if (DolibarrApiAccess::$user->socid > 0) {
 				if ($sqlprotectagainstexternalsapi) {
 					$resql = $db->query($sqlprotectagainstexternalsapi);
 					if ($resql) {
@@ -5040,6 +5040,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			'entity' => $entity, 'refname' => $refname, 'fullpath_original_file' => $fullpath_original_file,
 			'filename' => $filename, 'fullpath_original_file_osencoded' => $fullpath_original_file_osencoded
 		);
+		global $hookmanager;
 		$reshook = $hookmanager->executeHooks('downloadDocument', $parameters); // Note that $action and $object may have been
 		if ($reshook < 0) {
 			$errors = $hookmanager->error . (is_array($hookmanager->errors) ? (!empty($hookmanager->error) ? ', ' : '') . join($separator, $hookmanager->errors) : '');
@@ -5524,8 +5525,8 @@ class CompanyRelationshipsApi extends DolibarrApi
 		//
 		foreach ($filearray as $k => $v) {
 			$filearray[$k]['original_file'] = str_replace($output_dir, '', $v['fullname']);
-			unset($filearray[$k]['path']);
-			unset($filearray[$k]['fullname']);
+			//unset($filearray[$k]['path']);
+			//unset($filearray[$k]['fullname']);
 		}
 		//
 		// Open-DSI - Modification - End
@@ -5572,7 +5573,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			throw new RestException(401, "Insufficient rights");
 		}
 
-		if (DolibarrApiAccess::$user->societe_id > 0) {
+		if (DolibarrApiAccess::$user->socid > 0) {
 			///Disabled function for external user to avoid functionnal conflict with companyrelationshipsapi - Alexis LAURIER
 			///BEGIN
 			throw new RestException(403);
@@ -6023,7 +6024,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];
 			$sqlprotectagainstexternalsapi = $check_access['sqlprotectagainstexternalsapi'];
 
-			if (DolibarrApiAccess::$user->societe_id > 0) {
+			if (DolibarrApiAccess::$user->socid > 0) {
 				if ($sqlprotectagainstexternalsapi) {
 					$resql = $db->query($sqlprotectagainstexternalsapi);
 					if ($resql) {
