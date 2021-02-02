@@ -54,6 +54,7 @@ if ($user->socid > 0)
 	$action = '';
 	$socid = $user->socid;
 }
+$result = restrictedArea($user, 'orderstats');
 
 $nowyear = strftime("%Y", dol_now());
 $year = GETPOST('year') > 0 ?GETPOST('year') : $nowyear;

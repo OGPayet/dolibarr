@@ -41,6 +41,9 @@ $mode = GETPOSTISSET("mode") ? GETPOST("mode", 'aZ09') : 'customer';
 if ($mode == 'customer' && !$user->rights->propale->lire) accessforbidden();
 if ($mode == 'supplier' && !$user->rights->supplier_proposal->lire) accessforbidden();
 
+// Security check
+$result = restrictedArea($user, 'propalstats');
+
 $object_status = GETPOST('object_status', 'intcomma');
 $typent_id = GETPOST('typent_id', 'int');
 $categ_id = GETPOST('categ_id', 'categ_id');

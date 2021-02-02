@@ -3502,13 +3502,33 @@ SCRIPT;
         if($feature == 'propal' && $objectId){
             dol_include_once('/comm/propal/class/propal.class.php');
             $propal = new Propal($this->db);
-            if($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && !empty($propal->array_options['options_sitevalue'] && !$user->rights->synergiestech->propal->installation_value))
+            if($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && !empty($propal->array_options['options_sitevalue']) && empty($user->rights->synergiestech->propal->installation_value))
             {
-                accessforbidden();
-                return 1;
+                return 0;
             }
-        }
-        return 0;
+		}
+		else if($feature == "propalstats")
+		{
+			if(empty($user->rights->synergiestech->amount->customerpropal))
+			{
+				return 0;
+			}
+			else {
+				return 1;
+			}
+
+		}
+		else if($feature == "orderstats")
+		{
+			if(empty($user->rights->synergiestech->amount->customerorder))
+			{
+				return 0;
+			}
+			else {
+				return 1;
+			}
+
+		}
 	}
 	/**
 	 * Overloading the downloadDocument function : replacing the parent's function with the one below
