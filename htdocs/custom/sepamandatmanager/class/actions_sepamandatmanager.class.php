@@ -204,7 +204,7 @@ class ActionsSepaMandatManager
         return 0;
     }
 
-        /**
+    /**
      * Overloading the doMassActions function : replacing the parent's function with the one below
      *
      * @param   array()         $parameters     Hook metadatas (context, etc...)
@@ -219,8 +219,8 @@ class ActionsSepaMandatManager
         $errors = array();
         $contexts = explode(':', $parameters['context']);
         $massAction = $parameters['massaction'];
+        global $toselect;
         if (!empty($conf->global->SEPAMANDATE_ADVANCEDBANKDIRECTDEBITASK_CONTROL) && in_array("invoicelist", $contexts) && $massAction == "withdrawrequest") {
-            global $toselect;
             $invoiceIdsThatCantBeWithDrawNow = $this->getInvoiceIdsThatAreInAnInProgressDebitVoucher($toselect);
             foreach ($invoiceIdsThatCantBeWithDrawNow as $id) {
                 $objectStatic = new Facture($this->db);
@@ -232,12 +232,32 @@ class ActionsSepaMandatManager
                     unset($toselect[$index]);
                 }
             }
+        } elseif ($massAction == 'createVoucherPerDueDate') {
+            $debitLineRequestIds = $toselect;
         }
         if (empty($errors)) {
             return 0;
         } else {
             $this->errors += $errors;
             return -1;
+        }
+    }
+
+    /**
+     * Overloading the doMassActions function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function addMoreMassActions($parameters, &$object, &$action, $hookmanager)
+    {
+        global $langs;
+        $contexts = explode(':', $parameters['context']);
+        if (in_array('directdebitcreatecard', $contexts)) {
+            $this->resprints = '<option value="createVoucherPerDueDate">'.$langs->trans('SepaMandateCreateVoucherPerDueDate').'</option>';
         }
     }
 

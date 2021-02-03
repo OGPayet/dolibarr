@@ -86,7 +86,7 @@ SepaMandateSetStaled = Clôturer
 SepaMandateSetUnStale = Réouvrir
 SepaMandateSetUnCancel = Réouvrir
 SepaMandateSetUnSign = Repasser en "A signer"
-
+SepaMandateCreateVoucherPerDueDate = Prélever par date d'échéance
 #
 # Status
 #
