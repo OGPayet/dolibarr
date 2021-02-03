@@ -29,6 +29,7 @@ SepaMandatLinkedObjectName = Mandat Sepa
 SepaMandatManagerSetup = Configuration du module Sepa Mandat Manager
 Settings = Réglages
 SepaMandatManagerSetupPage = Page de configuration du module Sepa Mandat Manager
+SepaManadateAdvancedBankDirectDebitRequestControl = Activer le contrôle approfondi des demandes de prélèvement pour empêcher le double prélèvement des factures
 SepaMandateFooterTextSettings = Texte de pied de page des mandats SEPA générés
 DocumentModelSepaMandateMercure = Modèle de mandat SEPA. Utile pour les pays européens de la CEE seulement
 SepaMandateRefGenerator = Générateur de référence
@@ -153,6 +154,7 @@ SepaMandateBicNotValid = Bic non valide
 SepaMandateNoTypeSet = Aucun type de mandat renseigné (ponctuel, récurrent)
 SepaMandateInvalidMandatInformationIntoBankAccount = Information bancaire renseigné dans le compte client incorrecte
 SepaMandateIcsNotSet = Le numéro ICS de l'entreprise n'est pas renseigné dans le module prélèvement
+SepaMandateInvoiceAlreadyInAnInProgressDebitVoucher = La facture %s est déjà présente dans un bon de prélèvement en cours de progression
 
 #
 # Liaison avec CompanyBankAccount

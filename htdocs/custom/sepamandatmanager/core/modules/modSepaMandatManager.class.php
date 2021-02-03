@@ -104,7 +104,10 @@ class modSepaMandatManager extends DolibarrModules
 			'hooks' => array(
 				'thirdpartybancard',
 				'propalcard',
-				'pdfgeneration'
+				'pdfgeneration',
+				'directdebitcard',
+				'invoicelist',
+				'directdebitcreatecard',
 				//   'data' => array(
 				//       'hookcontext1',
 				//       'hookcontext2',

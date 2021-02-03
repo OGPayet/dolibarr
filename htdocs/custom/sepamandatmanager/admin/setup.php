@@ -62,6 +62,7 @@ $backtopage = GETPOST('backtopage', 'alpha');
 $value = GETPOST('value', 'alpha');
 
 $arrayofparameters = array(
+	'SEPAMANDATE_ADVANCEDBANKDIRECTDEBITASK_CONTROL' => array('css' => 'center', 'name' => $langs->trans("SepaManadateAdvancedBankDirectDebitRequestControl"), 'type' => 'boolean', 'visible' => 1),
 	'SEPAMANDATE_SEPAMANDATEEVENT_CREATION' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnCreate"), 'type' => 'boolean', 'visible' => 1),
 	'SEPAMANDATE_SEPAMANDATEEVENT_TOSIGN' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnValidate"), 'type' => 'boolean', 'visible' => 1),
 	'SEPAMANDATE_SEPAMANDATEEVENT_SIGNED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnSign"), 'type' => 'boolean', 'visible' => 1),
