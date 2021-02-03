@@ -233,7 +233,13 @@ class ActionsSepaMandatManager
                 }
             }
         } elseif ($massAction == 'createVoucherPerDueDate') {
-            $debitLineRequestIds = $toselect;
+			global $type;
+			global $mode;
+            if ($this->createSeparateVoucherPerDueDateForInvoiceIds($toselect, $mode, 'ALL', $type)) {
+                return 1;
+            } else {
+                $errors[] = $langs->trans('SepaMandateNoVoucherCreated');
+            }
         }
         if (empty($errors)) {
             return 0;
@@ -302,6 +308,83 @@ class ActionsSepaMandatManager
             while ($i < $num_rows) {
                 $obj = $this->db->fetch_object($resql);
                 $result[] = $obj->ref;
+                $i++;
+            }
+        } else {
+            $this->errors[] = $this->db->error();
+            return null;
+        }
+        return $result;
+    }
+    /**
+     * Function to create voucher with a given list of request ids
+     * @param int[] $transactionRequestIds
+	 * @param string $mode
+	 * @param string $format
+     * @param string $type
+     * @return bool
+     */
+    private function createSeparateVoucherPerDueDateForInvoiceIds($transactionRequestIds, $mode, $format, $type)
+    {
+        global $langs, $conf;
+        if ($type != 'bank-transfer') {
+            $conf->global->PRELEVEMENT_ADDDAYS;
+        } else {
+            $conf->global->PAYMENTBYBANKTRANSFER_ADDDAYS;
+        }
+        $arrayOfInvoiceIds = $this->getInvoiceIdsFromDebitRequest($transactionRequestIds, $type);
+        $arrayOfDueDate = array();
+        $invoiceStatic = new Facture($this->db);
+        foreach ($arrayOfInvoiceIds as $invoiceId) {
+            $invoiceStatic->fetch($invoiceId);
+            $arrayOfDueDate[$invoiceStatic->date_lim_reglement][] = $invoiceStatic->id;
+        }
+
+        $atLeastOneVoucherSuccessfullyCreated = false;
+        foreach ($arrayOfDueDate as $executionDate => $arrayOfInvoiceIds) {
+            //$conf->global->PRELEVEMENT_CODE_BANQUE and $conf->global->PRELEVEMENT_CODE_GUICHET should be empty
+            $voucher = new BonPrelevement($this->db);
+			$result = $voucher->create($conf->global->PRELEVEMENT_CODE_BANQUE, $conf->global->PRELEVEMENT_CODE_GUICHET, $mode, $format, $executionDate, 0, $type, $arrayOfInvoiceIds);
+            if ($result < 0) {
+                setEventMessages($voucher->error, $voucher->errors, 'errors');
+            } elseif ($result > 0) {
+                setEventMessages($langs->trans("DirectDebitOrderCreated", $voucher->getNomUrl(1)), null);
+                $atLeastOneVoucherSuccessfullyCreated = true;
+            }
+            if ($voucher->invoice_in_error) {
+                setEventMessages($langs->trans("NoInvoiceCouldBeWithdrawed"), array_values($voucher->invoice_in_error), 'errors');
+            }
+        }
+        return $atLeastOneVoucherSuccessfullyCreated;
+    }
+
+    /**
+     * Function to get invoice ids from debit request ids
+     * @param int[] $arrayOfDebitRequestId
+     * @param string $type
+     * @param bool $onlyRequestNotAlreadyManaged
+     * @return array|null
+     */
+    private function getInvoiceIdsFromDebitRequest($arrayOfDebitRequestId, $type, $onlyRequestNotAlreadyManaged = true)
+    {
+        $sql = "SELECT DISTINCT ";
+        if ($type != 'bank-transfer') {
+            $sql .= " pfd.fk_facture as value";
+        } else {
+            $sql .= " pfd.fk_facture_fourn as value";
+        }
+        $sql .= " FROM " . MAIN_DB_PREFIX . "prelevement_facture_demande as pfd";
+        $sql .= " WHERE pfd.rowid IN ("  . implode(",", $arrayOfDebitRequestId) . ")";
+        if ($onlyRequestNotAlreadyManaged) {
+            $sql .= " AND traite = 0 ";
+        }
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            $i = 0;
+            $num_rows = $this->db->num_rows($resql);
+            while ($i < $num_rows) {
+                $obj = $this->db->fetch_object($resql);
+                $result[] = $obj->value;
                 $i++;
             }
         } else {

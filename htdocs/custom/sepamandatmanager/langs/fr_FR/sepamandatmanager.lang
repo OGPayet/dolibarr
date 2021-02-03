@@ -155,6 +155,7 @@ SepaMandateNoTypeSet = Aucun type de mandat renseigné (ponctuel, récurrent)
 SepaMandateInvalidMandatInformationIntoBankAccount = Information bancaire renseigné dans le compte client incorrecte
 SepaMandateIcsNotSet = Le numéro ICS de l'entreprise n'est pas renseigné dans le module prélèvement
 SepaMandateInvoiceAlreadyInAnInProgressDebitVoucher = La facture %s est déjà présente dans un bon de prélèvement en cours de progression
+SepaMandateNoVoucherCreated = Aucun bon de prélèvement n'a été créé
 
 #
 # Liaison avec CompanyBankAccount
