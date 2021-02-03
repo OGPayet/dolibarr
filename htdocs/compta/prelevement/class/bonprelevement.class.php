@@ -828,9 +828,10 @@ class BonPrelevement extends CommonObject
 	 *  @param  string  $executiondate	Date to execute the transfer
 	 *  @param	int	    $notrigger		Disable triggers
 	 *  @param	string	$type			'direct-debit' or 'bank-transfer'
+	 *  @param  int[]   $limitToInvoice Limit to following invoice id
 	 *	@return	int						<0 if KO, No of invoice included into file if OK
 	 */
-	public function create($banque = 0, $agence = 0, $mode = 'real', $format = 'ALL', $executiondate = '', $notrigger = 0, $type = 'direct-debit')
+	public function create($banque = 0, $agence = 0, $mode = 'real', $format = 'ALL', $executiondate = '', $notrigger = 0, $type = 'direct-debit', $limitToInvoice = array())
 	{
 		// phpcs:enable
 		global $conf, $langs, $user;
@@ -851,8 +852,13 @@ class BonPrelevement extends CommonObject
 
 		$datetimeprev = time();
 		//Choice the date of the execution direct debit
-		if (!empty($executiondate)) $datetimeprev = $executiondate;
-
+		if(!empty($executiondate)) {
+			if(date('N', $executiondate) < 7) {
+				$datetimeprev = $executiondate;
+			} else {
+				$datetimeprev = strtotime("+1 days", $executiondate);
+			}
+		}
 		$month = strftime("%m", $datetimeprev);
 		$year = strftime("%Y", $datetimeprev);
 
@@ -891,6 +897,9 @@ class BonPrelevement extends CommonObject
 			$sql .= " AND pfd.traite = 0";
 			$sql .= " AND f.total_ttc > 0";
 			$sql .= " AND pfd.ext_payment_id IS NULL";
+			if(!empty($limitToInvoice)) {
+				$sql .= " AND f.rowid IN (" . implode(',', $limitToInvoice) . ')';
+			}
 
 			dol_syslog(__METHOD__."::Read invoices, sql=".$sql, LOG_DEBUG);
 
@@ -2114,7 +2123,7 @@ class BonPrelevement extends CommonObject
 		global $conf;
 
 		$dateTime_YMD = dol_print_date($ladate, '%Y%m%d');
-		$dateTime_ETAD = dol_print_date($ladate, '%Y-%m-%d');
+		$dateTime_ETAD = dol_print_date($this->date_echeance, '%Y-%m-%d');
 		$dateTime_YMDHMS = dol_print_date($ladate, '%Y-%m-%dT%H:%M:%S');
 
 		// Get data of bank account
