@@ -268,7 +268,7 @@ print '<br>';
  */
 
 $sql = "SELECT f.ref, f.rowid, f.total_ttc, s.nom as name, s.rowid as socid,";
-$sql .= " pfd.date_demande, pfd.amount";
+$sql .= " pfd.rowid as request_row_id, pfd.date_demande, pfd.amount";
 if ($type == 'bank-transfer') {
 	$sql .= " FROM ".MAIN_DB_PREFIX."facture_fourn as f,";
 } else {
@@ -408,8 +408,8 @@ if ($resql)
 			{
 				print '<td class="nowrap center">';
 				$selected = 0;
-				if (in_array($object->id, $arrayofselected)) $selected = 1;
-				print '<input id="cb'.$object->id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$object->id.'"'.($selected ? ' checked="checked"' : '').'>';
+				if (in_array($obj->request_row_id, $arrayofselected)) $selected = 1;
+				print '<input id="cb'.$obj->request_row_id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$obj->request_row_id.'"'.($selected ? ' checked="checked"' : '').'>';
 				print '</td>';
 			}
 			print '</tr>';
