@@ -47,6 +47,8 @@ $type = GETPOST('type', 'aZ09');
 
 // Get supervariables
 $action = GETPOST('action', 'aZ09');
+$massaction = GETPOST('massaction', 'alpha'); // The bulk action (combo box choice into lists)
+$toselect   = GETPOST('toselect', 'array'); // Array of ids of elements selected into a list
 $mode = GETPOST('mode', 'alpha') ?GETPOST('mode', 'alpha') : 'real';
 $format = GETPOST('format', 'aZ09');
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
@@ -60,6 +62,7 @@ $hookmanager->initHooks(array('directdebitcreatecard', 'globalcard'));
 /*
  * Actions
  */
+if (GETPOST('cancel', 'alpha')) { $massaction = ''; }
 
 $parameters = array('mode' => $mode, 'format' => $format, 'limit' => $limit, 'page' => $page, 'offset' => $offset);
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
@@ -109,6 +112,9 @@ if (empty($reshook))
 			exit;
 		}
 	}
+	$objectclass = "BonPrelevement";
+	$uploaddir = $conf->prelevement->dir_output;
+	include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
 }
 
 
@@ -125,6 +131,12 @@ if ($type != 'bank-transfer') {
 	$invoicestatic = new FactureFournisseur($db);
 }
 $bprev = new BonPrelevement($db);
+$arrayofselected = is_array($toselect) ? $toselect : array();
+// List of mass actions available
+$arrayofmassactions = array(
+);
+if (GETPOST('nomassaction', 'int') || in_array($massaction, array('presend', 'predelete'))) $arrayofmassactions = array();
+$massactionbutton = $form->selectMassAction('', $arrayofmassactions);
 
 llxHeader('', $langs->trans("NewStandingOrder"));
 
@@ -317,7 +329,7 @@ if ($resql)
 	if ($type == 'bank-transfer') {
 		$title = $langs->trans("InvoiceWaitingPaymentByBankTransfer");
 	}
-	print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, '', '', '', $num, $nbtotalofrecords, 'bill', 0, '', '', $limit);
+	print_barre_liste($title, $page, $_SERVER['PHP_SELF'], $param, '', '', $massactionbutton, $num, $nbtotalofrecords, 'bill', 0, '', '', $limit);
 
 	$tradinvoice = "Invoice";
 	if ($type == 'bank-transfer') {
@@ -332,6 +344,10 @@ if ($resql)
 	print '<td>'.$langs->trans("RUM").'</td>';
 	print '<td class="right">'.$langs->trans("AmountTTC").'</td>';
 	print '<td class="right">'.$langs->trans("DateRequest").'</td>';
+	if ($massactionbutton || $massaction ) // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
+	{
+		print '<td align="center">'.$form->showCheckAddButtons('checkforselect', 1).'</td>';
+	}
 	print '</tr>';
 
 	if ($num)
@@ -387,6 +403,15 @@ if ($resql)
 			print '<td class="right">';
 			print dol_print_date($db->jdate($obj->date_demande), 'day');
 			print '</td>';
+			// Action column
+			if ($massactionbutton || $massaction ) // If we are in select mode (massactionbutton defined) or if we have already selected and sent an action ($massaction) defined
+			{
+				print '<td class="nowrap center">';
+				$selected = 0;
+				if (in_array($object->id, $arrayofselected)) $selected = 1;
+				print '<input id="cb'.$object->id.'" class="flat checkforselect" type="checkbox" name="toselect[]" value="'.$object->id.'"'.($selected ? ' checked="checked"' : '').'>';
+				print '</td>';
+			}
 			print '</tr>';
 			$i++;
 		}
