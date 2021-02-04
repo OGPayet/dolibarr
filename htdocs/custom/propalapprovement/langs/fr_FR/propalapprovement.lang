@@ -1,0 +1,44 @@
+# Copyright (C) 2021 SuperAdmin <infra@synergies-france.fr>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModulePropalApprovementName'
+ModulePropalApprovementName = Approbation proposition commerciale
+# Module description 'ModulePropalApprovementDesc'
+ModulePropalApprovementDesc = Ce module permet de mettre en place un système d'approbation sur les propositions commerciales
+
+#
+# Page d'administration
+#
+PropalApprovementSetup = Configuration du module Propal Approvement
+Settings = Réglages
+PropalApprovementSetupPage = Page de configuration du module Propal Approvement
+
+#
+# Page À propos
+#
+About = À propos
+PropalApprovementAbout = À propos de PropalApprovement
+PropalApprovementAboutPage = Page à propos de PropalApprovement
+
+#
+# Menu
+#
+PropalApprovementWaitingList = En attente Approbation
+PropalApprovementWaitingStatusShort = En attente d'approbation
+PropalApprovementWaitingStatus = En attente d'approbation
