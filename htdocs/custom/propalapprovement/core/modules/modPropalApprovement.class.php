@@ -52,7 +52,7 @@ class modPropalApprovement extends DolibarrModules
 
 		// Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
 		// It is used to group modules by family in module setup page
-		$this->family = "other";
+		$this->family = "crm";
 
 		// Module position in the family on 2 digits ('01', '10', '20', ...)
 		$this->module_position = '90';
@@ -119,10 +119,6 @@ class modPropalApprovement extends DolibarrModules
 			'moduleforexternal' => 1,
 		);
 
-		// Data directories to create when module is enabled.
-		// Example: this->dirs = array("/propalapprovement/temp","/propalapprovement/subdir");
-		$this->dirs = array("/propalapprovement/temp");
-
 		// Config pages. Put here list of php page, stored into propalapprovement/admin directory, to use to setup module.
 		$this->config_page_url = array("setup.php@propalapprovement");
 
@@ -144,21 +140,8 @@ class modPropalApprovement extends DolibarrModules
 		// Messages at activation
 		$this->warnings_activation = array(); // Warning to show when we activate module. array('always'='text') or array('FR'='textfr','ES'='textes'...)
 		$this->warnings_activation_ext = array(); // Warning to show when we activate an external module. array('always'='text') or array('FR'='textfr','ES'='textes'...)
-		//$this->automatic_activation = array('FR'=>'PropalApprovementWasAutomaticallyActivatedBecauseOfYourCountryChoice');
-		//$this->always_enabled = true;								// If true, can't be disabled
 
-		// Constants
-		// List of particular constants to add when module is enabled (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
-		// Example: $this->const=array(1 => array('PROPALAPPROVEMENT_MYNEWCONST1', 'chaine', 'myvalue', 'This is a constant to add', 1),
-		//                             2 => array('PROPALAPPROVEMENT_MYNEWCONST2', 'chaine', 'myvalue', 'This is another constant to add', 0, 'current', 1)
-		// );
 		$this->const = array();
-
-		// Some keys to add into the overwriting translation tables
-		/*$this->overwrite_translation = array(
-			'en_US:ParentCompany'=>'Parent company or reseller',
-			'fr_FR:ParentCompany'=>'Maison mère ou revendeur'
-		)*/
 
 		if (!isset($conf->propalapprovement) || !isset($conf->propalapprovement->enabled)) {
 			$conf->propalapprovement = new stdClass();
@@ -352,54 +335,10 @@ class modPropalApprovement extends DolibarrModules
 		$result = $this->_load_tables('/propalapprovement/sql/');
 		if ($result < 0) return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
 
-		// Create extrafields during init
-		//include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-		//$extrafields = new ExtraFields($this->db);
-		//$result1=$extrafields->addExtraField('propalapprovement_myattr1', "New Attr 1 label", 'boolean', 1,  3, 'thirdparty',   0, 0, '', '', 1, '', 0, 0, '', '', 'propalapprovement@propalapprovement', '$conf->propalapprovement->enabled');
-		//$result2=$extrafields->addExtraField('propalapprovement_myattr2', "New Attr 2 label", 'varchar', 1, 10, 'project',      0, 0, '', '', 1, '', 0, 0, '', '', 'propalapprovement@propalapprovement', '$conf->propalapprovement->enabled');
-		//$result3=$extrafields->addExtraField('propalapprovement_myattr3', "New Attr 3 label", 'varchar', 1, 10, 'bank_account', 0, 0, '', '', 1, '', 0, 0, '', '', 'propalapprovement@propalapprovement', '$conf->propalapprovement->enabled');
-		//$result4=$extrafields->addExtraField('propalapprovement_myattr4', "New Attr 4 label", 'select',  1,  3, 'thirdparty',   0, 1, '', array('options'=>array('code1'=>'Val1','code2'=>'Val2','code3'=>'Val3')), 1,'', 0, 0, '', '', 'propalapprovement@propalapprovement', '$conf->propalapprovement->enabled');
-		//$result5=$extrafields->addExtraField('propalapprovement_myattr5', "New Attr 5 label", 'text',    1, 10, 'user',         0, 0, '', '', 1, '', 0, 0, '', '', 'propalapprovement@propalapprovement', '$conf->propalapprovement->enabled');
-
 		// Permissions
 		$this->remove($options);
 
 		$sql = array();
-
-		// Document templates
-		$moduledir = 'propalapprovement';
-		$myTmpObjects = array();
-		$myTmpObjects['MyObject'] = array('includerefgeneration'=>0, 'includedocgeneration'=>0);
-
-		foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
-			if ($myTmpObjectKey == 'MyObject') continue;
-			if ($myTmpObjectArray['includerefgeneration']) {
-				$src = DOL_DOCUMENT_ROOT.'/install/doctemplates/propalapprovement/template_myobjects.odt';
-				$dirodt = DOL_DATA_ROOT.'/doctemplates/propalapprovement';
-				$dest = $dirodt.'/template_myobjects.odt';
-
-				if (file_exists($src) && !file_exists($dest))
-				{
-					require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-					dol_mkdir($dirodt);
-					$result = dol_copy($src, $dest, 0, 0);
-					if ($result < 0)
-					{
-						$langs->load("errors");
-						$this->error = $langs->trans('ErrorFailToCopyFile', $src, $dest);
-						return 0;
-					}
-				}
-
-				$sql = array_merge($sql, array(
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'standard_".strtolower($myTmpObjectKey)."' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('standard_".strtolower($myTmpObjectKey)."','".strtolower($myTmpObjectKey)."',".$conf->entity.")",
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'generic_".strtolower($myTmpObjectKey)."_odt' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('generic_".strtolower($myTmpObjectKey)."_odt', '".strtolower($myTmpObjectKey)."', ".$conf->entity.")"
-				));
-			}
-		}
-
 		return $this->_init($sql, $options);
 	}
 

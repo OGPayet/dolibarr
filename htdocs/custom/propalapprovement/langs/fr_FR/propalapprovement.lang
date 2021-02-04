@@ -19,8 +19,10 @@
 
 # Module label 'ModulePropalApprovementName'
 ModulePropalApprovementName = Approbation proposition commerciale
+Module468420Name = Approbation proposition commerciale
 # Module description 'ModulePropalApprovementDesc'
 ModulePropalApprovementDesc = Ce module permet de mettre en place un système d'approbation sur les propositions commerciales
+Permission468420 = Approuver automatiquement les propositions commerciales
 
 #
 # Page d'administration
@@ -28,6 +30,7 @@ ModulePropalApprovementDesc = Ce module permet de mettre en place un système d'
 PropalApprovementSetup = Configuration du module Propal Approvement
 Settings = Réglages
 PropalApprovementSetupPage = Page de configuration du module Propal Approvement
+PropalApprovementNothingToSetup = Aucun paramètres disponible
 
 #
 # Page À propos
@@ -42,3 +45,12 @@ PropalApprovementAboutPage = Page à propos de PropalApprovement
 PropalApprovementWaitingList = En attente Approbation
 PropalApprovementWaitingStatusShort = En attente d'approbation
 PropalApprovementWaitingStatus = En attente d'approbation
+
+#
+#Card
+#
+PropalApprovementAwaitButton = Demander l'approbation
+PropalApprovementAwaitingProp = Demander l'approbation de la proposition commerciale
+PropalApprovementConfirmAwaitingProp = Êtes-vous sûr de vouloir demander l'approbation de cette proposition commerciale ?
+PropalApprovementSuccessfullyAsked = Proposition commerciale placé au statut "En attente d'approbation"
+PropalApprovementErrorWhileAskingForApprovement = Erreur lors du passage au statut "En attente d'approbation"
