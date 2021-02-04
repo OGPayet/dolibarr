@@ -113,7 +113,7 @@ class InterfacePropalApprovementTriggers extends DolibarrTriggers
 
         if ($object->element == 'propal') {
             $arrayOfTriggerCodeConfigurationAndEventContent = array(
-                'PROPAL_AWAIT' => array(
+                'PROPAL_AWAITING' => array(
                     'activated' => $conf->global->PROPALAPPROVEMENT_EVENTONAPPROVEMENTREQUEST,
                     'title' => $langs->trans('PropalApprovementEventCreateTitle', $object->ref),
                     'description' => $langs->trans('PropalApprovementEventCreateDescription', $object->ref)

@@ -366,7 +366,7 @@ class ActionsPropalapprovement
         // Trigger calls
         if (! $error && ! $notrigger) {
             // Call trigger
-             $result=$object->call_trigger('PROPAL_AWAIT', $user);
+             $result=$object->call_trigger('PROPAL_AWAITING', $user);
             if ($result < 0) {
                 $error++;
             }
