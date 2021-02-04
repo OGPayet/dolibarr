@@ -54,3 +54,11 @@ PropalApprovementAwaitingProp = Demander l'approbation de la proposition commerc
 PropalApprovementConfirmAwaitingProp = Êtes-vous sûr de vouloir demander l'approbation de cette proposition commerciale ?
 PropalApprovementSuccessfullyAsked = Proposition commerciale placé au statut "En attente d'approbation"
 PropalApprovementErrorWhileAskingForApprovement = Erreur lors du passage au statut "En attente d'approbation"
+
+#
+# EVENT
+#
+PropalApprovementCreateEventOnPropalApprovementRequest = Créer automatiquement un évènement lors d'une demande d'approbation commerciale
+PropalApprovementEventAuthor = Auteur : %s
+PropalApprovementEventCreateTitle = Proposition %s en attente d'approbation
+PropalApprovementEventCreateDescription = La proposition commerciale %s a été placé en attente d'approbation

@@ -115,7 +115,7 @@ class ActionsPropalapprovement
         global $conf, $user, $langs;
         $contexts = explode(':', $parameters['context']);
         if (in_array('propalcard', $contexts)) {
-            if ($object->statut == 0 && empty($user->rights->propalapprovement->approve->automatically) &&
+            if ($object->statut == 0 && !empty($user->rights->propalapprovement->approve->automatically) &&
             ($object->statut == Propal::STATUS_DRAFT && $object->total_ttc >= 0 && count($object->lines) > 0)
                     || ($object->statut == Propal::STATUS_DRAFT && !empty($conf->global->PROPAL_ENABLE_NEGATIVE) && count($object->lines) > 0)) {
                 print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=' . self::ASK_FOR_APPROVE_ACTION_NAME . '">' . $langs->trans('PropalApprovementAwaitButton') . '</a></div>';
@@ -366,7 +366,7 @@ class ActionsPropalapprovement
         // Trigger calls
         if (! $error && ! $notrigger) {
             // Call trigger
-             $result=$object->call_trigger('PROPAL_AWAITING', $user);
+             $result=$object->call_trigger('PROPAL_AWAIT', $user);
             if ($result < 0) {
                 $error++;
             }

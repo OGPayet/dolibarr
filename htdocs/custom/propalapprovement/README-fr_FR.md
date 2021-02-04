@@ -1,17 +1,16 @@
-# PROPAL APPROVEMENT FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
+# PROPALAPPROVEMENT FOR [DOLIBARR ERP CRM](https://www.dolibarr.org)
 
 ## Features
 
-This module aims at adding an approvement system for commercial proposals
+Ce module permet d'ajouter un systême d'approbation des propositions commerciales
+
 <!--
-![Screenshot propalapprovement](img/screenshot_propalapprovement.png?raw=true "PropalApprovement"){imgmd}
+![Screenshot sepamandatmanager](img/screenshot_sepamandatmanager.png?raw=true "SepaMandatManager"){imgmd}
 -->
 
-Other external modules are available on [Dolistore.com](https://www.dolistore.com).
+## Traductions
 
-## Translations
-
-Translations can be completed manually by editing files into directories *langs*.
+Les traductions peuvent être modifiées manuellement en editant les fichiers dans le dossier langs, ou via un paramétrage dans Configuration/Traduction.
 
 <!--
 This module contains also a sample configuration for Transifex, under the hidden directory [.tx](.tx), so it is possible to manage translation using this service.
@@ -57,11 +56,11 @@ Note: If this screen tell you there is no custom directory, check your setup is 
 
 ### From a GIT repository
 
-- Clone the repository in ```$dolibarr_main_document_root_alt/propalapprovement```
+- Clone the repository in ```$dolibarr_main_document_root_alt/digitalsignaturemanager```
 
 ```sh
 cd ....../custom
-git clone git@github.com:gitlogin/propalapprovement.git propalapprovement
+git clone git@github.com:gitlogin/digitalsignaturemanager.git digitalsignaturemanager
 ```
 
 ### <a name="final_steps"></a>Final steps
@@ -76,10 +75,10 @@ From your browser:
 
 ## Licenses
 
-### Main code
+### Code source
 
-GPLv3 or (at your option) any later version. See file COPYING for more information.
+Code sous license GPL v3 ou toutes versions plus récente de cette dernière. Consultez le fichier COPYING pour plus d'information.
 
 ### Documentation
 
-All texts and readmes are licensed under GFDL.
+Tout le texte et les Lisez-moi sont sous license GFDL.

@@ -41,7 +41,7 @@ global $langs, $user;
 // Libraries
 require_once DOL_DOCUMENT_ROOT."/core/lib/admin.lib.php";
 require_once '../lib/propalapprovement.lib.php';
-//require_once "../class/myclass.class.php";
+dol_include_once('/comm/propal/class/propal.class.php');
 
 // Translations
 $langs->loadLangs(array("admin", "propalapprovement@propalapprovement"));
@@ -59,7 +59,8 @@ $scandir = GETPOST('scan_dir', 'alpha');
 $type = 'myobject';
 
 $arrayofparameters = array(
-);
+	'PROPALAPPROVEMENT_EVENTONAPPROVEMENTREQUEST' => array('css' => 'center', 'name' => $langs->trans("PropalApprovementCreateEventOnPropalApprovementRequest"), 'type' => 'boolean', 'visible' => 1),
+	);
 
 $error = 0;
 $setupnotempty = 0;
@@ -205,56 +206,38 @@ print dol_get_fiche_head($head, 'settings', '', -1, "propalapprovement@propalapp
 // Setup page goes here
 echo '<span class="opacitymedium">'.$langs->trans("PropalApprovementSetupPage").'</span><br><br>';
 
+print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '">';
+print '<input type="hidden" name="token" value="' . newToken() . '">';
+print '<input type="hidden" name="action" value="update">';
 
-if ($action == 'edit')
-{
-	print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
-	print '<input type="hidden" name="token" value="'.newToken().'">';
-	print '<input type="hidden" name="action" value="update">';
+//Paramètres
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td class="titlefield" style="min-width:520px;">' . $langs->trans("SepaMandateParameters") . '</td>';
+print '<td class="minwidth300">' . $langs->trans("Value") . '</td>';
+print '</tr>';
 
-	print '<table class="noborder centpercent">';
-	print '<tr class="liste_titre"><td class="titlefield">'.$langs->trans("Parameter").'</td><td>'.$langs->trans("Value").'</td></tr>';
+$payload = new Propal($db);
+$payload->fields = $arrayofparameters;
 
-	foreach ($arrayofparameters as $key => $val)
-	{
-		print '<tr class="oddeven"><td>';
-		$tooltiphelp = (($langs->trans($key.'Tooltip') != $key.'Tooltip') ? $langs->trans($key.'Tooltip') : '');
-		print $form->textwithpicto($langs->trans($key), $tooltiphelp);
-		print '</td><td><input name="'.$key.'"  class="flat '.(empty($val['css']) ? 'minwidth200' : $val['css']).'" value="'.$conf->global->$key.'"></td></tr>';
-	}
-	print '</table>';
-
-	print '<br><div class="center">';
-	print '<input class="button button-save" type="submit" value="'.$langs->trans("Save").'">';
-	print '</div>';
-
-	print '</form>';
-	print '<br>';
-} else {
-	if (!empty($arrayofparameters))
-	{
-		print '<table class="noborder centpercent">';
-		print '<tr class="liste_titre"><td class="titlefield">'.$langs->trans("Parameter").'</td><td>'.$langs->trans("Value").'</td></tr>';
-
-		foreach ($arrayofparameters as $key => $val)
-		{
-			$setupnotempty++;
-
-			print '<tr class="oddeven"><td>';
-			$tooltiphelp = (($langs->trans($key.'Tooltip') != $key.'Tooltip') ? $langs->trans($key.'Tooltip') : '');
-			print $form->textwithpicto($langs->trans($key), $tooltiphelp);
-			print '</td><td>'.$conf->global->$key.'</td></tr>';
-		}
-
-		print '</table>';
-
-		print '<div class="tabsAction">';
-		print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=edit">'.$langs->trans("Modify").'</a>';
-		print '</div>';
-	} else {
-		print '<br>'.$langs->trans("PropalApprovementNothingToSetup");
-	}
+foreach ($arrayofparameters as $key => $parameter) {
+	print '<tr class="oddeven">';
+	print '<td>';
+	print $form->textwithpicto($parameter['name'], $parameter['tooltip']);
+	print '</td>';
+	print '<td class="' . ($parameter['css'] ?? '') . '">';
+	print $payload->showInputField($parameter, $key, $conf->global->$key);
+	print '</td>';
 }
+
+print '</table>';
+
+print '<br><div class="center">';
+print '<input class="button" type="submit" value="' . $langs->trans("Save") . '">';
+print '</div>';
+print '<br>';
+
+print '</form>';
 
 // Page end
 print dol_get_fiche_end();
