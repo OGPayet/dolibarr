@@ -233,6 +233,13 @@ class Propal extends CommonObject
 
 	public $oldcopy;
 
+	public $statusType = array(
+		self::STATUS_DRAFT => 'status0',
+		self::STATUS_VALIDATED => 'status1',
+		self::STATUS_SIGNED => 'status4',
+		self::STATUS_NOTSIGNED => 'status9',
+		self::STATUS_BILLED => 'status6'
+	);
 
 	/**
 	 *  'type' if the field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -3243,11 +3250,9 @@ class Propal extends CommonObject
 		}
 
 		$statusType = '';
-		if ($status == self::STATUS_DRAFT) $statusType = 'status0';
-		elseif ($status == self::STATUS_VALIDATED) $statusType = 'status1';
-		elseif ($status == self::STATUS_SIGNED) $statusType = 'status4';
-		elseif ($status == self::STATUS_NOTSIGNED) $statusType = 'status9';
-		elseif ($status == self::STATUS_BILLED) $statusType = 'status6';
+		if($this->statusType[$status]) {
+			$statusType = $this->statusType[$status];
+		}
 
 		return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
 	}
