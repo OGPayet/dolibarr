@@ -938,7 +938,7 @@ function synergiestech_fetch_event_of_benefactor($socBenefactorId, $limit=5, $jo
 
     $result = array();
     if ($socBenefactorId > 0) {
-        $sql = "SELECT DISTINCT ac.id";
+        $sql = "SELECT DISTINCT ac.id, ac.datep";
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm ac";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager as rm ON ac.elementtype = 'requestmanager' AND rm.rowid = ac.fk_element";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "propal_extrafields as pf ON ac.elementtype = 'propal' AND pf.fk_object = ac.fk_element";
