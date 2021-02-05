@@ -268,7 +268,7 @@ if ($zone === 1) {
     if ($conf->equipement->enabled) {
         print '<td>' . $langs->trans("Equipement") . '</td>';
         print '<td>';
-        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, '', 'equipement_id', 1, 0, null, 0, 'minwidth100 maxwidth400');
+        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, '', 'equipement_id', 1, 0, null, 0, 'minwidth200 maxwidth400');
         print $formrequestmanager->multiselect_javascript_code($selectedEquipementId, 'equipement_id');
         print '</td>';
     }
