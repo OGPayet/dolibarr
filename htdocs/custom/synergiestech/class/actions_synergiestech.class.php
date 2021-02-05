@@ -2666,9 +2666,9 @@ SCRIPT;
      */
     function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf, $langs;
+        global $conf, $langs, $user;
 
-        $contexts = explode(':', $parameters['context']);
+		$contexts = explode(':', $parameters['context']);
 
         $thirdparty = null;
         if (in_array('requestmanagercard', $contexts)) {
@@ -2756,7 +2756,23 @@ SCRIPT;
             $conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;
             $conf->global->REQUESTMANAGER_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;
             $this->results = $possiblelinks;
-        }
+		}
+		if(empty($user->rights->synergiestech->amount->customerpropal))
+		{
+			if (!is_object($object->thirdparty)) $object->fetch_thirdparty();
+			$listofidcompanytoscan = 0;
+			if (is_object($object->thirdparty) && !empty($object->thirdparty->id) && $object->thirdparty->id > 0)
+			{
+				$listofidcompanytoscan = $object->thirdparty->id;
+			}
+			$possiblelinks['propal'] = array(
+				'enabled'=>$conf->propal->enabled,
+				'perms'=>1, 'label'=>'LinkToProposal',
+				'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."propal as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('propal').')'
+		);
+			$this->results = $possiblelinks;
+			return 1;
+		}
 
         return 0;
     }
