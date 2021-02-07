@@ -1,0 +1,19 @@
+image: ubuntu:18.04
+
+deploy_preproduction:
+  stage: deploy
+  only:
+    - opsy_prp
+  script:
+    - apt-get update
+    - apt-get install -y sshpass
+    - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST -p $SSH_PORT "cd /www-dolibarr/dolibarr-preprod/www/ && git pull https://$GIT_USER:$GIT_PASSWORD@git.alexislaurier.fr/clients/dolibarr_opsy.git opsy_prp"
+
+deploy_production:
+  stage: deploy
+  only:
+    - opsy_master
+  script:
+    - apt-get update
+    - apt-get install -y sshpass
+    - sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST -p $SSH_PORT "cd /www-dolibarr/dolibarr-prod/www/ && git pull https://$GIT_USER:$GIT_PASSWORD@git.alexislaurier.fr/clients/dolibarr_opsy.git opsy_master"
