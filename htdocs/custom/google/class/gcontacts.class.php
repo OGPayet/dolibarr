@@ -80,7 +80,7 @@ class GContact
      * @param string 	$type		Type of Google contact
      * @param Gdata		$gdata		Gdata handler
      */
-    public function __construct($dolID, $type, $gdata)
+    public function __construct($dolID, $type = null, $gdata = null)
     {
         if($dolID) {
             $this->from='dolibarr';
