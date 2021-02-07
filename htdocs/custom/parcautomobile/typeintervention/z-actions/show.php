@@ -1,7 +1,7 @@
 <?php
 
 if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
-
+    
     if (!$id || $id <= 0) {
         header('Location: ./card.php?action=request&error=dalete_failed&id='.$id);
         exit;
@@ -17,7 +17,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
         header('Location: index.php?delete='.$id.'&page='.$page);
         exit;
     }
-    else {
+    else {      
         header('Location: card.php?delete=1&page='.$page);
         exit;
     }
@@ -25,27 +25,27 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
 
 
 if( ($id && empty($action)) || $action == "delete" ){
-
+    
     if($action == "delete"){
         print $form->formconfirm("card.php?id=".$id."&page=".$page,$langs->trans('Confirmation') , $langs->trans('msgconfirmdelet'),"confirm_delete", 'index.php?page='.$page, 0, 1);
     }
 
-
+   
     $typeintervention->fetch($id);
     $item = $typeintervention;
 
-
-
+    
+    
     dol_include_once('/parcautomobile/class/parcautomobile.class.php');
     $parcautomobile = new parcautomobile($db);
     $linkback = '<a href="./index.php?page='.$page.'">'.$langs->trans("BackToList").'</a>';
     print $parcautomobile->showNavigations($item, $linkback);
 
+    
 
-
-
-
-
+    
+    
+   
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" >';
 
     print '<input type="hidden" name="confirm" itemue="no" id="confirm" />';
@@ -61,7 +61,7 @@ if( ($id && empty($action)) || $action == "delete" ){
         print '</tbody>';
     print '</table>';
 
-
+   
     // Actions
     print '<table class="" width="100%">';
     print '<tr>';
@@ -75,7 +75,7 @@ if( ($id && empty($action)) || $action == "delete" ){
     print '</table>';
 
     print '</form>';
-
+    
 }
 
 ?>

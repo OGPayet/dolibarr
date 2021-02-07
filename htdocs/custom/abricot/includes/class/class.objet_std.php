@@ -83,7 +83,7 @@ class TObjetStd {
 	 * change la table
 	 */
 	function set_table($nom_table){
-	$this->table=$nom_table;
+    	$this->table=$nom_table;
 		//TODO $this->table_element
     }
 
@@ -103,12 +103,12 @@ class TObjetStd {
 	        $nb=count($var);
 	        for ($i=0; $i<$nb ; $i++) {
 
-			$this->TChamps[trim($var[$i])] = $infos;
+	        	$this->TChamps[trim($var[$i])] = $infos;
 				$this->TConstraint[trim($var[$i])] = $constraint;
 	        } // for
-	}
+    	}
 
-	}
+  	}
 
 	private function _to_info_array($info) {
 		$info = strtolower($info);
@@ -130,11 +130,11 @@ class TObjetStd {
 	}
 
   function get_table(){
-	return $this->table;
+    	return $this->table;
   }
 
   function get_champs(){
-	return $this->TChamps;
+    	return $this->TChamps;
   }
 
   function _get_field_list(){
@@ -142,7 +142,7 @@ class TObjetStd {
 		foreach ($this->TChamps as $nom_champ=>$info) {
 			$r.='`'.$nom_champ."`,";
 		}
-		return $r;
+   	 	return $r;
   }
 
 
@@ -184,13 +184,13 @@ class TObjetStd {
 	}
 
 function _no_save_vars($lst_chp) {
-	  if($lst_chp!=""){
-			$this->TNoSaveVars=array();
+  	  if($lst_chp!=""){
+  			$this->TNoSaveVars=array();
 
 			$var = explode(',', $lst_chp);
 	        $nb=count($var);
 	        for ($i=0; $i<$nb ; $i++) {
-			$this->TNoSaveVars[trim($var[$i])]=true;
+	        	$this->TNoSaveVars[trim($var[$i])]=true;
 	        } // for
       }
   }
@@ -208,14 +208,14 @@ function _no_save_vars($lst_chp) {
 
 		$TChamps = array_merge(array(OBJETSTD_DATECREATE=>array('type'=>'date'),OBJETSTD_DATEUPDATE=>array('type'=>'date')),$this->TChamps);
 
-		foreach($TChamps as $champs=>$info) {
+	  	foreach($TChamps as $champs=>$info) {
 
-			if(!in_array($champs, $Tab)) {
+	  		if(!in_array($champs, $Tab)) {
 				if($this->_is_int($info)) {
 					$db->Execute('ALTER TABLE `'.$this->get_table().'` ADD `'.$champs.'` int(11) NOT NULL DEFAULT \''.(!empty($info['default']) && is_int($info['default']) ? $info['default'] : '0').'\'');
 				}else if($this->_is_date($info)) {
 
-					$db->Execute('ALTER TABLE `'.$this->get_table().'` ADD `'.$champs.'` datetime NULL');
+	  				$db->Execute('ALTER TABLE `'.$this->get_table().'` ADD `'.$champs.'` datetime NULL');
 				}else if($this->_is_float($info))
 					$db->Execute('ALTER TABLE `'.$this->get_table().'` ADD `'.$champs.'` DOUBLE NOT NULL DEFAULT \''.(!empty($info['default']) ? $info['default'] : '0').'\'');
 				else if($this->_is_tableau($info) || $this->_is_text($info))
@@ -247,14 +247,14 @@ function _no_save_vars($lst_chp) {
 		$charset = $conf->db->character_set;
 
 		$sql = "CREATE TABLE `".$this->get_table()."` (
-				`".OBJETSTD_MASTERKEY."` int(11) NOT NULL DEFAULT '0'
-				,`".OBJETSTD_DATECREATE."` datetime NULL
-				,`".OBJETSTD_DATEUPDATE."` datetime NULL
+ 				`".OBJETSTD_MASTERKEY."` int(11) NOT NULL DEFAULT '0'
+ 				,`".OBJETSTD_DATECREATE."` datetime NULL
+ 				,`".OBJETSTD_DATEUPDATE."` datetime NULL
 
-				,PRIMARY KEY (`".OBJETSTD_MASTERKEY."`)
-				,KEY `".OBJETSTD_DATECREATE."` (`".OBJETSTD_DATECREATE."`)
-				,KEY `".OBJETSTD_DATEUPDATE."` (`".OBJETSTD_DATEUPDATE."`)
-				) ENGINE=InnoDB";
+ 				,PRIMARY KEY (`".OBJETSTD_MASTERKEY."`)
+ 				,KEY `".OBJETSTD_DATECREATE."` (`".OBJETSTD_DATECREATE."`)
+ 				,KEY `".OBJETSTD_DATEUPDATE."` (`".OBJETSTD_DATEUPDATE."`)
+ 				) ENGINE=InnoDB";
 		if (!empty($charset)) $sql .= ' DEFAULT CHARSET='.$charset;
 
 		if (!empty($conf->db->dolibarr_main_db_collation)) $sql .= ' COLLATE='.$conf->db->dolibarr_main_db_collation;
@@ -270,7 +270,7 @@ function _no_save_vars($lst_chp) {
 	 * @param TPDOdb    $db     Connecteur de base de données
 	 */
   function init_vars_by_db(&$db) {
-	$db->Execute("SHOW COLUMNS FROM `".$this->get_table()."`");
+  	$db->Execute("SHOW COLUMNS FROM `".$this->get_table()."`");
 	while($db->Get_line()) {
 		$nom = strtolower($db->Get_field('Field'));
 		$type_my = $db->Get_field('Type');
@@ -291,7 +291,7 @@ function _no_save_vars($lst_chp) {
       $var = explode(',', $lst_chp);
       $nb=count($var);
       for ($i=0; $i<$nb ; $i++) {
-	$this->add_champs($var[$i]);
+      	$this->add_champs($var[$i]);
       } // for
     }
 
@@ -317,7 +317,7 @@ function _no_save_vars($lst_chp) {
 				$this->{$nom_champ} = (double)0;
 		}
         else{
-	      $this->{$nom_champ} = '';
+  	      $this->{$nom_champ} = '';
         }
     }
     $this->to_delete=false;
@@ -327,7 +327,7 @@ function _no_save_vars($lst_chp) {
   }
 
   function get_date($nom_champ,$format_date='d/m/Y') {
-	if(empty($this->{$nom_champ})) return '';
+  	if(empty($this->{$nom_champ})) return '';
 	elseif($this->{$nom_champ}<=strtotime('1000-01-01 00:00:00')) return '';
 	else {
 	    return date($format_date, (int)$this->{$nom_champ});
@@ -337,13 +337,13 @@ function _no_save_vars($lst_chp) {
 
   function set_date($nom_champ,$date){
 
-		if(empty($date)) {
-			$this->{$nom_champ} = 0;//strtotime('0000-00-00 00:00:00');
-		}
+	  	if(empty($date)) {
+	  		$this->{$nom_champ} = 0;//strtotime('0000-00-00 00:00:00');
+	  	}
 		else if(strpos($date,'/')===false){
-			$this->{$nom_champ} = strtotime($date);
+	  		$this->{$nom_champ} = strtotime($date);
 		}
-		else {
+	  	else {
 			list($d,$m,$y) = explode('/',$date);
 			$this->{$nom_champ} = mktime(0,0,0,$m,$d,$y);
 		}
@@ -359,20 +359,20 @@ function _no_save_vars($lst_chp) {
 	else {
 	    $pos = strpos($info,'type=date;'); // deprecated
 	    if($pos===false) {
-		return false;
+	    	return false;
 		}
 	    else {
-		return true;
+	    	return true;
 		}
 
 	}
   }
 
   function _is_tableau($info){
-		return $this->_is_array($info);
+  		return $this->_is_array($info);
   }
   function _is_array($info) {
-	if(is_array($info)) {
+  	if(is_array($info)) {
 		if(isset($info['type']) && $info['type']=='array') return true;
 		else return false;
 	}
@@ -430,7 +430,7 @@ function _no_save_vars($lst_chp) {
 	}
   }
   function _is_text($info){
-	if(is_array($info)) {
+  	if(is_array($info)) {
 		if(isset($info['type']) && $info['type']=='text') return true;
 		else return false;
 	}
@@ -441,7 +441,7 @@ function _no_save_vars($lst_chp) {
 	}
   }
   function _is_index($info){
-	if(is_array($info)) {
+  	if(is_array($info)) {
 		if(isset($info['index']) && $info['index']==true) return true;
 		else return false;
 	}
@@ -464,9 +464,9 @@ function _no_save_vars($lst_chp) {
 
       if(isset($this->TNoSaveVars[$nom_champ])) {
 				null; // ne pas sauvegarder ce champs
-	  }
+ 	  }
       elseif(!strcmp($nom_champ,'idx')) {
-	$query[$nom_champ] = (isset($this->{$this->champs_indexe}[0]) && ctype_alpha($this->{$this->champs_indexe}[0]))?strtoupper($this->{$this->champs_indexe}[0]):'0';
+      	$query[$nom_champ] = (isset($this->{$this->champs_indexe}[0]) && ctype_alpha($this->{$this->champs_indexe}[0]))?strtoupper($this->{$this->champs_indexe}[0]):'0';
       }
       else if($this->_is_date($info)){
 		if(empty($this->{$nom_champ})){
@@ -479,8 +479,8 @@ function _no_save_vars($lst_chp) {
 		}
       }
       else if($this->_is_tableau($info)){
-	//print_r($this);
-	//die('serialize automatiquement les données '.$nom_champ);
+      	//print_r($this);
+      	//die('serialize automatiquement les données '.$nom_champ);
 
         $query[$nom_champ] = serialize($this->{$nom_champ});
       }
@@ -495,7 +495,7 @@ function _no_save_vars($lst_chp) {
 
 
       elseif($this->_is_null($info)) {
-	$query[$nom_champ] = (is_null($this->{$nom_champ}) || (empty($this->{$nom_champ}) && $this->{$nom_champ}!==0 && $this->{$nom_champ}!=='0')?null:$this->{$nom_champ});
+      	$query[$nom_champ] = (is_null($this->{$nom_champ}) || (empty($this->{$nom_champ}) && $this->{$nom_champ}!==0 && $this->{$nom_champ}!=='0')?null:$this->{$nom_champ});
       }
       else{
         $query[$nom_champ] = $this->{$nom_champ};
@@ -507,15 +507,15 @@ function _no_save_vars($lst_chp) {
   }
 
   function start(){
-	global $conf;
+  	global $conf;
 
      $this->{OBJETSTD_MASTERKEY} = 0; // le champ id est toujours def
      $this->{OBJETSTD_DATECREATE}=time(); // ces champs dates aussi
 	 $this->{OBJETSTD_DATEUPDATE}=time();
 
 	 if(!isset($this->TChildObjetStd)) {
-		$this->TChildObjetStd=array();
-		$this->withChild = true;
+	 	$this->TChildObjetStd=array();
+	 	$this->withChild = true;
 		$this->unsetChildDeleted = false;
 	 }
 
@@ -546,9 +546,9 @@ function _no_save_vars($lst_chp) {
 
 		/* Execute les trigger */
 		if(class_exists('TTrigger')) {
-			// print  get_class($this).", $state<br>";
-			$trigger=new TTrigger;
-			$trigger->run($ATMdb,$this, get_class($this), $state);
+	  		// print  get_class($this).", $state<br>";
+	  		$trigger=new TTrigger;
+	  		$trigger->run($ATMdb,$this, get_class($this), $state);
 
 		}
 	}
@@ -620,8 +620,8 @@ function _no_save_vars($lst_chp) {
    * @return bool	            true = OK; false = KO
    */
   function load(&$db,$id,$loadChild=true){
-	//TODO add oldcopy for history module
-		if(empty($id)) return false;
+  	//TODO add oldcopy for history module
+  		if(empty($id)) return false;
 
 		$db->Execute( 'SELECT '.$this->_get_field_list().OBJETSTD_DATECREATE.','.OBJETSTD_DATEUPDATE.'
 						FROM '.$this->get_table().'
@@ -865,6 +865,7 @@ function _no_save_vars($lst_chp) {
 				$db->dbinsert($this->get_table(),$query);
 
 				$this->run_trigger($db, 'create');
+				if(OBJETSTD_MASTERKEY !== 'id') $this->id = $this->{OBJETSTD_MASTERKEY};
 			}
 			else {
 				$query[OBJETSTD_MASTERKEY]=$this->{OBJETSTD_MASTERKEY};
@@ -967,26 +968,26 @@ function _no_save_vars($lst_chp) {
 	}
 
 	private function gx_node(&$xml, $Tab) {
-		foreach($Tab as $k=>$v) {
-			if(is_array($v)) {
+ 		foreach($Tab as $k=>$v) {
+ 			if(is_array($v)) {
 				$child = $xml->addChild($k);
 				$this-> gx_node($child, $v);
-			}
-			else{
-				$xml->addChild($k,$v);
-			}
+ 			}
+ 			else{
+ 				$xml->addChild($k,$v);
+ 			}
 
-		}
-	}
-	function get_xml() {
-		$Tab = $this->get_values(true) ;
+ 		}
+ 	}
+ 	function get_xml() {
+ 		$Tab = $this->get_values(true) ;
 
-		$xml = new SimpleXMLElement("<".get_class($this)."/>");
+ 		$xml = new SimpleXMLElement("<".get_class($this)."/>");
 
-		$this->gx_node($xml, $Tab);
-		return $xml->asXML();
+ 		$this->gx_node($xml, $Tab);
+ 		return $xml->asXML();
 
-	}
+ 	}
 
 	function set_values($Tab) {
 		foreach ($Tab as $key=>$value) {
@@ -1025,7 +1026,7 @@ function _no_save_vars($lst_chp) {
 		$nb=count($Tab);
 
 	  for ($i=0; $i<$nb; $i++) {
-			if($Tab[$i]->{OBJETSTD_MASTERKEY}==$id) return $i;
+	  		if($Tab[$i]->{OBJETSTD_MASTERKEY}==$id) return $i;
 	  }
 
 
@@ -1224,3 +1225,4 @@ class TSSObjet extends TObjetStd {
 	}
 
 }
+

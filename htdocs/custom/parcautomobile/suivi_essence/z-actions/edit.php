@@ -7,7 +7,7 @@ if ($action == 'update' && $request_method === 'POST') {
     // $d1 = GETPOST('debut');
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
-
+  
     $vehicul = GETPOST('vehicule');
     $kilometre = GETPOST('kilometre');
     $litre = GETPOST('litre');
@@ -15,6 +15,7 @@ if ($action == 'update' && $request_method === 'POST') {
     $fournisseur = GETPOST('fournisseur');
     $ref_facture = GETPOST('ref_facture');
     $remarques = GETPOST('remarques');
+    
     if(GETPOST('date')){
         $date =explode('/',GETPOST('date'));
         $date = $date[2].'-'.$date[1].'-'.$date[0];
@@ -46,7 +47,7 @@ if ($action == 'update' && $request_method === 'POST') {
         $prixT = $prix*$litre;
 
         $objcout = new costsvehicule($db);
-
+            
         $objcout->vehicule = $vehicul;
         $objcout->id_suiviessence = $avance;
         $objcout->date = date('Y-m-d');
@@ -68,7 +69,7 @@ if ($action == 'update' && $request_method === 'POST') {
             $objcout->create(1);
         }
         // create kilometrage
-
+                
         if(!empty($kilometre) && $kilometre_1 != $kilometre){
             $objkilom = new kilometrage($db);
 
@@ -88,7 +89,7 @@ if ($action == 'update' && $request_method === 'POST') {
 
         header('Location: ./card.php?id='.$id);
         exit;
-    }
+    } 
     else {
         header('Location: ./card.php?id='. $id .'&update=0');
         exit;
@@ -127,7 +128,7 @@ if($action == "edit"){
                         print '<td> <span id="acheteur">'.$user_->getNomUrl(1).'</span> </td>';
                     print '</tr>';
 
-
+                    
                 print '</body>';
             print '</table>';
         print '</div>';
@@ -210,7 +211,7 @@ if($action == "edit"){
     print '</div>';
 
     if($extrafields->attributes[$object->table_element]['label']){
-        print '<div class="fichecenter">';
+        print '<div class="fichecenter">';    
             print '<div class="div_extrafield">';
                 print '<table class="noborder nc_table_" width="100%">';
                     print '<body>';
@@ -248,3 +249,4 @@ if($action == "edit"){
         })
     })
 </script>
+

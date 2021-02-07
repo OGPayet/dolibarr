@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
@@ -33,7 +33,7 @@ $action   			= $_GET['action'];
 $extrafields->fetch_name_optionals_label($object->table_element);
 $search_array_options = $extrafields->getOptionalsFromPost($object->table_element, '', 'search_');
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -46,7 +46,7 @@ if (is_array($extrafields->attributes[$object->table_element]['label']) && count
 			$arrayfields["ef.".$key] = array(
 				'label'=>$extrafields->attributes[$object->table_element]['label'][$key],
 				'checked'=>(($extrafields->attributes[$object->table_element]['list'][$key] < 0) ? 0 : 1),
-				'position'=>$extrafields->attributes[$object->table_element]['pos'][$key],
+				'position'=>$extrafields->attributes[$object->table_element]['pos'][$key], 
 				'enabled'=>(abs($extrafields->attributes[$object->table_element]['list'][$key]) != 3 && $extrafields->attributes[$object->table_element]['perms'][$key])
 			);
 		}
@@ -102,7 +102,7 @@ $pageprev = $page - 1;
 $pagenext = $page + 1;
 
 if (GETPOST("button_removefilter_x") || GETPOST("button_removefilter") || $page < 0) {
-
+	
 	$sql = "";
 	$offset = 0;
 	$sql = "";
@@ -147,7 +147,7 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="indexcostvehi
 			print '<tr class="liste_titre">';
 				print_liste_field_titre($langs->trans("Ref"),$_SERVER["PHP_SELF"], "rowid", '', '', 'align="center"', $sortfield, $sortorder);
 				print_liste_field_titre($langs->trans("vehicule"),$_SERVER["PHP_SELF"], "vehicule", '', '', 'align="left"', $sortfield, $sortorder);
-				print_liste_field_titre($langs->trans("type"),$_SERVER["PHP_SELF"], "type", '', '', 'align="center"', $sortfield, $sortorder);
+				print_liste_field_titre($langs->trans("Type"),$_SERVER["PHP_SELF"], "type", '', '', 'align="center"', $sortfield, $sortorder);
 				print_liste_field_titre($langs->trans("prixT"),$_SERVER["PHP_SELF"], "prix", '', '', 'align="center"', $sortfield, $sortorder);
 				print_liste_field_titre($langs->trans("date"),$_SERVER["PHP_SELF"], "date", '', '', 'align="center"', $sortfield, $sortorder);
 				include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
@@ -167,7 +167,7 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="indexcostvehi
 				print '</td>';
 			print '</tr>';
 		print '</thead>';
-
+		
 		print '<tbody>';
 			// print_r($extrafields->attributes[$object->table_element]);die();
 			$colspn = 6;
@@ -182,17 +182,17 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="indexcostvehi
 
 					$obj = new costsvehicule($db);
 					$obj->fetch($item->rowid);
-				$obj->fetch_optionals();
+    				$obj->fetch_optionals();
 
 					print '<tr '.$bc[$var].' >';
-					print '<td align="center" style="">';
-						print '<a href="'.dol_buildpath('/parcautomobile/costsvehicule/card.php?id='.$item->rowid,2).'" >';
-							print $item->rowid;
-						print '</a>';
-					print '</td>';
+			    		print '<td align="center" style="">'; 
+				    		print '<a href="'.dol_buildpath('/parcautomobile/costsvehicule/card.php?id='.$item->rowid,2).'" >';
+				    			print $item->rowid;
+				    		print '</a>';
+			    		print '</td>';
 						print '<td align="left">';
 							$objvehicul = new vehiculeparc($db);
-				$objvehicul->fetch($item->vehicule);
+                        	$objvehicul->fetch($item->vehicule);
 							print $objvehicul->get_nom_url($item->vehicule,1);
 						print '</td>';
 						print '<td align="center">'.$item->type.'</td>';
@@ -200,21 +200,21 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="indexcostvehi
 						$date=$date[2].'/'.$date[1].'/'.$date[0];
 						print '<td align="center">'.number_format($item->prix,2,","," ").'</td>';
 						print '<td align="center">'.$date.'</td>';
-
+					
 						if($extrafields->attributes[$obj->table_element]['label'] && count($extrafields->attributes[$obj->table_element]['label'])){
-						foreach ($extrafields->attributes[$obj->table_element]['label'] as $key => $val){
+				    		foreach ($extrafields->attributes[$obj->table_element]['label'] as $key => $val){
 								if($extrafields->attributes[$obj->table_element]['list'][$key] == 2 || $extrafields->attributes[$obj->table_element]['list'][$key] == 1 || $extrafields->attributes[$obj->table_element]['list'][$key] == 4){
 									print '<td align="center">';
 										$value = $obj->array_options['options_'.$key];
 										$tmpkey = 'options_'.$key;
 										print $extrafields->showOutputField($key, $value, '', $obj->table_element);
 									print '</td>';
-							}
+	        					}
 							}
 						}
 
 						print '<td align="center"><a href="./card.php?id='.$item->rowid.'&action=pdf" target="_blank" >'.img_mime('test.pdf').'</a></td>';
-
+						
 					print '</tr>';
 				}
 			}else{
@@ -235,7 +235,7 @@ print '</form>';
 
 </script>
 <style>
-
+	
 </style>
 <?php
 

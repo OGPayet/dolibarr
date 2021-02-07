@@ -1,9 +1,0 @@
-diff a/htdocs/custom/requestmanager/sql/update_4.0.3_4.0.4.sql b/htdocs/custom/requestmanager/sql/update_4.0.3_4.0.4.sql	(rejected hunks)
-@@ -13,7 +13,6 @@
- --
- -- You should have received a copy of the GNU General Public License
- -- along with this program. If not, see <http://www.gnu.org/licenses/>.
----
- -- ===========================================================================
- 
- ALTER TABLE llx_requestmanager_message DROP INDEX idx_requestmanager_message_fk_knowledge_base;

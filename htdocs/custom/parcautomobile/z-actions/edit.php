@@ -8,7 +8,7 @@ if ($action == 'update' && $request_method === 'POST') {
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
     $sendmail=GETPOST('sendmail','int');
-
+  
     $model = GETPOST('model');
     $plaque = GETPOST('plaque');
     $etiquettes = GETPOST('etiquettes');
@@ -21,7 +21,7 @@ if ($action == 'update' && $request_method === 'POST') {
     $nb_port = GETPOST('nb_port');
     $color = GETPOST('color');
     $type_carburant = GETPOST('type_carburant');
-
+    
     $valeur_catalogue = GETPOST('valeur_catalogue');
     $transmission = GETPOST('transmission');
     $emission_co2 = GETPOST('emission_co2');
@@ -122,10 +122,10 @@ if ($action == 'update' && $request_method === 'POST') {
 
             $objkilom->create(1);
         }
-
+        
         header('Location: ./card.php?id='.$id);
         exit;
-    }
+    } 
     else {
         header('Location: ./card.php?id='. $id .'&update=0');
         exit;
@@ -147,12 +147,12 @@ if($action == "edit"){
 
         $object = new vehiculeparc($db);
         $object->fetch($item->rowid);
-
+        
         $extrafields = new ExtraFields($db);
         $extrafields->fetch_name_optionals_label($object->table_element);
         // $object->fetch($item->rowid);
         $object->fetch_optionals();
-
+           
 
 
         $checked = '';
@@ -190,7 +190,7 @@ if($action == "edit"){
                                     $model->fetch($item->model);
                                     $marque->fetch($model->marque);
                                      if(!empty($marque->logo)){
-                                        $minifile = getImageFileNameForSize($marque->logo, '');
+                                        $minifile = getImageFileNameForSize($marque->logo, '');  
                                         $dt_files = getAdvancedPreviewUrl('parcautomobile', '/marques/'.$marque->rowid.'/'.$minifile, 1, '&entity='.(!empty($object->entity)?$object->entity:$conf->entity));
 
                                         print '<img align="left" height="20px" class="photo" height="" title="'.$minifile.'" alt="Fichier binaire" src="'.DOL_URL_ROOT.'/viewimage.php?modulepart=parcautomobile&entity='.(!empty($object->entity)?$object->entity:$conf->entity).'&file=marques/'.$marque->rowid.'/'.$minifile.'&perm=download" border="0" name="image" >';
@@ -207,7 +207,7 @@ if($action == "edit"){
                             print '<td style="width: 12%;">'.$langs->trans('etiquettes').'</td>';
                             print '<td >'.$etiquettes->select_with_filter($item->etiquettes).'</td>';
                         print '</tr>';
-
+                       
                     print '</tbody>';
                 print '</table>';
             print '</div>';
@@ -219,7 +219,25 @@ if($action == "edit"){
                         print '<tbody>';
                             print '<tr>';
                                 print '<td align="left" >'.$langs->trans('conducteur').'</td>';
-                                print '<td >'.$parc->select_conducteur($item->conducteur).'</td>';
+                                print '<td >';
+                                    print '<input type="hidden" id="id_conduct" value="'.$item->conducteur.'">';
+                                    print '<div class="Conducttype">';
+                                        $type = 'Internal';
+                                        $checkintern = 'checked';
+                                        if(!empty($item->conducteur)){
+                                            $conduct = new User($db);
+                                            $conduct->fetch($item->conducteur);
+                                            
+                                            $checkextern  = '';
+
+                                            if($conduct->societe_id > 0) {$checkextern = "checked"; $type="External";}
+                                            else {$checkintern = "checked"; $type="Internal";}
+                                        }
+                                        print $parc->select_conducteur($item->conducteur,'conducteur',1,$type);
+                                    print '</div>';
+                                    print '<input type="radio" name="typeconduct" '.$checkintern.' onchange="getConducts(this)" id="conductintern" value="Internal"><label for="conductintern">'.$langs->trans('Internal').'</label> ';
+                                    print '  <input type="radio" name="typeconduct" '.$checkextern.' onchange="getConducts(this)" id="conductextern" value="External"><label for="conductextern">'.$langs->trans('External').'</label>';
+                                print '</td>';
                             print '</tr>';
                             print '<tr>';
                                 print '<td align="left" >'.$langs->trans('lieu').'</td>';
@@ -279,11 +297,11 @@ if($action == "edit"){
                                     print $parc->select_unite($item->unite);
                                     print '</td>';
                             print '</tr>';
-
+                            
                              print '<tr>';
                                 print '<td >'.$langs->trans('transmission').'</td>';
                                 print '<td >';
-                                    print '<select  name="transmission" class="transmission">';
+                                    print '<select  name="transmission" class="transmission minwidth200 maxwidth200">';
                                         $option  ='<option value="false"></option>';
                                         $option .='<option value="manual">'.$langs->trans("manual").'</option>';
                                         $option .='<option value="automatic">'.$langs->trans("automatic").'</option>';
@@ -324,14 +342,14 @@ if($action == "edit"){
                                 print '<td align="left" >'.$langs->trans('value_residuelle').'</td>';
                                 print '<td ><input class="value_residuelle" name="value_residuelle" type="number" value="'.$item->value_residuelle.'" ></td>';
                             print '</tr>';
-
+                           
                         print '</tbody>';
                     print '</table>';
                 print '</div>';
             print '</div>';
 
 
-     print '<div class="fichecenter">';
+     print '<div class="fichecenter">';    
             print '<div class="topheaderrecrutmenus" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
             print '<div class="div_extrafield">';
                 print '<table class="border nc_table_" width="100%">';
@@ -342,7 +360,7 @@ if($action == "edit"){
             print '</div>';
     print '</div>';
     print '</div>';
-
+    
 
     // Actions
 
@@ -377,3 +395,5 @@ if($action == "edit"){
         })
     });
 </script>
+
+

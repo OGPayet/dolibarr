@@ -7,9 +7,9 @@ if ($action == 'update' && $request_method === 'POST') {
     // $d1 = GETPOST('debut');
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
-
+  
     $label = GETPOST('label');
-
+   
 
     $data = array(
         'label'         =>  addslashes($label),
@@ -19,7 +19,7 @@ if ($action == 'update' && $request_method === 'POST') {
     // $composantes_new = (GETPOST('composantes_new'));
     // $composantes = (GETPOST('composantes'));
     // $composants_deleted = explode(',', GETPOST('composants_deleted'));
-
+   
     if ($isvalid > 0) {
         $upload_dir = $conf->parcautomobile->dir_output.'/marques/'.$id.'/';
         if(!empty($_FILES['logo']['name'])){
@@ -32,8 +32,8 @@ if ($action == 'update' && $request_method === 'POST') {
             if (dol_mkdir($upload_dir) >= 0)
             {
                 $destfull = $upload_dir.$TFile['name'];
-                $info     = pathinfo($destfull);
-
+                $info     = pathinfo($destfull); 
+                
                 $filname    = dol_sanitizeFileName($TFile['name'],'');
                 $destfull   = $info['dirname'].'/'.$filname;
                 $destfull   = dol_string_nohtmltag($destfull);
@@ -43,7 +43,7 @@ if ($action == 'update' && $request_method === 'POST') {
         }
         header('Location: ./index.php?page='.$page);
         exit;
-    }
+    } 
     else {
         header('Location: ./card.php?id='. $id .'&update=0');
         exit;
@@ -63,8 +63,8 @@ if($action == "edit"){
             $marque->fetch($id);
             $item = $marque;
             print '<tr>';
-                print '<td >'.$langs->trans('label_marque').'</td>';
-                print '<td ><input type="text" class="" id="label" value="'.$item->label.'" style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';
+                print '<td style="width:20%">'.$langs->trans('label_marque').'</td>';
+                print '<td style="width:80%"><input type="text" class="" id="label" value="'.$item->label.'" style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';
                 print '</td>';
             print '</tr>';
 
@@ -72,11 +72,11 @@ if($action == "edit"){
                 print '<td>'.$langs->trans('photo_').'</td>';
                 print '<td>';
                     print '<div id="wrapper"> <ul>';
-
-
+                               
+                      
 
                         if(!empty($item->logo)){
-                            $minifile = getImageFileNameForSize($item->logo, '');
+                            $minifile = getImageFileNameForSize($item->logo, '');  
                             $dt_files = getAdvancedPreviewUrl('parcautomobile', '/marques/'.$item->rowid.'/'.$minifile, 1, '&entity='.(!empty($object->entity)?$object->entity:$conf->entity));
 
                             print '<li> <a href="'.$dt_files['url'].'" class="'.$dt_files['css'].'" target="'.$dt_files['target'].'" mime="'.$dt_files['mime'].'">' ;
@@ -84,7 +84,7 @@ if($action == "edit"){
                             print '</a> </li>';
                         }
                         print '<input type="file" name="logo" id="logo" ">';
-
+                           
                     print '</ul></div>';
                 print '</td>';
             print '</tr>';
@@ -100,7 +100,7 @@ if($action == "edit"){
             print '<br>';
             print '<input type="submit" style="display:none" id="sub_valid" value="'.$langs->trans('Validate').'" style="" name="bouton" class="butAction" />';
             print '<a  class="butAction" id="btn_valid">'.$langs->trans('Validate').'</a>';
-
+            
             print '<a href="./index.php?page='.$page.'" class="butAction">'.$langs->trans('Cancel').'</a>';
         print '</td>';
     print '</tr>';
@@ -122,3 +122,5 @@ if($action == "edit"){
         })
     })
 </script>
+
+

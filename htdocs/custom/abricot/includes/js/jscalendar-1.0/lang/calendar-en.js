@@ -96,7 +96,7 @@ Calendar._TT["ABOUT_TIME"] = "\n\n" +
 "- Click on any of the time parts to increase it\n" +
 "- or Shift-click to decrease it\n" +
 "- or click and drag for faster selection.";
-
+             
 Calendar._TT["PREV_YEAR"] = "Année précédente";
 Calendar._TT["PREV_MONTH"] = "Mois précédent";
 Calendar._TT["GO_TODAY"] = "Ajourd'hui";

@@ -1,9 +1,0 @@
-diff a/htdocs/custom/requestmanager/core/modules/modRequestManager.class.php b/htdocs/custom/requestmanager/core/modules/modRequestManager.class.php	(rejected hunks)
-@@ -172,6 +172,7 @@ class modRequestManager extends DolibarrModules
-         // 'user'             to add a tab in user view
-         $this->tabs = array(
-             'thirdparty:+rm_request_list:SUBSTITUTION_RMLISTTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->lire:/requestmanager/list.php?socid=__ID__',
-+            'requestmanager:+history:History:history@history:$user->rights->history->read&&$conf->history->enabled:/history/history.php?type_object=requestmanager&id=__ID__',
-             //'product:+requestmanager_product:SUBSTITUTION_requestmanagerTABLABEL:requestmanager@requestmanager:$user->rights->requestmanager->lire:/requestmanager/product_tab.php?id=__ID__',
-         );
- 

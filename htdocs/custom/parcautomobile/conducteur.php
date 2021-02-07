@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../main.inc.php")) $res=@include("../main.inc.php");       // For root directory
-if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php"); // For "custom" 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
 
@@ -14,6 +14,14 @@ $langs->load('parcautomobile@parcautomobile');
 
 $modname = $langs->trans("parcautomobile");
 $vehicule  = new vehiculeparc($db);
+$type=GETPOST('type');
+$id_conduct=GETPOST('id_conduct');
+if($type){
+	$data = $vehicule->select_conducteur($id_conduct,'conducteur',1,$type);
+	echo $data;
+	die();
+}
+
 $id=GETPOST('id');
 $user_ = new User($db);
 $vehicule->fetch($id);

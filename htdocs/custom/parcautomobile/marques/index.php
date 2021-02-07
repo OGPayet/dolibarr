@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
@@ -22,7 +22,7 @@ $sortorder 			= ($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
 $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -107,20 +107,20 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 					$item = $marques->rows[$i];
 
 					print '<tr '.$bc[$var].' >';
-					print '<td align="center" style="">';
-						print '<a href="'.dol_buildpath('/parcautomobile/marques/card.php?id='.$item->rowid,2).'" >';
-							print $item->rowid;
-						print '</a>';
-					print '</td>';
-					print '<td align="left" style="">'.$item->label.'</td>';
+			    		print '<td align="center" style="">'; 
+				    		print '<a href="'.dol_buildpath('/parcautomobile/marques/card.php?id='.$item->rowid,2).'" >';
+				    			print $item->rowid;
+				    		print '</a>';
+			    		print '</td>';
+			    		print '<td align="left" style="">'.$item->label.'</td>';
 						print '<td align="center">';
-							$minifile = getImageFileNameForSize($item->logo, '');
+							$minifile = getImageFileNameForSize($item->logo, '');  
 		                    $dt_files = getAdvancedPreviewUrl('parcautomobile', '/marques/'.$item->rowid.'/'.$minifile, 1, '&entity='.(!empty($object->entity)?$object->entity:$conf->entity));
-							print '<a href="'.$dt_files['url'].'" class="'.$dt_files['css'].'" target="'.$dt_files['target'].'" mime="'.$dt_files['mime'].'">' ;
+				 			print '<a href="'.$dt_files['url'].'" class="'.$dt_files['css'].'" target="'.$dt_files['target'].'" mime="'.$dt_files['mime'].'">' ;
 		                        print '<img class="photo logo"  title="'.$minifile.'" alt="Fichier binaire" src="'.DOL_URL_ROOT.'/viewimage.php?modulepart=parcautomobile&entity='.(!empty($object->entity)?$object->entity:$conf->entity).'&file=marques/'.$item->rowid.'/'.$minifile.'&perm=download" border="0" name="image" >';
 		                    print '</a> ';
 						print '</td>';
-					print '<td align="center" style=""></td>';
+			    		print '<td align="center" style=""></td>';
 					print '</tr>';
 				}
 			}else{

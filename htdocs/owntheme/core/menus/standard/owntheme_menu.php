@@ -121,16 +121,46 @@ class MenuManager
     {
         global $conf, $langs, $user;
 
-        if ( DOL_VERSION >='4.0.0' && DOL_VERSION <'5.0.0' )
+        $ardolv = DOL_VERSION;
+        $ardolv = explode(".", $ardolv);
+        $dolvs = $ardolv[0];
+
+        if ( $dolvs < 4 || ($dolvs >= 4 && $dolvs < 5) )
             require_once 'owntheme4-0-0.lib.php';
-        elseif ( DOL_VERSION >='5.0.0' && DOL_VERSION <'6.0.0' )
+        elseif ( $dolvs >= 5 && $dolvs < 6 )
             require_once 'owntheme5-0-0.lib.php';
-        elseif ( DOL_VERSION >='6.0.0' && DOL_VERSION <'7.0.0' )
+        elseif ( $dolvs >= 6 && $dolvs < 7 )
             require_once 'owntheme6-0-0.lib.php';
-        elseif ( DOL_VERSION >='7.0.0' && DOL_VERSION <'8.0.0' )
+        elseif ( $dolvs >= 7 && $dolvs < 8 )
             require_once 'owntheme7-0-0.lib.php';
-        else
+        elseif ( $dolvs >= 8 && $dolvs < 9 )
             require_once 'owntheme8-0-0.lib.php';
+        elseif ( $dolvs >= 9 && $dolvs < 10 )
+            require_once 'owntheme9-0-0.lib.php';
+        elseif ( $dolvs >= 10 && $dolvs < 11 )
+            require_once 'owntheme10-0-0.lib.php';
+        elseif ( $dolvs >= 11 && $dolvs < 12 ){
+            require_once 'owntheme11-0-0.lib.php';
+        }
+        else{
+            require_once 'owntheme12-0-0.lib.php';
+        }
+
+        // if ( DOL_VERSION >='4.0.0' && DOL_VERSION <'5.0.0' )
+        //     require_once 'owntheme4-0-0.lib.php';
+        // elseif ( DOL_VERSION >='5.0.0' && DOL_VERSION <'6.0.0' )
+        //     require_once 'owntheme5-0-0.lib.php';
+        // elseif ( DOL_VERSION >='6.0.0' && DOL_VERSION <'7.0.0' )
+        //     require_once 'owntheme6-0-0.lib.php';
+        // elseif ( DOL_VERSION >='7.0.0' && DOL_VERSION <'8.0.0' )
+        //     require_once 'owntheme7-0-0.lib.php';
+        // elseif ( DOL_VERSION >='8.0.0' && DOL_VERSION <'9.0.0' )
+        //     require_once 'owntheme8-0-0.lib.php'; 
+        // elseif ( DOL_VERSION >='9.0.0' && DOL_VERSION <= '9.9.9' && DOL_VERSION != '10.0.0' ){
+        //     require_once 'owntheme9-0-0.lib.php';
+        // }
+        // else
+        //     require_once 'owntheme10-0-0.lib.php';
 
         if ($this->type_user == 1)
         {

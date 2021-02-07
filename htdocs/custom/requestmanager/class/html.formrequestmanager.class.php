@@ -454,55 +454,55 @@ class FormRequestManager
         $out = '';
 
         // Add code for jquery to use multiselect
-	if (! empty($conf->global->MAIN_USE_JQUERY_MULTISELECT) || defined('REQUIRE_JQUERY_MULTISELECT'))
-	{
+       	if (! empty($conf->global->MAIN_USE_JQUERY_MULTISELECT) || defined('REQUIRE_JQUERY_MULTISELECT'))
+       	{
             $selected = array_values($selected);
-		$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
-			$out.='<!-- JS CODE TO ENABLE '.$tmpplugin.' for id '.$htmlname.' -->
-			<script type="text/javascript">
-				function formatResult(record) {'."\n";
-						if ($elemtype == 'category')
-						{
-							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
-									return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
-						}
-						else
-						{
-							$out.='return record.text;';
-						}
-			$out.= '	};
-				function formatSelection(record) {'."\n";
-						if ($elemtype == 'category')
-						{
-							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
-									return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
-						}
-						else
-						{
-							$out.='return record.text;';
-						}
-			$out.= '	};
-				$(document).ready(function () {
-				    $(\'#'.$htmlname.'\').attr("name", "'.$htmlname.'[]");
-				    $(\'#'.$htmlname.'\').attr("multiple", "multiple");
-				    //$.map('.json_encode($selected).', function(val, i) {
-				        $(\'#'.$htmlname.'\').val('.json_encode($selected).');
-				    //});
+       		$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
+      			$out.='<!-- JS CODE TO ENABLE '.$tmpplugin.' for id '.$htmlname.' -->
+       			<script type="text/javascript">
+   	    			function formatResult(record) {'."\n";
+   						if ($elemtype == 'category')
+   						{
+   							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+   								  	return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
+   						}
+   						else
+   						{
+   							$out.='return record.text;';
+   						}
+   			$out.= '	};
+       				function formatSelection(record) {'."\n";
+   						if ($elemtype == 'category')
+   						{
+   							$out.='	//return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> <a href="'.DOL_URL_ROOT.'/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
+   								  	return \'<span><img src="'.DOL_URL_ROOT.'/theme/eldy/img/object_category.png'.'"> \'+record.text+\'</span>\';';
+   						}
+   						else
+   						{
+   							$out.='return record.text;';
+   						}
+   			$out.= '	};
+   	    			$(document).ready(function () {
+   	    			    $(\'#'.$htmlname.'\').attr("name", "'.$htmlname.'[]");
+   	    			    $(\'#'.$htmlname.'\').attr("multiple", "multiple");
+   	    			    //$.map('.json_encode($selected).', function(val, i) {
+   	    			        $(\'#'.$htmlname.'\').val('.json_encode($selected).');
+   	    			    //});
 
-					$(\'#'.$htmlname.'\').'.$tmpplugin.'({
-						dir: \'ltr\',
-							// Specify format function for dropdown item
-							formatResult: formatResult,
-						templateResult: formatResult,		/* For 4.0 */
-							// Specify format function for selected item
-							formatSelection: formatSelection,
-						templateResult: formatSelection		/* For 4.0 */
-					});
-				});
-			</script>';
-	}
+       					$(\'#'.$htmlname.'\').'.$tmpplugin.'({
+       						dir: \'ltr\',
+   							// Specify format function for dropdown item
+   							formatResult: formatResult,
+       					 	templateResult: formatResult,		/* For 4.0 */
+   							// Specify format function for selected item
+   							formatSelection: formatSelection,
+       					 	templateResult: formatSelection		/* For 4.0 */
+       					});
+       				});
+       			</script>';
+       	}
 
-	return $out;
+       	return $out;
     }
 
     /**
@@ -1536,6 +1536,134 @@ class FormRequestManager
     }
 
     /**
+     * Save the form in session
+     *
+     * @param   string      $htmlname           Name of the form
+     * @param   string      $key                Key of the data in session
+     * @param   string      $ajax_url           Url of the ajax page
+     * @return  string                          Output sript js
+     */
+    public function saveFormToSession($htmlname, $key, $ajax_url='/requestmanager/ajax/save_data.php')
+    {
+        global $langs;
+
+        $working_img = json_encode(img_picto($langs->trans('RequestManagerFormSavingToSession'), 'working.gif'));
+        $saved_img = json_encode(img_picto($langs->trans('RequestManagerFormSavedToSession'), 'statut4'));
+        $not_saved_img = json_encode(img_picto($langs->trans('RequestManagerFormNotSavedToSession'), 'statut5'));
+        $initial_img = isset($_SESSION['rm_data_save_in_session'][$key]) ? $saved_img : $not_saved_img;
+
+        $key = json_encode($key);
+        $ajax_url = json_encode(dol_buildpath($ajax_url, 1));
+
+        $out = <<<SCRIPT
+            <script type="text/javascript" language="javascript">
+                jQuery(document).ready(function () {
+                    var rm_message_form = $('form#$htmlname');
+                    if (rm_message_form.length == 0) rm_message_form = $('form[name="$htmlname"]');
+
+                    var rm_saving_status = $('#rm-saving-status');
+                    if (rm_saving_status.length > 0) rm_saving_status.empty().append($initial_img);
+
+                    var rm_saving_timer = 0;
+                    var rm_saving_delay = 1000;
+
+                    // Save form in session when input of the form changed
+                    rm_message_form.find(':input').on('change keyup', function() {
+                        rm_event_saving_form_in_session();
+                    });
+
+                    // Save form in session when ckeditor of the form changed
+                    if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined") {
+                        $.map(rm_message_form.find(':input'), function(item, idx) {
+                            var input = $(item);
+                            var input_type = item.localName;
+                            var name = input.attr("name");
+
+                            if (input_type == 'textarea' && typeof CKEDITOR.instances[name] != "undefined") {
+                                CKEDITOR.instances[name].on('change', function() {
+                                    rm_event_saving_form_in_session();
+                                });
+                            }
+                        });
+                    }
+
+                    // Save form in session delayed
+                    function rm_event_saving_form_in_session() {
+                        if (rm_saving_status.length > 0) rm_saving_status.empty().append($working_img);
+                        if (rm_saving_timer > 0) { clearTimeout(rm_saving_timer); }
+                        rm_saving_timer = setTimeout(rm_delayed_saving_form_in_session, rm_saving_delay);
+                    }
+
+                    // Save form in session delayed
+                    function rm_delayed_saving_form_in_session() {
+                        rm_save_form_in_session('$htmlname', $key, $ajax_url);
+                    }
+
+                    // Save form in session
+                    function rm_save_form_in_session(form_name, key, ajax_url) {
+                        var form_element = $('form#' + form_name);
+                        if (form_element.length == 0) form_element = $('form[name="'+form_name+'"]');
+
+                        if (form_element.length == 0) {
+//                            alert('Form to save in session not found.');
+                            console.error('Form to save in session not found.');
+                            if (rm_saving_status.length > 0) rm_saving_status.empty().append($not_saved_img);
+                        } else {
+                            var save_data = {};
+                            $.map(form_element.find(':input'), function(item, idx) {
+                                var input = $(item);
+                                var input_type = item.localName;
+                                var type = input.attr("type");
+                                var name = input.attr("name");
+                                var value = '';
+
+                                if (((input_type == 'input' && type != 'button' && type != 'submit') || input_type == 'textarea' || input_type == 'select') &&
+                                    typeof name != "undefined" && name.length > 0 && !(name in save_data)
+                                ) {
+                                    if (type == "checkbox" || type == "radio") { value = $('input[name="' + name + '"]:checked').val(); }
+                                    else if (input_type == 'textarea' && typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && typeof CKEDITOR.instances[name] != "undefined") { value = CKEDITOR.instances[name].getData(); }
+                                    else { value = input.val(); }
+
+                                    if (typeof value != "undefined") save_data[name] = value;
+                                }
+                            });
+
+                            rm_save_data_in_session($.param(save_data), key, ajax_url);
+                        }
+                    }
+
+                    // Save data in session
+                    function rm_save_data_in_session(data_to_save, key, ajax_url) {
+                        $.ajax({
+                            url: ajax_url,
+                            method: "POST",
+                            data: {
+                                key: key,
+                                data: data_to_save
+                            },
+                            dataType: "json"
+                        }).done(function(msg) {
+                            if (!(msg.error.length == 0)) {
+//                                alert('Error when save in session. msg: ' + msg);
+                                console.error('Error when save in session. msg: ', msg);
+                                if (rm_saving_status.length > 0) rm_saving_status.empty().append($not_saved_img);
+                            } else {
+                                if (rm_saving_status.length > 0) rm_saving_status.empty().append($saved_img);
+                            }
+                        }).fail(function(jqXHR) {
+//                            alert('Error when save in session: ' + jqXHR);
+                            console.error('Error when save in session. jqXHR: ', jqXHR);
+                            if (rm_saving_status.length > 0) rm_saving_status.empty().append($not_saved_img);
+                        });
+                    }
+                });
+            </script>
+SCRIPT;
+
+        return $out;
+    }
+
+    /**
      *     Show a confirmation HTML form or AJAX popup.
      *     Easiest way to use this is with useajax=1.
      *     If you use useajax='xxx', you must also add jquery code to trigger opening of box (with correct parameters)
@@ -1702,13 +1830,13 @@ class FormRequestManager
             $formconfirm .= '<script type="text/javascript">' . "\n";
             $formconfirm .= 'jQuery(document).ready(function() {
             $(function() {
-		$( "#' . $dialogconfirm . '" ).dialog(
-		{
+            	$( "#' . $dialogconfirm . '" ).dialog(
+            	{
                     autoOpen: ' . ($autoOpen ? "true" : "false") . ',';
             if ($newselectedchoice == 'no') {
                 $formconfirm .= '
 						open: function() {
-					$(this).parent().find("button.ui-button:eq(2)").focus();
+            				$(this).parent().find("button.ui-button:eq(2)").focus();
 						},';
             }
             if ($post) {
@@ -1737,11 +1865,11 @@ class FormRequestManager
                 }
                 );
 
-		var button = "' . $button . '";
-		if (button.length > 0) {
-			$( "#" + button ).click(function() {
-				$("#' . $dialogconfirm . '").dialog("open");
-				});
+            	var button = "' . $button . '";
+            	if (button.length > 0) {
+                	$( "#" + button ).click(function() {
+                		$("#' . $dialogconfirm . '").dialog("open");
+        			});
                 }
             });
             });
@@ -1755,51 +1883,51 @@ class FormRequestManager
                     closeOnEscape: false,
                     buttons: {
                         "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
-				var options="";
-				var inputok = ' . json_encode($inputok) . ';
-				var pageyes = "' . dol_escape_js(!empty($pageyes) ? $pageyes : '') . '";
-				if (inputok.length>0) {
-					$.each(inputok, function(i, inputname) {
-						var more = "";
-						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
-					    if ($("#" + inputname).attr("type") == "radio") { more = ":checked"; }
-						var inputvalue = $("#" + inputname + more).val();
-						if (typeof inputvalue == "undefined") { inputvalue=""; }
-						options += "&" + inputname + "=" + urlencode(inputvalue);
-					});
-				}
-				var urljump = pageyes + (pageyes.indexOf("?") < 0 ? "?" : "") + options;
-				//alert(urljump);
-					if (pageyes.length > 0) { location.href = urljump; }
+                        	var options="";
+                        	var inputok = ' . json_encode($inputok) . ';
+                         	var pageyes = "' . dol_escape_js(!empty($pageyes) ? $pageyes : '') . '";
+                         	if (inputok.length>0) {
+                         		$.each(inputok, function(i, inputname) {
+                         			var more = "";
+                         			if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+                         		    if ($("#" + inputname).attr("type") == "radio") { more = ":checked"; }
+                         			var inputvalue = $("#" + inputname + more).val();
+                         			if (typeof inputvalue == "undefined") { inputvalue=""; }
+                         			options += "&" + inputname + "=" + urlencode(inputvalue);
+                         		});
+                         	}
+                         	var urljump = pageyes + (pageyes.indexOf("?") < 0 ? "?" : "") + options;
+                         	//alert(urljump);
+            				if (pageyes.length > 0) { location.href = urljump; }
                             $(this).dialog("close");
                         },
                         "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
-				var options = "";
-				var inputko = ' . json_encode($inputko) . ';
-				var pageno="' . dol_escape_js(!empty($pageno) ? $pageno : '') . '";
-				if (inputko.length>0) {
-					$.each(inputko, function(i, inputname) {
-						var more = "";
-						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
-						var inputvalue = $("#" + inputname + more).val();
-						if (typeof inputvalue == "undefined") { inputvalue=""; }
-						options += "&" + inputname + "=" + urlencode(inputvalue);
-					});
-				}
-				var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
-				//alert(urljump);
-					if (pageno.length > 0) { location.href = urljump; }
+                        	var options = "";
+                         	var inputko = ' . json_encode($inputko) . ';
+                         	var pageno="' . dol_escape_js(!empty($pageno) ? $pageno : '') . '";
+                         	if (inputko.length>0) {
+                         		$.each(inputko, function(i, inputname) {
+                         			var more = "";
+                         			if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+                         			var inputvalue = $("#" + inputname + more).val();
+                         			if (typeof inputvalue == "undefined") { inputvalue=""; }
+                         			options += "&" + inputname + "=" + urlencode(inputvalue);
+                         		});
+                         	}
+                         	var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
+                         	//alert(urljump);
+            				if (pageno.length > 0) { location.href = urljump; }
                             $(this).dialog("close");
                         }
                     }
                 }
                 );
 
-		var button = "' . $button . '";
-		if (button.length > 0) {
-			$( "#" + button ).click(function() {
-				$("#' . $dialogconfirm . '").dialog("open");
-				});
+            	var button = "' . $button . '";
+            	if (button.length > 0) {
+                	$( "#" + button ).click(function() {
+                		$("#' . $dialogconfirm . '").dialog("open");
+        			});
                 }
             });
             });

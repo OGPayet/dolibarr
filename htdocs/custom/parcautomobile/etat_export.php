@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
@@ -35,7 +35,7 @@ $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -60,26 +60,26 @@ $selectmoduls = '<select>';
 $selectmoduls .= '</select>';
 
 print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="index_parc">'."\n";
-
+	
 	print '<table id="table-1" class="noborder" style="width: 100%;" >';
-
+	
 		print '<tbody>';
 			print '<tr '.$bc[$var].' >';
-			print '<td align="center" style="" >';
-				print '<sapn></span>';
-				print $selectmoduls;
-			print '</td>';
-			print '<td align="center" style="">';
-				print '<sapn></span>';
-				print $selectbydate;
-				print '<span>:</span>';
-				print '<div class="input_date"></div>';
-			print '</td>';
+	    		print '<td align="center" style="" >'; 
+	    			print '<sapn></span>';
+	    			print $selectmoduls;
+	    		print '</td>';
+	    		print '<td align="center" style="">';
+	    			print '<sapn></span>';
+	    			print $selectbydate;
+	    			print '<span>:</span>';
+	    			print '<div class="input_date"></div>';
+	    		print '</td>';
 
-			print '<td align="center" style="">';
-				print '<a class="button">'.$langs->trans("Export").'</a>';
-			print '</td>';
-
+	    		print '<td align="center" style="">';
+	    			print '<a class="button">'.$langs->trans("Export").'</a>';
+	    		print '</td>';
+	    		
 			print '</tr>';
 		print '</tbody>';
 

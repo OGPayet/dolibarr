@@ -62,16 +62,17 @@ $backtopage = GETPOST('backtopage', 'alpha');
 $value = GETPOST('value', 'alpha');
 
 $arrayofparameters = array(
-	'SEPAMANDATE_SEPAMANDATEEVENT_CREATION' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnCreate"), 'type' => 'boolean'),
-	'SEPAMANDATE_SEPAMANDATEEVENT_TOSIGN' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnValidate"), 'type' => 'boolean'),
-	'SEPAMANDATE_SEPAMANDATEEVENT_SIGNED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnSign"), 'type' => 'boolean'),
-	'SEPAMANDATE_SEPAMANDATEEVENT_CANCELED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnCancel"), 'type' => 'boolean'),
-	'SEPAMANDATE_SEPAMANDATEEVENT_STALE' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnStale"), 'type' => 'boolean'),
-	'SEPAMANDATE_SEPAMANDATEEVENT_UNVALIDATE' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnValidate"), 'type' => 'boolean'),
-	'SEPAMANDATE_SEPAMANDATEEVENT_UNSTALE' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnUnstale"), 'type' => 'boolean'),
-	'SEPAMANDATE_SEPAMANDATEEVENT_UNSIGNED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnUnsigned"), 'type' => 'boolean'),
-	'SEPAMANDATE_SEPAMANDATEEVENT_UNCANCELED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnUncanceled"), 'type' => 'boolean'),
-	'SEPAMANDATMANAGER_FOOTERTEXT' => array('css' => 'minwidth200', 'enabled' => 1, 'name' => $langs->trans("SepaMandateFooterTextSettings"), "type" => "html"),
+	'SEPAMANDATE_ADVANCEDBANKDIRECTDEBITASK_CONTROL' => array('css' => 'center', 'name' => $langs->trans("SepaManadateAdvancedBankDirectDebitRequestControl"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_CREATION' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnCreate"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_TOSIGN' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnValidate"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_SIGNED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnSign"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_CANCELED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnCancel"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_STALE' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnStale"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_UNVALIDATE' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnValidate"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_UNSTALE' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnUnstale"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_UNSIGNED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnUnsigned"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATE_SEPAMANDATEEVENT_UNCANCELED' => array('css' => 'center', 'name' => $langs->trans("SepaMandateEventOnUncanceled"), 'type' => 'boolean', 'visible' => 1),
+	'SEPAMANDATMANAGER_FOOTERTEXT' => array('css' => 'minwidth200', 'enabled' => 1, 'name' => $langs->trans("SepaMandateFooterTextSettings"), "type" => "html", 'visible' => 1),
 );
 
 $type = 'sepamandatmanager';
@@ -464,6 +465,7 @@ print '<td class="minwidth300">' . $langs->trans("Value") . '</td>';
 print '</tr>';
 
 $payload = new Sepamandat($db);
+$payload->fields = $arrayofparameters;
 
 foreach ($arrayofparameters as $key => $parameter) {
 	print '<tr class="oddeven">';

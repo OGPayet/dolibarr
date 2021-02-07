@@ -2,7 +2,6 @@
 
     if ($action == 'create' && $request_method === 'POST') {
 
-
         $vehicul = GETPOST('vehicule');
         $kilometre = GETPOST('kilometre');
         $litre = GETPOST('litre');
@@ -24,7 +23,7 @@
         $object->date         =  $date;
         $object->fournisseur  =  $fournisseur;
         $object->ref_facture  =  $ref_facture;
-        $object->remarques    =  addslashes($remarques);
+        $object->remarques    =  $remarques;
 
         $ret = $extrafields->setOptionalsFromPost(null, $object);
         $avance = $object->create(1);
@@ -64,7 +63,7 @@
 
             header('Location: ./card.php?id='. $avance.'');
             exit;
-        }
+        } 
         else {
             header('Location: card.php?action=request&error=SQL_Create&msg='.$recrutement->error);
             exit;
@@ -159,7 +158,7 @@
                             print '<td >'.$vehicules->select_fournisseur().'</td>';
                         print '</tr>';
 
-
+                       
 
                     print '</tbody>';
                 print '</table>';
@@ -168,12 +167,12 @@
 
         print '<div id="remarques">';
             print '<div class="cnd">'.$langs->trans('remarques').':</div>';
-            print '<div class="txt_condition"><textarea name="remarques" class="remarques" style="border:none !important"></textarea></div>';
+            print '<div class="txt_condition"><textarea name="remarques" class="remarques" ></textarea></div>';
         print '</div>';
 
         $object = new suivi_essence($db);
         if($extrafields->attributes[$object->table_element]['label']){
-            print '<div class="fichecenter">';
+            print '<div class="fichecenter">';    
                 print '<div class="div_extrafield">';
                     print '<table class="noborder nc_table_" width="100%">';
                         print '<body>';

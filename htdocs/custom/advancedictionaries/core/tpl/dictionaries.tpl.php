@@ -121,16 +121,16 @@ if (isset($dictionary)) {
                     $input_label .= $form->textwithpicto($label, $langs->trans($field['help_button']), 1, 'help', '', 0, 2, $fieldName);   // Tooltip on click
                     $input_label .= <<<SCRIPT
                     <script type="text/javascript">
-			jQuery(document).ready(function () {
-				jQuery(".classfortooltiponclick").click(function () {
-				    console.log("We click on tooltip for element with dolid="+$(this).attr('dolid'));
-				    if ($(this).attr('dolid'))
-				    {
+                    	jQuery(document).ready(function () {
+                    		jQuery(".classfortooltiponclick").click(function () {
+                    		    console.log("We click on tooltip for element with dolid="+$(this).attr('dolid'));
+                    		    if ($(this).attr('dolid'))
+                    		    {
                                     jQuery(".classfortooltiponclicktext").dialog({ width: 'auto', autoOpen: false });
                                     obj=$("#idfortooltiponclick_"+$(this).attr('dolid'));
-				        obj.dialog("open");
-				    }
-				});
+                    		        obj.dialog("open");
+                    		    }
+                    		});
                         });
                     </script>
 SCRIPT;

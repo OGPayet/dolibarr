@@ -1,7 +1,7 @@
-<?php
+<?php 
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 
 
@@ -26,17 +26,17 @@ $page           = GETPOST('page');
 $id             = (int) ( (!empty($_GET['id'])) ? $_GET['id'] : GETPOST('id') ) ;
 
 $error  = false;
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
     accessforbidden();
 }
 
 if(in_array($action, ["add","edit"])) {
-    if (!$user->rights->parcautomobile->gestion->update) {
+    if (!$user->rights->parcautomobile->creer) {
       accessforbidden();
     }
 }
 if($action == "delete") {
-    if (!$user->rights->parcautomobile->gestion->delete) {
+    if (!$user->rights->parcautomobile->supprimer) {
       accessforbidden();
     }
 
@@ -86,10 +86,10 @@ print '<div class="parcautomobilecardfile">';
     if( ($id && empty($action)) || $action == "delete" )
         require_once 'z-actions/show.php';
     print '</div>';
-
+    
 print '</div>';
     ?>
-
+    
 <script>
     $(function(){
         $('#importer').click(function(){

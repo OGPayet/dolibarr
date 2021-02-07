@@ -165,7 +165,7 @@ div.parcautomobilecardfile{
     /*margin-right: 2px;*/
     font-weight: bold;
 }
-
+  
 .kanban_parc  .statusdetailcolorsback .statusname {
     line-height: 15px;
     padding: 0 15px;
@@ -176,7 +176,7 @@ div.parcautomobilecardfile{
 }
 #kanban .jqx-kanban-item-text b:hover{
     cursor: pointer;
-}
+}    
 
 
 /* css card_parc  */
@@ -214,7 +214,7 @@ div.parcautomobilecardfile{
     padding: 8px;
 }
 .card_parc .table_ td{
-    border: 1px solid rgb(169, 169, 169);
+    border: 1px solid rgb(169, 169, 169); 
     padding:5px;"
 }
 
@@ -435,7 +435,7 @@ div.parcautomobilecardfile{
     }
 
     /* On mouse-over, add a grey background color */
-
+   
 
     /* When the radio button is checked, add a blue background */
     .card_contract .etapes input:checked ~ .radio {
@@ -467,7 +467,7 @@ div.parcautomobilecardfile{
         /*width: 25% !important;*/
         float: left;
     }
-
+   
     .card_contract #montant_recurrent{
         display: none;
         float: left;
@@ -490,7 +490,7 @@ div.parcautomobilecardfile{
         -webkit-box-shadow: 0px 0px 6px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);
         font-weight: bold;
         color: #fff;
-        box-shadow: 0px 0px 6px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);;
+        box-shadow: 0px 0px 6px 1px rgba(50, 50, 50, 0.4), 0px 0px 0px rgba(60,60,60,0.1);; 
     }
     .card_contract .td_h{
           background-color: #d3d3d3b5;
@@ -560,7 +560,7 @@ div.parcautomobilecardfile{
     .card_contract  .note_service input{
         width: 100% !important;
     }
-
+    
     .card_contract .prix_service{
         text-align: right;
     }
@@ -579,7 +579,7 @@ div.parcautomobilecardfile{
     .card_contract #type_montant_ .select2{
         width: 45% !important;
     }
-
+    
     .card_contract div.cl_parent .select2{
         width: 90% !important;
     }
@@ -702,7 +702,7 @@ div.parcautomobilecardfile{
     }
     .card_interv #add_lign_cout , .card_interv .delete{
         cursor: pointer;
-        float: right;
+        float: right; 
     }
     .card_interv .title_div{
         padding: 10px;
@@ -719,13 +719,13 @@ div.parcautomobilecardfile{
         width: 100%;
         margin-bottom: 20px;
     }
-
+   
     .card_interv .div_left, .card_interv .div_right{
         width:49%;
         float:left;
         /*border-top:5px solid #dcdcdf;*/
     }
-
+    
     .card_interv #notes{
         margin-top: 20px;
         width: 100%;
@@ -771,12 +771,12 @@ div.parcautomobilecardfile{
 
     .card_interv .div_left{
         width: 50% !important;
-    }
+    } 
 
     .card_interv .txt_condition {
-        border: solid 1px rgba(0,0,0,.2);
+        /*border: solid 1px rgba(0,0,0,.2);*/
         padding: 10px;
-    }
+    }  
 
    /* css card_suiviessenc */
 
@@ -807,7 +807,7 @@ div.parcautomobilecardfile{
         margin-top: 20px;
         width: 100%;
         float: left;
-
+        
     }
     .card_suiviessenc #remarques textarea{
         border: solid 1px rgba(0,0,0,.2);
@@ -868,10 +868,10 @@ div.parcautomobilecardfile{
 
 .parcautomobilemarques #lightbox {
     position:fixed; /* keeps the lightbox window in the current viewport */
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
+    top:0; 
+    left:0; 
+    width:100%; 
+    height:100%; 
     background-color: rgba(0,0,0,0.5);
     text-align:center;
     //padding-top: 3%;
@@ -879,9 +879,9 @@ z-index: 5000;
         overflow: auto;
 }
 .parcautomobilemarques #lightbox p {
-    text-align:right;
-    color:#fff;
-    margin-right:20px;
+    text-align:right; 
+    color:#fff; 
+    margin-right:20px; 
     font-size: 2em;
     font-weight: bold;
     cursor: pointer;
@@ -918,4 +918,17 @@ form#tab_marque span.select2{
 
 #notes_txt {
     width: 100%;
+}
+
+.parcautomobilecardfile ul{
+    list-style: none !important;
+}
+
+.card_parc input#color, .card_ettiquet input#color{
+    width: 50px;
+}
+
+.parcautomobilecardfile div.Conducttype{
+    width: 63%;
+    float: left;
 }

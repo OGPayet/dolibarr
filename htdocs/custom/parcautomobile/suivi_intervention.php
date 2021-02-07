@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 
 dol_include_once('/parcautomobile/class/interventions_parc.class.php');
@@ -27,7 +27,7 @@ $sortorder 			= ($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
 $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -142,11 +142,11 @@ print '</thead><tbody>';
 			$vehicules->fetch($item->vehicule);
 
 			print '<tr '.$bc[$var].' >';
-			print '<td align="center" style="">';
-				print '<a href="'.dol_buildpath('/parcautomobile/interventions_parc/card.php?id='.$item->rowid,2).'" >';
-					print $item->rowid;
-				print '</a>';
-			print '</td>';
+	    		print '<td align="center" style="">'; 
+		    		print '<a href="'.dol_buildpath('/parcautomobile/interventions_parc/card.php?id='.$item->rowid,2).'" >';
+		    			print $item->rowid;
+		    		print '</a>';
+	    		print '</td>';
 				print '<td align="center"><a href="'.dol_buildpath('/parcautomobile/card.php?id='.$item->vehicule,2).'" >'.$vehicules->get_nom($item->vehicule,1).'</a></td>';
 				$typeintervention->fetch($item->typeintervention);
 				print '<td align="center">'.$typeintervention->label.'</td>';

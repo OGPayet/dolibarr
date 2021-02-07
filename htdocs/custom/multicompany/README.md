@@ -5,7 +5,7 @@ This module enables multi-company to handle multiple entities on a single instal
 
 The sharing of the base product, customer base/contacts and user base and more...
 
-This module required Dolibarr >=6.0.0 stable installation
+This module required Dolibarr >= 9.0.0 stable installation
 
 Thank you for your contribution
 
@@ -14,13 +14,16 @@ Contact
 This module is developped by Régis Houssin (<regis.houssin@inodbox.com>)
 
 Website:
-<https://www.inodbox.com/>
+<a href="https://www.inodbox.com/" target="_blank">www.inodbox.com</a>
+
+Heypster french social network:
+<a href="https://www.heypster.com/fr/profile/21956" target="_blank">iNodbox</a>
 
 Development platform:
-<https://git.framasoft.org/inodbox/multicompany/>
+<a href="https://git.framasoft.org/inodbox/multicompany/" target="_blank">git.framasoft.org/inodbox/multicompany/</a>
 
 Translation platform:
-<https://www.transifex.com/projects/p/multicompany/>
+<a href="https://www.transifex.com/inodbox/multicompany/" target="_blank">www.transifex.com/inodbox/multicompany/</a>
 
 Licence
 -------

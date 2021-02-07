@@ -36,7 +36,7 @@ UPDATE llx_c_units set scale = 86400 where code = 'D' and unit_type = 'time';
 create table llx_commande_fournisseur_dispatch_extrafields
 (
   rowid            integer AUTO_INCREMENT PRIMARY KEY,
-  tms              timestamp,
+  tms              timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   fk_object        integer NOT NULL,    -- object id
   import_key       varchar(14)      	-- import key
 )ENGINE=innodb;
@@ -57,7 +57,7 @@ create table llx_c_shipment_package_type
 create table llx_facturedet_rec_extrafields
 (
   rowid            integer AUTO_INCREMENT PRIMARY KEY,
-  tms              timestamp,
+  tms              timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   fk_object        integer NOT NULL,    -- object id
   import_key       varchar(14)      	-- import key
 )ENGINE=innodb;
@@ -69,7 +69,7 @@ ALTER TABLE llx_facture_rec MODIFY COLUMN titre varchar(200) NOT NULL;
 create table llx_mrp_mo_extrafields
 (
   rowid                     integer AUTO_INCREMENT PRIMARY KEY,
-  tms                       timestamp,
+  tms                       timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   fk_object                 integer NOT NULL,
   import_key                varchar(14)                                 -- import key
 ) ENGINE=innodb;
@@ -303,7 +303,7 @@ ALTER TABLE llx_categorie_website_page ADD CONSTRAINT fk_categorie_website_page_
 ALTER TABLE llx_categorie_website_page ADD CONSTRAINT fk_categorie_website_page_website_page_rowid FOREIGN KEY (fk_website_page) REFERENCES llx_website_page (rowid);
 
 ALTER TABLE llx_categorie ADD COLUMN date_creation	datetime;
-ALTER TABLE llx_categorie ADD COLUMN tms     		timestamp;
+ALTER TABLE llx_categorie ADD COLUMN tms     		timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 ALTER TABLE llx_categorie ADD COLUMN fk_user_creat	integer;
 ALTER TABLE llx_categorie ADD COLUMN fk_user_modif	integer;
 
@@ -343,6 +343,7 @@ ALTER TABLE llx_commande_fournisseurdet ADD INDEX idx_commande_fournisseurdet_fk
 
 
 -- VMYSQL4.3 ALTER TABLE llx_c_shipment_mode MODIFY COLUMN tracking varchar(255) NULL;
+-- VPGSQL8.2 ALTER TABLE llx_c_shipment_mode ALTER COLUMN tracking DROP NOT NULL;
 
 INSERT INTO llx_c_shipment_mode (rowid,code,libelle,description,tracking,active) VALUES (9,'INPERSON', 'In person at your site', NULL, NULL, 0);
 INSERT INTO llx_c_shipment_mode (rowid,code,libelle,description,tracking,active) VALUES (10,'FEDEX', 'Fedex', NULL, 'https://www.fedex.com/apps/fedextrack/index.html?tracknumbers={TRACKID}', 0);

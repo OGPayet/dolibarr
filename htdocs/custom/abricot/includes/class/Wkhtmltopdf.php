@@ -119,7 +119,7 @@ class Wkhtmltopdf
         {
             throw new Exception("Path to directory where to store files is not writable");
         }
-
+        
         $this->setPath($options['path']);
 
         $this->_createFile();
@@ -684,7 +684,7 @@ class Wkhtmltopdf
         if ($this->getRunInVirtualX()) {
             $command = 'xvfb-run ' . $command;
         }
-
+		
         return $command;
     }
 
@@ -715,7 +715,7 @@ class Wkhtmltopdf
         }
 
         if (mb_strlen($content['stdout'], 'utf-8') === 0) {
-		var_dump($content);
+        	var_dump($content);
             throw new Exception("WKHTMLTOPDF didn't return any data");
         }
 
@@ -792,9 +792,9 @@ class Wkhtmltopdf
                 if (!empty($filepath)) {
                     unlink($filepath);
                 }
-
+                
 				return $file;
-
+				
                 break;
             default:
                 throw new Exception("Mode: " . $mode . " is not supported");

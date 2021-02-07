@@ -36,10 +36,10 @@ function service_inclus($type="")
 		$menu .='</div>';
 
         if($type == "contrats"){
-		$menu .='<div class="inline-block tabsElem">';
-			// <!-- id tab = cout_recurrent -->
-				$menu .='<div id="cout_recurrent" class="tabunactive tab inline-block" >Coûts récurrents générés</div>';
-		$menu .='</div>';
+    		$menu .='<div class="inline-block tabsElem">';
+    			// <!-- id tab = cout_recurrent -->
+    				$menu .='<div id="cout_recurrent" class="tabunactive tab inline-block" >Coûts récurrents générés</div>';
+    		$menu .='</div>';
         }
 	$menu .='</div>';
 
@@ -91,3 +91,5 @@ function parcautomobileAdminPrepareHead()
 
     return $head;
 }
+
+

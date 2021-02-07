@@ -1,11 +1,11 @@
-<?php
-require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+<?php 
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php'; 
 
 dol_include_once('/parcautomobile/class/modeles.class.php');
 dol_include_once('/parcautomobile/class/marques.class.php');
 
 
-class parcautomobile extends Commonobject{
+class parcautomobile extends Commonobject{ 
 
 	public $errors = array();
 	public $rowid;
@@ -15,12 +15,12 @@ class parcautomobile extends Commonobject{
 	public $date;
 	public $poste;
 	public $candidature;
-
+	
 
 	public $element='parcautomobile';
 	public $table_element='parcautomobile';
-
-	public function __construct($db){
+	
+	public function __construct($db){ 
 		$this->db = $db;
 		return 1;
     }
@@ -107,7 +107,7 @@ class parcautomobile extends Commonobject{
 		}
 
 		$sql .= substr($sql_column, 2)." ) VALUES ( ".substr($sql_value, 2)." )";
-	print_r($sql);die();
+    	print_r($sql);die();
 		$resql = $this->db->query($sql);
 		if (!$resql) {
 			$this->db->rollback();
@@ -115,7 +115,7 @@ class parcautomobile extends Commonobject{
 			print_r($this->errors);
 			die();
 			return 0;
-		}
+		} 
 		return $this->db->db->insert_id;
 	}
 
@@ -131,8 +131,8 @@ class parcautomobile extends Commonobject{
         if (count($data) && is_array($data))
             foreach ($data as $key => $value) {
 	            $val = is_numeric($value) ? $value : '"'. $value .'"';
-			$val = ($value == '') ? 'NULL' : $val;
-		$sql .= '`'. $key. '` = '. $val .',';
+	        	$val = ($value == '') ? 'NULL' : $val;
+            	$sql .= '`'. $key. '` = '. $val .',';
 	        }
 
         $sql  = substr($sql, 0, -1);
@@ -147,7 +147,7 @@ class parcautomobile extends Commonobject{
 			print_r($this->errors);
 			die();
 			return -1;
-		}
+		} 
 		return 1;
 	}
 
@@ -157,17 +157,17 @@ class parcautomobile extends Commonobject{
 
 		$sql 	= 'DELETE FROM ' . MAIN_DB_PREFIX .get_class($this).' WHERE rowid = ' . $this->rowid;
 		$resql 	= $this->db->query($sql);
-
+		
 		if (!$resql) {
 			$this->db->rollback();
 			$this->errors[] = 'Error '.get_class($this).' : '.$this->db->lasterror();
 			return -1;
-		}
+		} 
 
 		return 1;
 	}
 
-
+    
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '', $filtermode = 'AND')
 	{
 		dol_syslog(__METHOD__, LOG_DEBUG);
@@ -185,7 +185,7 @@ class parcautomobile extends Commonobject{
 			if($offset==1)
 				$sql .= " limit ".$limit;
 			else
-				$sql .= " limit ".$offset.",".$limit;
+				$sql .= " limit ".$offset.",".$limit;				
 		}
 
 		$this->rows = array();
@@ -241,7 +241,7 @@ class parcautomobile extends Commonobject{
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
-
+			
 			if ($numrows) {
 				$obj 			  	  = $this->db->fetch_object($resql);
                 $this->id         	  = $obj->rowid;
@@ -265,7 +265,7 @@ class parcautomobile extends Commonobject{
 				$this->nb_chevaux 			 =  $obj->nb_chevaux;
 				$this->tax 			 =  $obj->tax;
 				$this->puisance 			 =  $obj->puisance;
-
+			
                 // ....
 			}
 
@@ -294,9 +294,9 @@ class parcautomobile extends Commonobject{
 	    $moreforfilter.='<select width="100%" '.$attr.' class="flat" id="select_'.$id.'" name="'.$name.'">';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+    	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
+    	$resql = $this->db->query($sql);
 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -336,16 +336,16 @@ class parcautomobile extends Commonobject{
         $linkend = "";
         $result = "";
         if(!empty($this->ref)){
-		$ref=$this->ref;
+        	$ref=$this->ref;
         }else
-		$ref=$this->rowid;
+        	$ref=$this->rowid;
         if ($ref) {
             $linkstart = '<a href="'.$url.'"';
             $linkstart.=$linkclose.'>';
             $linkend='</a>';
 
             $result .= $linkstart;
-            if ($withpicto)
+            if ($withpicto) 
                 $result.= '<img height="16" src="'.dol_buildpath("/parcautomobile/img/object_parcautomobile.png").'" >&nbsp;';
             if ($withpicto != 2) $result.= $ref;
         }
@@ -361,7 +361,7 @@ class parcautomobile extends Commonobject{
         $resql = $this->db->query($sql);
 
         if($resql){
-            while ($obj = $this->db->fetch_object($resql))
+            while ($obj = $this->db->fetch_object($resql)) 
             {
                 $tot = $obj->tot;
             }
@@ -370,7 +370,7 @@ class parcautomobile extends Commonobject{
     }
 
     public function getdateformat($date,$time=true){
-
+        
         $d = explode(' ', $date);
         $date = explode('-', $d[0]);
         $d2 = explode(':', $d[1]);
@@ -419,16 +419,16 @@ class parcautomobile extends Commonobject{
 	    $moreforfilter = '';
 	    $nodatarole = '';
 	    $id = (!empty($id)) ? $id : $name;
-
+	    
 	    $objet = "label";
-	    $moreforfilter.='<select class="flat" id="'.$id.'" name="'.$name.'" '.$nodatarole.'>';
+	    $moreforfilter.='<select class="flat width200" id="'.$id.'" name="'.$name.'" '.$nodatarole.'>';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
-	$resql = $this->db->query($sql);
+    	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+    	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
-
+			
 			while ($obj = $this->db->fetch_object($resql)) {
 				$moreforfilter.='<option value="'.$obj->$val.'" data-ref="'.$obj->$opt.'"';
 	            if ($obj->$val == $selected) $moreforfilter.=' selected';
@@ -451,10 +451,10 @@ class parcautomobile extends Commonobject{
 		// $select.='<select class="flat" id="'.$id.'" name="'.$name.'" >';
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
-	$sql = "SELECT * FROM ".MAIN_DB_PREFIX."societe WHERE fournisseur = 1";
+    	$sql = "SELECT * FROM ".MAIN_DB_PREFIX."societe WHERE fournisseur = 1";
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
-	$select.='<option value="0"></option>';
+    	$resql = $this->db->query($sql);
+    	$select.='<option value="0"></option>'; 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
 			while ($obj = $this->db->fetch_object($resql)) {
@@ -471,7 +471,7 @@ class parcautomobile extends Commonobject{
 	}
 
 
-
+	
 
 	public function select_etat($value='',$name)
 	{
@@ -479,7 +479,7 @@ class parcautomobile extends Commonobject{
 			$select.='<option value=""></option>';
 			$select.='<option value="En attent">En attent</option>';
 		$select .= '</select>';
-
+		
 		return $select;
 	}
 
@@ -494,7 +494,7 @@ class parcautomobile extends Commonobject{
 			$select .='<option value="hybrid">Hybride</option>';
 		$select .= '</select>';
 			$select=str_replace('value="'.$value.'"', 'value="'.$value.'" selected', $select);
-
+		
 		return $select;
 	}
 
@@ -504,7 +504,7 @@ class parcautomobile extends Commonobject{
 		$marque = new marques($this->db);
 		$modeles->fetchAll();
 		$select = '<select name="'.$name.'" id="select_'.$name.'" >';
-		for ($i=0; $i < count($modeles->rows); $i++) {
+		for ($i=0; $i < count($modeles->rows); $i++) { 
 			$item=$modeles->rows[$i];
 			$marque->fetch($item->marque);
 			$select.='<option value="'.$item->rowid.'">'.$marque->label.'/'.$item->label.'</option>';
@@ -513,8 +513,8 @@ class parcautomobile extends Commonobject{
 		$select= str_replace('value="'.$item->rowid.'"', 'value="'.$item->rowid.'" selected', $select);
 		return $select;
 	}
-
-}
+	
+} 
 
 
 ?>

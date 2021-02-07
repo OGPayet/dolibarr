@@ -656,7 +656,7 @@ foreach ($request_types as $request_type) {
                 rm_planning_request_status_planned_{$request_type->id}.append('<option value="-1">&nbsp;</option>');
                 if (selected_id in rm_request_status_planned_array_{$request_type->id}) {
                     $.map(rm_request_status_planned_array_{$request_type->id}[selected_id], function(item, idx) {
-			    rm_planning_request_status_planned_{$request_type->id}.append('<option value="' + idx + '">' + item + '</option>');
+                   	    rm_planning_request_status_planned_{$request_type->id}.append('<option value="' + idx + '">' + item + '</option>');
                     })
                 }
             });
@@ -811,23 +811,6 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_STATUS_MODIFY_NOTIFY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_STATUS_MODIFY_NOTIFY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-    }
-}
-print '</td></tr>' . "\n";
-
-// REQUESTMANAGERMESSAGE_CREATE_NOTIFY
-$var = !$var;
-print '<tr ' . $bc[$var] . '>' . "\n";
-print '<td>'.$langs->trans("RequestManagerMessageCreateNotifyName").'</td>'."\n";
-print '<td>'.$langs->trans("RequestManagerMessageCreateNotifyDesc").'</td>'."\n";
-print '<td align="right">' . "\n";
-if (!empty($conf->use_javascript_ajax)) {
-    print ajax_constantonoff('REQUESTMANAGERMESSAGE_CREATE_NOTIFY');
-} else {
-    if (empty($conf->global->REQUESTMANAGERMESSAGE_CREATE_NOTIFY)) {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGERMESSAGE_CREATE_NOTIFY">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-    } else {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGERMESSAGE_CREATE_NOTIFY">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";
@@ -1124,23 +1107,6 @@ if (!empty($conf->use_javascript_ajax)) {
 }
 print '</td></tr>' . "\n";
 
-// REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST
-$var = !$var;
-print '<tr ' . $bc[$var] . '>' . "\n";
-print '<td>'.$langs->trans("RequestManagerShowChildrenRequestStatusInListName").'</td>'."\n";
-print '<td>'.$langs->trans("RequestManagerShowChildrenRequestStatusInListDesc").'</td>'."\n";
-print '<td align="right">' . "\n";
-if (!empty($conf->use_javascript_ajax)) {
-    print ajax_constantonoff('REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST');
-} else {
-    if (empty($conf->global->REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST)) {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
-    } else {
-        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
-    }
-}
-print '</td></tr>' . "\n";
-
 print '</table>';
 
 print '<br>';
@@ -1293,6 +1259,23 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_TITLE_TO_REF_CUSTOMER_WHEN_CREATE_OTHER_ELEMENT">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>'.$langs->trans("RequestManagerShowChildrenRequestStatusInListName").'</td>'."\n";
+print '<td>'.$langs->trans("RequestManagerShowChildrenRequestStatusInListDesc").'</td>'."\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST');
+} else {
+    if (empty($conf->global->REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";

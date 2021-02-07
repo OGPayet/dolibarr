@@ -85,6 +85,7 @@ $search_date_creation=GETPOST('search_date_creation','alpha');
 $search_date_modification=GETPOST('search_date_modification','alpha');
 $search_user_author=GETPOST('search_user_author','alpha');
 $search_user_modification=GETPOST('search_user_modification','alpha');
+$search_dont_show_children_request=GETPOST('search_dont_show_children_request','int');
 $search_status_det=GETPOST('search_status_det','array');
 $search_in_charge=GETPOST('search_in_charge','array');
 $my_list=GETPOST('mylist','int');
@@ -180,13 +181,9 @@ $arrayfields = array(
     'rm.tms' => array('label' => $langs->trans("DateModificationShort"), 'checked' => 0, 'position' => 500),
     'rm.fk_status' => array('label' => $langs->trans("Status"), 'checked' => 1, 'position' => 1000),
 );
-// Extra fields
-if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label))
-{
-    foreach($extrafields->attribute_label as $key => $val)
-    {
-        $arrayfields["ef.".$key]=array('label'=>$extrafields->attribute_label[$key], 'checked'=>$extrafields->attribute_list[$key], 'position'=>$extrafields->attribute_pos[$key], 'enabled'=>$extrafields->attribute_perms[$key]);
-    }
+// Add fields from extrafields
+if (!empty($extrafields->attributes[$object->table_element]['label'])) {
+	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? "ef.".$key.' as options_'.$key.', ' : '');
 }
 
 $object = new RequestManager($db);	// To be passed as parameter of executeHooks that need
@@ -241,6 +238,7 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
     $search_date_modification='';
     $search_user_author='';
     $search_user_modification='';
+    $search_dont_show_children_request='';
     $status_type=-1;
     $search_in_charge = array();
 	$toselect='';
@@ -330,12 +328,12 @@ if (empty($reshook)) {
         }
     }
 
-    $objectclass = 'RequestManager';
-    $objectlabel = 'RequestManagerRequests';
+    $objectclass='RequestManager';
+    $objectlabel='RequestManagerRequests';
     $permtoread = $user->rights->requestmanager->lire;
     $permtodelete = $user->rights->requestmanager->supprimer;
     $uploaddir = $conf->requestmanager->multidir_output[$conf->entity];
-    include DOL_DOCUMENT_ROOT . '/core/actions_massactions.inc.php';
+	include DOL_DOCUMENT_ROOT.'/core/actions_massactions.inc.php';
 }
 
 
@@ -507,8 +505,8 @@ SCRIPT;
     if (empty($reshook)) $formconfirm.=$hookmanager->resPrint;
     elseif ($reshook > 0) $formconfirm=$hookmanager->resPrint;
 
-	// Print form confirm
-	print $formconfirm;
+   	// Print form confirm
+   	print $formconfirm;
 
     $sql = 'SELECT';
     if ($sall) $sql = 'SELECT DISTINCT';
@@ -536,13 +534,16 @@ SCRIPT;
     $sql .= ' rm.datec, rm.tms,';
     $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
     $sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail,';
-    $sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details';
-    // Add fields from extrafields
-    foreach ($extrafields->attribute_label as $key => $val) $sql .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
-    // Add fields from hooks
-    $parameters = array();
-    $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
-    $sql .= $hookmanager->resPrint;
+    $sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details, ';
+// Add fields from extrafields
+if (!empty($extrafields->attributes[$object->table_element]['label'])) {
+	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? "ef.".$key.' as options_'.$key.', ' : '');
+}
+// Add fields from hooks
+$parameters = array();
+$reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters, $object); // Note that $action and $object may have been modified by hook
+$sql .= preg_replace('/^,/', '', $hookmanager->resPrint);
+$sql = preg_replace('/,\s*$/', '', $sql);
     $sql .= ' FROM ' . MAIN_DB_PREFIX . 'requestmanager as rm';
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_request_type as crmrt on (crmrt.rowid = rm.fk_type)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_requestmanager_category as crmc on (crmc.rowid = rm.fk_category)";
@@ -556,7 +557,7 @@ SCRIPT;
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as s on (s.rowid = rm.fk_soc)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as sb on (sb.rowid = rm.fk_soc_benefactor)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe as sw on (sw.rowid = rm.fk_soc_watcher)";
-    if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_extrafields as ef on (rm.rowid = ef.fk_object)";
+	if (is_array($extrafields->attributes[$object->table_element]['label']) && count($extrafields->attributes[$object->table_element]['label'])) $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields as ef on (c.rowid = ef.fk_object)";
     $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ur ON ur.rowid = rm.fk_user_resolved';
     $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as uc ON uc.rowid = rm.fk_user_closed';
     $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'user as ua ON ua.rowid = rm.fk_user_author';
@@ -649,6 +650,7 @@ SCRIPT;
     if ($search_user_author) $sql .= natural_search(array('ua.firstname', 'ua.lastname'), $search_user_author);
     if ($search_user_modification) $sql .= natural_search(array('um.firstname', 'um.lastname'), $search_user_modification);
     if ($search_user_modification) $sql .= natural_search(array('um.firstname', 'um.lastname'), $search_user_modification);
+    if ($search_dont_show_children_request) $sql .= ' AND rm.fk_parent IS NULL';
     if (count($search_status_det)) $sql .= natural_search(array('rm.fk_status'), implode(',', $search_status_det), 2);
     if ($status_type >= 0) $sql .= ' AND crmst.type = ' . $status_type;
     elseif ($status_type == -2) $sql .= ' AND crmst.type IN (' . RequestManager::STATUS_TYPE_INITIAL . ', ' . RequestManager::STATUS_TYPE_IN_PROGRESS . ')';
@@ -769,8 +771,9 @@ SCRIPT;
         if ($search_date_modification) $param .= '&search_date_modification=' . urlencode($search_date_modification);
         if ($search_user_author) $param .= '&search_user_author=' . urlencode($search_user_author);
         if ($search_user_modification) $param .= '&search_user_modification=' . urlencode($search_user_modification);
-        if (count($search_status_det)) $param .= '&search_status_det=' . urlencode($search_status_det);
-        if (count($search_in_charge)) $param .= '&search_in_charge=' . urlencode($search_in_charge);
+        if (count($search_status_det)) $param .= '&'.http_build_query(array('search_status_det'=>$search_status_det));
+        if ($search_dont_show_children_request) $param .= '&search_dont_show_children_request=' . urlencode($search_dont_show_children_request);
+        if (count($search_in_charge)) $param .= '&'.http_build_query(array('search_in_charge'=>$search_in_charge));
         if ($planning) $param .= '&planning=' . urlencode($planning);
         if ($my_list) $param .= '&my_list=' . urlencode($my_list);
         if (empty($planning) && $not_assigned) $param .= '&not_assigned=' . urlencode($not_assigned);
@@ -870,6 +873,12 @@ SCRIPT;
             $moreforfilter .= $formrequestmanager->multiselect_categories($search_tags, 'search_tags', '', 0, 'minwidth300');
             $moreforfilter .= '</div>';
         }
+
+        // Filter don't show children request
+        $moreforfilter .= '<div class="divsearchfield">';
+        $moreforfilter .= $langs->trans('RequestManagerDontShowChildrenRequest') . ': ';
+        $moreforfilter .= $form->selectyesno('search_dont_show_children_request', $search_dont_show_children_request, 1);
+        $moreforfilter .= '</div>';
 
         $parameters = array();
         $reshook = $hookmanager->executeHooks('printFieldPreListTitle', $parameters);    // Note that $action and $object may have been modified by hook
@@ -1220,6 +1229,7 @@ SCRIPT;
             $objectstatic->ref = $obj->ref;
             $objectstatic->ref_ext = $obj->ref_ext;
             $objectstatic->fk_type = $obj->fk_type;
+            $objectstatic->fk_urgency = $obj->fk_urgency;
             $objectstatic->label = $obj->label;
             $objectstatic->socid = $obj->fk_soc;
             $objectstatic->thirdparty_origin = $societestatic_origin;
@@ -1317,7 +1327,8 @@ SCRIPT;
             }
             // Urgency
             if (!empty($arrayfields['rm.fk_urgency']['checked'])) {
-                print '<td class="nowrap">';
+                $color = $objectstatic->getColorUrgency();
+                print '<td class="nowrap"' . (empty($color) ? '' : ' style="background-color: ' . $color . ' !important;"') . '>';
                 print $obj->urgency_label;
                 print '</td>';
             }
@@ -1539,7 +1550,7 @@ SCRIPT;
             }
             // Status
             if (!empty($arrayfields['rm.fk_status']['checked'])) {
-                print '<td align="right" class="nowrap">' . $objectstatic->LibStatut($obj->fk_status, 5) . '</td>';
+                print '<td align="right" class="nowrap">' . $objectstatic->LibStatut($obj->fk_status, 5, 0, !empty($conf->global->REQUESTMANAGER_SHOW_CHILDREN_REQUEST_STATUS_IN_LIST) ? 3 : -1) . '</td>';
             }
 
             // Action column

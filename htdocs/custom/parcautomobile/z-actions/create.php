@@ -41,7 +41,7 @@
             $date =explode('/',GETPOST('date_immatriculation'));
             $date_immatriculation = $date[2].'-'.$date[1].'-'.$date[0];
         }
-
+        
         $etiquette = "";
         if($etiquettes)
             $etiquette = implode(",", $etiquettes);
@@ -71,7 +71,7 @@
             'kilometrage'           =>  $kilometre,
             'value_residuelle'      =>  $value_residuelle,
         );
-
+        
         $object = new vehiculeparc($db);
 
         $object->plaque                =  $plaque;
@@ -114,10 +114,10 @@
 
                 $objkilom->create(1);
             }
-
+            
             header('Location: ./card.php?id='. $avance);
             exit;
-        }
+        } 
         else {
             header('Location: card.php?action=request&error=SQL_Create&msg='.$recrutement->error);
             exit;
@@ -126,7 +126,7 @@
 
     if($action == "add"){
 
-
+        
         print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" enctype="multipart/form-data" class="card_parc">';
 
             print '<input type="hidden" name="action" value="create" />';
@@ -182,7 +182,13 @@
                         print '<tbody>';
                             print '<tr>';
                                 print '<td align="left" >'.$langs->trans('conducteur').'</td>';
-                                print '<td >'.$parc->select_conducteur().'</td>';
+                                print '<td >';
+                                    print '<div class="Conducttype">';
+                                        print $parc->select_conducteur('','conducteur',1,'Internal');
+                                    print '</div>';
+                                    print '<input type="radio" name="typeconduct" checked onchange="getConducts(this)" id="conductintern" value="Internal"><label for="conductintern">'.$langs->trans('Internal').'</label> ';
+                                    print '  <input type="radio" name="typeconduct" onchange="getConducts(this)" id="conductextern" value="External"><label for="conductextern">'.$langs->trans('External').'</label>';
+                                print '</td>';
                             print '</tr>';
                             print '<tr>';
                                 print '<td align="left" >'.$langs->trans('lieu').'</td>';
@@ -236,11 +242,11 @@
                                     print '<input type="number" name="kilometre" step="0.001" min="0" id="kilometre">'.$parc->select_unite();
                                     print '</td>';
                             print '</tr>';
-
+                            
                              print '<tr>';
                                 print '<td >'.$langs->trans('transmission').'</td>';
                                 print '<td >';
-                                    print '<select  name="transmission" class="transmission">';
+                                    print '<select  name="transmission" class="transmission minwidth200 maxwidth200">';
                                         print '<option value="false"></option>';
                                         print '<option value="manual">'.$langs->trans("manual").'</option>';
                                         print '<option value="automatic">'.$langs->trans("automatic").'</option>';
@@ -280,14 +286,14 @@
                                 print '<td align="left" >'.$langs->trans('value_residuelle').'</td>';
                                 print '<td ><input class="value_residuelle" name="value_residuelle" type="text" ></td>';
                             print '</tr>';
-
+                           
                         print '</tbody>';
                     print '</table>';
                 print '</div>';
             print '</div>';
 
 
-             print '<div class="fichecenter">';
+             print '<div class="fichecenter">';    
                 print '<div class="topheaderrecrutmenus" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
                 print '<div class="div_extrafield">';
                     print '<table class="border nc_table_" width="100%">';

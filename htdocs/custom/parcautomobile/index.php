@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
@@ -59,7 +59,7 @@ if (!dolibarr_get_const($db,'PARCAUTOMOBILE_CHANGEPATHDOCS',0)){
 }
 
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -73,7 +73,7 @@ if (is_array($extrafields->attributes[$object->table_element]['label']) && count
 			$arrayfields["ef.".$key] = array(
 				'label'=>$extrafields->attributes[$object->table_element]['label'][$key],
 				'checked'=>(($extrafields->attributes[$object->table_element]['list'][$key] < 0) ? 0 : 1),
-				'position'=>$extrafields->attributes[$object->table_element]['pos'][$key],
+				'position'=>$extrafields->attributes[$object->table_element]['pos'][$key], 
 				'enabled'=>(abs($extrafields->attributes[$object->table_element]['list'][$key]) != 3 && $extrafields->attributes[$object->table_element]['perms'][$key])
 			);
 		}
@@ -129,7 +129,7 @@ if (GETPOST("button_removefilter_x") || GETPOST("button_removefilter") || $page 
 	$srch_num_chassi = "";
 	$srch_etat = "";
 	$search_array_options = array();
-
+	
 }
 
 
@@ -150,21 +150,21 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="index_parc">'
 	print '<input name="id_cv" type="hidden" value="'.$id_parcautomobile.'">';
 
 	print '<div style="float: left; margin-bottom: 8px; width:100%;">';
-		print '<div style="width:10%; float:left;" >';
-		print '<a class="icon_list" data-type="list" href="'.dol_buildpath("/parcautomobile/index.php",2).'">';
-		print '<img  src="'.dol_buildpath("/parcautomobile/img/list.png",2).'" style="height:30px" id="list" ></a>';
-		print '<a class="icon_list" data-type="grid" href="'.dol_buildpath("/parcautomobile/kanban.php",2).'">';
-		print '<img src="'.dol_buildpath("/parcautomobile/img/grip.png",2).'" style="height:30px" id="grid" ></a> ';
-		print '</div>';
+	  	print '<div style="width:10%; float:left;" >';
+	      	print '<a class="icon_list" data-type="list" href="'.dol_buildpath("/parcautomobile/index.php",2).'">';
+	      	print '<img  src="'.dol_buildpath("/parcautomobile/img/list.png",2).'" style="height:30px" id="list" ></a>';
+	      	print '<a class="icon_list" data-type="grid" href="'.dol_buildpath("/parcautomobile/kanban.php",2).'">';
+	      	print '<img src="'.dol_buildpath("/parcautomobile/img/grip.png",2).'" style="height:30px" id="grid" ></a> ';
+	  	print '</div>';
 
-		print '<div class="statusdetailcolorsback" style="display: block;">';
+	 	print '<div class="statusdetailcolorsback" style="display: block;">';
 			$statut->fetchAll();
 			$arr_status=[];
 			$vehicules->fetchAll();
-			for ($i=0; $i <count($statut->rows); $i++) {
+			for ($i=0; $i <count($statut->rows); $i++) { 
 				$etape=$statut->rows[$i];
 				$arr_status[$etape->rowid]=0;
-				for ($j=0; $j < count($vehicules->rows) ; $j++) {
+				for ($j=0; $j < count($vehicules->rows) ; $j++) { 
 					$vehicule=$vehicules->rows[$j];
 					if($vehicule->statut == $etape->rowid){ $arr_status[$etape->rowid]++; };
 				}
@@ -183,7 +183,7 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="index_parc">'
 	print '</div>';
 
 	print '<table id="table-1" class="noborder" style="width: 100%;" >';
-
+	
 		print '<thead>';
 			print '<tr class="liste_titre">';
 				print_liste_field_titre($langs->trans("plaque"),$_SERVER["PHP_SELF"], "plaque", '', '', 'align="left"', $sortfield, $sortorder);
@@ -228,65 +228,65 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="index_parc">'
 
 					$obj = new vehiculeparc($db);
 					$obj->fetch($item->rowid);
-				$obj->fetch_optionals();
+    				$obj->fetch_optionals();
 
 					print '<tr '.$bc[$var].' >';
-					print '<td align="center" style="" >';
-						if($item->model){
-							$model   = new modeles($db);
+			    		print '<td align="center" style="" >'; 
+			    			if($item->model){
+				    			$model   = new modeles($db);
 								$marque  = new marques($db);
-							$model->fetch($item->model);
-							$marque->fetch($model->marque);
-							 if(!empty($marque->logo)){
-			                        $minifile = getImageFileNameForSize($marque->logo, '');
+				    			$model->fetch($item->model);
+				    			$marque->fetch($model->marque);
+					    		 if(!empty($marque->logo)){
+			                        $minifile = getImageFileNameForSize($marque->logo, '');  
 			                        $dt_files = getAdvancedPreviewUrl('parcautomobile', '/marques/'.$marque->rowid.'/'.$minifile, 1, '&entity='.(!empty($object->entity)?$object->entity:$conf->entity));
 
 			                        print '<img align="left" height="20px" class="photo" height="" title="'.$minifile.'" alt="Fichier binaire" src="'.DOL_URL_ROOT.'/viewimage.php?modulepart=parcautomobile&entity='.(!empty($object->entity)?$object->entity:$conf->entity).'&file=marques/'.$marque->rowid.'/'.$minifile.'&perm=download" border="0" name="image" >';
 			                    }
-						}
-						print $obj->getNomUrl();
-						// print '<a href="'.dol_buildpath('/parcautomobile/card.php?id='.$item->rowid,2).'" >';
-						// 	print $item->plaque;
-						// print '</a>';
+			    			}
+				    		print $obj->getNomUrl();
+				    		// print '<a href="'.dol_buildpath('/parcautomobile/card.php?id='.$item->rowid,2).'" >';
+				    		// 	print $item->plaque;
+				    		// print '</a>';
 
-					print '</td>';
-					print '<td align="center" style="">';
-						if(!empty($item->model)){
-							$modele  = new modeles($db);
+			    		print '</td>';
+			    		print '<td align="center" style="">';
+				    		if(!empty($item->model)){
+				    			$modele  = new modeles($db);
 								$marque  = new marques($db);
-							$modele->fetch($item->model);
-							$marque->fetch($model->marque);
-							print $marque->label.' / '.$model->label;
-						}else{
-							print '<b>_</b>';
-						}
-					print '</td>';
-					print '<td align="center" style="">';
-						if($item->conducteur){
-							$user_ = new User($db);
-							$user_->fetch($item->conducteur);
-							print $user_->firstname.' '.$user_->lastname;
-						}
-					print '</td>';
-					print '<td align="center" style="">'.$date_immatriculation.'</td>';
-					print '<td align="center" style="">'.$item->num_chassi.'</td>';
+					    		$modele->fetch($item->model);
+					    		$marque->fetch($model->marque);
+				    			print $marque->label.' / '.$model->label;
+				    		}else{
+				    			print '<b>_</b>';
+				    		}
+			    		print '</td>';
+			    		print '<td align="center" style="">';
+			    			if($item->conducteur){
+			    				$user_ = new User($db);
+				    			$user_->fetch($item->conducteur);
+				    			print $user_->firstname.' '.$user_->lastname;
+			    			}
+			    		print '</td>';
+			    		print '<td align="center" style="">'.$date_immatriculation.'</td>';
+			    		print '<td align="center" style="">'.$item->num_chassi.'</td>';
 						print '<td align="left"> ';
 						if($item->statut){
 							$statut = new statut($db);
-						$statut->fetch($item->statut);
+			    			$statut->fetch($item->statut);
 							print '<span class="sp_color" style="background-color:'.$statut->color.'"> </span>'.$langs->trans($statut->label);
 						}
 						print '</td>';
 
 						if($extrafields->attributes[$obj->table_element]['label'] && count($extrafields->attributes[$obj->table_element]['label'])){
-						foreach ($extrafields->attributes[$obj->table_element]['label'] as $key => $val){
+				    		foreach ($extrafields->attributes[$obj->table_element]['label'] as $key => $val){
 								if($extrafields->attributes[$obj->table_element]['list'][$key] == 2 || $extrafields->attributes[$obj->table_element]['list'][$key] == 1 || $extrafields->attributes[$obj->table_element]['list'][$key] == 4){
 									print '<td align="center">';
 										$value = $obj->array_options['options_'.$key];
 										$tmpkey = 'options_'.$key;
 										print $extrafields->showOutputField($key, $value, '', $obj->table_element);
 									print '</td>';
-							}
+	        					}
 							}
 						}
 
@@ -304,11 +304,11 @@ print '</form>';
 
 ?>
 <style>
-
+	
 </style>
 <script>
 	$(function(){
-		$('#select_unite').select2();
+		$('.index_parc select').select2();
 		$('.datepickerparc').datepicker({
 			dataFormat:'dd/mm/yyyy',
 		});

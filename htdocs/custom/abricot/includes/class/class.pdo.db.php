@@ -331,7 +331,7 @@ function dbinsert($table,$value){
 
                 $fields[] = '`'.$k.'`'; // fix special col like status, rank etc...
                 if(is_null($v)){
-			$values[] = 'NULL';
+                	$values[] = 'NULL';
 				}else{
 					$v=stripslashes($v);
 					$values[] =$this->quote( $v );
@@ -340,7 +340,7 @@ function dbinsert($table,$value){
         $this->query = sprintf( $fmtsql, implode( ",", $fields ) ,  implode( ",", $values ) );
 
         if (!$this->db->exec( $this->query )) {
-			$this->Error("PDO DB ErrorInsert : ". print_r($this ->db-> errorInfo(),true).'<br />'.$this->query);
+        		$this->Error("PDO DB ErrorInsert : ". print_r($this ->db-> errorInfo(),true).'<br />'.$this->query);
 
                 if($this->stopOnInsertOrUpdateError) {
 
@@ -424,7 +424,7 @@ function Get_lineHeader(){
 
    if (!empty($this->currentLine)){
       foreach ($this->currentLine as $key=>$val){
-		$ret[]=$key;
+         	$ret[]=$key;
       }
 	}
    return $ret;

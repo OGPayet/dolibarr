@@ -196,7 +196,7 @@ class EventConfidentiality extends CommonObject
                 $this->label = $obj->label;
                 $this->external = $obj->external;
 
-                $this->db->free($resql);
+                //$this->db->free($resql);
                 return 1;
             } else {
                 return 0;
@@ -340,7 +340,7 @@ class EventConfidentiality extends CommonObject
                 }
             }
 
-            $this->db->free($resql);
+            //$this->db->free($resql);
         } else {
             $this->error = $this->db->lasterror();
             dol_syslog(__METHOD__ . ' Error:' . $this->errorsToString(), LOG_ERR);
@@ -417,7 +417,7 @@ class EventConfidentiality extends CommonObject
             while ($obj = $this->db->fetch_object($resql)) {
                 $tags_set[$obj->fk_c_eventconfidentiality_tag] = $obj->mode;
             }
-            $this->db->free($resql);
+            //$this->db->free($resql);
         } else {
             $this->error = $this->db->lasterror();
             dol_syslog(__METHOD__ . ' SQL: ' . $sql . '; Error:' . $this->errorsToString(), LOG_ERR);
@@ -521,7 +521,7 @@ class EventConfidentiality extends CommonObject
                 $user_tags = array_merge($user_tags, array_filter(array_map('trim', explode(',', $obj->group_tag)), 'strlen'));
             }
 
-            $this->db->free($resql);
+            //$this->db->free($resql);
         } else {
             $this->error = $this->db->lasterror();
             return -1;

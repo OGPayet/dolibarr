@@ -7,7 +7,7 @@ if ($action == 'update' && $request_method === 'POST') {
     // $d1 = GETPOST('debut');
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
-
+    
     $vehicule       = GETPOST('vehicule');
     $kilometre      = GETPOST('kilometre');
     $type           = GETPOST('typeintervention');
@@ -34,7 +34,7 @@ if ($action == 'update' && $request_method === 'POST') {
         'typeintervention'  =>  $type,
         'prix'              =>  $prix,
         'date'              =>  $date,
-        'notes'             =>  addslashes($notes),
+        'notes'             =>  $notes,
         'ref_facture'       =>  $ref_facture,
         'fournisseur'       =>  $fournisseur,
         'kilometrage'       =>  $kilometre,
@@ -44,14 +44,14 @@ if ($action == 'update' && $request_method === 'POST') {
 
     $object = new interventions_parc($db);
     $object->fetch($id);
-
-    $old_kilometre = $object->kilometrage;
+    
+    $old_kilometre = $object->kilometrage; 
 
     $object->vehicule = $vehicule;
     $object->typeintervention = $type;
     $object->prix  = $prix;
     $object->date = $date;
-    $object->notes = addslashes($notes);
+    $object->notes = $notes;
     $object->ref_facture = $ref_facture;
     $object->fournisseur = $fournisseur;
     $object->kilometrage = $kilometre;
@@ -65,7 +65,7 @@ if ($action == 'update' && $request_method === 'POST') {
         $datevalidate = $date2[2].'-'.$date2[1].'-'.$date2[0];
         $object->datevalidate = $datevalidate;
     }
-
+    
     $object->checkmail = NULL;
 
     // print_r($data);die;
@@ -73,7 +73,7 @@ if ($action == 'update' && $request_method === 'POST') {
     // $composantes_new = (GETPOST('composantes_new'));
     // $composantes = (GETPOST('composantes'));
     // $composants_deleted = explode(',', GETPOST('composants_deleted'));
-
+   
     if ($isvalid > 0) {
         $costs = new costsvehicule($db);
         $costs->fetchAll('','',0,0,'and id_intervention ='.$id);
@@ -84,7 +84,7 @@ if ($action == 'update' && $request_method === 'POST') {
             $cout->fetch($elem->rowid);
         }
         $typeintervention->fetch($type);
-
+        
         $cout->vehicule = $vehicule;
         $cout->type = $typeintervention->label;
         $cout->id_intervention = $id;
@@ -92,7 +92,7 @@ if ($action == 'update' && $request_method === 'POST') {
         $cout->date = $date;
 
 
-
+        
         if($elem->rowid){
             $cout->update($elem->rowid);
         }else{
@@ -139,7 +139,7 @@ if($action == "edit"){
             print '<tbody>';
                 $intervention->fetch($id);
                 $item = $intervention;
-
+                
                 $extrafields = new ExtraFields($db);
                 $object = new interventions_parc($db);
 
@@ -149,7 +149,7 @@ if($action == "edit"){
                 $extrafields->fetch_name_optionals_label($object->table_element);
                 // $object->fetch($item->rowid);
                 $object->fetch_optionals();
-
+           
 
                 print '<tr>';
                     print '<td align="left"><b>'.$langs->trans('vehicule').'</b></td>';
@@ -211,7 +211,7 @@ if($action == "edit"){
                             print '<td ><input type="text" class="" id="ref_facture" value="'.$item->ref_facture.'" name="ref_facture"  autocomplete="off"/>';
                             print '</td>';
                         print '</tr>';
-
+                        
                     print '</tbody>';
                 print '</table>';
             print '</div>';
@@ -285,7 +285,7 @@ if($action == "edit"){
 
 
         if($extrafields->attributes[$object->table_element]['label']){
-            print '<div class="fichecenter">';
+            print '<div class="fichecenter">';    
                 // print '<div class="topheaderrecrutmenus" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
                 print '<div class="div_extrafield">';
                     print '<table class="noborder nc_table_" width="100%">';
@@ -305,7 +305,7 @@ if($action == "edit"){
                 print '<br>';
                 print '<input type="submit" style="display:none" id="sub_valid" value="'.$langs->trans('Validate').'" style="" name="bouton" class="butAction" />';
                 print '<a  class="butAction" id="btn_valid">'.$langs->trans('Validate').'</a>';
-
+                
                 print '<a href="./index.php?page='.$page.'" class="butAction">'.$langs->trans('Cancel').'</a>';
             print '</td>';
         print '</tr>';

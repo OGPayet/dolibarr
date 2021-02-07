@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
@@ -24,7 +24,7 @@ $sortorder 			= ($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
 $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -42,7 +42,7 @@ llxHeader(array(), $modname,'','','','',$morejs,0,0);
 <?php
 // $datachart=;
 // print_r($datachart);die();
-// $tiers_lastthreeyear = $charts_tiers->tiers_LastThreeYear();
+// $tiers_lastthreeyear = $charts_tiers->tiers_LastThreeYear(); 
 
 print '<div class="m-portlet width50percent right tiers">';
 	print '<div class="m-portlet__head" align="center">';
@@ -51,10 +51,10 @@ print '<div class="m-portlet width50percent right tiers">';
 			print '<div class="m-portlet__head-title">';
 				print '<div class="mainmenu companies topmenuimage iconimg"><span class="mainmenu tmenuimage" id="mainmenuspan_companies"></span></div>';
 				print '<h3 class="m-portlet__head-text">'.$langs->trans('analyse_couts').'</h3>';
-			print '</div>';
+			print '</div>';			
 		print '</div>';
 		print '<div class="m-portlet__head-tools">';
-
+			
 		print '</div>';
 	print '</div>';
 	print '<div class="m-portlet__body">';
@@ -80,12 +80,12 @@ am4core.useTheme(am4themes_animated);
 // Create chart instance
 var chart = am4core.create("chartdiv2", am4charts.XYChart);
 // Add data
-chart.data = [
+chart.data = [ 
 	<?php
 	foreach ($costs->getYears('date') as $value) {
 	?>
 		{
-		"year":"<?php echo $value ?>",
+	  	"year":"<?php echo $value ?>",
 	<?php
 		foreach ($vehicules->datachart($value) as $vehicule => $counts) {
 			$vehicules->fetch($vehicule);

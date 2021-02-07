@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
 
@@ -36,7 +36,7 @@ $extrafields->fetch_name_optionals_label('kilometrage');
 $search_array_options = $extrafields->getOptionalsFromPost('kilometrage', '', 'search_');
 
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -50,7 +50,7 @@ if (is_array($extrafields->attributes[$kilometrage->table_element]['label']) && 
 			$arrayfields["ef.".$key] = array(
 				'label'=>$extrafields->attributes[$kilometrage->table_element]['label'][$key],
 				'checked'=>(($extrafields->attributes[$kilometrage->table_element]['list'][$key] < 0) ? 0 : 1),
-				'position'=>$extrafields->attributes[$kilometrage->table_element]['pos'][$key],
+				'position'=>$extrafields->attributes[$kilometrage->table_element]['pos'][$key], 
 				'enabled'=>(abs($extrafields->attributes[$kilometrage->table_element]['list'][$key]) != 3 && $extrafields->attributes[$kilometrage->table_element]['perms'][$key])
 			);
 		}
@@ -109,7 +109,7 @@ $pagenext = $page + 1;
 
 if ($limit > 0 && $limit != $conf->liste_limit) $param.='&limit='.$limit;
 
-if (GETPOST("button_removefilter_x") || GETPOST("button_removefilter") || $page < 0)
+if (GETPOST("button_removefilter_x") || GETPOST("button_removefilter") || $page < 0) 
 {
 	$sql = "";
 	$offset = 0;
@@ -150,7 +150,7 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 	print '<input name="id_cv" type="hidden" value="'.$id_parcautomobile.'">';
 
 	print_barre_liste($modname, $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, "", $nbrtotal, $nbrtotalnofiltr);
-
+	
 	print '<div style="float: right; margin: 8px;">';
 	print '<a href="card.php?action=add" class="butAction" >'.$langs->trans("Add").'</a>';
 	print '</div>';
@@ -173,7 +173,7 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 				print '<td align="center"><input style="max-width: 129px;" class="" type="text" class="" id="srch_ref" name="srch_ref" value="'.$srch_ref.'"/></td>';
 
 				print '<td align="left">'.$vehicule->select_with_filter($srch_vehicule,'srch_vehicule').'</td>';
-				print '<td align="center">'.$vehicule->select_conducteur($srch_conducteur,'srch_conducteur').'</td>';
+				print '<td align="left">'.$vehicule->select_conducteur($srch_conducteur,'srch_conducteur').'</td>';
 
 				print '<td align="center"><input style="max-width: 129px;" class="" type="text" class="" id="srch_kilometre" name="srch_kilometre" value="'.$srch_kilometre.'"/></td>';
 				print '<td align="center">'.$vehicule->select_unite($srch_unite,'srch_unite').'</td>';
@@ -200,33 +200,33 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 
 					$obj = new kilometrage($db);
 					$obj->fetch($item->rowid);
-				$obj->fetch_optionals();
+    				$obj->fetch_optionals();
 
 					print '<tr '.$bc[$var].' >';
-					print '<td align="center" style="">';
-						print '<a href="'.dol_buildpath('/parcautomobile/kilometrage/card.php?id='.$item->rowid,2).'" >';
-							print $item->rowid;
-						print '</a>';
-					print '</td>';
+			    		print '<td align="center" style="">'; 
+				    		print '<a href="'.dol_buildpath('/parcautomobile/kilometrage/card.php?id='.$item->rowid,2).'" >';
+				    			print $item->rowid;
+				    		print '</a>';
+			    		print '</td>';
 
-					print '<td align="left" style="">';
-						if($item->vehicule){
-							$vehicule = new vehiculeparc($db);
-							$vehicule->fetch($item->vehicule);
-							$conducteur = $vehicule->conducteur;
-
-							print $vehicule->get_nom_url($item->vehicule,1);
-						}
-					print '</td>';
-					print '<td align="left" style="">';
-						if($conducteur){
-							$conduct = new User($db);
-							$conduct->fetch($conducteur);
-							print $conduct->getNomUrl(1);
-
-						}
-					print '</td>';
-
+			    		print '<td align="left" style="">';
+				    		if($item->vehicule){
+				    			$vehicule = new vehiculeparc($db);
+				    			$vehicule->fetch($item->vehicule);
+				    			$conducteur = $vehicule->conducteur;
+					    		
+				    			print $vehicule->get_nom_url($item->vehicule,1);
+				    		}
+			    		print '</td>';
+			    		print '<td align="left" style="">';
+				    		if($conducteur){
+				    			$conduct = new User($db);
+				    			$conduct->fetch($conducteur);
+				    			print $conduct->getNomUrl(1);
+				    			
+				    		}
+			    		print '</td>';
+			    		
 						print '<td align="center"> '.$item->kilometrage.'</td>';
 						print '<td align="center">';
 							if($vehicule->unite){
@@ -238,20 +238,20 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 						print '<td align="center">'.$date_.'</td>';
 
 						if($extrafields->attributes[$object->table_element]['label'] && count($extrafields->attributes[$object->table_element]['label'])){
-						foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val){
+				    		foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val){
 								if($extrafields->attributes[$object->table_element]['list'][$key] == 2 || $extrafields->attributes[$object->table_element]['list'][$key] == 1 || $extrafields->attributes[$object->table_element]['list'][$key] == 4){
 									print '<td align="center">';
 										$value = $obj->array_options['options_'.$key];
 										$tmpkey = 'options_'.$key;
 										print $extrafields->showOutputField($key, $value, '', $object->table_element);
 									print '</td>';
-							}
+	        					}
 							}
 						}
 
 						// print '<td align="center"></td>';
 						print '<td align="center"><a href="./card.php?id='.$item->rowid.'&action=pdf" target="_blank" >'.img_mime('test.pdf').'</a></td>';
-
+						
 					print '</tr>';
 				}
 			}else{

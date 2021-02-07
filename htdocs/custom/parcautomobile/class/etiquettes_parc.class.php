@@ -1,7 +1,7 @@
-<?php
-require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
-
-class etiquettes_parc extends Commonobject{
+<?php 
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php'; 
+ 
+class etiquettes_parc extends Commonobject{ 
 
 	public $errors = array();
 	public $rowid;
@@ -10,8 +10,8 @@ class etiquettes_parc extends Commonobject{
 
 	public $element='etiquettes_parc';
 	public $table_element='etiquettes_parc';
-
-	public function __construct($db){
+	
+	public function __construct($db){ 
 		$this->db = $db;
 		return 1;
     }
@@ -30,7 +30,7 @@ class etiquettes_parc extends Commonobject{
 		}
 
 		$sql .= substr($sql_column, 2)." ) VALUES ( ".substr($sql_value, 2)." )";
-	// print_r($sql);die();
+    	// print_r($sql);die();
 		$resql = $this->db->query($sql);
 		if (!$resql) {
 			$this->db->rollback();
@@ -38,7 +38,7 @@ class etiquettes_parc extends Commonobject{
 			print_r($this->errors);
 			die();
 			return 0;
-		}
+		} 
 		return $this->db->db->insert_id;
 	}
 
@@ -54,8 +54,8 @@ class etiquettes_parc extends Commonobject{
         if (count($data) && is_array($data))
             foreach ($data as $key => $value) {
 	            $val = is_numeric($value) ? $value : '"'. $value .'"';
-			$val = ($value == '') ? 'NULL' : $val;
-		$sql .= '`'. $key. '` = '. $val .',';
+	        	$val = ($value == '') ? 'NULL' : $val;
+            	$sql .= '`'. $key. '` = '. $val .',';
 	        }
 
         $sql  = substr($sql, 0, -1);
@@ -70,7 +70,7 @@ class etiquettes_parc extends Commonobject{
 			print_r($this->errors);
 			die();
 			return -1;
-		}
+		} 
 		return 1;
 	}
 
@@ -80,17 +80,17 @@ class etiquettes_parc extends Commonobject{
 
 		$sql 	= 'DELETE FROM ' . MAIN_DB_PREFIX .get_class($this).' WHERE rowid = ' . $this->rowid;
 		$resql 	= $this->db->query($sql);
-
+		
 		if (!$resql) {
 			$this->db->rollback();
 			$this->errors[] = 'Error '.get_class($this).' : '.$this->db->lasterror();
 			return -1;
-		}
+		} 
 
 		return 1;
 	}
 
-
+    
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '', $filtermode = 'AND')
 	{
 		dol_syslog(__METHOD__, LOG_DEBUG);
@@ -108,7 +108,7 @@ class etiquettes_parc extends Commonobject{
 			if($offset==1)
 				$sql .= " limit ".$limit;
 			else
-				$sql .= " limit ".$offset.",".$limit;
+				$sql .= " limit ".$offset.",".$limit;				
 		}
 
 		$this->rows = array();
@@ -123,7 +123,7 @@ class etiquettes_parc extends Commonobject{
                 $line->rowid    		 =  $obj->rowid;
 				$line->label 		 =  $obj->label;
 				$line->color 		 =  $obj->color;
-
+				
                 // ....
 
 				$this->rows[] 	= $line;
@@ -148,14 +148,14 @@ class etiquettes_parc extends Commonobject{
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
-
+			
 			if ($numrows) {
 				$obj 			  	  = $this->db->fetch_object($resql);
                 $this->id         	  = $obj->rowid;
                 $this->rowid      	  = $obj->rowid;
                 $this->label        	  = $obj->label;
                 $this->color        	  = $obj->color;
-
+               
                 // ....
 			}
 
@@ -181,12 +181,12 @@ class etiquettes_parc extends Commonobject{
 	    $nodatarole = '';
 	    $id = (!empty($id)) ? $id : $name;
 
-	    $moreforfilter.='<select width="100%" '.$attr.' class="'.$name.'" id="select_'.$id.'" multiple name="'.$name.'[]">';
+	    $moreforfilter.='<select width="100%" '.$attr.' class="'.$name.'  minwidth300 maxwidth300" id="select_'.$id.'" multiple name="'.$name.'[]">';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+    	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
+    	$resql = $this->db->query($sql);
 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -227,16 +227,16 @@ class etiquettes_parc extends Commonobject{
         $linkend = "";
         $result = "";
         if(!empty($this->ref)){
-		$ref=$this->ref;
+        	$ref=$this->ref;
         }else
-		$ref=$this->rowid;
+        	$ref=$this->rowid;
         if ($ref) {
             $linkstart = '<a href="'.$url.'"';
             $linkstart.=$linkclose.'>';
             $linkend='</a>';
 
             $result .= $linkstart;
-            if ($withpicto)
+            if ($withpicto) 
                 $result.= '<img height="16" src="'.DOL_URL_ROOT.'/postes/img/object_postes.png" >&nbsp;';
             if ($withpicto != 2) $result.= $ref;
         }
@@ -252,7 +252,7 @@ class etiquettes_parc extends Commonobject{
         $resql = $this->db->query($sql);
 
         if($resql){
-            while ($obj = $this->db->fetch_object($resql))
+            while ($obj = $this->db->fetch_object($resql)) 
             {
                 $tot = $obj->tot;
             }
@@ -261,7 +261,7 @@ class etiquettes_parc extends Commonobject{
     }
 
     public function getdateformat($date,$time=true){
-
+        
         $d = explode(' ', $date);
         $date = explode('-', $d[0]);
         $d2 = explode(':', $d[1]);
@@ -310,7 +310,7 @@ class etiquettes_parc extends Commonobject{
         $resql = $this->db->query($sql);
         $results = array();
         if($resql){
-            while ($obj = $this->db->fetch_object($resql))
+            while ($obj = $this->db->fetch_object($resql)) 
             {
                 $results[$obj->rowid]['label'] = $obj->label;
                 $results[$obj->rowid]['color'] = $obj->color;
@@ -323,8 +323,8 @@ class etiquettes_parc extends Commonobject{
 
 
 
-
-}
+	
+} 
 
 
 ?>

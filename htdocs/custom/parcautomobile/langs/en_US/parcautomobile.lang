@@ -45,10 +45,10 @@ erreur_calcul = Fill the quantity of the liters
 # DROITS
 Permission_label=To consult
 
-# MENU
+# MENU	
 parcautomobile = Parking
-list_vehicules = List of vehicules
-vehicules = Vehicules
+list_vehicules = List of vehicules	
+vehicules = Vehicules	
 configuration = Configuration
 marque_model = Model of the vehicle mark
 typeintervention = Types of intervention
@@ -57,12 +57,12 @@ statut = Vehicle status
 etiquettes = Vehicle labels
 kilometrage = Mileage
 suivi_intervention = Follow-up of interventions on vehicles
-suivi_essence = Follow-up of gasoline level
+suivi_essence = Follow-up of gasoline level 
 parc = Park
 add_parc = New park
 add_vehicule=New vehicule
 modeles_vehicule = Vehicles Model
-info_suplm = Additional Information
+info_suplm = Additional Information 
 contrats = Contracts
 analyse = Analyse
 couts = Costs
@@ -132,7 +132,7 @@ ref_facture = Invoice reference
 kilometrique = 	Kilometer readings
 detail_contrat =Contract Details
 detail_cost =Expenditure Details
-total_costs = Total vehicle costs :
+total_costs = Total vehicle costs : 
 
 
 #contrat
@@ -182,7 +182,7 @@ modeles = Models
 
 #typecontrat
 label_typecontrat = Type of Contract
-
+	
 #statut
 label_statut = Statut
 etiquettes_parc = Labels

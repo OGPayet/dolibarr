@@ -51,16 +51,12 @@ if ($action == 'set_quota') {
     if (!($value > 0)) $value = 5;
     $res = dolibarr_set_const($db, 'EXTENDEDINTERVENTION_QUOTA_SHOW_X_PERIOD', $value, 'chaine', 0, '', $conf->entity);
 
-    // root product categories
-    if ($res) {
-        $rootProductCategories = GETPOST('EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORIES', 'int') > 0 ? GETPOST('EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORIES', 'int') : '';
-        $res = dolibarr_set_const($db, 'EXTENDEDINTERVENTION_ROOT_PRODUCT_CATEGORIES', $rootProductCategories, 'chaine', 0, '', $conf->entity);
-    }
-
     if (!$res > 0) {
         $errors[] = $db->lasterror();
         $error++;
     }
+} elseif ($action == 'set') {
+
 } elseif (preg_match('/set_(.*)/',$action,$reg)) {
     $code = $reg[1];
     $value = (GETPOST($code) ? GETPOST($code) : 1);

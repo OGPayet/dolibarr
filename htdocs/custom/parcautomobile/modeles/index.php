@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 
 dol_include_once('/parcautomobile/class/modeles.class.php');
@@ -23,7 +23,7 @@ $sortorder 			= ($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
 $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -105,23 +105,23 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 			$colspn = 7;
 			if (count($modeles->rows) > 0) {
 				for ($i=0; $i < count($modeles->rows) ; $i++) {
-					$var = !$var;
+					$var = !$var;	
 					$item = $modeles->rows[$i];
 
 					print '<tr '.$bc[$var].' >';
-					print '<td align="left" style="">';
-						print '<a href="'.dol_buildpath('/parcautomobile/modeles/card.php?id='.$item->rowid,2).'" >';
-							print $item->rowid;
-						print '</a>';
-					print '</td>';
+			    		print '<td align="left" style="">'; 
+				    		print '<a href="'.dol_buildpath('/parcautomobile/modeles/card.php?id='.$item->rowid,2).'" >';
+				    			print $item->rowid;
+				    		print '</a>';
+			    		print '</td>';
 
-					print '<td align="left" style="">'.$item->label.'</td>';
-					print '<td align="center" style="">';
-						if($item->marque){
-							$marque = new marques($db);
-							$marque->fetch($item->marque);
-							print '<a href="'.dol_buildpath('/parcautomobile/marques/card.php?id='.$item->marque,2).'">'.$marque->label.'</a>';
-						}
+			    		print '<td align="left" style="">'.$item->label.'</td>';
+			    		print '<td align="center" style="">';
+			    			if($item->marque){
+			    				$marque = new marques($db);
+				    			$marque->fetch($item->marque);
+				    			print '<a href="'.dol_buildpath('/parcautomobile/marques/card.php?id='.$item->marque,2).'">'.$marque->label.'</a>';
+			    			}
 						print '</td>';
 						print '<td align="center"></td>';
 					print '</tr>';

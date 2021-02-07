@@ -2411,11 +2411,11 @@ class FormSynergiesTech
         } else {
             $backgroundColor = "orange";
             $textColor = "black";
-        }
+		}
 
         $result .= '<table class="border" width="100%">';
-        $result .= '<tr style="background-color :' . $backgroundColor . ';text-align:center">';
-        $result .= '<td>';
+        $result .= '<tr style="text-align:center">';
+        $result .= '<td style="background-color :' . $backgroundColor . ';">';
 
         if (!empty($equipementUnderContract)) {
             $result .= $this->display_equipements_with_contracts($equipementUnderContract, $textColor);

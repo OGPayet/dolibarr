@@ -462,7 +462,7 @@ class RequestManagerMessage extends ActionComm
      *    @param	string	$ref_ext	Ref ext to get
      *    @return	int					<0 if KO, >0 if OK
      */
-    function fetch($id, $ref='',$ref_ext='')
+    function fetch($id, $ref = '', $ref_ext = '', $email_msgid = '')
     {
         global $conf;
 

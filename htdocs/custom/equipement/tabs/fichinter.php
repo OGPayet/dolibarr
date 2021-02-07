@@ -110,7 +110,7 @@ print "</table><br>";
 
 
 $sql = "SELECT";
-$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.label,";
+$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.ref,";
 $sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn,";
 $sql.= " e.fk_soc_client, scli.nom as CompanyClient, e.fk_etatequipement, et.libelle as etatequiplibelle,";
 $sql.= " ee.datee, ee.dateo, eet.libelle as equipevttypelibelle, ee.fk_equipementevt_type,";
@@ -137,7 +137,7 @@ $sql.= " and ee.fk_fichinter=".$id;
 if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
 if ($search_refProduct)		$sql .= " AND p.ref like '%".$db->escape($search_refProduct)."%'";
 if ($search_company_fourn)	$sql .= " AND sfou.nom like '%".$db->escape($search_company_fourn)."%'";
-if ($search_entrepot)		$sql .= " AND ent.label like '%".$db->escape($search_entrepot)."%'";
+if ($search_entrepot)		$sql .= " AND ent.ref like '%".$db->escape($search_entrepot)."%'";
 if ($search_company_client)	$sql .= " AND scli.nom like '%".$db->escape($search_company_client)."%'";
 if ($search_etatequipement)	$sql .= " AND e.fk_etatequipement =".$search_etatequipement;
 if ($search_equipevttype)	$sql .= " AND ee.fk_equipementevt_type =".$search_equipevttype;

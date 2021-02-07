@@ -62,7 +62,10 @@ class InterfaceRMNotification extends DolibarrTriggers
             dol_include_once('/requestmanager/class/requestmanagernotify.class.php');
             $requestmanagernotify = new RequestManagerNotify($this->db);
 
-            $requestmanagernotify->sendNotify(RequestManagerNotify::TYPE_REQUEST_CREATED, $object);
+            $requestmanagernotify->sendNotify(empty($object->created_out_of_time) ? RequestManagerNotify::TYPE_REQUEST_CREATED : RequestManagerNotify::TYPE_REQUEST_CREATED_OUT_OF_TIME, $object);
+            if (count($requestmanagernotify->errors)) {
+                $object->context['send_notify_errors'] = $requestmanagernotify->errors;
+            }
 
             // Notify by website to assigned
             if (!empty($conf->global->REQUESTMANAGER_NOTIFICATION_ASSIGNED_BY_WEBSITE)) {

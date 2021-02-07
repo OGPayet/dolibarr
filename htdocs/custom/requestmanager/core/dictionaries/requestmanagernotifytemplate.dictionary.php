@@ -180,11 +180,11 @@ class RequestManagerNotifyTemplateDictionary extends Dictionary
     public $edit_in_add_form = true;
 
     /**
-	 * Initialize the dictionary
-	 *
+   	 * Initialize the dictionary
+   	 *
      * @return  void
-	 */
-	protected function initialize()
+   	 */
+   	protected function initialize()
     {
         global $langs, $hookmanager;
 
@@ -196,6 +196,7 @@ class RequestManagerNotifyTemplateDictionary extends Dictionary
         // Set list of template type
         $templateTypeList = array(
             RequestManagerNotify::TYPE_REQUEST_CREATED => $langs->trans('RequestManagerNotifyTemplateTypeRequestCreated'),
+            RequestManagerNotify::TYPE_REQUEST_CREATED_OUT_OF_TIME => $langs->trans('RequestManagerNotifyTemplateTypeRequestCreatedOutOfTime'),
             RequestManagerNotify::TYPE_ASSIGNED_MODIFIED => $langs->trans('RequestManagerNotifyTemplateTypeAssignedUsersModified'),
             RequestManagerNotify::TYPE_ASSIGNED_MODIFIED => $langs->trans('RequestManagerNotifyTemplateTypeAssignedUsersModified'),
             RequestManagerNotify::TYPE_STATUS_MODIFIED => $langs->trans('RequestManagerNotifyTemplateTypeStatusModified'),

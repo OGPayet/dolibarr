@@ -75,7 +75,7 @@ class clsTbsThisPlugIn {
 	function OnData($BlockName,&$CurrRec,$RecNum,&$TBS) {
 		// Executed during MergeBlock(), when TBS retrieve a record for merging.
 		// This event has the same behavior as parameter "ondata", but coded in a plug-in.
-		// Please note that this event is executed only once over the data source even they are several blocks to merge with it.
+		// Please note that this event is executed only once over the data source even they are several blocks to merge with it. 
 		// $BlockName: name of the block currently merged.
 		// $CurrRec:  (read/write) current record.
 		// $RecNum:   (read only) number of the current record (first is number 1).
@@ -84,7 +84,7 @@ class clsTbsThisPlugIn {
 
 	function OnFormat($FieldName,&$Value,&$PrmLst,&$TBS) {
 		// Executed each time an item value is merged to the template, so use it only if needed.
-		// If you want to supply additional parameters to TBS, it's better to use the method OnOperation.
+		// If you want to supply additional parameters to TBS, it's better to use the method OnOperation.  
 		// $FieldName: name of the field currently merged.
 		// $Value:     value about to be merged, before the string conversion if any.
 		// $PrmLst:    array of the field's parameters.
@@ -130,7 +130,7 @@ class clsTbsThisPlugIn {
 		// Excuted before a header, a footer or a splitter section is merged. (supported since TBS 3.3.0)
 		// If the function returns False, then the section of the group is not merged.
 		// $RecInfo: an object having properties CurrRec (current record read/write), RecNum and RecKey.
-		// $GrpDef:  an object having property Type and others undocumented.
+		// $GrpDef:  an object having property Type and others undocumented. 
 		// $DataSrc: optional, undocumented.
 		// $LocR:    optional, undocumented.
 	}
@@ -145,14 +145,14 @@ class clsTbsThisPlugIn {
 	function OnSpecialVar($Name,&$IsSupported,&$Value,&$PrmLst) {
 		// Executed when an unsupported Special Var field ([var..*]) is met before TBS try to merge it.
 		// This enables you define customized Special Var fields.
-		// $Name:        (Read only) the name of the current Special Var field.
+		// $Name:        (Read only) the name of the current Special Var field. 
 		// $IsSupported: (Read/Write) set this argument to true to indicates that the plug-in supports the field, otherwise TBS will raise an error for unsupported Special Var field.
 		// $Value:       (Read/Write) value of the field (empty string by default).
 		// $PrmLst:      (Read/Write) the array of the field's parameters.
 
 /*  Extended syntax:
 function OnSpecialVar($Name,&$IsSupported,&$Value,&$PrmLst,&$Source,&$PosBeg,&$PosEnd,&$Loc) {
-	$Source:      (Read/Write) current contents of the merged template;
+	$Source:      (Read/Write) current contents of the merged template; 
 	$PosBeg:      (Read/Write) position of the first char of the current field in $Source. If this value is set to false, then TBS doesn't merge the field itself. In this case, $PosEnd must be set to the position where TBS must continue the merge.
 	$PosEnd:      (Read/Write) position of the last char of the current field in $Source.
 	$Loc:         optional, undocumented.

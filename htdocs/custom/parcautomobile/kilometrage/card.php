@@ -1,7 +1,7 @@
-<?php
+<?php 
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
@@ -34,17 +34,17 @@ $page           = GETPOST('page');
 $id             = (int) ( (!empty($_GET['id'])) ? $_GET['id'] : GETPOST('id') ) ;
 
 $error  = false;
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
     accessforbidden();
 }
 
 if(in_array($action, ["add","edit"])) {
-    if (!$user->rights->parcautomobile->gestion->update) {
+    if (!$user->rights->parcautomobile->creer) {
       accessforbidden();
     }
 }
 if($action == "delete") {
-    if (!$user->rights->parcautomobile->gestion->delete) {
+    if (!$user->rights->parcautomobile->supprimer) {
       accessforbidden();
     }
 
@@ -165,7 +165,7 @@ if (!empty($id) && $action == "pdf") {
     // Show sender frame
     $pdf->SetFont('helvetica','', $default_font_size - 2);
     $pdf->SetXY($posx,$posy);
-
+    
     $pdf->SetXY($posx,$posy);
     $pdf->SetFillColor(230,230,230);
     $pdf->SetTextColor(0,0,60);

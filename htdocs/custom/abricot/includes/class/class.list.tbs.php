@@ -530,7 +530,7 @@ class TListviewTBS {
 		$javaScript = '<script language="javascript">
 		if(typeof(TListTBS_include)=="undefined") {
 			document.write("<script type=\"text/javascript\" src=\"'.COREHTTP.'includes/js/list.tbs.js\"></scr");
-			document.write("ipt>");
+	  		document.write("ipt>");
 		}
 		</script>';
 
@@ -543,7 +543,7 @@ class TListviewTBS {
 					if(typeof(TListTBS_dataTable_include)=="undefined") {
 						var TListTBS_dataTable_include=true;
 						document.write("<script type=\"text/javascript\" src=\"'.COREHTTP.'includes/js/dataTable/js/jquery.dataTables.min.js\"></scr");
-						document.write("ipt>");
+			  			document.write("ipt>");
 						document.write("<link rel=\"stylesheet\" href=\"'.COREHTTP.'includes/js/dataTable/css/jquery.dataTables.css\" />");
 					}
 
@@ -566,7 +566,7 @@ class TListviewTBS {
 					if(typeof(TListTBS_dataTable_include)=="undefined") {
 						var TListTBS_dataTable_include=true;
 						document.write("<script type=\"text/javascript\" src=\"'.COREHTTP.'includes/js/dataTable/js/jquery.dataTables.min.js\"></scr");
-						document.write("ipt>");
+			  			document.write("ipt>");
 						document.write("<link rel=\"stylesheet\" href=\"'.COREHTTP.'includes/js/dataTable/css/jquery.dataTables.css\" />");
 					}
 
@@ -730,7 +730,7 @@ class TListviewTBS {
 		$html.='<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 		<script type="text/javascript">
 
-			  google.load("visualization", "1", {"packages":["corechart"]});
+		  	  google.load("visualization", "1", {"packages":["corechart"]});
 		      google.setOnLoadCallback(drawChart'.$this->id.');
 
 			  function drawChart'.$this->id.'(forceHeight = null) {
@@ -1014,7 +1014,7 @@ class TListviewTBS {
 			if(!empty($selectedfields)) {
 				include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 				$tabparam['MAIN_SELECTEDFIELDS_'.$contextpage]=$selectedfields;
-			$result=dol_set_user_param($db, $conf, $user, $tabparam);
+	    		$result=dol_set_user_param($db, $conf, $user, $tabparam);
 			}
 
 			$tmpvar='MAIN_SELECTEDFIELDS_'.$contextpage;
@@ -1023,12 +1023,12 @@ class TListviewTBS {
 				$TParam['hide']=array();
 		        foreach($TField as $field=>$dummy)
 		        {
-				$libelle = isset($TParam['title'][$field]) ? $TParam['title'][$field] : $field;
+		          	$libelle = isset($TParam['title'][$field]) ? $TParam['title'][$field] : $field;
 
 					if(!in_array($field,$tmparray)) {
-						$TParam['hide'][] = $field;
+				  		$TParam['hide'][] = $field;
 						$visible = 0;
-					}
+				  	}
 					else{
 						$visible = 1;
 					}
@@ -1044,7 +1044,7 @@ class TListviewTBS {
 			else{
 				foreach($TField as $field=>$dummy)
 		        {
-				$libelle = isset($TParam['title'][$field]) ? $TParam['title'][$field] : $field;
+		        	$libelle = isset($TParam['title'][$field]) ? $TParam['title'][$field] : $field;
 					$visible = (!in_array($field,$TParam['hide'])) ? 1 : 0;
 					$TFieldVisibility[$field]=array(
 						'label'=>$libelle
@@ -1260,14 +1260,14 @@ class TListviewTBS {
 
 				}
 				else if(strpos($TBind[$field],' IS NULL') === false) {
-					return $PDOdb->quote($TBind[$field]);
-				}
+			 		return $PDOdb->quote($TBind[$field]);
+			 	}
 				else {
 					return $TBind[$field];
 				}
 			 }
 			 else {
-				 return 'errorBindingField '.$field;
+			 	 return 'errorBindingField '.$field;
 			 }
 
 		}, $sql);

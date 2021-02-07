@@ -364,45 +364,74 @@ if ($object->id > 0) {
     if (empty($reshook) &&  ($user->rights->interventionsurvey->survey->manage || $user->rights->interventionsurvey->survey->manage_more) && !$readOnlySurvey) {
         print '<div class="inline-block divButAction">';
         if ($user->rights->interventionsurvey->survey->autocomplete) {
+            print '<div class="inline-block divButAction">';
             print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=autocomplete_survey">'
                 . $langs->trans("InterventionSurveyAutoCompleteButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAutocompleteDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
+            print '</div>';
         }
 
         if ($user->rights->interventionsurvey->survey->manage) {
+            print '<div class="inline-block divButAction">';
+
             print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=soft_regeneration">'
                 . $langs->trans("InterventionSurveyConfirmSoftRegenerationButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmSoftRegenerationDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
+                print '</div>';
+
+                print '<div class="inline-block divButAction">';
+
             print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_part_only">'
                 . $langs->trans("InterventionSurveyConfirmAddMissingPartButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingPartDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc_in_general_part">'
+                print '</div>';
+
+                print '<div class="inline-block divButAction">';
+
+                print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc_in_general_part">'
                 . $langs->trans("InterventionSurveyConfirmAddMissingBlocInGeneralPartButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocInGeneralPartDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc_in_other_part">'
+                print '</div>';
+
+                print '<div class="inline-block divButAction">';
+
+                print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc_in_other_part">'
                 . $langs->trans("InterventionSurveyConfirmAddMissingBlocInOtherPartButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocInOtherPartDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
-            print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc">'
+                print '</div>';
+
+                print '<div class="inline-block divButAction">';
+
+                print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=add_missing_bloc">'
                 . $langs->trans("InterventionSurveyConfirmAddMissingBlocButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmAddMissingBlocDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
+                print '</div>';
+
         }
 
         if ($user->rights->interventionsurvey->survey->manageMore) {
+            print '<div class="inline-block divButAction">';
+
             print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=hard_regeneration">'
                 . $langs->trans("InterventionSurveyConfirmHardRegenerationButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmHardRegenerationDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
+                print '</div>';
+
+                print '<div class="inline-block divButAction">';
 
             print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=reset_survey">'
                 . $langs->trans("InterventionSurveyConfirmResetButton") . ' ' .
                 $form->textwithpicto('', $langs->trans('InterventionSurveyConfirmResetDescription'), 1, 'info', '', 0, 2) .
                 '</a>';
+                print '</div>';
+
         }
 
 

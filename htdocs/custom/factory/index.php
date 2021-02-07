@@ -157,11 +157,11 @@ print '<tr class="liste_titre"><td >'.$langs->trans("OFByStorageRepart").'</td>'
 print '<td align=right>'.$langs->trans("Nb").'</td>';
 print '<td align=right>'.$langs->trans("Qty").'</td></tr>';
 
-$sql = "SELECT f.fk_entrepot, e.label, COUNT(f.rowid) as total, SUM(f.qty_made) as totalmade";
+$sql = "SELECT f.fk_entrepot, e.ref, COUNT(f.rowid) as total, SUM(f.qty_made) as totalmade";
 $sql.= " FROM ".MAIN_DB_PREFIX."factory as f, ".MAIN_DB_PREFIX."entrepot as e";
 $sql.= ' WHERE f.entity IN ('.getEntity($product_static->element, 1).')';
 $sql.= ' AND f.fk_entrepot = e.rowid';
-$sql.= " GROUP BY f.fk_entrepot, e.label";
+$sql.= " GROUP BY f.fk_entrepot, e.ref";
 $sql.= ' order by total desc';
 $sql.= $db->plimit($max, 0);
 
@@ -174,7 +174,7 @@ $totalmade=0;
 if ($result) {
 	while ($objp = $db->fetch_object($result)) {
 		$statProducts.= "<tr >";
-		$statProducts.= '<td><a href="list.php?entrepotid='.$objp->fk_entrepot.'">'.$objp->label.'</a></td>';
+		$statProducts.= '<td><a href="list.php?entrepotid='.$objp->fk_entrepot.'">'.$objp->ref.'</a></td>';
 		$statProducts.= '<td align="right">'.price($objp->total, 0, '', 0, 0, 0).'</td>';
 		$statProducts.= '<td align="right">'.price($objp->totalmade, 0, '', 0, 0, 0).'</td>';
 		$statProducts.= "</tr>";

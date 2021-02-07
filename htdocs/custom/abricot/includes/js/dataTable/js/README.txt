@@ -1,6 +1,6 @@
-
-// TRADUCTION FR POUR DATATABLE
-
+	
+// TRADUCTION FR POUR DATATABLE	
+	
 	"oLanguage": {
 		    "sProcessing":     "Traitement en cours...",
 		    "sSearch":         "Rechercher&nbsp;:",

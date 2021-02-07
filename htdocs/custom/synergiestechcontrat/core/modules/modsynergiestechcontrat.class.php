@@ -56,10 +56,11 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-		$this->numero = 12590;		// TODO Go on page https://wiki.dolibarr.org/index.php/List_of_modules_id to reserve id number for your module
+		$this->numero = 468449;		// TODO Go on page https://wiki.dolibarr.org/index.php/List_of_modules_id to reserve id number for your module
 		// Module label (no space allowed), used if translation string 'ModulesynergiestechcontratName' not found (MyModue is name of module).
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		$this->description = preg_replace('/^mod/i','',get_class($this)).'Desc';
+		$this->rights_class = 'synergiestechcontrat';
 
 		if (isset($conf->framework) && $conf->framework->enabled) {
 			$this->GetFileBuild();
@@ -233,14 +234,13 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 
 		// Permissions
 		$this->rights = array();		// Permission array used by this module
-		$this->rights_class = "contrat";
 
-		$r=0;
-		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		$this->rights[$r][1] = 'Résilier un contrat';	// Permission label
-		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
-		$this->rights[$r][4] = 'terminate';				// In php code, permission will be checked by test if ($user->rights->synergiestechcontrat->level1->level2)
-//
+ 		$r=0;
+ 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
+ 		$this->rights[$r][1] = 'Résilier un contrat';	// Permission label
+ 		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
+ 		$this->rights[$r][4] = 'terminate';				// In php code, permission will be checked by test if ($user->rights->synergiestechcontrat->level1->level2)
+// //
 //		$r++;
 //		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
 //		$this->rights[$r][1] = 'Create/Update objects of My Module';	// Permission label
@@ -295,11 +295,11 @@ class modsynergiestechcontrat extends DolibarrModulessynergiestechcontrat
 								'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both*/
 
         $this->menu[$r] = array(
-            'fk_menu' => 'fk_mainmenu=accountancy,fk_leftmenu=customers_bills',
+            'fk_menu' => 'fk_mainmenu=billing,fk_leftmenu=customers_bills',
             'type' => 'left',
             'titre' => 'STCBillingContracts',
-            'mainmenu' => 'accountancy',
-            'leftmenu' => 'invoicescontractlist',
+            'mainmenu' => 'billing',
+            'leftmenu' => 'customers_bills',
             'url' => '/synergiestechcontrat/invoicescontractlist.php',
             'langs' => 'synergiestechcontrat@synergiestechcontrat',
             'position' => 1000 + $r,

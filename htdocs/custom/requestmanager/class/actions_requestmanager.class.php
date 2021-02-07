@@ -152,7 +152,7 @@ class ActionsRequestManager
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-	function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
+   	function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
     {
         global $user, $langs;
 
@@ -190,182 +190,236 @@ class ActionsRequestManager
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-	function doActions($parameters, &$object, &$action, $hookmanager)
+   	function doActions($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
 
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('actioncard', $contexts)) {
-            $id = GETPOST('id', 'int');
+            if ($action == 'create' || $action == 'add') {
+                $actioncode = GETPOST('actioncode', 'alpha');
 
-			if($id > 0) {
-				$object->fetch($id);
+                if ($actioncode == 'AC_RM_OUT' || $actioncode == 'AC_RM_PRIV' || $actioncode == 'AC_RM_IN') {
+                    $langs->load('requestmanager@requestmanager');
 
-				if ($object->type_code == 'AC_RM_OUT' || $object->type_code == 'AC_RM_PRIV' || $object->type_code == 'AC_RM_IN') {
-					$langs->load('requestmanager@requestmanager');
+                    $this->errors[] = $langs->trans('RequestManagerErrorCanOnlyCreateMessageFromRequest');
+                    $action = '';
+                    return -1;
+                }
+            } else {
+                $id = GETPOST('id', 'int');
+                $object->fetch($id);
 
-					if ($action == 'create' || $action == 'add') {
-						$this->errors[] = $langs->trans('RequestManagerErrorCanOnlyCreateMessageFromRequest');
-						$action = '';
-						return -1;
-					} elseif ($action == 'edit' || $action == 'update') {
-						$this->errors[] = $langs->trans('RequestManagerErrorMessageCanNotBeModified');
-						$action = '';
-						return -1;
-						/*$error = 0;
-						$cancel = GETPOST('cancel', 'alpha');
-						if (empty($cancel) && $user->rights->requestmanager->creer) {
-							dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
-							$requestmanagermessage = new RequestManagerMessage($this->db);
+                if ($object->type_code == 'AC_RM_OUT' || $object->type_code == 'AC_RM_PRIV' || $object->type_code == 'AC_RM_IN') {
+                    $langs->load('requestmanager@requestmanager');
 
-							require_once DOL_DOCUMENT_ROOT . '/comm/action/class/cactioncomm.class.php';
-							$cactioncomm = new CActionComm($this->db);
+                    if ($action == 'edit' || $action == 'update') {
+                        /*$this->errors[] = $langs->trans('RequestManagerErrorMessageCanNotBeModified');
+                        $action = '';
+                        return -1;
+                        /*$error = 0;
+                        $cancel = GETPOST('cancel', 'alpha');
+                        if (empty($cancel) && $user->rights->requestmanager->creer) {
+                            dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+                            $requestmanagermessage = new RequestManagerMessage($this->db);
 
-							$backtopage = GETPOST('backtopage', 'alpha');
+                            require_once DOL_DOCUMENT_ROOT . '/comm/action/class/cactioncomm.class.php';
+                            $cactioncomm = new CActionComm($this->db);
 
-							$fulldayevent = GETPOST('fullday');
-							$aphour = GETPOST('aphour');
-							$apmin = GETPOST('apmin');
-							$p2hour = GETPOST('p2hour');
-							$p2min = GETPOST('p2min');
-							$percentage = in_array(GETPOST('status'), array(-1, 100)) ? GETPOST('status') : (in_array(GETPOST('complete'), array(-1, 100)) ? GETPOST('complete') : GETPOST("percentage"));    // If status is -1 or 100, percentage is not defined and we must use status
+                            $backtopage = GETPOST('backtopage', 'alpha');
 
-							// Clean parameters
-							if ($aphour == -1) $aphour = '0';
-							if ($apmin == -1) $apmin = '0';
-							if ($p2hour == -1) $p2hour = '0';
-							if ($p2min == -1) $p2min = '0';
+                            $fulldayevent = GETPOST('fullday');
+                            $aphour = GETPOST('aphour');
+                            $apmin = GETPOST('apmin');
+                            $p2hour = GETPOST('p2hour');
+                            $p2min = GETPOST('p2min');
+                            $percentage = in_array(GETPOST('status'), array(-1, 100)) ? GETPOST('status') : (in_array(GETPOST('complete'), array(-1, 100)) ? GETPOST('complete') : GETPOST("percentage"));    // If status is -1 or 100, percentage is not defined and we must use status
 
-							$requestmanagermessage->fetch($id);
-							$requestmanagermessage->fetch_userassigned();
+                            // Clean parameters
+                            if ($aphour == -1) $aphour = '0';
+                            if ($apmin == -1) $apmin = '0';
+                            if ($p2hour == -1) $p2hour = '0';
+                            if ($p2min == -1) $p2min = '0';
 
-							$datep = dol_mktime($fulldayevent ? '00' : $aphour, $fulldayevent ? '00' : $apmin, 0, $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
-							$datef = dol_mktime($fulldayevent ? '23' : $p2hour, $fulldayevent ? '59' : $p2min, $fulldayevent ? '59' : '0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
+                            $requestmanagermessage->fetch($id);
+                            $requestmanagermessage->fetch_userassigned();
 
-							$requestmanagermessage->fk_action = dol_getIdFromCode($this->db, GETPOST("actioncode"), 'c_actioncomm');
-							$requestmanagermessage->label = GETPOST("label");
-							$requestmanagermessage->datep = $datep;
-							$requestmanagermessage->datef = $datef;
-							$requestmanagermessage->percentage = $percentage;
-							$requestmanagermessage->priority = GETPOST("priority");
-							$requestmanagermessage->fulldayevent = GETPOST("fullday") ? 1 : 0;
-							$requestmanagermessage->location = GETPOST('location');
-							$requestmanagermessage->socid = GETPOST("socid");
-							$requestmanagermessage->contactid = GETPOST("contactid", 'int');
-							//$requestmanagermessage->societe->id = $_POST["socid"];			// deprecated
-							//$requestmanagermessage->contact->id = $_POST["contactid"];		// deprecated
-							$requestmanagermessage->fk_project = GETPOST("projectid", 'int');
-							$requestmanagermessage->note = GETPOST("note");
-							$requestmanagermessage->pnote = GETPOST("note");
-							$requestmanagermessage->fk_element = GETPOST("fk_element");
-							$requestmanagermessage->elementtype = GETPOST("elementtype");
+                            $datep = dol_mktime($fulldayevent ? '00' : $aphour, $fulldayevent ? '00' : $apmin, 0, $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
+                            $datef = dol_mktime($fulldayevent ? '23' : $p2hour, $fulldayevent ? '59' : $p2min, $fulldayevent ? '59' : '0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
 
-							if (!$datef && $percentage == 100) {
-								$error++;
-								$donotclearsession = 1;
-								setEventMessages($langs->transnoentitiesnoconv("ErrorFieldRequired", $langs->transnoentitiesnoconv("DateEnd")), $requestmanagermessage->errors, 'errors');
-								$action = 'edit';
-							}
+                            $requestmanagermessage->fk_action = dol_getIdFromCode($this->db, GETPOST("actioncode"), 'c_actioncomm');
+                            $requestmanagermessage->label = GETPOST("label");
+                            $requestmanagermessage->datep = $datep;
+                            $requestmanagermessage->datef = $datef;
+                            $requestmanagermessage->percentage = $percentage;
+                            $requestmanagermessage->priority = GETPOST("priority");
+                            $requestmanagermessage->fulldayevent = GETPOST("fullday") ? 1 : 0;
+                            $requestmanagermessage->location = GETPOST('location');
+                            $requestmanagermessage->socid = GETPOST("socid");
+                            $requestmanagermessage->contactid = GETPOST("contactid", 'int');
+                            //$requestmanagermessage->societe->id = $_POST["socid"];			// deprecated
+                            //$requestmanagermessage->contact->id = $_POST["contactid"];		// deprecated
+                            $requestmanagermessage->fk_project = GETPOST("projectid", 'int');
+                            $requestmanagermessage->note = GETPOST("note");
+                            $requestmanagermessage->pnote = GETPOST("note");
+                            $requestmanagermessage->fk_element = GETPOST("fk_element");
+                            $requestmanagermessage->elementtype = GETPOST("elementtype");
 
-							$transparency = (GETPOST("transparency") == 'on' ? 1 : 0);
+                            if (!$datef && $percentage == 100) {
+                                $error++;
+                                $donotclearsession = 1;
+                                setEventMessages($langs->transnoentitiesnoconv("ErrorFieldRequired", $langs->transnoentitiesnoconv("DateEnd")), $requestmanagermessage->errors, 'errors');
+                                $action = 'edit';
+                            }
 
-							// Users
-							$listofuserid = array();
-							if (!empty($_SESSION['assignedtouser']))    // Now concat assigned users
-							{
-								// Restore array with key with same value than param 'id'
-								$tmplist1 = json_decode($_SESSION['assignedtouser'], true);
-								$tmplist2 = array();
-								foreach ($tmplist1 as $key => $val) {
-									if ($val['id'] > 0 && $val['id'] != $assignedtouser) $listofuserid[$val['id']] = $val;
-								}
-							} else {
-								$assignedtouser = (!empty($requestmanagermessage->userownerid) && $requestmanagermessage->userownerid > 0 ? $requestmanagermessage->userownerid : 0);
-								if ($assignedtouser) $listofuserid[$assignedtouser] = array('id' => $assignedtouser, 'mandatory' => 0, 'transparency' => ($user->id == $assignedtouser ? $transparency : ''));    // Owner first
-							}
+                            $transparency = (GETPOST("transparency") == 'on' ? 1 : 0);
 
-							$requestmanagermessage->userassigned = array();
-							$requestmanagermessage->userownerid = 0; // Clear old content
-							$i = 0;
-							foreach ($listofuserid as $key => $val) {
-								if ($i == 0) $requestmanagermessage->userownerid = $val['id'];
-								$requestmanagermessage->userassigned[$val['id']] = array('id' => $val['id'], 'mandatory' => 0, 'transparency' => ($user->id == $val['id'] ? $transparency : ''));
-								$i++;
-							}
+                            // Users
+                            $listofuserid = array();
+                            if (!empty($_SESSION['assignedtouser']))    // Now concat assigned users
+                            {
+                                // Restore array with key with same value than param 'id'
+                                $tmplist1 = json_decode($_SESSION['assignedtouser'], true);
+                                $tmplist2 = array();
+                                foreach ($tmplist1 as $key => $val) {
+                                    if ($val['id'] > 0 && $val['id'] != $assignedtouser) $listofuserid[$val['id']] = $val;
+                                }
+                            } else {
+                                $assignedtouser = (!empty($requestmanagermessage->userownerid) && $requestmanagermessage->userownerid > 0 ? $requestmanagermessage->userownerid : 0);
+                                if ($assignedtouser) $listofuserid[$assignedtouser] = array('id' => $assignedtouser, 'mandatory' => 0, 'transparency' => ($user->id == $assignedtouser ? $transparency : ''));    // Owner first
+                            }
 
-							$requestmanagermessage->transparency = $transparency;        // We set transparency on event (even if we can also store it on each user, standard says this property is for event)
+                            $requestmanagermessage->userassigned = array();
+                            $requestmanagermessage->userownerid = 0; // Clear old content
+                            $i = 0;
+                            foreach ($listofuserid as $key => $val) {
+                                if ($i == 0) $requestmanagermessage->userownerid = $val['id'];
+                                $requestmanagermessage->userassigned[$val['id']] = array('id' => $val['id'], 'mandatory' => 0, 'transparency' => ($user->id == $val['id'] ? $transparency : ''));
+                                $i++;
+                            }
 
-							if (!empty($conf->global->AGENDA_ENABLE_DONEBY)) {
-								if (GETPOST("doneby")) $requestmanagermessage->userdoneid = GETPOST("doneby", "int");
-							}
+                            $requestmanagermessage->transparency = $transparency;        // We set transparency on event (even if we can also store it on each user, standard says this property is for event)
 
-							// Check parameters
-							if (!GETPOST('actioncode') > 0) {
-								$error++;
-								$donotclearsession = 1;
-								$action = 'edit';
-								setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Type")), null, 'errors');
-							} else {
-								$result = $cactioncomm->fetch(GETPOST('actioncode'));
-							}
-							if (empty($requestmanagermessage->userownerid)) {
-								$error++;
-								$donotclearsession = 1;
-								$action = 'edit';
-								setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("ActionsOwnedBy")), null, 'errors');
-							}
+                            if (!empty($conf->global->AGENDA_ENABLE_DONEBY)) {
+                                if (GETPOST("doneby")) $requestmanagermessage->userdoneid = GETPOST("doneby", "int");
+                            }
 
-							// Fill array 'array_options' with data from add form
-							$extrafields = new ExtraFields($this->db);
-							$extralabels = $extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
-							$ret = $extrafields->setOptionalsFromPost($extralabels, $requestmanagermessage);
-							if ($ret < 0) $error++;
+                            // Check parameters
+                            if (!GETPOST('actioncode') > 0) {
+                                $error++;
+                                $donotclearsession = 1;
+                                $action = 'edit';
+                                setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Type")), null, 'errors');
+                            } else {
+                                $result = $cactioncomm->fetch(GETPOST('actioncode'));
+                            }
+                            if (empty($requestmanagermessage->userownerid)) {
+                                $error++;
+                                $donotclearsession = 1;
+                                $action = 'edit';
+                                setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("ActionsOwnedBy")), null, 'errors');
+                            }
 
-							if (!$error) {
-								$this->db->begin();
+                            // Fill array 'array_options' with data from add form
+                            $extrafields = new ExtraFields($this->db);
+                            $extralabels = $extrafields->fetch_name_optionals_label($requestmanagermessage->table_element);
+                            $ret = $extrafields->setOptionalsFromPost($extralabels, $requestmanagermessage);
+                            if ($ret < 0) $error++;
 
-								$result = $requestmanagermessage->update($user);
+                            if (!$error) {
+                                $this->db->begin();
 
-								if ($result > 0) {
-									unset($_SESSION['assignedtouser']);
+                                $result = $requestmanagermessage->update($user);
 
-									$this->db->commit();
-								} else {
-									setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
-									$this->db->rollback();
-								}
-							}
-						}
+                                if ($result > 0) {
+                                    unset($_SESSION['assignedtouser']);
 
-						if (!$error) {
-							if (!empty($backtopage)) {
-								unset($_SESSION['assignedtouser']);
-								header("Location: " . $backtopage);
-								exit;
-							}
-						}
+                                    $this->db->commit();
+                                } else {
+                                    setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+                                    $this->db->rollback();
+                                }
+                            }
+                        }
 
-						return 1;*/
-					} elseif ($action == 'confirm_delete' && GETPOST("confirm") == 'yes' && $user->rights->requestmanager->creer) {
-						dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
-						$requestmanagermessage = new RequestManagerMessage($this->db);
+                        if (!$error) {
+                            if (!empty($backtopage)) {
+                                unset($_SESSION['assignedtouser']);
+                                header("Location: " . $backtopage);
+                                exit;
+                            }
+                        }
 
-						$id = GETPOST('id', 'int');
-						$requestmanagermessage->fetch($id);
+                        return 1;*/
+                    } elseif ($action == 'confirm_delete' && GETPOST("confirm") == 'yes' && $user->rights->requestmanager->creer) {
+                        dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
+                        $requestmanagermessage = new RequestManagerMessage($this->db);
 
-						$result = $requestmanagermessage->delete();
+                        $id = GETPOST('id', 'int');
+                        $requestmanagermessage->fetch($id);
 
-						if ($result >= 0) {
-							header("Location: index.php");
-							exit;
-						} else {
-							setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
-						}
-						return 1;
-					}
-				}
-			}
+                        $result = $requestmanagermessage->delete();
+
+                        if ($result >= 0) {
+                            header("Location: index.php");
+                            exit;
+                        } else {
+                            setEventMessages($requestmanagermessage->error, $requestmanagermessage->errors, 'errors');
+                        }
+                        return 1;
+                    }
+                }
+            }
+        } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && in_array('contractcard', $contexts)) {
+            if ($action == 'update_extras' && GETPOST('attribute') == 'rm_timeslots_periods') {
+                // fetch optionals attributes and labels
+                $extrafields = new ExtraFields($this->db);
+                $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
+                $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
+
+                dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
+                $res = requestmanagertimeslots_get_periods($object->array_options['options_rm_timeslots_periods']);
+                if (!is_array($res)) {
+                    $action = 'edit_extras';
+                    $this->errors[] = $langs->trans('RequestManagerTimeSlotsPeriodsName') . ': ' . $res;
+                    return 1;
+                }
+            }
+        }
+
+        // Management of the user group(s) in charge for the planning
+        //----------------------------------------------------------------------
+        if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && (in_array('thirdpartycard', $contexts) || in_array('commcard', $contexts))) {
+            if ($action == 'set_edit_usergroups_in_charge' && $user->rights->requestmanager->usergroup_in_charge->manage) {
+                if (!($object->id > 0)) {
+                    $id = (GETPOST('socid','int') ? GETPOST('socid','int') : GETPOST('id','int'));
+                    $object->fetch($id);
+                }
+                $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
+                dol_include_once('/advancedictionaries/class/dictionary.class.php');
+                $requestmanagerrequesttype = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
+                $requestmanagerrequesttype->fetch_lines(1);
+
+                dol_include_once('/requestmanager/class/requestmanagerplanning.class.php');
+                $requestmanagerplanning = new RequestManagerPlanning($this->db);
+
+                foreach ($requestmanagerrequesttype->lines as $request_type) {
+                    if (!in_array($request_type->id, $request_types_planned)) continue;
+
+                    $usergroups_in_charge = GETPOST('usergroups_in_charge_' . $request_type->id, 'array');
+
+                    // Save users in charge for the request type
+                    if ($requestmanagerplanning->setUserGroupsInChargeForCompany($object->id, $request_type->id, $usergroups_in_charge) > 0) {
+                        header('Location: ' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id);
+                        exit;
+                    } else {
+                        setEventMessages($requestmanagerplanning->error, $requestmanagerplanning->errors, 'errors');
+                    }
+                }
+
+                return 1;
+            }
         }
 
         return 0;
@@ -403,16 +457,12 @@ class ActionsRequestManager
 
             $requestManagerMessage->fetch_knowledge_base(1);
             print '<tr><td class="nowrap" class="titlefield">' . $langs->trans("RequestManagerMessageKnowledgeBase") . '</td>';
-//            if ($action == 'edit') {
-//                print '<td>';
-//            } else {
             print '<td colspan="3">';
             $toprint = array();
             foreach ($requestManagerMessage->knowledge_base_list as $knowledge_base) {
                 $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $knowledge_base->fields['code'] . ' - ' . $knowledge_base->fields['title'] . '</li>';
-//                }
-                print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
             }
+            print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
             print '</td>';
             print '</tr>';
 
@@ -429,11 +479,7 @@ class ActionsRequestManager
             print "</td></tr>";
 
             // Other attributes
-//            if ($action == "edit") {
-//                print $requestManagerMessage->showOptionals($extrafields, 'edit', array('colspan'=>3), 'rm_message_');
-//            } else {
             print $requestManagerMessage->showOptionals($extrafields, 'view', array('colspan' => 3));
-//            }
 
             return 1;
         } elseif (in_array('contractcard', $contexts)) {
@@ -590,28 +636,16 @@ SCRIPT;
                 //----------------------------------------------------------------------
                 $out = <<<SCRIPT
             <script type="text/javascript">
-		$(document).ready(function () {
-		    var requestmanager_my_request_updated = $isListsFollowModified;
-			var requestmanager_menu_div = $("#mainmenutd_requestmanager");
+            	$(document).ready(function () {
+            	    var requestmanager_my_request_updated = $isListsFollowModified;
+            		var requestmanager_menu_div = $("#mainmenutd_requestmanager");
 
-			// Add request status button
-			//requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_my_request_updated"><div class="tmenucenter"><a class="tmenu" href="$my_request_updated_url" title="$my_request_updated_text"><span class="mainmenuaspan">$nbRequests</span></a></div></li>');
-			requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_my_request_updated"><a class="tmenuimage" href="$my_request_updated_url" title="$my_request_updated_text"><div class="mainmenuaspan">$nbRequests</div></a></li>');
+            		// Blink managment if new status of my request
+            		var requestmanager_my_request_updated_a = $("#mainmenutd_requestmanager_my_request_updated a");
+            		var requestmanager_my_request_updated_blink = null;
+            		requestmanager_update_my_request_updated();
 
-			// Add create request button in same tab
-			//requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><div class="tmenucenter"><a class="tmenuimage" tabindex="-1" href="$create_request_url" target="_blank" title="$create_request_text"><div class="mainmenu topmenuimage"><span class="mainmenu tmenuimage">$create_request_img</span></div></a></div></li>');
-			requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><a class="tmenuimage" href="$create_request_url" target="_blank" title="$create_request_text">$create_request_img</a></li>');
-
-					// Add create request button in same tab
-			//requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><div class="tmenucenter"><a class="tmenuimage" tabindex="-1" href="$create_request_url" title="$create_request_text"><div class="mainmenu topmenuimage"><span class="mainmenu tmenuimage">$create_request_img</span></div></a></div></li>');
-			requestmanager_menu_div.after('<li class="tmenu" id="mainmenutd_requestmanager_create"><a class="tmenuimage" href="$create_request_url" title="$create_request_text">$create_request_img</a></li>');
-
-			// Blink managment if new status of my request
-			var requestmanager_my_request_updated_a = $("#mainmenutd_requestmanager_my_request_updated a");
-			var requestmanager_my_request_updated_blink = null;
-			requestmanager_update_my_request_updated();
-
-			function requestmanager_update_my_request_updated() {
+            		function requestmanager_update_my_request_updated() {
                         if (requestmanager_my_request_updated && !requestmanager_my_request_updated_blink) {
                             // Start blink
                             requestmanager_my_request_updated_blink = setInterval(function() { requestmanager_my_request_updated_a.toggleClass("rm_my_request_updated_blink_color"); }, 1000);
@@ -620,7 +654,7 @@ SCRIPT;
                             clearInterval(requestmanager_my_request_updated_blink);
                             requestmanager_my_request_updated_blink = null;
                         }
-			}
+            		}
                 });
             </script>
 SCRIPT;
@@ -685,40 +719,6 @@ SCRIPT;
             }
         }
 
-        // Management of the user group(s) in charge for the planning
-        //----------------------------------------------------------------------
-        if (!empty($conf->global->REQUESTMANAGER_PLANNING_ACTIVATE) && (in_array('thirdpartycard', $contexts) || in_array('commcard', $contexts))) {
-            if ($action == 'set_edit_usergroups_in_charge' && $user->rights->requestmanager->usergroup_in_charge->manage) {
-                if (!($object->id > 0)) {
-                    $id = (GETPOST('socid','int') ? GETPOST('socid','int') : GETPOST('id','int'));
-                    $object->fetch($id);
-                }
-                $request_types_planned = !empty($conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) ? explode(',', $conf->global->REQUESTMANAGER_PLANNING_REQUEST_TYPE) : array();
-                dol_include_once('/advancedictionaries/class/dictionary.class.php');
-                $requestmanagerrequesttype = Dictionary::getDictionary($this->db, 'requestmanager', 'requestmanagerrequesttype');
-                $requestmanagerrequesttype->fetch_lines(1);
-
-                dol_include_once('/requestmanager/class/requestmanagerplanning.class.php');
-                $requestmanagerplanning = new RequestManagerPlanning($this->db);
-
-                foreach ($requestmanagerrequesttype->lines as $request_type) {
-                    if (!in_array($request_type->id, $request_types_planned)) continue;
-
-                    $usergroups_in_charge = GETPOST('usergroups_in_charge_' . $request_type->id, 'array');
-
-                    // Save users in charge for the request type
-                    if ($requestmanagerplanning->setUserGroupsInChargeForCompany($object->id, $request_type->id, $usergroups_in_charge) > 0) {
-                        header('Location: ' . $_SERVER["PHP_SELF"] . '?socid=' . $object->id);
-                        exit;
-                    } else {
-                        setEventMessages($requestmanagerplanning->error, $requestmanagerplanning->errors, 'errors');
-                    }
-                }
-
-                return 1;
-            }
-        }
-
         return 0;
     }
 
@@ -755,7 +755,7 @@ SCRIPT;
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-	function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
+   	function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
     {
         global $conf, $langs;
 
@@ -1004,21 +1004,6 @@ SCRIPT;
 
                     $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"] . '?id=' . $object->id, $langs->trans('SynergiesTechProductOffFormula'), $langs->trans('SynergiesTechConfirmProductOffFormula'), 'addline', $inputList, '', 1);
 
-                    return 1;
-                }
-            }
-        } elseif (!empty($conf->global->REQUESTMANAGER_TIMESLOTS_ACTIVATE) && in_array('contractcard', $contexts)) {
-            if ($action == 'update_extras' && GETPOST('attribute') == 'rm_timeslots_periods') {
-                // fetch optionals attributes and labels
-                $extrafields = new ExtraFields($this->db);
-                $extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
-                $ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
-
-                dol_include_once('/requestmanager/lib/requestmanagertimeslots.lib.php');
-                $res = requestmanagertimeslots_get_periods($object->array_options['options_rm_timeslots_periods']);
-                if (!is_array($res)) {
-                    $action = 'edit_extras';
-                    $this->errors[] = $langs->trans('RequestManagerTimeSlotsPeriodsName') . ': ' . $res;
                     return 1;
                 }
             }

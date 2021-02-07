@@ -154,7 +154,7 @@ class FormSynergiesTechContract
         global $db;
 
         $invoices_draft_list = array();
-        $sql = "SELECT ee.fk_source AS contract_id, f.rowid, f.facnumber AS ref, f.ref_client, f.type, f.note_private, f.note_public, f.total AS total_ht, f.tva AS total_vat, f.total_ttc FROM " . MAIN_DB_PREFIX . "facture AS f" .
+        $sql = "SELECT ee.fk_source AS contract_id, f.rowid, f.ref AS ref, f.ref_client, f.type, f.note_private, f.note_public, f.total AS total_ht, f.tva AS total_vat, f.total_ttc FROM " . MAIN_DB_PREFIX . "facture AS f" .
             " LEFT JOIN " . MAIN_DB_PREFIX . "element_element AS ee ON ee.sourcetype = 'contrat' AND ee.fk_target = f.rowid AND ee.targettype = 'facture'" .
             " WHERE f.fk_statut = 0";
         $resql = $db->query($sql);

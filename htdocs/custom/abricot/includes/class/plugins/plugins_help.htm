@@ -120,9 +120,9 @@ a.opt-name:hover {
   <tr>
     <td>&nbsp;</td>
     <td width="540" class="versioning"><div><span class="txt-small"><span class="attention">Important note:</span> <br>
-      When you use plug-ins with PHP 4 you should code:<br>
+      When you use plug-ins with PHP 4 you should code:<br> 
       <span class="txt-code">&nbsp;&nbsp;TBS =&amp; new clsTinyButStrong;</span> <br>
-      instead of:<br>
+      instead of:<br> 
       <span class="txt-code">&nbsp;&nbsp;TBS = new clsTinyButStrong;<br>
     </span> otherwise some plug-in may not run correctly. This problem does not happens with PHP 5. </span></div></td>
     <td>&nbsp;</td>
@@ -131,27 +131,27 @@ a.opt-name:hover {
 <br>
 <table border="0" cellpadding="4" cellspacing="0">
   <tr>
-	<td width="10" valign="top">&bull;</td>
+  	<td width="10" valign="top">&bull;</td>
     <td valign="top"><a href="#plugin_bypage">ByPage</a></td>
     <td>Enables the  MergeBlock() method to display only a part of the records, instead of all records. </td>
   </tr>
   <tr>
-	<td valign="top">&bull;</td>
+  	<td valign="top">&bull;</td>
     <td valign="top"><a href="#plugin_cache">Cache System</a></td>
     <td>Provides several actions for a small Cache System.</td>
   </tr>
   <tr>
-	<td valign="top">&bull;</td>
+  	<td valign="top">&bull;</td>
     <td valign="top"><a href="#plugin_navbar">NavBar</a></td>
     <td>Displays a navigation bar. </td>
   </tr>
   <tr>
-	<td valign="top">&bull;</td>
-	  <td valign="top"><a href="#plugin_html">Html</a></td>
-	  <td>Selecting HTML items and checking HTML contents.</td>
+  	<td valign="top">&bull;</td>
+   	  <td valign="top"><a href="#plugin_html">Html</a></td>
+   	  <td>Selecting HTML items and checking HTML contents.</td>
   </tr>
   <tr>
-	<td valign="top">&bull;</td>
+  	<td valign="top">&bull;</td>
     <td valign="top"><a href="#plugin_mergeonfly">MergeOnFly</a></td>
     <td>Enables the MergeBlock() method to display data on  fly.</td>
   </tr>
@@ -176,7 +176,7 @@ a.opt-name:hover {
   <br>
   <span class="attention">Important remark:</span> In most of cases, the ByPage mode  costs as much process time as for the normal mode with the same query. This is explained in the chapter &quot;how the ByPage plug-in works?&quot; above. <br>
   <br>
-  <span class="title-1b">Requirement:</span> include the file <span class="tbsname">'tbs_plugin_bypage.php'</span>.
+  <span class="title-1b">Requirement:</span> include the file <span class="tbsname">'tbs_plugin_bypage.php'</span>. 
   This can be after the TBS object variable is created. <br>
   <br>
   <span class="title-1b">Installation mode:</span> automatic when the plug-in command is called for the first time.
@@ -199,7 +199,7 @@ a.opt-name:hover {
     </tr>
     <tr>
       <td align="left" valign="top" class="opt-name">PageNum</td>
-      <td align="left" valign="top">Indicates the number of the page to display. The first page is number 1.
+      <td align="left" valign="top">Indicates the number of the page to display. The first page is number 1. 
       The special value -1 will display the last page of the record set.</td>
     </tr>
     <tr>
@@ -214,15 +214,15 @@ a.opt-name:hover {
   <span class="opt-name">$TBS</span>-&gt;PlugIn(TBS_BYPAGE, <span class="opt-value">20</span>,<span class="opt-value"> 3</span>);<br>
   <span class="opt-name">$TBS</span>-&gt;MergeBlock(<span class="opt-value">'b1'</span>,<span class="opt-value">'mysql'</span>,<span class="opt-value">'SELECT * FROM t_mytable ORDER BY id'</span>);</div>
   <br>
-  <span class="title-1c">How the ByPage plug-in works ?<br>
+  <span class="title-1c">How the ByPage plug-in works ?<br> 
   </span><span class="attention">It's important to notice that this plug-in won't makes the query to run faster.</span> Because all database systems don't have a LIMIT clause for SELECT queries, and because all  queries are not SELECT queries then the plug-in must let the query as is without inserting any LIMIT clause by itself. Thus, the ByPage plug-in just sends the query, reads all records in order, starts to display records when the beginning of the page is reached, and stops to read and display  when the end of the  page is reached. <br>
   That's why <span class="attention">the ByPage plug-in is not convenient to display a page among a large number of records.</span> It's better to use the LIMIT clause of your database system instead (or other  native clause for limiting data).<br>
   <br>
   <span class="title-1c">How to use argument RecCount ?</span> <br>
   You should use RecCount if you need the MergeBlock() method to return the real total number of record (this can be useful when you need to display the page of data noticing the total number of records). In the normal mode, the MergeBlock()
-  method return the total number of records, but in the ByPage mode, it return the number of the last read record, this can be different. But RecCount enables MergBlock() to whether makes a real count or to trust your value.<br>
+  method return the total number of records, but in the ByPage mode, it return the number of the last read record, this can be different. But RecCount enables MergBlock() to whether makes a real count or to trust your value.<br> 
   <br>
-  Value of argument RecCount:<br>
+  Value of argument RecCount:<br> 
   <div class="decal">
     <table border="0" cellpadding="3" cellspacing="0">
 
@@ -247,7 +247,7 @@ a.opt-name:hover {
 &nbsp;&nbsp;<span class="opt-name">$RecCount</span> = <span class="opt-name">$_GET</span>[<span class="opt-value">'nbrtot'</span>];  <span class="opt-html">// MergeBlock() will trus this value.</span> <br>
 } else {<br>
 &nbsp;&nbsp;<span class="opt-name">$RecCount</span> = <span class="opt-value">-1</span>; <span class="opt-html">// Will Force MergeBlock() to count all records.</span> <br>
-}
+} 
     <br>
     include_once(<span class="opt-value">'tbs_plugin_bypage.php'</span>); <br>
     <span class="opt-name">$TBS</span>-&gt;PlugIn(TBS_BYPAGE, <span class="opt-value">20</span>,<span class="opt-value"> 3</span>, <span class="opt-name">$RecCount</span>);<br>
@@ -302,7 +302,7 @@ You can aslo install the plug-in manually in order to specify the default direct
   <br>
   Example :<br>
   <div class="decal txt-code">include_once(<span class="opt-value">'tbs_plugin_cache.php'</span>); <br>
-	<span class="opt-name">$TBS</span>-&gt;PlugIn(TBS_CACHE, <span class="opt-value">'mainpage'</span>, <span class="opt-value">3600</span>);  </div>
+  	<span class="opt-name">$TBS</span>-&gt;PlugIn(TBS_CACHE, <span class="opt-value">'mainpage'</span>, <span class="opt-value">3600</span>);  </div>
   <br>
   <span class="title-1c"><span class="title-1b">Manage a cache file:</span></span><br>
   The Cache System enables you to create, load, update or delete a cache file identified by <span class="txt-code"><span class="opt-name">CacheId</span></span>. There is also an Automatic Mode that let the System manage those actions depending to a max-age of the cache file. <br>
@@ -385,7 +385,7 @@ You can aslo install the plug-in manually in order to specify the default direct
   <span class="title-1c"><a name="plugin_cache_parameters"></a>Setting Cache Sytem parameters:</span><br>
   By installing the plug-in manually, you can  set the default directory and the names of cache files. Take care that you must install the plug-in before to use its command. Installing the plug-in after having called the command will produce an error.
   <br>
-  <br>
+  <br> 
  Install syntax: <span class="txt-code"><span class="opt-name">$TBS</span>-&gt;PlugIn(TBS_INSTALL, TBS_CACHE&nbsp;{,<span class="opt-type"> string</span> <span class="opt-name">Dir</span><span class="opt-name"></span>}{,<span class="opt-type"> string</span> <span class="opt-name">Mask</span>})<br>
 <br>
 </span>
@@ -588,7 +588,7 @@ Example :<br>
 	</table>
 	</div>
 	<br>
-	<span class="title-1c">Options</span><br>
+ 	<span class="title-1c">Options</span><br>
 	<br>
 	The block definition can contain parameters that are specific to the navigation bar.<br>
 	Those options can also be defined as a parameter of the plug-in's command<br>
@@ -654,7 +654,7 @@ Example :<br>
 					<option value="1">Boston
 						<option value="2">Washington
 						<option value="3">New York
-						<option>[var.town_id;ope=html;select]
+						<option>[var.town_id;ope=html;select] 
 					</select>
 				<span class="txt-small">which will become after the merge:</span>
 				<select name="select3" size="4" class="txt-small">

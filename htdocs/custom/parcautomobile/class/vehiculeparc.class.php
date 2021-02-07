@@ -1,5 +1,5 @@
-<?php
-require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+<?php 
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php'; 
 
 dol_include_once('/parcautomobile/class/modeles.class.php');
 dol_include_once('/parcautomobile/class/marques.class.php');
@@ -8,15 +8,15 @@ dol_include_once('/parcautomobile/class/contrat_parc.class.php');
 dol_include_once('/parcautomobile/class/interventions_parc.class.php');
 
 
-class vehiculeparc extends Commonobject{
+class vehiculeparc extends Commonobject{ 
 
 	public $errors = array();
 	public $rowid;
 
 	public $element='vehiculeparc';
 	public $table_element='vehiculeparc';
-
-	public function __construct($db){
+	
+	public function __construct($db){ 
 		$this->db = $db;
 		return 1;
     }
@@ -28,21 +28,21 @@ class vehiculeparc extends Commonobject{
 		$sql  = "INSERT INTO " . MAIN_DB_PREFIX .get_class($this)." ( ";
 
 		$sql.= " plaque, logo, model, conducteur, lieu, date_immatriculation, date_contrat, num_chassi, statut, nb_porte, nb_place, kilometrage, unite, color, value_catalogue, value_residuelle, anne_model, transmission, type_carburant, emission_co2, nb_chevaux, tax, puissance, etiquettes, sendmail)";
-
+		
 		$sql.= " VALUES (";
-
+			
 			$sql.= ($this->plaque?"'".$this->db->escape($this->plaque)."'":"null");
 			$sql.= ", ".($this->logo?"'".$this->db->escape($this->logo)."'":"null");
-			$sql.= ", ".($this->model>0?$this->model:"null");
-			$sql.= ", ".($this->conducteur>0?$this->conducteur:"null");
+			$sql.= ", ".($this->model>0?$this->model:"null");	
+			$sql.= ", ".($this->conducteur>0?$this->conducteur:"null");	
 			$sql.= ", ".($this->lieu?"'".$this->db->escape($this->lieu)."'":"null");
 	        $sql .= ", ".($this->date_immatriculation != '' ? "'".$this->db->idate($this->date_immatriculation)."'" : 'null');
 	        $sql.= ", ".($this->date_contrat != '' ? "'".$this->db->idate($this->date_contrat)."'" : 'null');
-			$sql.= ", ".($this->num_chassi>0?$this->num_chassi:"null");
+			$sql.= ", ".($this->num_chassi>0?$this->num_chassi:"null");	
 			$sql.= ", ".($this->statut?"'".$this->db->escape($this->statut)."'":"null");
-			$sql.= ", ".($this->nb_porte>0?$this->nb_porte:"null");
-			$sql.= ", ".($this->nb_place>0?$this->nb_place:"null");
-			$sql.= ", ".($this->kilometrage>0?$this->kilometrage:"null");
+			$sql.= ", ".($this->nb_porte>0?$this->nb_porte:"null");	
+			$sql.= ", ".($this->nb_place>0?$this->nb_place:"null");	
+			$sql.= ", ".($this->kilometrage>0?$this->kilometrage:"null");	
 			$sql.= ", ".($this->unite?"'".$this->db->escape($this->unite)."'":"null");
 			$sql.= ", ".($this->color?"'".$this->db->escape($this->color)."'":"null");
 			$sql.= ", ".($this->value_catalogue?"'".$this->db->escape($this->value_catalogue)."'":"null");
@@ -50,13 +50,13 @@ class vehiculeparc extends Commonobject{
 			$sql.= ", ".($this->anne_model?"'".$this->db->escape($this->anne_model)."'":"null");
 			$sql.= ", ".($this->transmission?"'".$this->db->escape($this->transmission)."'":"null");
 			$sql.= ", ".($this->type_carburant?"'".$this->db->escape($this->type_carburant)."'":"null");
-
-			$sql.= ", ".($this->emission_co2>0?$this->emission_co2:"null");
-			$sql.= ", ".($this->nb_chevaux>0?$this->nb_chevaux:"null");
-			$sql.= ", ".($this->tax>0?$this->tax:"null");
-			$sql.= ", ".($this->puissance>0?$this->puissance:"null");
+	        
+			$sql.= ", ".($this->emission_co2>0?$this->emission_co2:"null");	
+			$sql.= ", ".($this->nb_chevaux>0?$this->nb_chevaux:"null");	
+			$sql.= ", ".($this->tax>0?$this->tax:"null");	
+			$sql.= ", ".($this->puissance>0?$this->puissance:"null");	
 			$sql.= ", ".($this->etiquettes?"'".$this->db->escape($this->etiquettes)."'":"null");
-			$sql.= ", ".($this->sendmail>0?$this->sendmail:"null");
+			$sql.= ", ".($this->sendmail>0?$this->sendmail:"null");	
 
 		$sql.= ")";
 
@@ -69,7 +69,7 @@ class vehiculeparc extends Commonobject{
 			print_r($this->errors);
 			die();
 			return 0;
-		}
+		} 
 		return $this->db->db->insert_id;
 	}
 
@@ -79,7 +79,7 @@ class vehiculeparc extends Commonobject{
 
 		if (!$id || $id <= 0)
 			return false;
-
+		
 	    $sql = 'UPDATE ' . MAIN_DB_PREFIX .get_class($this). ' SET ';
 
 	   $sql .= "plaque=".($this->plaque ? "'".$this->db->escape($this->plaque)."'":"null").', ';
@@ -121,7 +121,7 @@ class vehiculeparc extends Commonobject{
 			print_r($this->errors);
 			die();
 			return -1;
-		}
+		} 
 		return 1;
 	}
 
@@ -148,7 +148,7 @@ class vehiculeparc extends Commonobject{
 			print_r($this->errors);
 			die();
 			return 0;
-		}
+		} 
 		return $this->db->db->insert_id;
 	}
 
@@ -158,14 +158,14 @@ class vehiculeparc extends Commonobject{
 
 		if (!$id || $id <= 0)
 			return false;
-
+		
 	    $sql = 'UPDATE ' . MAIN_DB_PREFIX .get_class($this). ' SET ';
 
 	    if (count($data) && is_array($data))
 	        foreach ($data as $key => $value) {
 	            $val = is_numeric($value) ? $value : '"'. $value .'"';
-			$val = ($value == '') ? 'NULL' : $val;
-		$sql .= '`'. $key. '` = '. $val .',';
+	        	$val = ($value == '') ? 'NULL' : $val;
+            	$sql .= '`'. $key. '` = '. $val .',';
 	        }
 
 	    $sql  = substr($sql, 0, -1);
@@ -178,7 +178,7 @@ class vehiculeparc extends Commonobject{
 			print_r($this->errors);
 			die();
 			return -1;
-		}
+		} 
 		return 1;
 	}
 
@@ -202,18 +202,18 @@ class vehiculeparc extends Commonobject{
 			// print_r($this->errors);
 			// die();
 	// 		return 0;
-	// 	}
+	// 	} 
 	// 	return $this->db->db->insert_id;
 	// }
-
-
+	
+	
 	public function delete($echo_sql=0)
 	{
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
 		$sql 	= 'DELETE FROM ' . MAIN_DB_PREFIX .get_class($this).' WHERE rowid = ' . $this->rowid;
 		$resql 	= $this->db->query($sql);
-
+		
 		if ($resql)
         {
 	        $sql = "DELETE FROM ".MAIN_DB_PREFIX.$this->table_element."_extrafields";
@@ -222,20 +222,20 @@ class vehiculeparc extends Commonobject{
 	        $resql = $this->db->query($sql);
 	        if (!$resql)
 	        {
-			$this->errors[] = $this->db->lasterror();
-			$error++;
+	        	$this->errors[] = $this->db->lasterror();
+	        	$error++;
 	        }
         }
 		if (!$resql) {
 			$this->db->rollback();
 			$this->errors[] = 'Error '.get_class($this).' : '.$this->db->lasterror();
 			return -1;
-		}
+		} 
 
 		return 1;
 	}
 
-
+    
 	public function fetchAllold($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '', $filtermode = 'AND')
 	{
 		dol_syslog(__METHOD__, LOG_DEBUG);
@@ -253,7 +253,7 @@ class vehiculeparc extends Commonobject{
 			if($offset==1)
 				$sql .= " limit ".$limit;
 			else
-				$sql .= " limit ".$offset.",".$limit;
+				$sql .= " limit ".$offset.",".$limit;				
 		}
 
 		$this->rows = array();
@@ -314,13 +314,13 @@ class vehiculeparc extends Commonobject{
 		$sql .= MAIN_DB_PREFIX .$this->table_element;
 
 		if (!empty($join)) {
-			$sql .= " ".$join;
+			$sql .= " ".$join; 
 		}
-
+		
 		if (!empty($filter)) {
 			$sql .= " WHERE 1>0 ".$filter;
 		}
-
+		
 		if (!empty($sortfield)) {
 			$sql .= $this->db->order($sortfield, $sortorder);
 		}
@@ -329,7 +329,7 @@ class vehiculeparc extends Commonobject{
 			if($offset==1)
 				$sql .= " limit ".$limit;
 			else
-				$sql .= " limit ".$offset.",".$limit;
+				$sql .= " limit ".$offset.",".$limit;				
 		}
 
 		// echo $sql;
@@ -396,7 +396,7 @@ class vehiculeparc extends Commonobject{
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
-
+			
 			if ($numrows) {
 				$obj 			  	  = $this->db->fetch_object($resql);
                 $this->id         	  = $obj->rowid;
@@ -427,7 +427,7 @@ class vehiculeparc extends Commonobject{
 				$this->puissance 			 =  $obj->puissance;
 				$this->sendmail 			 =  $obj->sendmail;
 				$this->fetch_optionals();
-
+				
                 // ....
 			}
 
@@ -454,12 +454,12 @@ class vehiculeparc extends Commonobject{
 	    $nodatarole = '';
 	    $id = (!empty($id)) ? $id : $name;
 
-	    $moreforfilter.='<select width="100%" '.$attr.' class="flat" id="select_'.$id.'" name="'.$name.'">';
+	    $moreforfilter.='<select width="100%" '.$attr.' class="flat minwidth200 maxwidth200" id="select_'.$id.'" name="'.$name.'">';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql = "SELECT * FROM ".MAIN_DB_PREFIX.get_class($this);
+    	$sql = "SELECT * FROM ".MAIN_DB_PREFIX.get_class($this);
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
+    	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
 
@@ -494,10 +494,10 @@ class vehiculeparc extends Commonobject{
         $marq->fetch($id_marq);
 		if (!empty($marq->logo))
 		{
-            $minifile = getImageFileNameForSize($marq->logo, '');
+            $minifile = getImageFileNameForSize($marq->logo, '');  
 
 			$label .= '<div class="photointooltip">';
-			// $label .= Form::showphoto('parcautomobile', $marq, 0, 60, 0, 'photowithmargin photologintooltip', 'small', 0, 1);
+			// $label .= Form::showphoto('parcautomobile', $marq, 0, 60, 0, 'photowithmargin photologintooltip', 'small', 0, 1); 
 			$label .= '<img class="photo photowithmargin " height="60"  title="'.$minifile.'" alt="Fichier binaire" src="'.DOL_URL_ROOT.'/viewimage.php?modulepart=parcautomobile&file=marques/'.$id_marq.'/'.$minifile.'&perm=download" border="0" name="image" >';
 			// Force height to 60 so we total height of tooltip can be calculated and collision can be managed
 			$label .= '</div><div style="clear: both;"></div>';
@@ -515,7 +515,7 @@ class vehiculeparc extends Commonobject{
 			$label .= '<br><b>'.$langs->trans("conducteur").':</b> '.$user_->lastname.' '.$user_->firstname;
 		}
 		$label .= '</div>';
-
+		
 
 
         $linkclose='';
@@ -530,9 +530,9 @@ class vehiculeparc extends Commonobject{
         $result = "";
         $url = dol_buildpath('/parcautomobile/card.php?id='.$this->id,2);
         if(!empty($this->plaque)){
-		$ref=$this->plaque;
+        	$ref=$this->plaque;
         }else
-		$ref=$this->rowid;
+        	$ref=$this->rowid;
         if ($ref) {
             $linkstart = '<a href="'.$url.'"';
 
@@ -541,8 +541,8 @@ class vehiculeparc extends Commonobject{
             $linkend='</a>';
 
             $result .= $linkstart;
-		$result.= $ref;
-		$result .= $linkend;
+        	$result.= $ref;
+        	$result .= $linkend;
         }
 
         return $result;
@@ -554,7 +554,7 @@ class vehiculeparc extends Commonobject{
         $resql = $this->db->query($sql);
 
         if($resql){
-            while ($obj = $this->db->fetch_object($resql))
+            while ($obj = $this->db->fetch_object($resql)) 
             {
                 $tot = $obj->tot;
             }
@@ -563,7 +563,7 @@ class vehiculeparc extends Commonobject{
     }
 
     public function getdateformat($date,$time=true){
-
+        
         $d = explode(' ', $date);
         $date = explode('-', $d[0]);
         $d2 = explode(':', $d[1]);
@@ -607,23 +607,26 @@ class vehiculeparc extends Commonobject{
     }
 
 
-	public function select_conducteur($selected=0,$name='conducteur',$showempty=1,$val="rowid",$opt="label",$id=''){
+	public function select_conducteur($selected=0,$name='conducteur',$showempty=1,$type="Internal"){
 	    global $conf;
 	    $moreforfilter = '';
 	    $nodatarole = '';
 	    $id = (!empty($id)) ? $id : $name;
 	    $objet = "label";
-	    $moreforfilter.='<select class="flat" id="'.$id.'" name="'.$name.'" '.$nodatarole.'>';
+	    $moreforfilter.='<select class="flat minwidth200 maxwidth200" id="'.$name.'" name="'.$name.'" '.$nodatarole.'>';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
-	$resql = $this->db->query($sql);
+    	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+
+    	if($type == 'Internal' || empty($type)) $sql .= ' WHERE fk_soc = 0 OR fk_soc IS NULL ';
+    	elseif($type == 'External') $sql .= ' WHERE fk_soc > 0';
+    	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
-
+			
 			while ($obj = $this->db->fetch_object($resql)) {
-				$moreforfilter.='<option value="'.$obj->$val.'" data-ref="'.$obj->$opt.'"';
-	            if ($obj->$val == $selected) $moreforfilter.=' selected';
+				$moreforfilter.='<option value="'.$obj->rowid.'" data-ref="'.$obj->label.'"';
+	            if ($obj->rowid == $selected) $moreforfilter.=' selected';
 	            $moreforfilter.='>'.$obj->firstname.' '.$obj->lastname.'</option>';
 			}
 			$this->db->free($resql);
@@ -641,13 +644,13 @@ class vehiculeparc extends Commonobject{
 	    $id = (!empty($id)) ? $id : $name;
 
 	    $select = '';
-		$select.='<select class="flat" id="'.$id.'" name="'.$name.'" >';
+		$select.='<select class="flat minwidth200 maxwidth200" id="'.$id.'" name="'.$name.'" >';
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
-	$sql = "SELECT * FROM ".MAIN_DB_PREFIX."societe WHERE fournisseur = 1";
+    	$sql = "SELECT * FROM ".MAIN_DB_PREFIX."societe WHERE fournisseur = 1";
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
-	$select.='<option value="0"></option>';
+    	$resql = $this->db->query($sql);
+    	$select.='<option value="0"></option>'; 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
 			while ($obj = $this->db->fetch_object($resql)) {
@@ -664,7 +667,7 @@ class vehiculeparc extends Commonobject{
 	}
 
 
-
+	
 
 	public function select_etat($value='',$name)
 	{
@@ -672,13 +675,13 @@ class vehiculeparc extends Commonobject{
 			$select.='<option value=""></option>';
 			$select.='<option value="En attent">En attent</option>';
 		$select .= '</select>';
-
+		
 		return $select;
 	}
 
 	public function type_carburant($value='',$name='type_carburant')
 	{
-		$select = '<select name="'.$name.'" id="'.$name.'" >';
+		$select = '<select name="'.$name.'" id="'.$name.'" class="minwidth200 maxwidth200">';
 			$select .='<option value="false"></option>';
 			$select .='<option value="essence">Essence</option>';
 			$select .='<option value="diesel">Diesel</option>';
@@ -687,7 +690,7 @@ class vehiculeparc extends Commonobject{
 			$select .='<option value="hybrid">Hybride</option>';
 		$select .= '</select>';
 			$select=str_replace('value="'.$value.'"', 'value="'.$value.'" selected', $select);
-
+		
 		return $select;
 	}
 
@@ -697,7 +700,7 @@ class vehiculeparc extends Commonobject{
 	// 	$marque = new marques($this->db);
 	// 	$modeles->fetchAll();
 	// 	$select = '<select name="'.$name.'" id="select_'.$name.'" >';
-	// 	for ($i=0; $i < count($modeles->rows); $i++) {
+	// 	for ($i=0; $i < count($modeles->rows); $i++) { 
 	// 		$item=$modeles->rows[$i];
 	// 		$marque->fetch($item->marque);
 	// 		$select.='<option value="'.$item->rowid.'">'.$marque->label.'/'.$item->label.'</option>';
@@ -713,7 +716,7 @@ class vehiculeparc extends Commonobject{
 		}
 		$select='<select name="anne_model" class="select_anne" onchange="change_anne(this)" >';
 		$min=$anne-10;
-		for ($i=$min; $i <= $anne ; $i++) {
+		for ($i=$min; $i <= $anne ; $i++) { 
 			$select.='<option value="'.$i.'">'.$i.'</option>';
 		}
 		$select.='</select>';
@@ -746,7 +749,7 @@ class vehiculeparc extends Commonobject{
 	        $marque->fetch($model->marque);
 	        $nom=$marque->label.'/'.$model->label;
 	        if($ref){
-			$nom.='/'.$vehicule->plaque;
+	        	$nom.='/'.$vehicule->plaque;
 	        }
 		}
         return $nom;
@@ -763,15 +766,15 @@ class vehiculeparc extends Commonobject{
 	        $marque->fetch($model->marque);
 	        $nom=$marque->label.'/'.$model->label;
 	        if($ref){
-			$nom.='/'.$vehicule->plaque;
+	        	$nom.='/'.$vehicule->plaque;
 	        }
 	        $label='';
 	        if (!empty($marque->logo))
 			{
-	            $minifile = getImageFileNameForSize($marque->logo, '');
+	            $minifile = getImageFileNameForSize($marque->logo, '');  
 
 				$label .= '<div class="photointooltip">';
-				// $label .= Form::showphoto('parcautomobile', $marq, 0, 60, 0, 'photowithmargin photologintooltip', 'small', 0, 1);
+				// $label .= Form::showphoto('parcautomobile', $marq, 0, 60, 0, 'photowithmargin photologintooltip', 'small', 0, 1); 
 				$label .= '<img class="photo photowithmargin " height="60"  title="'.$minifile.'" alt="Fichier binaire" src="'.DOL_URL_ROOT.'/viewimage.php?modulepart=parcautomobile&file=marques/'.$marque->rowid.'/'.$minifile.'&perm=download" border="0" name="image" >';
 				// Force height to 60 so we total height of tooltip can be calculated and collision can be managed
 				$label .= '</div><div style="clear: both;"></div>';
@@ -801,11 +804,11 @@ class vehiculeparc extends Commonobject{
 		$costs = new costsvehicule($this->db);
 		$this->fetchAll();
 		for ($i=0; $i < count($this->rows); $i++) {
-		$mont=0;
+		$mont=0; 
 			$vehicule=$this->rows[$i];
 			if($vehicule->rowid){
 				$costs->fetchAll('','',0,0,'AND vehicule ='.$vehicule->rowid.' AND YEAR(date) ="'.$anne.'"');
-				for ($k=0; $k < count($costs->rows); $k++) {
+				for ($k=0; $k < count($costs->rows); $k++) { 
 					$cost=$costs->rows[$k];
 					$mont+=$cost->prix;
 				}
@@ -814,10 +817,10 @@ class vehiculeparc extends Commonobject{
 		}
 		return $data;
 	}
-
+	
 	public function select_unite($value='',$name='unite')
 	{
-		$select .='<select name="'.$name.'" class="'.$name.'" id="select_unite">';
+		$select .='<select name="'.$name.'" class="'.$name.' minwidth100 maxwidth100" id="select_unite">';
 			$select .='<option value=""></option>';
 			$select .='<option value="kilometers">kilomètres</option>';
 			$select .='<option value="miles" >Miles</option>';
@@ -831,14 +834,14 @@ class vehiculeparc extends Commonobject{
 		// if(empty($anne)){
 		// 	$anne=date('Y');
 		// }
-
+	
 		$contrat = new contrat_parc($this->db);
 		$service = new interventions_parc($this->db);
 		$data=[];
 		$contrat->fetchAll('','',0,0,'AND vehicule ='.$vehicule);
 		$service->fetchAll('','',0,0,'AND vehicule ='.$vehicule);
 		$total=0;
-		for ($i=0; $i < count($contrat->rows); $i++) {
+		for ($i=0; $i < count($contrat->rows); $i++) { 
 			$elem = $contrat->rows[$i];
 			if(!empty($elem->services_inclus)){
 				$contrats = json_decode($elem->services_inclus);
@@ -851,8 +854,8 @@ class vehiculeparc extends Commonobject{
 		}
 		$data[$vehicule]['contrat']=$total;
 		$total_2=0;
-
-		for ($k=0; $k < count($service->rows); $k++) {
+		
+		for ($k=0; $k < count($service->rows); $k++) { 
 			$elem = $service->rows[$k];
 			if(!empty($elem->service_inclus)){
 				$services=json_decode($elem->service_inclus);
@@ -869,7 +872,7 @@ class vehiculeparc extends Commonobject{
 
 	public function parcautomobilepermissionto($source){
 	    if(is_dir($source)) {
-		@chmod($source, 0775);
+	    	@chmod($source, 0775);
 	        $dir_handle=opendir($source);
 	        while($file=readdir($dir_handle)){
 	            if($file!="." && $file!=".."){
@@ -886,8 +889,8 @@ class vehiculeparc extends Commonobject{
 	        @chmod($source, 0664);
 	    }
 	}
-
-}
+	
+} 
 
 
 ?>

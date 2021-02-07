@@ -587,7 +587,7 @@ function __construct($Options=null,$VarPrefix='',$FctPrefix='') {
 			}
 			if ($Err) $this->meth_Misc_Alert('with clsTinyButStrong() function','value \''.$Chrs.'\' is a bad tag delimitor definition.');
 		}
-	}
+	} 
 
 	// Set options
 	$this->VarRef =& $GLOBALS;
@@ -599,7 +599,7 @@ function __construct($Options=null,$VarPrefix='',$FctPrefix='') {
 	if (!isset($_TBS_UserFctLst)) $_TBS_UserFctLst = array();
 	if (!isset($_TBS_BlockAlias)) $_TBS_BlockAlias = array();
 	$this->_UserFctLst = &$_TBS_UserFctLst;
-
+	
 	// Auto-installing plug-ins
 	if (isset($_TBS_AutoInstallPlugIns)) foreach ($_TBS_AutoInstallPlugIns as $pi) $this->PlugIn(TBS_INSTALL,$pi);
 
@@ -1017,11 +1017,11 @@ function &meth_Locator_SectionNewBDef(&$LocR,$BlockName,$Txt,$PrmLst,$Cache) {
 		$PrevEnd = -1;
 		$PrevIsAMF = false; // AMF means Attribute Moved Forward
 		while ($Loc = $this->meth_Locator_FindTbs($Txt,$BlockName,$Pos,'.')) {
-
+			
 			$IsAMF = false;
 			$IsAtt = false;
 			$NewIdx = false;
-
+			
 			if ($pi) {
 				$ArgLst[1] = &$Loc;
 				$this->meth_Plugin_RunAll($this->_piOnCacheField,$ArgLst);
@@ -1173,7 +1173,7 @@ function meth_Locator_Replace(&$Txt,&$Loc,&$Value,$SubStart) {
 						$x = call_user_func_array(array(&$Value,$x),$ArgLst);
 					} else {
 						if (!isset($Loc->PrmLst['noerr'])) $this->meth_Misc_Alert($Loc,'\''.$x.'\' is a method and the current TBS settings do not allow to call methods on automatic fields.',true);
-						$x = '';
+						$x = '';	
 					}
 				} elseif (property_exists($Value,$x)) {
 					$x = &$Value->$x;
@@ -1662,7 +1662,7 @@ function meth_Locator_PartAndRename(&$CurrVal, &$PrmLst) {
 
 	// Rename or delete TBS tags names
 	if (isset($PrmLst['rename'])) {
-
+	
 		$Replace = $PrmLst['rename'];
 
 		if (is_string($Replace)) $Replace = explode(',',$Replace);
@@ -1685,7 +1685,7 @@ function meth_Locator_PartAndRename(&$CurrVal, &$PrmLst) {
 					}
 				}
 			}
-		}
+		} 
 
 	}
 
@@ -2983,7 +2983,7 @@ function meth_PlugIn_SetEvent($PlugInId, $Event, $NewRef='') {
 		unset($PropRef[$PlugInId]);
 		return true;
 	}
-
+	
 	// Prepare the reference to be called
 	$PiRef = &$this->_PlugIns[$PlugInId];
 	if (is_object($PiRef)) {
@@ -3008,7 +3008,7 @@ function meth_PlugIn_SetEvent($PlugInId, $Event, $NewRef='') {
 	case 'OnFormat': $this->_piOnFrm_Ok = true; break;
 	default: $this->_PlugIns_Ok = true; break;
 	}
-
+		
 	return true;
 
 }
@@ -3431,7 +3431,7 @@ static function f_Misc_GetFile(&$Res, &$File, $LastFile='', $IncludePath=false, 
 // Load the content of a file into the text variable.
 
 	$Res = '';
-	$fd = self::f_Misc_TryFile($File, false);
+	$fd = self::f_Misc_TryFile($File, false); 
 	if ($fd===false) {
 		if (is_array($IncludePath)) {
 			foreach ($IncludePath as $d) {
@@ -3735,18 +3735,18 @@ static function f_Loc_EnlargeToTag(&$Txt,&$Loc,$TagStr,$RetInnerSrc) {
 			$t = substr($TagStr,0,$p);
 			$TagStr = substr($TagStr,$p+1);
 		}
-		do { // Check parentheses, relative position and single tag
-			$t = trim($t);
-			$e = strlen($t) - 1; // pos of last char
-			if (($e>1) and ($t[0]==='(') and ($t[$e]===')')) {
-				if ($Ref===0) $Ref = $i;
-				if ($Ref===$i) $LevelStop++;
-				$t = substr($t,1,$e-1);
-			} else {
-				if (($e>=0) and ($t[$e]==='/')) $t = substr($t,0,$e); // for compatibilty
-				$e = false;
-			}
-		} while ($e!==false);
+ 		do { // Check parentheses, relative position and single tag
+ 			$t = trim($t);
+	 		$e = strlen($t) - 1; // pos of last char
+	 		if (($e>1) and ($t[0]==='(') and ($t[$e]===')')) {
+	 			if ($Ref===0) $Ref = $i;
+	 			if ($Ref===$i) $LevelStop++;
+	 			$t = substr($t,1,$e-1);
+	 		} else {
+	 			if (($e>=0) and ($t[$e]==='/')) $t = substr($t,0,$e); // for compatibilty
+	 			$e = false;
+	 		}
+ 		} while ($e!==false);
 		if (isset($AliasLst[$t])) {
 			$a = $AliasLst[$t];
 			if (is_string($a)) {
@@ -3763,7 +3763,7 @@ static function f_Loc_EnlargeToTag(&$Txt,&$Loc,$TagStr,$RetInnerSrc) {
 			$i++;
 		}
 	}
-
+	
 	$TagMax = $i-1;
 
 	// Find tags that embeds the locator
@@ -3773,7 +3773,7 @@ static function f_Loc_EnlargeToTag(&$Txt,&$Loc,$TagStr,$RetInnerSrc) {
 	$TagO = self::f_Loc_Enlarge_Find($Txt,$TagLst[$Ref],$TagFct[$Ref],$Loc->PosBeg-1,false,$LevelStop);
 	if ($TagO===false) return false;
 	$PosBeg = $TagO->PosBeg;
-	$LevelStop += -$TagO->RightLevel; // RightLevel=1 only if the tag is single and embeds $Loc, otherwise it is 0
+	$LevelStop += -$TagO->RightLevel; // RightLevel=1 only if the tag is single and embeds $Loc, otherwise it is 0 
 	if ($LevelStop>0) {
 		$TagC = self::f_Loc_Enlarge_Find($Txt,$TagLst[$Ref],$TagFct[$Ref],$Loc->PosEnd+1,true,-$LevelStop);
 		if ($TagC==false) return false;
@@ -3826,7 +3826,7 @@ static function f_Loc_Enlarge_Find($Txt, $Tag, $Fct, $Pos, $Forward, $LevelStop)
 			return false;
 		} else {
 			return (object) array('PosBeg'=>$p, 'PosEnd'=>$p, 'RightLevel'=> 0); // it's a trick
-		}
+		}	
 	}
 }
 
@@ -3890,7 +3890,7 @@ static function f_Xml_AttFind(&$Txt,&$Loc,$Move=false,$AttDelim=false) {
 		}
 		if ($Att==='.') return false;
 	}
-
+		
 	$AttLC = strtolower($Att);
 	if (isset($LocO->PrmLst[$AttLC])) {
 		// The attribute is existing
@@ -3913,7 +3913,7 @@ static function f_Xml_AttFind(&$Txt,&$Loc,$Move=false,$AttDelim=false) {
 		$Loc->AttBeg = false;
 		$Loc->AttName = $Att;
 	}
-
+	
 	// Search for a delimitor
 	if (($Loc->AttDelimCnt==0) and (isset($LocO->PrmPos))) {
 		foreach ($LocO->PrmPos as $p) {
@@ -4049,7 +4049,7 @@ static function f_Xml_GetPart(&$Txt, $TagLst, $AllIfNothing=false) {
 
 	$PosOut = strlen($Txt);
 	$Pos = 0;
-
+	
 	// Optimized search for all tag types
 	do {
 
@@ -4099,7 +4099,7 @@ static function f_Xml_GetPart(&$Txt, $TagLst, $AllIfNothing=false) {
 		}
 
 	} while ($TagMin!==false);
-
+	
 	if ($AllIfNothing and $nothing) return $Txt;
 	return $x;
 
@@ -4165,7 +4165,7 @@ $Opening is used only when $LevelStop=false.
 	$TagL = strlen($Tag);
 	$TagClosingL = strlen($TagClosing);
 	$RightLevel = 0;
-
+	
 	do {
 
 		// Look for the next tag def

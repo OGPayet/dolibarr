@@ -113,9 +113,9 @@ class InterventionSurveyLine extends FichinterLigne
         return $result;
     }
 
-    public function insertExtraFields()
+    public function insertExtraFields($trigger = '', $userused = NULL)
     {
-        $result = parent::insertExtraFields();
+        $result = parent::insertExtraFields($trigger, $userused);
         if($result > 0) {
             removeStaledDataCache($this->id, self::$DB_CACHE_EXTRAFIELDS);
         }

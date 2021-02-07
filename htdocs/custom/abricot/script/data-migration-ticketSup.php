@@ -136,7 +136,7 @@
 
         //pour chaque extrafield, on rajoute la colonne dans la table de ticket standard
         foreach ($TColumnsExtrafields as $column){
-            $sql = "ALTER TABLE ".MAIN_DB_PREFIX."ticket_extrafields ADD ".$column['name']." ".$column['type'];
+            $sql = "ALTER TABLE ".MAIN_DB_PREFIX."ticket_extrafields ADD `".$column['name']."` ".$column['type'];
             $db->query($sql);
         }
     }
@@ -178,14 +178,14 @@
                     $extrafieldName = $column['name'];
                     $TDateFields = array('date_prev', 'deadline', 'date_detection');
 
-				if(in_array($extrafieldName, $TDateFields) && ($object->$extrafieldName === '0000-00-00' || empty($object->$extrafieldName))){
+     				if(in_array($extrafieldName, $TDateFields) && ($object->$extrafieldName === '0000-00-00' || empty($object->$extrafieldName))){
 						$sql.= ", NULL ";
 					}
-				elseif($extrafieldName == 'heure_est'){
+     				elseif($extrafieldName == 'heure_est'){
 						$sql.= ", ".doubleval($object->$extrafieldName);
 					}
                     else{
-			$sql.= ",'".$db->escape($object->$extrafieldName)."'";
+                    	$sql.= ",'".$db->escape($object->$extrafieldName)."'";
 					}
                 }
             }
@@ -204,8 +204,8 @@
         }
 
         if (empty($error_extrafields)) {
-		// euh la définition des extrafields ce serait bien aussi...
-		$sqlextDef = "SELECT * FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype='ticketsup'";
+        	// euh la définition des extrafields ce serait bien aussi...
+        	$sqlextDef = "SELECT * FROM ".MAIN_DB_PREFIX."extrafields WHERE elementtype='ticketsup'";
 			$resqlExtDef = $db->query($sqlextDef);
 			if ($resqlExtDef)
 			{
@@ -348,7 +348,7 @@
 
     if ($resql)
     {
-	$TStatusChange = array(
+    	$TStatusChange = array(
 			0 => 0
 			,1 => 1
 			,2 => 2
@@ -358,7 +358,7 @@
 			,6 => 7
 			,8 => 8
 			,9 => 9
-	);
+    	);
 
         $i = 0;
         $num_rows=$db->num_rows($resql);
@@ -383,24 +383,40 @@
             $sql.= "'".$object->entity."',";
             $sql.= "'".$object->ref."',";
             $sql.= "'".$object->track_id."',";
-            $sql.= "'".$object->fk_soc."',";
-            $sql.= "'".$object->fk_project."',";
+			$sql.= (!empty($object->fk_soc)?intval($object->fk_soc):'NULL').",";
+			$sql.= (!empty($object->fk_project)?intval($object->fk_project):'NULL').",";
             $sql.= "'".$object->origin_email."',";
-            $sql.= "'".$object->fk_user_create."',";
-            $sql.= "'".$object->fk_user_assign."',";
+			$sql.= (!empty($object->fk_user_create)?intval($object->fk_user_create):'NULL').",";
+            $sql.= (!empty($object->fk_user_assign)?intval($object->fk_user_assign):'NULL').",";
             $sql.= "'".$db->escape($object->subject)."',";
             $sql.= "'".$db->escape($object->message)."',";
-            $sql.= "'".$TStatusChange[$object->fk_statut]."',";
+			$sql.= (!empty($TStatusChange[$object->fk_statut])?intval($TStatusChange[$object->fk_statut]):'NULL').",";
             $sql.= intval($object->resolution).",";
             $sql.= "'".$object->progress."',";
             $sql.= "'".$object->timing."',";
             $sql.= "'".$db->escape($object->type_code)."',";
             $sql.= "'".$object->category_code."',";
             $sql.= "'".$object->severity_code."',";
-            $sql.= "'".$object->datec."',";
-            $sql.= "'".$object->date_read."',";
-            $sql.= "'".$object->date_close."',";
-            $sql.= "'',";
+
+			if(empty($object->datec) || $object->datec === '0000-00-00'){
+				$sql.=" NULL,";
+			}else{
+				$sql.= "'".$object->datec."',";
+			}
+
+            if(empty($object->date_read) || $object->date_read === '0000-00-00'){
+				$sql.=" NULL,";
+			}else{
+				$sql.= "'".$object->date_read."',";
+			}
+
+			if(empty($object->date_close) || $object->date_close === '0000-00-00'){
+				$sql.=" NULL,";
+			}else{
+				$sql.= "'".$object->date_close."',";
+			}
+
+            $sql.= " NULL,";
             $sql.= "'".$object->tms."'";
             $sql.= ")";
 
@@ -463,7 +479,7 @@
             //on insère les données de ticketsup dans la table de ticket standard si la note est associée à un ticket
             if(!empty($fk_element)){
 
-                $sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (entity, fk_user_action, datec, note, fk_element, elementtype)";
+                $sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm (entity, fk_user_action, datec, note, fk_element, elementtype, label)";
 
                 $sql.= " VALUES (";
                 $sql.= "'".$entity."',";
@@ -471,7 +487,8 @@
                 $sql.= "'".$datec."',";
                 $sql.= "'".$db->escape($note)."',";
                 $sql.= "'".$fk_element."',";
-                $sql.= "'".$elementtype."'";
+                $sql.= "'".$elementtype."',";
+                $sql.= "''";
                 $sql.= ")";
 
                 $result = $db->query($sql);
@@ -559,3 +576,7 @@
         $db->commit();
         echo 'EXECUTION DU SCRIPT OK';
     }
+
+
+
+

@@ -182,8 +182,12 @@ class DigitalSignaturePeople extends CommonObject
 
 		$this->db = $db;
 
-		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) $this->fields['rowid']['visible'] = 0;
-		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) $this->fields['entity']['enabled'] = 0;
+		if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) {
+			$this->fields['rowid']['visible'] = 0;
+		}
+		if (empty($conf->multicompany->enabled) && isset($this->fields['entity'])) {
+			$this->fields['entity']['enabled'] = 0;
+		}
 
 		// Unset fields that are disabled
 		foreach ($this->fields as $key => $val) {
@@ -193,8 +197,7 @@ class DigitalSignaturePeople extends CommonObject
 		}
 
 		// Translate some data of arrayofkeyval
-		if (is_object($langs))
-		{
+		if (is_object($langs)) {
 			$langs->load("digitalsignaturemanager@digitalsignaturemanager");
 			$this->labelStatus = array(
 				self::STATUS_DRAFT => $langs->trans('DigitalSignaturePeopleDraft'),
@@ -355,8 +358,11 @@ class DigitalSignaturePeople extends CommonObject
 		$sql = 'SELECT ';
 		$sql .= $this->getFieldList();
 		$sql .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
-		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN (' . getEntity($this->table_element) . ')';
-		else $sql .= ' WHERE 1 = 1';
+		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) {
+			$sql .= ' WHERE t.entity IN (' . getEntity($this->table_element) . ')';
+		} else {
+			$sql .= ' WHERE 1 = 1';
+		}
 		// Manage filter
 		$sqlwhere = array();
 		if (count($filter) > 0) {
@@ -440,13 +446,15 @@ class DigitalSignaturePeople extends CommonObject
 	 *  @param  int     $notooltip                  1=Disable tooltip
 	 *  @param  string  $morecss                    Add more css on link
 	 *  @param  int     $save_lastsearch_value      -1=Auto, 0=No save of lastsearch_values when clicking, 1=Save lastsearch_values whenclicking
-	 *  @return	string                              String with URL
+	 *  @return string                              String with URL
 	 */
 	public function getNomUrl($withpicto = 0, $option = '', $notooltip = 0, $morecss = '', $save_lastsearch_value = -1)
 	{
 		global $conf, $langs, $hookmanager;
 
-		if (!empty($conf->dol_no_mouse_hover)) $notooltip = 1; // Force disable tooltips
+		if (!empty($conf->dol_no_mouse_hover)) {
+			$notooltip = 1; // Force disable tooltips
+		}
 
 		$linkedDigitalSignatureRequest = $this->getLinkedDigitalSignatureRequest();
 
@@ -468,8 +476,12 @@ class DigitalSignaturePeople extends CommonObject
 		if ($option != 'nolink') {
 			// Add param to save lastsearch_values or not
 			$add_save_lastsearch_values = ($save_lastsearch_value == 1 ? 1 : 0);
-			if ($save_lastsearch_value == -1 && preg_match('/list\.php/', $_SERVER["PHP_SELF"])) $add_save_lastsearch_values = 1;
-			if ($add_save_lastsearch_values) $url .= '&save_lastsearch_values=1';
+			if ($save_lastsearch_value == -1 && preg_match('/list\.php/', $_SERVER["PHP_SELF"])) {
+				$add_save_lastsearch_values = 1;
+			}
+			if ($add_save_lastsearch_values) {
+				$url .= '&save_lastsearch_values=1';
+			}
 		}
 
 		$linkclose = '';
@@ -480,7 +492,9 @@ class DigitalSignaturePeople extends CommonObject
 			}
 			$linkclose .= ' title="' . dol_escape_htmltag($label, 1) . '"';
 			$linkclose .= ' class="classfortooltip' . ($morecss ? ' ' . $morecss : '') . '"';
-		} else $linkclose = ($morecss ? ' class="' . $morecss . '"' : '');
+		} else {
+			$linkclose = ($morecss ? ' class="' . $morecss . '"' : '');
+		}
 
 		$linkstart = '<a href="' . $url . '"';
 		$linkstart .= $linkclose . '>';
@@ -489,7 +503,9 @@ class DigitalSignaturePeople extends CommonObject
 		$result .= $linkstart;
 
 		if (empty($this->showphoto_on_popup)) {
-			if ($withpicto) $result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="' . (($withpicto != 2) ? 'paddingright ' : '') . 'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
+			if ($withpicto) {
+				$result .= img_object(($notooltip ? '' : $label), ($this->picto ? $this->picto : 'generic'), ($notooltip ? (($withpicto != 2) ? 'class="paddingright"' : '') : 'class="' . (($withpicto != 2) ? 'paddingright ' : '') . 'classfortooltip"'), 0, 0, $notooltip ? 0 : 1);
+			}
 		} else {
 			if ($withpicto) {
 				require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
@@ -515,7 +531,9 @@ class DigitalSignaturePeople extends CommonObject
 			}
 		}
 
-		if ($withpicto != 2) $result .= $linkedDigitalSignatureRequest->ref;
+		if ($withpicto != 2) {
+			$result .= $linkedDigitalSignatureRequest->ref;
+		}
 
 		$result .= $linkend;
 
@@ -523,8 +541,11 @@ class DigitalSignaturePeople extends CommonObject
 		$hookmanager->initHooks(array('digitalsignaturepeopledao'));
 		$parameters = array('id' => $this->id, 'getnomurl' => $result);
 		$reshook = $hookmanager->executeHooks('getNomUrl', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
-		if ($reshook > 0) $result = $hookmanager->resPrint;
-		else $result .= $hookmanager->resPrint;
+		if ($reshook > 0) {
+			$result = $hookmanager->resPrint;
+		} else {
+			$result .= $hookmanager->resPrint;
+		}
 
 		return $result;
 	}
@@ -541,8 +562,8 @@ class DigitalSignaturePeople extends CommonObject
 	/**
 	 *  Return label of the status
 	 *
-	 *  @param  int		$mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
-	 *  @return	string 			       Label of status
+	 *  @param  int     $mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
+	 *  @return string                 Label of status
 	 */
 	public function getLibStatut($mode = 0)
 	{
@@ -553,9 +574,9 @@ class DigitalSignaturePeople extends CommonObject
 	/**
 	 *  Return the status
 	 *
-	 *  @param	int		$status        Id status
-	 *  @param  int		$mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
-	 *  @return string 			       Label of status
+	 *  @param  int     $status        Id status
+	 *  @param  int     $mode          0=long label, 1=short label, 2=Picto + short label, 3=Picto, 4=Picto + long label, 5=Short label + Picto, 6=Long label + Picto
+	 *  @return string                 Label of status
 	 */
 	public function LibStatut($status, $mode = 0)
 	{
@@ -567,13 +588,27 @@ class DigitalSignaturePeople extends CommonObject
 		if (version_compare(DOL_VERSION, '12.0.0', '<')) {
 			$statusPicto = str_replace("status", "statut", $this->statusType[$status]);
 
-			if ($mode == 0)	return $labelStatus;
-			if ($mode == 1)	return $labelStatusShort;
-			if ($mode == 2)	return img_picto($labelStatusShort, $statusPicto) . ' ' . $labelStatusShort;
-			if ($mode == 3)	return img_picto($labelStatus,  $statusPicto);
-			if ($mode == 4)	return img_picto($labelStatus,  $statusPicto) . ' ' . $labelStatus;
-			if ($mode == 5)	return '<span class="hideonsmartphone">' . $labelStatusShort . ' </span>' . img_picto($labelStatus,  $statusPicto);
-			if ($mode == 6)	return '<span class="hideonsmartphone">' . $labelStatus . ' </span>' . img_picto($labelStatus,  $statusPicto);
+			if ($mode == 0) {
+				return $labelStatus;
+			}
+			if ($mode == 1) {
+				return $labelStatusShort;
+			}
+			if ($mode == 2) {
+				return img_picto($labelStatusShort, $statusPicto) . ' ' . $labelStatusShort;
+			}
+			if ($mode == 3) {
+				return img_picto($labelStatus, $statusPicto);
+			}
+			if ($mode == 4) {
+				return img_picto($labelStatus, $statusPicto) . ' ' . $labelStatus;
+			}
+			if ($mode == 5) {
+				return '<span class="hideonsmartphone">' . $labelStatusShort . ' </span>' . img_picto($labelStatus, $statusPicto);
+			}
+			if ($mode == 6) {
+				return '<span class="hideonsmartphone">' . $labelStatus . ' </span>' . img_picto($labelStatus, $statusPicto);
+			}
 		} else {
 			return dolGetStatus($labelStatus, $labelStatusShort, '', $this->statusType[$status], $mode);
 		}
@@ -590,9 +625,9 @@ class DigitalSignaturePeople extends CommonObject
 
 	/**
 	 * Function to manage start of signature process
-	 * 	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 *  @param  User    $user           Object user that modify
+	 *  @param  int     $notrigger      1=Does not execute triggers, 0=Execute triggers
+	 *  @return int                     <0 if KO, 0=Nothing done, >0 if OK
 	 */
 	public function manageStartOfLinkedSignatureRequest($user, $notrigger = false)
 	{
@@ -601,9 +636,9 @@ class DigitalSignaturePeople extends CommonObject
 
 	/**
 	 * Function to indicate that this signatory people should sign now
-	 * 	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 *  @param  User    $user           Object user that modify
+	 *  @param  int     $notrigger      1=Does not execute triggers, 0=Execute triggers
+	 *  @return int                     <0 if KO, 0=Nothing done, >0 if OK
 	 */
 	public function managePeopleShouldSignNow($user, $notrigger = false)
 	{
@@ -612,9 +647,9 @@ class DigitalSignaturePeople extends CommonObject
 
 	/**
 	 * Function to manage people that successfully signed
-	 * 	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 *  @param  User    $user           Object user that modify
+	 *  @param  int     $notrigger      1=Does not execute triggers, 0=Execute triggers
+	 *  @return int                     <0 if KO, 0=Nothing done, >0 if OK
 	 */
 	public function manageSuccessfullySigned($user, $notrigger = false)
 	{
@@ -623,9 +658,9 @@ class DigitalSignaturePeople extends CommonObject
 
 	/**
 	 * Function to manage people that refused to sign
-	 * 	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 *  @param  User    $user           Object user that modify
+	 *  @param  int     $notrigger      1=Does not execute triggers, 0=Execute triggers
+	 *  @return int                     <0 if KO, 0=Nothing done, >0 if OK
 	 */
 	public function manageRefusedToSign($user, $notrigger = false)
 	{
@@ -634,9 +669,9 @@ class DigitalSignaturePeople extends CommonObject
 
 	/**
 	 * Function to manage people that can't signed because somebody refused to sign before
-	 * 	@param	User	$user			Object user that modify
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK
+	 *  @param  User    $user           Object user that modify
+	 *  @param  int     $notrigger      1=Does not execute triggers, 0=Execute triggers
+	 *  @return int                     <0 if KO, 0=Nothing done, >0 if OK
 	 */
 	public function manageUserCantHaveSigned($user, $notrigger = false)
 	{
@@ -645,10 +680,10 @@ class DigitalSignaturePeople extends CommonObject
 
 	/**
 	 * Function to manage status change with proper trigger
-	 * 	@param	User	$user			Object user that modify
-	 * 	@param	string	$statusValue	status code value
-	 *  @param	int		$notrigger		1=Does not execute triggers, 0=Execute triggers
-	 *	@return	int						<0 if KO, 0=Nothing done, >0 if OK$
+	 *  @param  User    $user           Object user that modify
+	 *  @param  string  $statusValue    status code value
+	 *  @param  int     $notrigger      1=Does not execute triggers, 0=Execute triggers
+	 *  @return int                     <0 if KO, 0=Nothing done, >0 if OK$
 	 */
 	public function setStatus($user, $statusValue, $notrigger = false)
 	{
@@ -736,7 +771,7 @@ class DigitalSignaturePeople extends CommonObject
 		global $langs;
 		$errors = array();
 		// if(empty($this->phoneNumber)) {
-		// 	$errors[] = $langs->trans('DigitalSignaturePeopleMissingPhoneNumber', $this->displayName(""));
+		//  $errors[] = $langs->trans('DigitalSignaturePeopleMissingPhoneNumber', $this->displayName(""));
 		// }
 		return $errors;
 	}
@@ -917,10 +952,10 @@ class DigitalSignaturePeople extends CommonObject
 	/**
 	 * Clone an object into another one
 	 *
-	 * @param  	User 	$user      	User that creates
-	 * @param  	int 	$fromid     Id of object to clone
-	 * @param 	int     $newDigitalSignatureRequestId change digital signature request id with this id
-	 * @return 	mixed 				New object created, <0 if KO
+	 * @param   User    $user       User that creates
+	 * @param   int     $fromid     Id of object to clone
+	 * @param   int     $newDigitalSignatureRequestId change digital signature request id with this id
+	 * @return  mixed               New object created, <0 if KO
 	 */
 	public function createFromClone(User $user, $fromid, $newDigitalSignatureRequestId = 0)
 	{

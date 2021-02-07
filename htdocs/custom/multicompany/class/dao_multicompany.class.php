@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2009-2017 Regis Houssin <regis.houssin@inodbox.com>
+/* Copyright (C) 2009-2020 Regis Houssin <regis.houssin@inodbox.com>
  * Copyright (C) 2011      Herve Prot    <herve.prot@symeos.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,26 +31,20 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
  */
 class DaoMulticompany extends CommonObject
 {
-	var $db;
-	var $error;
-	var $errors=array();
-	//! Numero de l'erreur
-	var $errno = 0;
+    public $element = 'entity'; // !< Id that identify managed objects
+    public $table_element = 'entity'; // !< Name of table without prefix where object is stored
 
-	var $id;
-	var $label;
-	var $description;
+	public $id;
+	public $label;
+	public $description;
 
-	var $options=array();
-	var $options_json;
+	public $options=array();
+	public $options_json;
 
-	var $entity=array();
-	var $entities=array();
+	public $entity=array();
+	public $entities=array();
 
-	var $fk_tables=array();
-
-	var $element = 'entity'; // !< Id that identify managed objects
-	var $table_element = 'entity'; // !< Name of table without prefix where object is stored
+	public $fk_tables=array();
 
 	public $visible;
 	public $active;
@@ -63,190 +57,161 @@ class DaoMulticompany extends CommonObject
 	 *
 	 *	@param	DoliDB	$db		Database handler
 	 */
-	function __construct($db)
+	public function __construct($db)
 	{
 		$this->db = $db;
 
 		$this->fk_tables = array(
-				'societe' => array(
-						'key' => 'fk_soc',
-						'childs' => array(
-								'societe_address',
-								'societe_commerciaux',
-								'societe_log',
-								'societe_prices',
-								'societe_remise',
-								'societe_remise_except',
-								'societe_rib',
-								'socpeople'
-						)
-				),
-				'product' => array(
-						'key' => 'fk_product',
-						'childs' => array(
-								'product_ca',
-								'product_lang',
-								'product_price',
-								'product_stock',
-								'product_fournisseur_price' => array(
-										'key' => 'fk_product_fournisseur',
-										'childs' => array('product_fournisseur_price_log')
-								),
-						)
-				),
-				'projet' => array(
-						'key' => 'fk_projet',
-						'childs' => array(
-								'projet_task' => array(
-										'key' => 'fk_task',
-										'childs' => array('projet_task_time')
-								)
-						)
+			'societe' => array(
+				'key' => 'fk_soc',
+				'childs' => array(
+					'societe_address',
+					'societe_commerciaux',
+					'societe_log',
+					'societe_prices',
+					'societe_remise',
+					'societe_remise_except',
+					'societe_rib',
+					'socpeople'
 				)
+			),
+			'product' => array(
+				'key' => 'fk_product',
+				'childs' => array(
+					'product_ca',
+					'product_lang',
+					'product_price',
+					'product_stock',
+					'product_fournisseur_price' => array(
+						'key' => 'fk_product_fournisseur',
+						'childs' => array('product_fournisseur_price_log')
+					),
+				)
+			),
+			'projet' => array(
+				'key' => 'fk_projet',
+				'childs' => array(
+					'projet_task' => array(
+						'key' => 'fk_task',
+						'childs' => array('projet_task_time')
+					)
+				)
+			)
 		);
 	}
 
 	/**
-	 *    Fetch entity
+	 * Fetch entity
 	 *
 	 * @param int $id
 	 * @return int
 	 */
-	function fetch($id)
+	public function fetch($id)
 	{
-		global $conf,$langs,$user;
+		global $user;
 
-		$this->entity=array();
-
-		$sql = "SELECT rowid, label, description, options, visible, active";
-		$sql.= " FROM ".MAIN_DB_PREFIX."entity";
-		$sql.= " WHERE rowid = ".$id;
-
-		$result = $this->db->query($sql);
-		if ($result)
+		//clearCache($id);
+		if ($cache = getCache($id))
 		{
-			if ($this->db->num_rows($result))
+			foreach ($cache as $key => $value)
 			{
-				$obj = $this->db->fetch_object($result);
-
-				$this->id			= $obj->rowid;
-				$this->label		= $obj->label;
-				$this->description 	= $obj->description;
-				$this->options		= json_decode($obj->options, true);
-				$this->visible 		= $obj->visible;
-				$this->active		= $obj->active;
-
-				if (! empty($this->options))
-				{
-					// for backward compatibility
-					if (array_key_exists('referent', $this->options['sharings']))
-					{
-						if (empty($this->options['referent']))
-						{
-							$this->options['referent'] = $this->options['sharings']['referent'];
-						}
-						unset($this->options['sharings']['referent']);
-					}
-
-					// for backward compatibility
-					if (array_key_exists('societe', $this->options['sharings']))
-					{
-						if (empty($this->options['sharings']['thirdparty']))
-						{
-							$this->options['sharings']['thirdparty'] = $this->options['sharings']['societe'];
-						}
-						unset($this->options['sharings']['societe']);
-					}
-
-					// for backward compatibility
-					if (array_key_exists('bank_account', $this->options['sharings']))
-					{
-						if (empty($this->options['sharings']['bankaccount']))
-						{
-							$this->options['sharings']['bankaccount'] = $this->options['sharings']['bank_account'];
-						}
-						unset($this->options['sharings']['bank_account']);
-					}
-				}
-
-				// constantes if connected
-				if (! empty($user->login))
-				{
-					require_once(DOL_DOCUMENT_ROOT."/core/lib/company.lib.php");
-
-					$sql = "SELECT ";
-					$sql.= $this->db->decrypt('name')." as name";
-					$sql.= ", ".$this->db->decrypt('value')." as value";
-					$sql.= " FROM ".MAIN_DB_PREFIX."const";
-					$sql.= " WHERE ".$this->db->decrypt('name')." LIKE 'MAIN_%'";
-					$sql.= " AND entity = ".$obj->rowid;
-
-					$result = $this->db->query($sql);
-					if ($result)
-					{
-						$num=$this->db->num_rows($result);
-						$i=0;
-
-						while ($i < $num)
-						{
-							$obj = $this->db->fetch_object($result);
-
-							if (preg_match('/^MAIN_INFO_SOCIETE_COUNTRY$/i',$obj->name))
-							{
-								$tmp=explode(':',$obj->value);
-								$country_id=$tmp[0];
-								$country_code=$tmp[1];
-								$this->country = getCountry($country_id);
-								$this->country_id = $country_id;
-								$this->country_code = $country_code;
-							}
-							else if (preg_match('/^MAIN_MONNAIE$/i',$obj->name))
-							{
-								$this->currency = currency_name($obj->value);
-							}
-							else if (preg_match('/^MAIN_LANG_DEFAULT$/i',$obj->name))
-							{
-								$s=picto_from_langcode($obj->value);
-								$language=($s?$s.' ':'');
-								$language.=($obj->value=='auto'?$langs->trans("AutoDetectLang"):$langs->trans("Language_".$obj->value));
-								$this->language = $language;
-							}
-
-							$constname = $obj->name;
-							$this->$constname = $obj->value;
-
-							$i++;
-						}
-					}
-				}
-
-				$this->fetch_optionals();
-				// $extrafields = new ExtraFields($this->db);
-				// $extralabels = $extrafields->fetch_name_optionals_label($this->table_element, true);
-				// if (count($extralabels) > 0) {
-				// 	$this->fetch_optionals($this->id, $extralabels);
-				// }
-
-				return 1;
-			}
-			else
-			{
-				return -2;
+				$this->$key = $value;
 			}
 		}
 		else
 		{
-			return -3;
+			$sql = "SELECT rowid, label, description, options, visible, active";
+			$sql.= " FROM ".MAIN_DB_PREFIX."entity";
+			$sql.= " WHERE rowid = ".$id;
+
+			$result = $this->db->query($sql);
+			if ($result)
+			{
+				if ($this->db->num_rows($result))
+				{
+					$obj = $this->db->fetch_object($result);
+
+					$this->id			= $obj->rowid;
+					$this->label		= $obj->label;
+					$this->description 	= $obj->description;
+					$this->options		= json_decode($obj->options, true);
+					$this->visible 		= $obj->visible;
+					$this->active		= $obj->active;
+
+					if (is_array($this->options) && ! empty($this->options) && is_array($this->options['sharings']))
+					{
+						// for backward compatibility
+						if (array_key_exists('referent', $this->options['sharings']))
+						{
+							if (empty($this->options['referent']))
+							{
+								$this->options['referent'] = $this->options['sharings']['referent'];
+							}
+							unset($this->options['sharings']['referent']);
+						}
+
+						// for backward compatibility
+						if (array_key_exists('societe', $this->options['sharings']))
+						{
+							if (empty($this->options['sharings']['thirdparty']))
+							{
+								$this->options['sharings']['thirdparty'] = $this->options['sharings']['societe'];
+							}
+							unset($this->options['sharings']['societe']);
+						}
+
+						// for backward compatibility
+						if (array_key_exists('bank_account', $this->options['sharings']))
+						{
+							if (empty($this->options['sharings']['bankaccount']))
+							{
+								$this->options['sharings']['bankaccount'] = $this->options['sharings']['bank_account'];
+							}
+							unset($this->options['sharings']['bank_account']);
+						}
+					}
+
+					$this->fetch_optionals();
+
+					$cache = array(
+						'id'			=> $this->id,
+						'label'			=> $this->label,
+						'description'	=> $this->description,
+						'options'		=> $this->options,
+						'visible'		=> $this->visible,
+						'active'		=> $this->active,
+						'array_options'	=> $this->array_options
+					);
+
+					setCache($this->id, $cache);
+				}
+				else
+				{
+					return -2;
+				}
+			}
+			else
+			{
+				return -3;
+			}
 		}
+
+		if (! empty($user->login))
+		{
+			$this->getConstants();
+		}
+
+		return 1;
 	}
 
 	/**
-	 *    Create entity
+	 * Create entity
 	 *
-	 * @param User $user
-	 * @return int
+	 * @param  User    $user           Object of user that ask creation
+	 * @param  int     $call_trigger   false = no, true = yes
+	 * @return int                     >= 0 if OK, < 0 if KO
 	 */
-	function create($user)
+	public function create(User $user, $call_trigger = true)
 	{
 		global $conf;
 
@@ -277,8 +242,8 @@ class DaoMulticompany extends CommonObject
 		$sql.= ", '".$this->db->idate($now)."'";
 		$sql.= ", ".$user->id;
 		$sql.= ", '".$this->db->escape($this->options_json)."'";
-		$sql.= ", 0";
-		$sql.= ", 0";
+		$sql.= ", ".(! empty($this->visible)?$this->db->escape($this->visible):0);
+		$sql.= ", ".(! empty($this->active)?$this->db->escape($this->active):0);
 		$sql.= ")";
 
 		dol_syslog(get_class($this)."::create sql=".$sql, LOG_DEBUG);
@@ -300,6 +265,14 @@ class DaoMulticompany extends CommonObject
 			dol_syslog(get_class($this)."::Create success id=".$this->id);
 		}
 
+		if (!$error && $call_trigger)
+		{
+		    // Call trigger
+		    $result = $this->call_trigger('MULTICOMPANY_CREATE', $user);
+		    if ($result < 0) $error++;
+		    // End call triggers
+		}
+
 		if (empty($error)) {
 			$this->db->commit();
             return $this->id;
@@ -310,22 +283,23 @@ class DaoMulticompany extends CommonObject
 			$this->db->rollback();
 			return -1;
 		}
-
-
 	}
 
 	/**
-	 *    Update entity
+	 * Update entity
 	 *
-	 * @param int $id
-	 * @param User $user
-	 * @return int
+	 * @param  int     $id             Id of entity (deprecated, use 0 here and call update on an object loaded by a fetch)
+	 * @param  User    $user           User who requests the update
+	 * @param  int     $call_trigger   false = no, true = yes
+	 * @return int                     <0 if KO, >=0 if OK
 	 */
-	function update($id, $user)
+	public function update($id, User $user, $call_trigger = true)
 	{
 		global $conf;
 
 		$error=0;
+
+		if (empty($id)) $id = $this->id;
 
 		// Clean parameters
 		$this->label 		= trim($this->label);
@@ -359,8 +333,18 @@ class DaoMulticompany extends CommonObject
 			}
 		}
 
+		if (!$error && $call_trigger)
+		{
+		    // Call trigger
+		    $result = $this->call_trigger('MULTICOMPANY_MODIFY', $user);
+		    if ($result < 0) $error++;
+		    // End call triggers
+		}
+
 		if (empty($error)) {
 			$this->db->commit();
+			clearCache($id);
+			clearCache('constants_' . $id);
             return 1;
 		}
 		else
@@ -372,29 +356,54 @@ class DaoMulticompany extends CommonObject
 	}
 
 	/**
-	 *    Delete entity
+	 * Delete entity
 	 *
-	 * @param int $id
-	 * @return int
+	 * @param  int     $id             Id of entity to delete
+	 * @param  int     $call_trigger   false = no, true = yes
+	 * @return int                     <0 if KO, >0 if OK
 	 */
-	function delete($id)
+	public function delete($id, $call_trigger = true)
 	{
+	    global $user;
+
 		$error=0;
 
 		$this->db->begin();
 
-		$sql = "DELETE FROM ".MAIN_DB_PREFIX."const";
-		$sql.= " WHERE entity = " . $id;
-		dol_syslog(get_class($this)."::Delete sql=".$sql, LOG_DEBUG);
-		if ($this->db->query($sql))
+		if (!$error && $call_trigger)
 		{
-			// TODO remove records of all tables
+		    // Call trigger
+		    $result = $this->call_trigger('MULTICOMPANY_DELETE', $user);
+		    if ($result < 0) $error++;
+		    // End call triggers
 		}
-		else
+
+		if (! $error)
 		{
-			$error++;
-			$this->error .= $this->db->lasterror();
-			dol_syslog(get_class($this)."::Delete erreur -1 ".$this->error, LOG_ERR);
+		    $sql = "DELETE FROM ".MAIN_DB_PREFIX."const";
+		    $sql.= " WHERE entity = " . $id;
+		    dol_syslog(get_class($this)."::Delete sql=".$sql, LOG_DEBUG);
+		    if ($this->db->query($sql))
+		    {
+		        // TODO remove records of all tables
+		    }
+		    else
+		    {
+		        $error++;
+		        $this->error .= $this->db->lasterror();
+		        dol_syslog(get_class($this)."::Delete erreur -1 ".$this->error, LOG_ERR);
+		    }
+		}
+
+		// Removed extrafields
+		if (!$error)
+		{
+		    $result = $this->deleteExtraFields();
+		    if ($result < 0)
+		    {
+		        $error++;
+		        dol_syslog(get_class($this)."::delete error -2 ".$this->error, LOG_ERR);
+		    }
 		}
 
 		if (! $error)
@@ -409,23 +418,12 @@ class DaoMulticompany extends CommonObject
 			}
 		}
 
-		if (! $error) {
-			$sql = "DELETE FROM " . MAIN_DB_PREFIX . "entity_extrafields";
-			$sql .= " WHERE fk_object=" . $id;
-
-			dol_syslog(get_class($this) . "::delete sql=" . $sql);
-			$resql = $this->db->query($sql);
-			if (! $resql) {
-				$error ++;
-				$this->error .= $this->db->lasterror();
-				dol_syslog(get_class($this)."::Delete erreur -2 ".$this->error, LOG_ERR);
-			}
-		}
-
 		if (! $error)
 		{
 			dol_syslog(get_class($this)."::Delete success id=".$id);
 			$this->db->commit();
+			clearCache($id);
+			clearCache('constants_' . $id);
             return 1;
 		}
 		else
@@ -437,19 +435,118 @@ class DaoMulticompany extends CommonObject
 	}
 
 	/**
+	 *
+	 *
+	 */
+	public function getConstants()
+	{
+		$key = 'constants_' . $this->id;
+		//clearCache('constants_' . $this->id);
+
+		if ($cache = getCache($key))
+		{
+			foreach ($cache as $key => $value)
+			{
+				$this->$key = $value;
+			}
+		}
+		else
+		{
+			$cache=array();
+
+			$sql = "SELECT ";
+			$sql.= $this->db->decrypt('name')." as name";
+			$sql.= ", ".$this->db->decrypt('value')." as value";
+			$sql.= " FROM ".MAIN_DB_PREFIX."const";
+			$sql.= " WHERE entity = ".$this->id;
+			$sql.= " AND ".$this->db->decrypt('name')." LIKE 'MAIN_%'";
+
+			$result = $this->db->query($sql);
+			if ($result)
+			{
+				$num=$this->db->num_rows($result);
+				$i=0;
+
+				while ($i < $num)
+				{
+					$obj = $this->db->fetch_object($result);
+
+					if ($obj->name === 'MAIN_INFO_SOCIETE_COUNTRY')
+					{
+						$tmp = explode(':', $obj->value);
+						$this->country_id	= $tmp[0];
+						$cache['country_id'] = $this->country_id;
+						$this->country_code	= $tmp[1];
+						$cache['country_code'] = $this->country_code;
+					}
+					else if ($obj->name === 'MAIN_MONNAIE')
+					{
+						$this->currency_code = $obj->value;
+						$cache['currency_code'] = $this->currency_code;
+					}
+					else if ($obj->name === 'MAIN_LANG_DEFAULT')
+					{
+						$this->language_code = $obj->value;
+						$cache['language_code'] = $this->language_code;
+					}
+					else if ($obj->name === 'MAIN_INFO_SOCIETE_NOM')
+					{
+						$this->name	= $obj->value;
+						$cache['name'] = $this->name;
+					}
+					else if ($obj->name === 'MAIN_INFO_SOCIETE_ZIP')
+					{
+						$this->zip = $obj->value;
+						$cache['zip'] = $this->zip;
+					}
+					else if ($obj->name === 'MAIN_INFO_SOCIETE_ADDRESS')
+					{
+						$this->address = $obj->value;
+						$cache['address'] = $this->address;
+					}
+					else if ($obj->name === 'MAIN_INFO_SOCIETE_TOWN')
+					{
+						$this->town = $obj->value;
+						$cache['town'] = $this->town;
+					}
+					else if ($obj->name === 'MAIN_INFO_SOCIETE_STATE')
+					{
+						$this->state_id	= $obj->value;
+						$cache['state_id'] = $this->state_id;
+					}
+
+					$constname = $obj->name;
+					$this->$constname = $obj->value;
+					$cache[$constname] = $this->$constname;
+
+					$i++;
+				}
+
+				setCache($key, $cache);
+			}
+			else
+			{
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+
+	/**
 	 *	Remove all records of an entity
 	 *
 	 *	@param	int		$id		Entity id
 	 *	@return	int
 	 */
-	function deleteEntityRecords($id)
+	private function deleteEntityRecords($id)
 	{
 		$error=1;
 
 		$this->db->begin();
 
 		$tables = $this->db->DDLListTables($this->db->database_name);
-		if (is_array($tables) && !empty($tables))
+		if (is_array($tables) && ! empty($tables))
 		{
 			foreach($tables as $table)
 			{
@@ -460,7 +557,7 @@ class DaoMulticompany extends CommonObject
 					{
 						$tablewithoutprefix = str_replace(MAIN_DB_PREFIX, '', $table);
 						$objIds = $this->getIdByForeignKey($tablewithoutprefix, $id);
-						if (!empty($objIds))
+						if (! empty($objIds))
 						{
 							if (array_key_exists($tablewithoutprefix, $this->fk_tables))
 							{
@@ -469,7 +566,7 @@ class DaoMulticompany extends CommonObject
 								foreach($this->fk_tables[$tablewithoutprefix]['childs'] as $childTable => $child)
 								{
 									// Level 1
-									if (!is_int($childTable) && is_array($child))
+									if (! is_int($childTable) && is_array($child))
 									{
 										echo 'childTableLevel1='.$childTable.'<br>';
 										$objLevel1Ids = array();
@@ -569,8 +666,10 @@ class DaoMulticompany extends CommonObject
 	private function getIdByForeignKey($table, $id, $foreignkey = 'entity', $fieldname = 'rowid')
 	{
 		$objIds=array();
+		$foreignkey = (! empty($foreignkey) ? $foreignkey : 'entity');
+		$fieldname = (! empty($fieldname) ? $fieldname : 'rowid');
 
-		$sql = "SELECT " . $fieldname . " FROM " . MAIN_DB_PREFIX .$table;
+		$sql = "SELECT " . $fieldname . " FROM " . MAIN_DB_PREFIX . $table;
 		$sql.= " WHERE " . $foreignkey . " = " . $id;
 		//echo $sql.'<br>';
 		$resql = $this->db->query($sql);
@@ -581,7 +680,7 @@ class DaoMulticompany extends CommonObject
 			while ($i < $num)
 			{
 				$obj = $this->db->fetch_object($resql);
-				$objIds[] = $obj->rowid;
+				$objIds[] = $obj->$fieldname;
 				$i++;
 			}
 		}
@@ -590,28 +689,27 @@ class DaoMulticompany extends CommonObject
 	}
 
 	/**
-	 *    Enable/disable entity
+	 *    Set status of an entity
 	 *
-	 * @param    int $id
-	 * @param    string $type
-	 * @param    string $value
+	 * @param    int $id			Id of entity
+	 * @param    string $type	Type of status (visible or active)
+	 * @param    string $value	Value of status (0: disable, 1: enable)
 	 * @return int
 	 */
-	function setEntity($id, $type='active', $value)
+	public function setEntity($id, $type='active', $value)
 	{
-		global $conf;
-
 		$this->db->begin();
 
 		$sql = "UPDATE ".MAIN_DB_PREFIX."entity";
-		$sql.= " SET ".$type." = ".$value;
-		$sql.= " WHERE rowid = ".$id;
+		$sql.= " SET " . $this->db->escape($type) . " = " . (int) $value;
+		$sql.= " WHERE rowid = " . (int) $id;
 
 		dol_syslog(get_class($this)."::setEntity sql=".$sql, LOG_DEBUG);
 		$result = $this->db->query($sql);
 		if ($result)
 		{
 			$this->db->commit();
+			clearCache($id);
 			return 1;
 		}
 		else
@@ -624,11 +722,12 @@ class DaoMulticompany extends CommonObject
 	/**
 	 *	List of entities
 	 *
-	 *	@param		int		$login		If use in login page or not
-	 *	@param		array	$exclude	Entity ids to exclude
+	 *	@param		int		$login			If use in login page or not
+	 *	@param		array	$exclude		Entity ids to exclude
+	 *	@param		bool	$onlyactive		sort only active entities
 	 *	@return		void
 	 */
-	function getEntities($login=false, $exclude=false)
+	public function getEntities($login = false, $exclude = false, $onlyactive = false)
 	{
 		global $conf, $user;
 
@@ -642,11 +741,17 @@ class DaoMulticompany extends CommonObject
 			{
 				$exclude = implode(",", $exclude);
 				$sql.= " WHERE rowid NOT IN (" . $exclude .")";
+				if (! empty($onlyactive)) $sql.= " AND active = 1";
 			}
-			if (!$login)
+			else if (! empty($onlyactive)) {
+				$sql.= " WHERE active = 1";
+			}
+			if (!$login) {
 				$sql.= " ORDER BY rowid";
-			else
+			}
+			else {
 				$sql.= " ORDER BY rang DESC, rowid ASC";
+			}
 		}
 		else
 		{
@@ -683,12 +788,13 @@ class DaoMulticompany extends CommonObject
 	 * @param int $userid
 	 * @return int
 	 */
-	function verifyRight($entity, $userid)
+	public function verifyRight($entity, $userid)
 	{
 		global $conf;
 
 		$tmpuser=new User($this->db);
 		$tmpuser->fetch($userid);
+		//$tmpuser->fetch($userid, '', '',0, $entity); // TODO check compatibility with DAV authentication
 
 		if ($tmpuser->id)
 		{
@@ -723,16 +829,28 @@ class DaoMulticompany extends CommonObject
 	 * 	Get constants values of an entity
 	 *
 	 * 	@param	int		$entity		Entity id
+	 *  @param	string	$constname	Specific contant
 	 * 	@return array				Array of constants
 	 */
-	function getEntityConfig($entity)
+	public function getEntityConfig($entity, $constname=null)
 	{
 		$const=array();
 
 		$sql = "SELECT ".$this->db->decrypt('value')." as value";
 		$sql.= ", ".$this->db->decrypt('name')." as name";
 		$sql.= " FROM ".MAIN_DB_PREFIX."const";
-		$sql.= " WHERE entity = ".$entity;
+		$sql.= " WHERE entity = " . $entity;
+		if (! empty($constname)) {
+			if (preg_match('/\_\*$/', $constname))
+			{
+				$constname = str_replace('*', '', $constname);
+				$sql.= " AND ".$this->db->decrypt('name')." LIKE '" . $this->db->escape($constname) ."%'";
+			}
+			else
+			{
+				$sql.= " AND ".$this->db->decrypt('name')." = '" . $this->db->escape($constname) ."'";
+			}
+		}
 
 		dol_syslog(get_class($this)."::getEntityConfig sql=".$sql, LOG_DEBUG);
 		$resql = $this->db->query($sql);
@@ -751,6 +869,122 @@ class DaoMulticompany extends CommonObject
 
 		}
 		return $const;
+	}
+
+	/**
+	 * Get group rights by entity
+	 *
+	 * @param int $group
+	 * @param int $entity
+	 * @return array[]
+	 */
+	public function getGroupRightsByEntity($group, $entity)
+	{
+		$permsgroupbyentity = array();
+
+		$sql = "SELECT DISTINCT r.id, r.libelle, r.module, gr.entity";
+		$sql.= " FROM ".MAIN_DB_PREFIX."rights_def as r,";
+		$sql.= " ".MAIN_DB_PREFIX."usergroup_rights as gr";
+		$sql.= " WHERE gr.fk_id = r.id";
+		$sql.= " AND gr.entity = " . (int) $entity;
+		$sql.= " AND gr.fk_usergroup = " . (int) $group;
+
+		dol_syslog(get_class($this)."::getGroupRightsByEntity sql=".$sql, LOG_DEBUG);
+		$result=$this->db->query($sql);
+		if ($result)
+		{
+			$num = $this->db->num_rows($result);
+			$i = 0;
+
+			while ($i < $num)
+			{
+				$obj = $this->db->fetch_object($result);
+				array_push($permsgroupbyentity, $obj->id);
+				$i++;
+			}
+
+			$this->db->free($result);
+
+			return $permsgroupbyentity;
+		}
+		else
+		{
+			dol_print_error($db);
+		}
+	}
+
+	/**
+	 * Get list of groups
+	 *
+	 * @return array
+	 */
+	public function getListOfGroups()
+	{
+		$ret=array();
+
+		$sql = "SELECT g.rowid";
+		$sql.= " FROM ".MAIN_DB_PREFIX."usergroup as g";
+		$sql.= " GROUP BY g.rowid";
+
+		$resql = $this->db->query($sql);
+		if ($resql)
+		{
+			while ($obj = $this->db->fetch_object($resql))
+			{
+				$ret[] = $obj->rowid;
+			}
+
+			$this->db->free($result);
+
+			return $ret;
+		}
+		else
+		{
+			$this->error=$this->db->lasterror();
+			return -1;
+		}
+	}
+
+	/**
+	 *
+	 * @param unknown $groupid
+	 * @param unknown $template
+	 * @return User[]|number
+	 */
+	public function getListOfUsersInGroupByTemplate($groupid, $template)
+	{
+		$ret=array();
+
+		$sql = "SELECT u.rowid, ug.entity as usergroup_entity";
+		$sql.= " FROM ".MAIN_DB_PREFIX."user as u";
+		$sql.= ", ".MAIN_DB_PREFIX."usergroup_user as ug";
+		$sql.= " WHERE ug.fk_user = u.rowid";
+		$sql.= " AND ug.fk_usergroup = " . (int) $groupid;
+		$sql.= " AND ug.entity = " . (int) $template;
+
+		dol_syslog(get_class($this)."::getListOfUsersInGroupByEntity groupid=".$groupid." template=".$template, LOG_DEBUG);
+		$resql = $this->db->query($sql);
+		if ($resql)
+		{
+			while ($obj = $this->db->fetch_object($resql))
+			{
+				if (! array_key_exists($obj->rowid, $ret))
+				{
+					$newuser=new User($this->db);
+					$newuser->fetch($obj->rowid);
+					$ret[$obj->rowid]=$newuser;
+				}
+			}
+
+			$this->db->free($resql);
+
+			return $ret;
+		}
+		else
+		{
+			$this->error=$this->db->lasterror();
+			return -1;
+		}
 	}
 
 }

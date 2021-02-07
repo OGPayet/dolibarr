@@ -93,7 +93,7 @@ print "</table><br>";
 
 
 $sql = "SELECT";
-$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.label,";
+$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.ref,";
 $sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn,";
 $sql.= " e.fk_etatequipement, et.libelle as etatequiplibelle";
 
@@ -110,7 +110,7 @@ $sql.= " and e.fk_soc_client= ".$object->socid;
 if ($search_ref)			$sql .= " AND e.ref like '%".$db->escape($search_ref)."%'";
 if ($search_refProduct)		$sql .= " AND p.ref like '%".$db->escape($search_refProduct)."%'";
 if ($search_company_fourn)	$sql .= " AND sfou.nom like '%".$db->escape($search_company_fourn)."%'";
-if ($search_entrepot)		$sql .= " AND ent.label like '%".$db->escape($search_entrepot)."%'";
+if ($search_entrepot)		$sql .= " AND ent.ref like '%".$db->escape($search_entrepot)."%'";
 if ($search_etatequipement)	$sql .= " AND e.fk_etatequipement =".$search_etatequipement;
 
 $sql.= " ORDER BY ".$sortfield." ".$sortorder;

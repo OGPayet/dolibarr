@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2017	Regis Houssin	<regis.houssin@inodbox.com>
+/* Copyright (C) 2017-2018	Regis Houssin	<regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 
 use Luracast\Restler\RestException;
 
-dol_include_once("/multicompany/class/dao_multicompany.class.php");
+dol_include_once('/multicompany/class/dao_multicompany.class.php', 'DaoMulticompany');
 
 /**
  * API class for multicompany
@@ -124,19 +124,19 @@ class Multicompany extends DolibarrApi
         $result = $db->query($sql);
         if ($result)
         {
-		// The DaoMulticompany::fetch() method uses the global variable $user.
-		global $user;
-		$user = DolibarrApiAccess::$user;
+        	// The DaoMulticompany::fetch() method uses the global variable $user.
+        	global $user;
+        	$user = DolibarrApiAccess::$user;
 
             $i=0;
             $num = $db->num_rows($result);
             $min = min($num, ($limit <= 0 ? $num : $limit));
             while ($i < $min)
             {
-		$obj = $db->fetch_object($result);
-		$multicompany= new DaoMulticompany($this->db);
-		if ($multicompany->fetch($obj->rowid)) {
-			$obj_ret[] = $this->_cleanObjectDatas($multicompany);
+            	$obj = $db->fetch_object($result);
+            	$multicompany= new DaoMulticompany($this->db);
+            	if ($multicompany->fetch($obj->rowid)) {
+            		$obj_ret[] = $this->_cleanObjectDatas($multicompany);
                 }
                 $i++;
             }
@@ -278,10 +278,10 @@ class Multicompany extends DolibarrApi
         // Remove constants
         foreach($object as $key => $value)
         {
-		if (preg_match('/^MAIN_/', $key))
-		{
-			unset($object->$key);
-		}
+        	if (preg_match('/^MAIN_/', $key))
+        	{
+        		unset($object->$key);
+        	}
         }
 
         unset($object->language);

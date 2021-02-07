@@ -773,10 +773,10 @@ class SurveyQuestion extends CommonObject
      *	{@inheritdoc}
      * Taken from extended intervention module, may be outdated way of implement informations
      */
-    function updateExtraField($key)
+    function updateExtraField($key, $trigger = NULL, $userused = NULL)
     {
         if (in_array($key, $this->extrafields)) {
-            return parent::updateExtraField($key);
+            return parent::updateExtraField($key, $trigger, $userused);
         } else {
             return 0;
         }

@@ -1,7 +1,7 @@
 	<?php
 	$res=0;
 	if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-	if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+	if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 	require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 	require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
@@ -38,7 +38,7 @@
 	$extrafields->fetch_name_optionals_label($object->table_element);
 	$search_array_options = $extrafields->getOptionalsFromPost($object->table_element, '', 'search_');
 
-	if (!$user->rights->parcautomobile->gestion->consulter) {
+	if (!$user->rights->parcautomobile->lire) {
 		accessforbidden();
 	}
 
@@ -51,7 +51,7 @@
 				$arrayfields["ef.".$key] = array(
 					'label'=>$extrafields->attributes[$object->table_element]['label'][$key],
 					'checked'=>(($extrafields->attributes[$object->table_element]['list'][$key] < 0) ? 0 : 1),
-					'position'=>$extrafields->attributes[$object->table_element]['pos'][$key],
+					'position'=>$extrafields->attributes[$object->table_element]['pos'][$key], 
 					'enabled'=>(abs($extrafields->attributes[$object->table_element]['list'][$key]) != 3 && $extrafields->attributes[$object->table_element]['perms'][$key])
 				);
 			}
@@ -140,14 +140,14 @@
 
 
 
-	print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
+	print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="index_essenc">'."\n";
 		print '<input name="pagem" type="hidden" value="'.$page.'">';
 		print '<input name="offsetm" type="hidden" value="'.$offset.'">';
 		print '<input name="limitm" type="hidden" value="'.$limit.'">';
 		print '<input name="filterm" type="hidden" value="'.$sql.'">';
 
 		print_barre_liste($modname, $page, $_SERVER["PHP_SELF"], "", $sortfield, $sortorder, "", $nbrtotal, $nbrtotalnofiltr);
-
+		
 		print '<div style="float: right; margin: 8px;">';
 		print '<a href="card.php?action=add" class="butAction" >'.$langs->trans("Add").'</a>';
 		print '</div>';
@@ -184,7 +184,7 @@
 					print '<td align="center">'.$vehicules->select_unite($srch_unite,"srch_unite").'</td>';
 
 					print '<td align="center"><input style="max-width: 129px;" type="text"  id="srch_litre" name="srch_litre" value="'.$srch_litre.'"/></td>';
-
+					
 					print '<td align="center"><input style="max-width: 129px;" type="text"  id="srch_prix" name="srch_prix" value="'.$srch_prix.'"/></td>';
 					include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_input.tpl.php';
 
@@ -204,39 +204,39 @@
 						$var = !$var;
 						$item = $suivi_essence->rows[$i];
 						$vehicules->fetch($item->vehicule);
-					$user_->fetch($vehicules->conducteur);
+				    	$user_->fetch($vehicules->conducteur);
 			            $soc->fetch($item->fournisseur);
 
 			            $obj = new suivi_essence($db);
 						$obj->fetch($item->rowid);
-					$obj->fetch_optionals();
+	    				$obj->fetch_optionals();
 
-					$d=explode('-', $item->date);
-					$date=$d[2].'/'.$d[1].'/'.$d[0];
+				    	$d=explode('-', $item->date);
+				    	$date=$d[2].'/'.$d[1].'/'.$d[0];
 						print '<tr '.$bc[$var].' >';
-						print '<td align="center" style="">';
-							print '<a href="'.dol_buildpath('/parcautomobile/suivi_essence/card.php?id='.$item->rowid,2).'" >';
-								print $item->rowid;
-							print '</a>';
-						print '</td>';
+				    		print '<td align="center" style="">'; 
+					    		print '<a href="'.dol_buildpath('/parcautomobile/suivi_essence/card.php?id='.$item->rowid,2).'" >';
+					    			print $item->rowid;
+					    		print '</a>';
+				    		print '</td>';
 							print '<td align="center"><a href="'.dol_buildpath('/parcautomobile/card.php?id='.$item->vehicule,2).'" >'.$vehicules->get_nom($item->vehicule,1).'</a></td>';
-						print '<td align="center" style="">'.$user_->getNomUrl(1).'</td>';
+				    		print '<td align="center" style="">'.$user_->getNomUrl(1).'</td>';
 							print '<td align="center">'.$date.'</td>';
 							print '<td align="center">'.$item->kilometrage.'</td>';
 							print '<td align="center">'.$langs->trans($vehicules->unite).'</td>';
 							print '<td align="center">'.$item->litre.'</td>';
 							$prix_T=$item->litre*$item->prix;
 							print '<td align="center">'.number_format($prix_T,2,',',' ').'</td>';
-
+							
 							if($extrafields->attributes[$obj->table_element]['label'] && count($extrafields->attributes[$obj->table_element]['label'])){
-							foreach ($extrafields->attributes[$obj->table_element]['label'] as $key => $val){
+					    		foreach ($extrafields->attributes[$obj->table_element]['label'] as $key => $val){
 									if($extrafields->attributes[$obj->table_element]['list'][$key] == 2 || $extrafields->attributes[$obj->table_element]['list'][$key] == 1 || $extrafields->attributes[$obj->table_element]['list'][$key] == 4){
 										print '<td align="center">';
 											$value = $obj->array_options['options_'.$key];
 											$tmpkey = 'options_'.$key;
 											print $extrafields->showOutputField($key, $value, '', $obj->table_element);
 										print '</td>';
-								}
+		        					}
 								}
 							}
 							print '<td align="center"><a href="./card.php?id='.$item->rowid.'&action=pdf" target="_blank" >'.img_mime('test.pdf').'</a></td>';
@@ -252,6 +252,7 @@
 	?>
 	<script>
 		$(function(){
+			$('.index_essenc select').select2();
 			$('.datepickerparc').datepicker({ dateFormat:'dd/mm/yy',});
 		});
 	</script>

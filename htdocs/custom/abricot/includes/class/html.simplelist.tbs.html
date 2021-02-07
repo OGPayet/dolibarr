@@ -7,7 +7,7 @@
 			<td><h3>[liste.titre; strconv=no]</h3></td>
 			[onshow;block=end]
 			<td class="nobordernopadding" align="right" valign="middle">
-				<div class="pagination">
+				<div class="pagination"> 
 					[onshow;block=div; when [liste.havePage]+-0 ]
 				<!-- [onshow;block=div;when [pagination.last]+-1 ] -->
 				    <a href="javascript:TListTBS_GoToPage('[liste.id]',[pagination.prev])"><!-- [pagination.prev;endpoint;magnet=a] -->[liste.picto_precedent;strconv=no]</a>
@@ -18,7 +18,7 @@
 				</div>
 			</td>
 		</tr>
-</table>
+</table>	
 
 <table id="[liste.id]" width="100%" style="border:1px solid #666; border-collapse: collapse;">
 	<thead>
@@ -42,8 +42,9 @@
 			<td align="right">[total.val;block=td;strconv=no;frm=0 000,00]</td>
 		</tr>
 	</tfoot>
-
+	
 </table>
 <p align="center">
 	[liste.messageNothing;strconv=no] [onshow; block=p;  when [liste.totalNB]==0]
 </p>
+	

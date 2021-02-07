@@ -1,7 +1,7 @@
-<?php
+<?php 
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/pdf.lib.php';
@@ -48,17 +48,17 @@ $id             = (int) ( (!empty($_GET['id'])) ? $_GET['id'] : GETPOST('id') ) 
 $extrafields->fetch_name_optionals_label($contrat->table_element);
 
 $error  = false;
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
     accessforbidden();
 }
 
 if(in_array($action, ["add","edit"])) {
-    if (!$user->rights->parcautomobile->gestion->update) {
+    if (!$user->rights->parcautomobile->creer) {
       accessforbidden();
     }
 }
 if($action == "delete") {
-    if (!$user->rights->parcautomobile->gestion->delete) {
+    if (!$user->rights->parcautomobile->supprimer) {
       accessforbidden();
     }
 
@@ -68,7 +68,7 @@ if (!empty($id) && $action == "pdf") {
     global $langs,$mysoc;
         // print_r($conf->global->MAIN_INFO_SOCIETE_NOM);die();
     require_once dol_buildpath('/parcautomobile/pdf/pdf.lib.php');
-
+    
     $object = new contrat_parc($db);
     $object->fetch($id);
 
@@ -179,7 +179,7 @@ if (!empty($id) && $action == "pdf") {
     // Show sender frame
     $pdf->SetFont('helvetica','', $default_font_size - 2);
     $pdf->SetXY($posx,$posy);
-
+    
     $pdf->SetXY($posx,$posy);
     $pdf->SetFillColor(230,230,230);
     $pdf->SetTextColor(0,0,60);
@@ -207,8 +207,8 @@ if (!empty($id) && $action == "pdf") {
     // }
 
 
-
-
+  
+    
 
     $pdf->setPrintFooter(true);
     // require template
@@ -254,7 +254,7 @@ print_fiche_titre($modname);
 
 ?>
 <style>
-
+    
 </style>
 <?php
 
@@ -417,7 +417,7 @@ print '</div>';
             $('#total_couts').find('strong').text($total);
         }
 
-
+          
     </script>
 <?php
 

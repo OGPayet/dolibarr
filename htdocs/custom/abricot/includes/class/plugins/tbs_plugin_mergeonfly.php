@@ -24,7 +24,7 @@ class tbsMergeOnFly {
 	function UpdateActivation() {
 		$this->IsActivated = ($this->PackSize>0) && ($this->Encaps==1);
 	}
-
+	
 	function OnCommand($PackSize, $CountSubRecords=false) {
 		if ($this->Encaps==0) {
 			$this->PackSize = $PackSize;
@@ -59,7 +59,7 @@ class tbsMergeOnFly {
 		}
 		$this->UpdateActivation();
 	}
-
+	
 	function OnMergeSection(&$Buffer,&$NewPart) {
 		 // sub-record also count for the flusing.
 		if ($this->IsActivated) {

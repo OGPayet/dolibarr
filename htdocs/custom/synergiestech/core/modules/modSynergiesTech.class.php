@@ -108,6 +108,7 @@ class modSynergiesTech extends DolibarrModules
 			'models' => 1,
 			'triggers' => 1,
 			'hooks' => array('globalapi', 'requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
+			'moduleforexternal' => 1,
 		);
 
 		// Data directories to create when module is enabled.
@@ -179,6 +180,9 @@ class modSynergiesTech extends DolibarrModules
 			'thirdparty:+listOfOrder:SynergiesTechListOfOrder:synergiestech@synergiestech:$user->rights->commande->lire:/commande/list.php?socid=__ID__',
 			'thirdparty:+listOfIntervention:SynergiesTechListOfIntervention:synergiestech@synergiestech:$user->rights->ficheinter->lire:/fichinter/list.php?socid=__ID__',
 			'thirdparty:+listOfInvoice:SynergiesTechListOfInvoice:synergiestech@synergiestech:$user->rights->facture->lire:/compta/facture/list.php?socid=__ID__',
+			'thirdparty:-document::!$user->rights->synergiestech->documents->thirdparty',
+			'order:-documents::!$user->rights->synergiestech->documents->customerorder',
+			'propal:-document::!$user->rights->synergiestech->documents->customerpropal',
 		);
 
 		if (!isset($conf->synergiestech) || !isset($conf->synergiestech->enabled)) {
@@ -214,163 +218,221 @@ class modSynergiesTech extends DolibarrModules
 		//);
 
 		// Cronjobs
-		$this->cronjobs = array();			// List of cron jobs entries to add
+		$this->cronjobs = array(
+			0 => array(
+				'label' => $langs->trans('SynergiesTechUserCronJob'),
+				'jobtype' => 'command',
+				'comment'=> ' ',
+				'command' => 'php ' . DOL_DOCUMENT_ROOT . '/custom/synergiestech/scripts/sync_users_ldap2dolibarr.php commitiferror',
+				'frequency' => 1,
+				'unitfrequency' => 60,
+				'test' => false
+			)
+		);
+		// List of cron jobs entries to add
 		// Example: $this->cronjobs=array(0=>array('label'=>'My label', 'jobtype'=>'method', 'class'=>'/dir/class/file.class.php', 'objectname'=>'MyClass', 'method'=>'myMethod', 'parameters'=>'', 'comment'=>'Comment', 'frequency'=>2, 'unitfrequency'=>3600, 'test'=>true),
 		//                                1=>array('label'=>'My label', 'jobtype'=>'command', 'command'=>'', 'parameters'=>'', 'comment'=>'Comment', 'frequency'=>1, 'unitfrequency'=>3600*24, 'test'=>true)
 		// );
 
 		// Permissions
 		$this->rights = array();		// Permission array used by this module
-		$r=0;
+		$r = 0;
 
-        $this->rights[$r][0] = 500100;
-	$this->rights[$r][1] = 'Generate Ticket Report';
-	$this->rights[$r][3] = 0;
-	$this->rights[$r][4] = 'generate';
-	$this->rights[$r][5] = 'ticket_report';
-	$r++;
+		$this->rights[$r][0] = 500100;
+		$this->rights[$r][1] = 'Generate Ticket Report';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'generate';
+		$this->rights[$r][5] = 'ticket_report';
+		$r++;
 
-        $this->rights[$r][0] = 500101;
-        $this->rights[$r][1] = 'Voir les prix des lignes de produits';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'product_line_price';
-        $this->rights[$r][5] = 'lire';
-        $r++;
+		$this->rights[$r][0] = 500101;
+		$this->rights[$r][1] = 'Voir les prix des lignes de produits';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'product_line_price';
+		$this->rights[$r][5] = 'lire';
+		$r++;
 
-        $this->rights[$r][0] = 500102;
-        $this->rights[$r][1] = 'Editer les prix des lignes de produits';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'product_line_price';
-        $this->rights[$r][5] = 'creer';
-        $r++;
+		$this->rights[$r][0] = 500102;
+		$this->rights[$r][1] = 'Editer les prix des lignes de produits';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'product_line_price';
+		$this->rights[$r][5] = 'creer';
+		$r++;
 
-        $this->rights[$r][0] = 500103;
-        $this->rights[$r][1] = 'Voir les remises des lignes de produits';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'product_line_discount';
-        $this->rights[$r][5] = 'lire';
-        $r++;
+		$this->rights[$r][0] = 500103;
+		$this->rights[$r][1] = 'Voir les remises des lignes de produits';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'product_line_discount';
+		$this->rights[$r][5] = 'lire';
+		$r++;
 
-        $this->rights[$r][0] = 500104;
-        $this->rights[$r][1] = 'Editer les remises des lignes de produits';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'product_line_discount';
-        $this->rights[$r][5] = 'creer';
-        $r++;
+		$this->rights[$r][0] = 500104;
+		$this->rights[$r][1] = 'Editer les remises des lignes de produits';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'product_line_discount';
+		$this->rights[$r][5] = 'creer';
+		$r++;
 
-        $this->rights[$r][0] = 500107;
-        $this->rights[$r][1] = 'Accéder aux propositions qui ont une valeur pour le champs complémentaire "Valeur de l\'installation"';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'propal';
-        $this->rights[$r][5] = 'installation_value';
-        $r++;
+		$this->rights[$r][0] = 500107;
+		$this->rights[$r][1] = 'Accéder aux propositions qui ont une valeur pour le champs complémentaire "Valeur de l\'installation"';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'propal';
+		$this->rights[$r][5] = 'installation_value';
+		$r++;
 
 		$this->rights[$r][0] = 500108;
-        $this->rights[$r][1] = 'Accéder aux statistiques des propositions commerciales clientes';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'customerpropal';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux statistiques des propositions commerciales clientes';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'customerpropal';
+		$r++;
 
 		$this->rights[$r][0] = 500109;
-        $this->rights[$r][1] = 'Accéder aux statistiques des propositions commerciales fournisseur';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'supplierpropal';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux statistiques des propositions commerciales fournisseur';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'supplierpropal';
+		$r++;
 
 		$this->rights[$r][0] = 500110;
-        $this->rights[$r][1] = 'Accéder aux statistiques des commandes clientes';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'customerorder';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux statistiques des commandes clientes';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'customerorder';
+		$r++;
 
 		$this->rights[$r][0] = 500111;
-        $this->rights[$r][1] = 'Accéder aux statistiques des commandes fournisseur';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'supplierorder';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux statistiques des commandes fournisseur';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'supplierorder';
+		$r++;
 
 		$this->rights[$r][0] = 500112;
-        $this->rights[$r][1] = 'Accéder aux statistiques des interventions';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'intervention';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux statistiques des interventions';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'intervention';
+		$r++;
 
 		$this->rights[$r][0] = 500113;
-        $this->rights[$r][1] = 'Accéder aux widgets statistiques des propositions commerciales clientes';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'customerpropalwidget';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux widgets statistiques des propositions commerciales clientes';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'customerpropalwidget';
+		$r++;
 
 		$this->rights[$r][0] = 500114;
-        $this->rights[$r][1] = 'Accéder aux widgets statistiques des propositions commerciales fournisseur';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'supplierpropalwidget';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux widgets statistiques des propositions commerciales fournisseur';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'supplierpropalwidget';
+		$r++;
 
 		$this->rights[$r][0] = 500115;
-        $this->rights[$r][1] = 'Accéder aux widgets statistiques des commandes clientes';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'customerorderwidget';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux widgets statistiques des commandes clientes';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'customerorderwidget';
+		$r++;
 
 		$this->rights[$r][0] = 500116;
-        $this->rights[$r][1] = 'Accéder aux widgets statistiques des commandes fournisseur';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'stats';
-        $this->rights[$r][5] = 'supplierorderwidget';
-        $r++;
+		$this->rights[$r][1] = 'Accéder aux widgets statistiques des commandes fournisseur';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'stats';
+		$this->rights[$r][5] = 'supplierorderwidget';
+		$r++;
 
 
-        $this->rights[$r][0] = 500117;
-        $this->rights[$r][1] = 'Voir les montants des propositions commerciales clientes';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'amount';
-        $this->rights[$r][5] = 'customerpropal';
-        $r++;
+		$this->rights[$r][0] = 500117;
+		$this->rights[$r][1] = 'Voir les montants des propositions commerciales clientes';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'amount';
+		$this->rights[$r][5] = 'customerpropal';
+		$r++;
 
 		$this->rights[$r][0] = 500118;
-        $this->rights[$r][1] = 'Voir les montants des commandes clientes';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'amount';
-        $this->rights[$r][5] = 'customerorder';
-        $r++;
+		$this->rights[$r][1] = 'Voir les montants des commandes clientes';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'amount';
+		$this->rights[$r][5] = 'customerorder';
+		$r++;
 
 		$this->rights[$r][0] = 500119;
-        $this->rights[$r][1] = 'Accéder les fichiers jointes des propositions commerciales client';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'documents';
-        $this->rights[$r][5] = 'customerpropal';
-        $r++;
+		$this->rights[$r][1] = 'Accéder les fichiers jointes des propositions commerciales client';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'documents';
+		$this->rights[$r][5] = 'customerpropal';
+		$r++;
 
 		$this->rights[$r][0] = 500120;
-        $this->rights[$r][1] = 'Accéder les fichiers jointes des commandes clients';
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'documents';
-        $this->rights[$r][5] = 'customerorder';
-        $r++;
-
+		$this->rights[$r][1] = 'Accéder les fichiers jointes des commandes clients';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'documents';
+		$this->rights[$r][5] = 'customerorder';
+		$r++;
 
 		$this->rights[$r][0] = 500121;
-        $this->rights[$r][1] = "Autoriser l'upload de fichier (uniquement) sans contrôle précis des accès aux pièces via l'api document (CORE)";
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'api';
-        $this->rights[$r][5] = 'uploadfile';
-        $r++;
+		$this->rights[$r][1] = "Autoriser l'upload de fichier (uniquement) sans contrôle précis des accès aux pièces via l'api document (CORE)";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'api';
+		$this->rights[$r][5] = 'uploadfile';
+		$r++;
 
 		$this->rights[$r][0] = 500122;
-        $this->rights[$r][1] = "Autoriser la récupération du message du jour via l'API Status";
-        $this->rights[$r][3] = 0;
-        $this->rights[$r][4] = 'api';
-        $this->rights[$r][5] = 'welcomeMessage';
-        $r++;
+		$this->rights[$r][1] = "Autoriser la récupération du message du jour via l'API Status";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'api';
+		$this->rights[$r][5] = 'welcomeMessage';
+		$r++;
+
+		$this->rights[$r][0] = 500123;
+		$this->rights[$r][1] = 'Réouvrir les interventions';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'fichinter';
+		$this->rights[$r][5] = 'reopen';
+		$r++;
+
+		$this->rights[$r][0] = 500124;
+		$this->rights[$r][1] = 'Voir/Modifier les attributs complémentaires restraint';
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'extrafields';
+		$r++;
+
+		$this->rights[$r][0] = 500125;
+		$this->rights[$r][1] = "Accéder à une liste d'utilisateur interne restreinte via l'api (sélection de collègue dans l'application technicien)";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'user';
+		$this->rights[$r][5] = 'lirerestreint';
+		$r++;
+
+		$this->rights[$r][0] = 500126;
+		$this->rights[$r][1] = "Permettre la création de demande de type Intervention depuis l'espace Client";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'requestmanager';
+		$this->rights[$r][5] = 'creerIntervention';
+		$r++;
+
+		$this->rights[$r][0] = 500127;
+		$this->rights[$r][1] = "Permettre de passer une intervention en A Faire même si le contrat lié est inactif";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'intervention';
+		$this->rights[$r][5] = 'validateWithStaleContract';
+		$r++;
+
+		$this->rights[$r][0] = 500128;
+		$this->rights[$r][1] = "Permettre de passer une intervention en A Faire sans vérifier la justification commerciale de cette intervention";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'intervention';
+		$this->rights[$r][5] = 'validateWithoutCheck';
+		$r++;
+
+		$this->rights[$r][0] = 500129;
+		$this->rights[$r][1] = "Accéder aux fichiers des tiers";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'documents';
+		$this->rights[$r][5] = 'thirdparty';
+		$r++;
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
 		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
@@ -478,7 +540,7 @@ class modSynergiesTech extends DolibarrModules
 	 */
 	public function init($options = '')
 	{
-		global $langs;
+		global $langs, $conf;
 		$langs->load("synergiestech@synergiestech");
 
 		$sql = array();
@@ -511,6 +573,26 @@ class modSynergiesTech extends DolibarrModules
 			}
 		}
 
+		//We add shared element for multicompany
+        $arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+        foreach ($arrayOfElement as $index => $param) {
+            if (is_array($param["sharingelements"]) && array_key_exists("contract", $param["sharingelements"])) {
+                unset($arrayOfElement[$index]);
+                break;
+            }
+        }
+        $arrayOfElement[] =
+            array("sharingelements" =>
+            array('contract' => array(
+                'type' => 'object',
+                'icon' => 'file-pdf-o',
+                'enable' => '! empty($conf->contrat->enabled)',
+                'display' => '! empty($conf->global->MULTICOMPANY_CONTRACT_SHARING_ENABLED)',
+                'active' => true
+            ),));
+        dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
+
+
 		return $this->_init($sql, $options);
 	}
 
@@ -525,6 +607,16 @@ class modSynergiesTech extends DolibarrModules
 	public function remove($options = '')
 	{
 		$sql = array();
+		global $conf;
+        $arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+        foreach ($arrayOfElement as $index => $param) {
+            if (is_array($param["sharingelements"]) && array_key_exists("contract", $param["sharingelements"])) {
+                unset($arrayOfElement[$index]);
+                break;
+            }
+        }
+
+        dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
 
 		return $this->_remove($sql, $options);
 	}

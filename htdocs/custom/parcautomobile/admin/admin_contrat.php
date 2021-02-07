@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
@@ -66,7 +66,7 @@ dol_fiche_head(
 );
 
 
-if($user->rights->parcautomobile->gestion->consulter)
+if($user->rights->parcautomobile->lire)
     require DOL_DOCUMENT_ROOT.'/core/tpl/admin_extrafields_view.tpl.php';
 else
     print '<div class="" align="center"><span class="opacitymedium">'.$langs->trans("NotEnoughPermissions").'</span></div>';
@@ -74,7 +74,7 @@ else
 
 dol_fiche_end();
 // Buttons
-if ($user->rights->parcautomobile->gestion->update && $user->rights->parcautomobile->gestion->consulter) {
+if ($user->rights->parcautomobile->creer && $user->rights->parcautomobile->lire) {
 	if ($action != 'create' && $action != 'edit')
 	{
 		print '<div class="tabsAction">';
@@ -119,3 +119,7 @@ $db->close();
 
 
 ?>
+
+
+
+

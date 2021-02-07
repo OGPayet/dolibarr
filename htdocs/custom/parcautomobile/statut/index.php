@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 
 dol_include_once('/parcautomobile/class/statut.class.php');
@@ -22,7 +22,7 @@ $sortorder 			= ($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
 $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -101,14 +101,14 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 					$item = $statut->rows[$i];
 
 					print '<tr '.$bc[$var].' >';
-					print '<td align="center" style="">';
-						print '<a href="'.dol_buildpath('/parcautomobile/statut/card.php?id='.$item->rowid,2).'" >';
-							print $item->rowid;
-						print '</a>';
-					print '</td>';
-					// $user->fetch($item->color);
-					print '<td align="left" style="">'.$langs->trans($item->label).'</td>';
-
+			    		print '<td align="center" style="">'; 
+				    		print '<a href="'.dol_buildpath('/parcautomobile/statut/card.php?id='.$item->rowid,2).'" >';
+				    			print $item->rowid;
+				    		print '</a>';
+			    		print '</td>';
+			    		// $user->fetch($item->color);
+			    		print '<td align="left" style="">'.$langs->trans($item->label).'</td>';
+			    		
 						print '<td align="center"></td>';
 					print '</tr>';
 				}

@@ -83,7 +83,7 @@ class modmylist extends DolibarrModules
 		$this->const = array();
 		$r=0;
 
-		// par défaut le nombre de ligne par parge est de 25
+		// par dï¿½faut le nombre de ligne par parge est de 25
 		$conf->global->MYLIST_NB_ROWS =25;
 
 		// Permissions
@@ -238,7 +238,7 @@ class modmylist extends DolibarrModules
 		$sql.=" AND type = 'top'";
 		$resql = $this->db->query($sql);
 		if ($resql) {
-			// il y a un top menu on renvoie 0 : pas besoin d'en créer un nouveau
+			// il y a un top menu on renvoie 0 : pas besoin d'en crï¿½er un nouveau
 			if ($this->db->num_rows($resql) > 0)
 				return 0;
 		}
@@ -316,7 +316,7 @@ class modmylist extends DolibarrModules
 			$minversionDolibarr=$tblDolibarr->attributes()->minVersion;
 			if (DOL_VERSION < $minversionDolibarr) {
 				$this->dolibarrminversion=$minversionDolibarr;
-				$this->disabled = true;
+				//$this->disabled = true;
 			}
 		}
 		return $currentversion;

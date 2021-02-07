@@ -365,16 +365,16 @@ class Dictionary extends CommonObject
     public $listSort = 'rowid ASC';
 
     /**
-	 * @var DictionaryLine[]
-	 */
-	public $lines = array();
+   	 * @var DictionaryLine[]
+   	 */
+   	public $lines = array();
 
     /**
-	 * Constructor
-	 *
-	 * @param DoliDb $db Database handler
-	 */
-	public function __construct(DoliDB $db)
+   	 * Constructor
+   	 *
+   	 * @param DoliDb $db Database handler
+   	 */
+   	public function __construct(DoliDB $db)
     {
         global $conf;
         $this->db = $db;
@@ -390,13 +390,13 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Initialize the dictionary
-	 *
+   	 * Initialize the dictionary
+   	 *
      * @return  void
-	 */
-	protected function initialize()
-	{
-	}
+   	 */
+   	protected function initialize()
+   	{
+   	}
 
     /**
      * Overwrite default actions of the dictionary template page (After the hook "doActions")
@@ -409,12 +409,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Definition table field instruction
-	 *
+   	 * Definition table field instruction
+   	 *
      * @param   array   $field      Description of the field
-	 * @return  string              Definition table field instruction
-	 */
-	protected function definitionTableFieldInstructionSQL($field)
+   	 * @return  string              Definition table field instruction
+   	 */
+   	protected function definitionTableFieldInstructionSQL($field)
     {
         if (!empty($field)) {
             $lengthdb = '';
@@ -499,20 +499,20 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Definition table field instruction
-	 *
+   	 * Definition table field instruction
+   	 *
      * @param   array   $field      Description of the field
-	 * @return  string              Definition table field instruction
-	 */
+   	 * @return  string              Definition table field instruction
+   	 */
     protected function definitionTableCustomFieldInstructionSQL($field) {
         return '';
     }
 
     /**
-	 * Create dictionary table
-	 *
-	 * @return int             <0 if not ok, >0 if ok
-	 */
+   	 * Create dictionary table
+   	 *
+   	 * @return int             <0 if not ok, >0 if ok
+   	 */
 	public function createTables()
     {
         if (!empty($this->table_name) && !empty($this->fields)) {
@@ -579,7 +579,7 @@ class Dictionary extends CommonObject
                 $this->db->commit();
                 return 1;
             } else {
-		$this->errors[] = 'Error table: ' . $this->table_name;
+            	$this->errors[] = 'Error table: ' . $this->table_name;
                 $this->db->rollback();
                 return -1;
             }
@@ -590,11 +590,11 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create indexes of the table
-	 *
+   	 * Create indexes of the table
+   	 *
      * @return  int                 <0 if not ok, >0 if ok
-	 */
-	protected function createIndexesTable()
+   	 */
+   	protected function createIndexesTable()
     {
         // Create indexes of the table
         foreach ($this->indexes as $idx => $index) {
@@ -606,12 +606,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create index of the table
-	 *
+   	 * Create index of the table
+   	 *
      * @param   int   $idx_number       Number of the index
      * @return  int                     <0 if not ok, >0 if ok
-	 */
-	protected function createIndexTable($idx_number)
+   	 */
+   	protected function createIndexTable($idx_number)
     {
         global $langs;
 
@@ -643,12 +643,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Delete index of the table
-	 *
+   	 * Delete index of the table
+   	 *
      * @param   int   $idx_number       Number of the index
      * @return  int                     <0 if not ok, >0 if ok
-	 */
-	protected function deleteIndexTable($idx_number)
+   	 */
+   	protected function deleteIndexTable($idx_number)
     {
         $sql = 'ALTER TABLE ' . MAIN_DB_PREFIX . $this->table_name . ' DROP INDEX idx_' . $this->table_name . '_' . $idx_number;
 
@@ -662,12 +662,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create sub table for the field
-	 *
+   	 * Create sub table for the field
+   	 *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
-	protected function createSubTable($field)
+   	 * @return  int                 <0 if not ok, >0 if ok
+   	 */
+   	protected function createSubTable($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -703,22 +703,22 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create sub table for custom field
-	 *
+   	 * Create sub table for custom field
+   	 *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
+   	 * @return  int                 <0 if not ok, >0 if ok
+   	 */
     protected function createCustomSubTable($field) {
         return 1;
     }
 
     /**
-	 * Add foreign key of sub table for the field
-	 *
+   	 * Add foreign key of sub table for the field
+   	 *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
-	protected function addSubTableForeignKey($field)
+   	 * @return  int                 <0 if not ok, >0 if ok
+   	 */
+   	protected function addSubTableForeignKey($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -800,20 +800,20 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Add foreign key of sub table for custom field
-	 *
+   	 * Add foreign key of sub table for custom field
+   	 *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
+   	 * @return  int                 <0 if not ok, >0 if ok
+   	 */
     protected function addCustomSubTableForeignKey($field) {
         return 1;
     }
 
     /**
-	 * Update dictionary table
-	 *
-	 * @return int             <0 if not ok, >0 if ok
-	 */
+   	 * Update dictionary table
+   	 *
+   	 * @return int             <0 if not ok, >0 if ok
+   	 */
     protected function updateTables()
     {
         global $conf, $langs;
@@ -928,10 +928,10 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Delete dictionary table
-	 *
-	 * @return int             <0 if not ok, >0 if ok
-	 */
+   	 * Delete dictionary table
+   	 *
+   	 * @return int             <0 if not ok, >0 if ok
+   	 */
 	public function deleteTables()
     {
         if (!empty($this->table_name) && !empty($this->fields)) {
@@ -971,12 +971,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Delete sub table for the field
-	 *
+   	 * Delete sub table for the field
+   	 *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
-	protected function deleteSubTable($field)
+   	 * @return  int                 <0 if not ok, >0 if ok
+   	 */
+   	protected function deleteSubTable($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -1008,24 +1008,24 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Create sub table for custom field
-	 *
+   	 * Create sub table for custom field
+   	 *
      * @param   array   $field      Description of the field
-	 * @return  int                 <0 if not ok, >0 if ok
-	 */
+   	 * @return  int                 <0 if not ok, >0 if ok
+   	 */
     protected function deleteCustomSubTable($field) {
-	    return 1;
+   	    return 1;
     }
 
     /**
-	 * Get all dictionaries
-	 *
+   	 * Get all dictionaries
+   	 *
      * @param   DoliDb          $db         Database handler
      * @param   string|array    $module     Only dictionary of the module(s) name
      * @param   string|array    $family     Only dictionary of the family(s) name
-	 * @return  Dictionary[]                List of dictionary
-	 */
-	static function fetchAllDictionaries($db, $module='', $family='')
+   	 * @return  Dictionary[]                List of dictionary
+   	 */
+   	static function fetchAllDictionaries($db, $module='', $family='')
     {
         global $conf;
 
@@ -1216,13 +1216,13 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Add line
-	 *
+   	 * Add line
+   	 *
      * @param   array   $fieldsValues   Values of the fields array(name => value, ...)
      * @param   User    $user           User who add this line
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
-	 */
+   	 * @return  int                     <0 if not ok, >0 if ok
+   	 */
 	public function addLine($fieldsValues, $user, $noTrigger=0)
     {
         $this->db->begin();
@@ -1246,14 +1246,14 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Update line
-	 *
+   	 * Update line
+   	 *
      * @param   int     $lineId         Id of the line
      * @param   array   $fieldsValues   Values of the fields array(name => value, ...)
      * @param   User    $user           User who add this line
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
-	 */
+   	 * @return  int                     <0 if not ok, >0 if ok
+   	 */
 	public function updateLine($lineId, $fieldsValues, $user, $noTrigger=0)
     {
         $this->db->begin();
@@ -1283,13 +1283,13 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Delete line
-	 *
+   	 * Delete line
+   	 *
      * @param   int     $lineId         Id of the line
      * @param   User    $user           User who add this line
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
-	 */
+   	 * @return  int                     <0 if not ok, >0 if ok
+   	 */
 	public function deleteLine($lineId, $user, $noTrigger=0)
     {
         $this->db->begin();
@@ -1319,14 +1319,14 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Active line
-	 *
+   	 * Active line
+   	 *
      * @param   int     $lineId         Id of the line
      * @param   int     $status         Status of the line, 0: desactived, 1: actived
      * @param   User    $user           User who add this line
      * @param   int     $noTrigger      1 = Does not execute triggers, 0 = execute triggers
-	 * @return  int                     <0 if not ok, >0 if ok
-	 */
+   	 * @return  int                     <0 if not ok, >0 if ok
+   	 */
 	public function activeLine($lineId, $status, $user, $noTrigger=0)
     {
         $this->db->begin();
@@ -1360,12 +1360,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 *  Return code for the key/value search
-	 *
+   	 *  Return code for the key/value search
+   	 *
      * @param   string          $codePattern    Code pattern (replace {{FieldName}} by this value)
      * @param   array           $filters        List of filters: array(fieldName => value), value is a array search a list of rowid
-	 * @return  int|string                      Return code value, 0 if not found, -1 if found many, -2 if error
-	 */
+   	 * @return  int|string                      Return code value, 0 if not found, -1 if found many, -2 if error
+   	 */
 	public function getCodeFromFilter($codePattern, $filters)
     {
         $lines = $this->fetch_lines(-1, $filters, array(), 0, 0, false, true);
@@ -1394,8 +1394,8 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 *  Load array lines with filters, orders
-	 *
+   	 *  Load array lines with filters, orders
+   	 *
      * @param   string  $key            Field name for the key of the line
      * @param   string  $label          Label pattern for the label of the line (replace {{FieldName}} by this value)
      * @param   array   $filters        List of filters: array(fieldName => value), value is a array search a list of rowid
@@ -1403,8 +1403,8 @@ class Dictionary extends CommonObject
      * @param   int     $limit          Length of the limit
      * @param   int     $filter_active  Filter on the active field (-1: all, 0: inactive, 1:active)
      * @param   bool    $return_array   Don't fetch lines in $this->lines
-	 * @return  array                   Lines array(key => label)
-	 */
+   	 * @return  array                   Lines array(key => label)
+   	 */
 	public function fetch_array($key, $label, $filters=array(), $orders=array(), $limit=0, $filter_active=1, $return_array=true)
     {
         $lines = $this->fetch_lines($filter_active, $filters, $orders, 0, $limit, false, $return_array);
@@ -1430,8 +1430,8 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 *  Load array lines with filters, orders and limit
-	 *
+   	 *  Load array lines with filters, orders and limit
+   	 *
      * @param   int                     $filter_active                  Filter on the active field (-1: all, 0: inactive, 1:active)
      * @param   array                   $filters                        List of filters: array(fieldName => value), value is a array search a list of rowid
      * @param   array                   $orders                         Order by: array(fieldName => order, ...)
@@ -1441,8 +1441,8 @@ class Dictionary extends CommonObject
      * @param   bool                    $return_array                   Return a array
      * @param   string                  $additionalWhereStatement       Additionnal lines of statement for where statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
      * @param   string                  $additionalHavingStatement      Additionnal lines of statement for having statement, [[fieldName]] replaced by this field name in the request, {{ }} if for the field id of multi-select field
-	 * @return  int|DictionaryLine[]                                    <0 if KO, >0 if OK
-	 */
+   	 * @return  int|DictionaryLine[]                                    <0 if KO, >0 if OK
+   	 */
 	public function fetch_lines($filter_active=-1, $filters=array(), $orders=array(), $offset=0, $limit=0, $nb_lines=false, $return_array=false, $additionalWhereStatement='', $additionalHavingStatement='')
     {
         // TODO $additionalWhereStatement, $additionalHavingStatement to make
@@ -1553,12 +1553,12 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the field in the select clause
-	 *
+   	 * Return the sql statement for the field in the select clause
+   	 *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the field in the select clause
-	 */
-	private function selectFieldSqlStatement($field)
+   	 */
+   	private function selectFieldSqlStatement($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -1575,21 +1575,21 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the custom field in the select clause
-	 *
+   	 * Return the sql statement for the custom field in the select clause
+   	 *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the custom field in the select clause
-	 */
+   	 */
     protected function selectCustomFieldSqlStatement($field) {
-	    return '';
+   	    return '';
     }
 
     /**
-	 * Return the sql statement for the field in the from clause
-	 *
+   	 * Return the sql statement for the field in the from clause
+   	 *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the field in the from clause
-	 */
+   	 */
     private function fromFieldSqlStatement($field)
     {
         if (!empty($field)) {
@@ -1629,22 +1629,22 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the custom field in the from clause
-	 *
+   	 * Return the sql statement for the custom field in the from clause
+   	 *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the custom field in the from clause
-	 */
+   	 */
     protected function fromCustomFieldSqlStatement($field) {
-	    return '';
+   	    return '';
     }
 
     /**
-	 * Return the sql filter statement for the field in the from clause
-	 *
+   	 * Return the sql filter statement for the field in the from clause
+   	 *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the field in the having clause
-	 */
+   	 */
     private function fromFilterFieldSqlStatement($field, $value)
     {
         if (!empty($field)) {
@@ -1688,23 +1688,23 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql filter statement for the custom field in the from clause
-	 *
+   	 * Return the sql filter statement for the custom field in the from clause
+   	 *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the custom field in the having clause
-	 */
+   	 */
     protected function fromFilterCustomFieldSqlStatement($field, $value) {
-	    return '';
+   	    return '';
     }
 
     /**
-	 * Return the sql statement for the field in the where clause
-	 *
+   	 * Return the sql statement for the field in the where clause
+   	 *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the field in the where clause
-	 */
+   	 */
     private function whereFieldSqlStatement($field, $value)
     {
         if (!empty($field)) {
@@ -1789,23 +1789,23 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the custom field in the where clause
-	 *
+   	 * Return the sql statement for the custom field in the where clause
+   	 *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the custom field in the where clause
-	 */
+   	 */
     protected function whereCustomFieldSqlStatement($field, $value) {
-	    return '';
+   	    return '';
     }
 
     /**
-	 * Return the sql statement for the field in the having clause
-	 *
+   	 * Return the sql statement for the field in the having clause
+   	 *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the field in the having clause
-	 */
+   	 */
     private function havingFieldSqlStatement($field, $value)
     {
         if (!empty($field)) {
@@ -1821,14 +1821,14 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return the sql statement for the custom field in the having clause
-	 *
+   	 * Return the sql statement for the custom field in the having clause
+   	 *
      * @param   array       $field      Description of the field
      * @param   mixed       $value      Value searched
      * @return  string                  Return the sql statement for the custom field in the having clause
-	 */
+   	 */
     protected function havingCustomFieldSqlStatement($field, $value) {
-	    return '';
+   	    return '';
     }
 
     /**
@@ -1940,11 +1940,11 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return tag to describe alignment to use for this field
-	 *
+   	 * Return tag to describe alignment to use for this field
+   	 *
      * @param   string      $fieldName      Name of the field
-	 * @return	string					    Alignment value
-	 */
+   	 * @return	string					    Alignment value
+   	 */
 	public function getAlignFlagForField($fieldName)
     {
         $align = "left";
@@ -1976,24 +1976,24 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return tag to describe alignment to use for this custom field
-	 *
+   	 * Return tag to describe alignment to use for this custom field
+   	 *
      * @param   string      $fieldName      Name of the field
-	 * @return	string					    Alignment value
-	 */
+   	 * @return	string					    Alignment value
+   	 */
     protected function getAlignFlagForCustomField($fieldName)
     {
         return 'left';
     }
 
     /**
-	 * Get value for each fields of the dictionary sent by a form
-	 *
-	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+   	 * Get value for each fields of the dictionary sent by a form
+   	 *
+   	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
      * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
      * @param  int      $mode           0: Add, 1: Edit, 2: All
-	 * @return array                    Values of each field
-	 */
+   	 * @return array                    Values of each field
+   	 */
 	public function getFieldsValueFromForm($keyprefix='', $keysuffix='', $mode=0)
     {
         $fields = array();
@@ -2058,13 +2058,13 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return value for custom field of the dictionary sent by a form
-	 *
+   	 * Return value for custom field of the dictionary sent by a form
+   	 *
      * @param  string   $fieldName      Name of the field
-	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @return mixed                    Return value for custom field of the dictionary sent by a form
-	 */
+   	 * @param  string   $keyprefix      Prefix string to add into name and id of field (can be used to avoid duplicate names)
+   	 * @param  string   $keysuffix      Suffix string to add into name and id of field (can be used to avoid duplicate names)
+   	 * @return mixed                    Return value for custom field of the dictionary sent by a form
+   	 */
     protected function getCustomFieldsValueFromForm($fieldName, $keyprefix='', $keysuffix='')
     {
         return '';
@@ -2072,19 +2072,19 @@ class Dictionary extends CommonObject
 
     /**
      * Get fixed value for each fixed fields of the dictionary
-	 *
-	 * @return array                    Values of each field
-	 */
+   	 *
+   	 * @return array                    Values of each field
+   	 */
 	public function getFixedFieldsValue()
     {
         return array();
     }
 
     /**
-	 * Get search value for each fields of the dictionary sent by a form
-	 *
-	 * @return array                    Values of each field
-	 */
+   	 * Get search value for each fields of the dictionary sent by a form
+   	 *
+   	 * @return array                    Values of each field
+   	 */
 	public function getSearchFieldsValueFromForm()
     {
         $fields = array();
@@ -2142,11 +2142,11 @@ class Dictionary extends CommonObject
     }
 
     /**
-	 * Return search value for custom field of the dictionary sent by a form
-	 *
+   	 * Return search value for custom field of the dictionary sent by a form
+   	 *
      * @param  string   $fieldName      Name of the field
-	 * @return mixed                    Return value for custom field of the dictionary sent by a form
-	 */
+   	 * @return mixed                    Return value for custom field of the dictionary sent by a form
+   	 */
     protected function getSearchCustomFieldsValueFromForm($fieldName)
     {
         return null;
@@ -2188,14 +2188,14 @@ SCRIPT;
 	}
 
     /**
-	 * Determine if lines can be disabled or not
-	 *
+   	 * Determine if lines can be disabled or not
+   	 *
      * @param  DictionaryLine   $dictionaryLine     Line instance
-	 * @return mixed                                =null: Show "Always active" text
+   	 * @return mixed                                =null: Show "Always active" text
      *                                              =true: Show button
      *                                              =string: Show the text returned, translated if key found
      *                                              other: Show disabled button
-	 */
+   	 */
 	public function isLineCanBeDisabled(&$dictionaryLine)
     {
         return true;
@@ -3512,12 +3512,12 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-	 * Return the sql statement for the field in the select clause
-	 *
+   	 * Return the sql statement for the field in the select clause
+   	 *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the field in the select clause
-	 */
-	protected function selectFieldSqlStatement($field)
+   	 */
+   	protected function selectFieldSqlStatement($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -3534,22 +3534,22 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-	 * Return the sql statement for the custom field in the select clause
-	 *
+   	 * Return the sql statement for the custom field in the select clause
+   	 *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the custom field in the select clause
-	 */
+   	 */
     protected function selectCustomFieldSqlStatement($field) {
-	    return '';
+   	    return '';
     }
 
     /**
-	 * Return the sql statement for the field in the from clause
-	 *
+   	 * Return the sql statement for the field in the from clause
+   	 *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the field in the from clause
-	 */
-	protected function fromFieldSqlStatement($field)
+   	 */
+   	protected function fromFieldSqlStatement($field)
     {
         if (!empty($field)) {
             switch ($field['type']) {
@@ -3567,13 +3567,13 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-	 * Return the sql statement for the custom field in the from clause
-	 *
+   	 * Return the sql statement for the custom field in the from clause
+   	 *
      * @param   array       $field      Description of the field
      * @return  string                  Return the sql statement for the custom field in the from clause
-	 */
+   	 */
     protected function fromCustomFieldSqlStatement($field) {
-	    return '';
+   	    return '';
     }
 
     /**
@@ -3835,76 +3835,104 @@ class DictionaryLine extends CommonObjectLine
                             $value_arr = array_filter(explode(',', (string)$value), 'strlen');
                         }
                     }
-                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field,$this->dictionary->table_name);
+                    $InfoFieldList = getInfoFieldArrayFromOptionsForChkbxlstFieldType($field, $this->dictionary->table_name);
+                    if (empty($InfoFieldList[5]) && empty($InfoFieldList[6])) {
+                        $selectkey = "rowid";
+                        $keyList = 'rowid';
 
-                    $selectkey = "rowid";
-                    $keyList = 'rowid';
+                        if (count($InfoFieldList) >= 3) {
+                            $selectkey = $InfoFieldList[2];
+                            $keyList = $InfoFieldList[2] . ' as rowid';
+                        }
 
-                    if (count($InfoFieldList) >= 3) {
-                        $selectkey = $InfoFieldList[2];
-                        $keyList = $InfoFieldList[2] . ' as rowid';
-                    }
+						$fields_label = !empty($InfoFieldList[1]) ? explode('|', $InfoFieldList[1]) : null;
+						$fieldList = array();
+						if (is_array($fields_label)) {
+							$keyList .= ', ' . implode(', ', $fields_label);
+							foreach ($fields_label as $l) {
+								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+									$fieldList[] = $matches[1];
+								} else {
+									$fieldList[] = $l;
+								}
+							}
+						}
 
-                    $fields_label = explode('|', $InfoFieldList[1]);
-                    if (is_array($fields_label)) {
-                        $keyList .= ', ';
-                        $keyList .= implode(', ', $fields_label);
-                    }
+						$fields_lang = !empty($InfoFieldList[7]) ? explode('|', $InfoFieldList[7]) : null;
+						$fieldLangList = array();
+						if (is_array($fields_lang)) {
+							$keyList .= ', ' . implode(', ', $fields_lang);
+							foreach ($fields_lang as $l) {
+								if (preg_match('/\s+AS\s+(\S+)\s*$/i', $l, $matches)) {
+									$fieldLangList[] = $matches[1];
+								} else {
+									$fieldLangList[] = $l;
+								}
+							}
+						}
 
-                    $sql = 'SELECT ' . $keyList;
-                    $sql .= ' FROM ' . MAIN_DB_PREFIX . $InfoFieldList[0];
-                    if (strpos($InfoFieldList[4], 'extra') !== false) {
-                        $sql .= ' as main';
-                    }
-                    $sql .= " WHERE " . $selectkey . " IN (" . implode(',', $value_arr) . ")";
+                        $sql = 'SELECT ' . $keyList;
+                        $sql .= ' FROM ' . MAIN_DB_PREFIX . str_replace('{{DB_PREFIX}}', MAIN_DB_PREFIX, $InfoFieldList[0]);
+                        if (strpos($InfoFieldList[4], 'extra') !== false) {
+                            $sql .= ' as main';
+                        }
+                        $sql .= " WHERE " . $selectkey . " IN (" . implode(',', $value_arr) . ")";
 
-                    dol_syslog(__METHOD__ . ':$type=chkbxlst', LOG_DEBUG);
-                    $resql = $this->db->query($sql);
-                    if ($resql) {
-                        $value = ''; // value was used, so now we reste it to use it to build final output
-                        $toprint = array();
-                        while ($obj = $this->db->fetch_object($resql)) {
-
-                            // Several field into label (eq table:code|libelle:rowid)
-                            $fields_label = explode('|', $InfoFieldList[1]);
-                            if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
-                                if (is_array($fields_label) && count($fields_label) > 1) {
-                                    $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
-                                    $labelstoshow = array();
-                                    foreach ($fields_label as $field_toshow) {
-                                        if(isset($obj->$field_toshow))
-                                        {
-                                            $translabel = $langs->trans($obj->$field_toshow);
+						$value = ''; // value was used, so now we reste it to use it to build final output
+                        dol_syslog(__METHOD__ . ' type=chkbxlst', LOG_DEBUG);
+                        $resql = $this->db->query($sql);
+                        if ($resql) {
+                            $toprint = array();
+                            while ($obj = $this->db->fetch_object($resql)) {
+                                if (is_array($value_arr) && in_array($obj->rowid, $value_arr)) {
+									if (!empty($fieldLangList)) {
+										foreach ($fieldLangList as $lang) {
+											if (!empty($obj->$lang)) $langs->load($obj->$lang);
+										}
+									}
+                                    if (is_array($fieldList) && count($fieldList) > 1) {
+										// Several field into label (eq table:code|libelle:rowid)
+                                        $label_separator = isset($field['label_separator']) ? $field['label_separator'] : ' ';
+                                        $labelstoshow = array();
+                                        foreach ($fieldList as $field_toshow) {
+                                            $translabel = $langs->trans($field['translate_prefix'] . $obj->$field_toshow . $field['translate_prefix']);
                                             if ($translabel != $obj->$field_toshow) {
-                                                $labelstoshow[] = dol_trunc($translabel, 18);
+                                                $labelstoshow[] = dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
                                             } else {
-                                                $labelstoshow[] = dol_trunc($obj->$field_toshow, 18);
+                                                $labelstoshow[] = dol_trunc($obj->$field_toshow, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0);
                                             }
                                         }
-									}
-									$labelstoshow = array_filter($labelstoshow,function($k){return isset($k);});
-                                    $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . implode($label_separator, $labelstoshow) . '</li>';
-                                } else {
-                                    $translabel = '';
-                                    if (!empty($obj->{$InfoFieldList[1]})) {
-                                        $translabel = $langs->trans($obj->{$InfoFieldList[1]});
-                                    }
-                                    if ($translabel != $obj->{$InfoFieldList[1]}) {
-                                        $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . dol_trunc($translabel, 18) . '</li>';
+                                        $labelstoshow = array_filter($labelstoshow);
+                                        $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . implode($label_separator, $labelstoshow) . '</li>';
                                     } else {
-                                        $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . $obj->{$InfoFieldList[1]} . '</li>';
+                                        $translabel = '';
+                                        if (!empty($obj->{$fieldList[0]})) {
+                                            $translabel = $langs->trans($field['translate_prefix'] . $obj->{$fieldList[0]} . $field['translate_suffix']);
+                                        }
+                                        if ($translabel != $obj->{$fieldList[0]}) {
+                                            $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . dol_trunc($translabel, isset($field['truncate']) && $field['truncate'] > 0 ? $field['truncate'] : 0) . '</li>';
+                                        } else {
+                                            $toprint[] = '<li class="select2-search-choice-dolibarr noborderoncategories" style="background: #aaa">' . $obj->{$fieldList[0]} . '</li>';
+                                        }
                                     }
                                 }
                             }
+                            $value = '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
+                        } else {
+                            dol_syslog(__METHOD__ . ' Error ' . $this->db->lasterror(), LOG_WARNING);
                         }
-                        $value = '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $toprint) . '</ul></div>';
-
                     } else {
-                        dol_syslog(__METHOD__ . ' error ' . $this->db->lasterror(), LOG_WARNING);
+                        $toprint = array();
+                        foreach ($value_arr as $val) {
+                            if ($val === 'NULL') continue;
+                            $toprint[] = $this->getObjectNomUrl($fieldName, $InfoFieldList[5], $InfoFieldList[6], $val);
+                        }
+                        $value = implode(', ', $toprint);
                     }
                     break;
                 case 'int':
                     break;
+                case 'float':
                 case 'double':
                     if (!empty($value)) $value = price($value);
                     break;
@@ -3955,16 +3983,16 @@ class DictionaryLine extends CommonObjectLine
     }
 
     /**
-	 * Return HTML string to put an input field into a page
-	 *
-	 * @param  string  $fieldName      		Name of the field
-	 * @param  string  $value          		Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
-	 * @param  string  $keyprefix     	 	Prefix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  string  $keysuffix      		Suffix string to add into name and id of field (can be used to avoid duplicate names)
-	 * @param  int     $objectid       		Current object id
-	 * @param  int     $options_only   		1: Return only the html output of the options of the select input
+   	 * Return HTML string to put an input field into a page
+   	 *
+   	 * @param  string  $fieldName      		Name of the field
+   	 * @param  string  $value          		Preselected value to show (for date type it must be in timestamp format, for amount or price it must be a php numeric value)
+   	 * @param  string  $keyprefix     	 	Prefix string to add into name and id of field (can be used to avoid duplicate names)
+   	 * @param  string  $keysuffix      		Suffix string to add into name and id of field (can be used to avoid duplicate names)
+   	 * @param  int     $objectid       		Current object id
+   	 * @param  int     $options_only   		1: Return only the html output of the options of the select input
 	 * @return string
-	 */
+   	 */
 	public function showInputFieldAD($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0, $options_only=0)
     {
         global $conf, $langs;
@@ -4477,11 +4505,11 @@ class DictionaryLine extends CommonObjectLine
 	}
 
     /**
-	 * Return label define by the pattern
-	 *
+   	 * Return label define by the pattern
+   	 *
      * @param   string  $label          Label pattern for the label of the line (replace {{FieldName}} by this value)
-	 * @return  string
-	 */
+   	 * @return  string
+   	 */
     public function getLabel($label)
     {
         $l = $label;

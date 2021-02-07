@@ -25,7 +25,7 @@
  */
 
 include_once DOL_DOCUMENT_ROOT . "/core/modules/DolibarrModules.class.php";
-
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 /**
  * Description and activation class for module OwnTheme
  */
@@ -45,19 +45,20 @@ class modOwnTheme extends DolibarrModules
 		$this->numero = 688810926;
 		$this->rights_class = 'owntheme';
 
-		$this->family = "other";
+		$this->family = "Next Thèmes";
+		$this->module_position = '42';
 		$this->name = preg_replace('/^mod/i', '', get_class($this));
 		$this->description = "Thème de Dolibarr, Affichage responsive et Couleurs personnalisées";
-		$this->version = '4.0';
+		$this->version = '12.3';
 		$this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
 		$this->special = 0;
 		$this->picto = 'thumb@owntheme';
 
 		$this->module_parts = array(
 			'menus' => 1,
-			'css' => array('owntheme/css/as_style.min.css'),
-			'js' => array('owntheme/js/as_code.min.js'),
-			'hooks' => array('toprightmenu')
+			'css' => array('data'=>array('owntheme/css/as_style.min.css'), 'entity'=>'0'), 
+			'js' => array('data'=>array('owntheme/js/dol_url_root.js.php','owntheme/js/as_code.min.js'), 'entity'=>'0'), 
+			'hooks' => array('data'=>array('toprightmenu'), 'entity'=>'0'), 
 		);
 
 		$this->dirs = array();
@@ -156,11 +157,26 @@ class modOwnTheme extends DolibarrModules
 
 		$result = $this->loadTables();
 
+		$res = dolibarr_set_const($this->db, "PACKTHEMEACTIVATEDTHEME", "modOwnTheme", 'chaine', 0, '', 0);
+
+		// $res = dolibarr_set_const($this->db, "PACKTHEME_NEXTTHEME_ACTIF", 0, 'yesno', 0, '', 0); 	if (! $res > 0)	$error ++;
+		// $res = dolibarr_set_const($this->db, "PACKTHEME_LIGHTTHEME_ACTIF", 0, 'yesno', 0, '', 0); 	if (! $res > 0)	$error ++;
+		// $res = dolibarr_set_const($this->db, "PACKTHEME_OWNTHEME_ACTIF", 1, 'yesno', 0, '', 0); 	if (! $res > 0)	$error ++;
+		// $res = dolibarr_set_const($this->db, "PACKTHEME_THEME3D_ACTIF", 0, 'yesno', 0, '', 0); 	if (! $res > 0)	$error ++;
+		
+		$arraythems = array("modNextTheme","modLightTheme","modTheme3d","modMenu3dResponsive","modMyTheme","modBeCreative","modBlueTheme","modOrangTheme");
+		global $conf;
+		foreach ($arraythems as $value) {
+			$keymodulelowercase=strtolower(preg_replace('/^mod/','',$value));
+			if (in_array($keymodulelowercase, $conf->modules)) 
+				$result=unActivateModule($value);
+		}
+
 	    // on first module activation only
 	    $new = dol_buildpath('/owntheme/inst/firstUse');
 	    // print_r($new);
 	    // die();
-	    if (file_exists($new)) {
+	    // if (file_exists($new)) {
 
 			if ( !file_exists(dol_buildpath('/owntheme/css/as_style_custom.css')) ) 
 				copy(dol_buildpath('/owntheme/inst/css/as_style_custom.css'),dol_buildpath('/owntheme/css/as_style_custom.css'));
@@ -171,8 +187,8 @@ class modOwnTheme extends DolibarrModules
 			$file = dol_buildpath('/owntheme/css/as_style.min.css');
 	    	$def_col1 = "#6a89cc";
 	    	$def_col2 = "#60a3bc";
-	    	$col1 = dolibarr_get_const($this->db,'OWNTHEME_COL1');
-	    	$col2 = dolibarr_get_const($this->db,'OWNTHEME_COL2');
+	    	$col1 = dolibarr_get_const($this->db,'OWNTHEME_COL1',0);
+	    	$col2 = dolibarr_get_const($this->db,'OWNTHEME_COL2',0);
 
 			if ( !empty($col1) || !empty($col2) )	{
 				$file_contents = file_get_contents($file);
@@ -180,8 +196,8 @@ class modOwnTheme extends DolibarrModules
 				if ( !empty($col2) ) $file_contents = str_replace($def_col2,$col2,$file_contents);
 				file_put_contents($file,$file_contents);
 			}
-	    	if(!$col1) dolibarr_set_const($this->db,'OWNTHEME_COL1',$def_col1,'chaine',0,'',1);
-	    	if(!$col2) dolibarr_set_const($this->db,'OWNTHEME_COL2',$def_col2,'chaine',0,'',1);
+	    	if(!$col1) dolibarr_set_const($this->db,'OWNTHEME_COL1',$def_col1,'chaine',0,'',0);
+	    	if(!$col2) dolibarr_set_const($this->db,'OWNTHEME_COL2',$def_col2,'chaine',0,'',0);
 
 			//delete older version files
 			if (file_exists(dol_buildpath('/owntheme/js/custom.min.js'))) 
@@ -190,73 +206,99 @@ class modOwnTheme extends DolibarrModules
 				unlink(dol_buildpath('/owntheme/css/style.min.css'));
 
 		    // update or create owntheme theme folder from inst folder
-			$source = dol_buildpath('/owntheme/inst/theme');
-			$dest = dol_buildpath('/theme');
-			cpy4($source,$dest);
+			// $source = dol_buildpath('/owntheme/inst/theme');
+			// $dest = dol_buildpath('/theme');
+			// cpy4($source,$dest);
 
-			rmdir($new);
-	    }
+			// rmdir($new);
+	    // }
 
-		// replace weather images
-		$source = dol_buildpath('/owntheme/img/weather.new');
-		$dest = dol_buildpath('/theme/owntheme/weather');
-		cpy4($source,$dest);
-		
-		// copy images from eldy theme
-		$source = dol_buildpath('/theme/eldy/img');
-		$dest = dol_buildpath('/theme/owntheme/img');
-		cpy4($source,$dest);
+		// $source = dol_buildpath('/theme/eldy/img/favicon.ico');
+		// $dest = dol_buildpath('/theme/owntheme/img/favicon.ico');
 
+		// dol_copy($source, $dest, 0775, 1);
 
-    	// update webmail file
-    	if ( dolibarr_get_const($this->db,'MAIN_MODULE_WEBMAIL') ) {
-			copy(dol_buildpath('/webmail/list_messages.php'),dol_buildpath('/owntheme/inst/webmail/list_messages.php'));
-			copy(dol_buildpath('/owntheme/inst/webmail/list_messages_modified.php'),dol_buildpath('/webmail/list_messages.php'));
+    	$source = dol_buildpath('/owntheme/inst/theme/');
+		$dest = dol_buildpath('/theme/');
+
+		//ADEDDCODE
+		// cpy4($source,$dest);
+
+		//ADEDDCODE
+		$dcd = dolCopyDir($source, $dest, 0775, 1);
+
+		//ADEDDCODE
+		if($dcd){
+	     	$check = dol_buildpath('/theme/owntheme');
+		    // if (!file_exists($check)) {
+
+				// replace weather images
+				$source = dol_buildpath('/owntheme/img/weather.new');
+				$dest = dol_buildpath('/theme/owntheme/weather');
+				dolCopyDir($source,$dest, 0775, 1);
+				
+				// copy images from eldy theme
+				$source = dol_buildpath('/theme/eldy/img');
+				$dest = dol_buildpath('/theme/owntheme/img');
+				dolCopyDir($source,$dest, 0775, 1);
+		    // }
+
+		    // ADDEDFINALVERSION
+			$theperm = dol_buildpath('/theme/owntheme');
+			ownthemepermissionto($theperm);
+
+	    	// update webmail file
+	    	if ( dolibarr_get_const($this->db,'MAIN_MODULE_WEBMAIL') ) {
+				copy(dol_buildpath('/webmail/list_messages.php'),dol_buildpath('/owntheme/inst/webmail/list_messages.php'));
+				copy(dol_buildpath('/owntheme/inst/webmail/list_messages_modified.php'),dol_buildpath('/webmail/list_messages.php'));
+			}
+
+			$installed_ver = dolibarr_get_const($this->db,'MAIN_VERSION_LAST_INSTALL',0);
+			$upgraded_ver = dolibarr_get_const($this->db,'MAIN_VERSION_LAST_UPGRADE',0);
+			if ($upgraded_ver!="") {
+				$dol_version = $upgraded_ver;
+			} else {
+				$dol_version = $installed_ver;
+			}
+			
+			dolibarr_set_const($this->db,'DOL_VERSION',$dol_version,'chaine',0,'Dolibarr version',0);
+			dolibarr_set_const($this->db,'MAIN_THEME','owntheme','chaine',0,'Sets OwnTheme Theme',0);
+			dolibarr_set_const($this->db,'MAIN_MENU_STANDARD','owntheme_menu.php','chaine',0,'',0);
+			dolibarr_set_const($this->db,'MAIN_MENUFRONT_STANDARD','owntheme_menu.php','chaine',0,'',0);
+			dolibarr_set_const($this->db,'MAIN_MENU_SMARTPHONE','owntheme_menu.php','chaine',0,'',0);
+			dolibarr_set_const($this->db,'MAIN_MENUFRONT_SMARTPHONE','owntheme_menu.php','chaine',0,'',0);
+
+			if (!dolibarr_get_const($this->db,'OWNTHEME_COL1',0))
+				dolibarr_set_const($this->db,'OWNTHEME_COL1',"#6a89cc",'chaine',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_COL2',0))
+				dolibarr_set_const($this->db,'OWNTHEME_COL2',"#60a3bc",'chaine',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_COL_BODY_BCKGRD',0))
+				dolibarr_set_const($this->db,'OWNTHEME_COL_BODY_BCKGRD',"#E9E9E9",'chaine',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_COL_LOGO_BCKGRD',0))
+				dolibarr_set_const($this->db,'OWNTHEME_COL_LOGO_BCKGRD',"#474c80",'chaine',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_COL_TXT_MENU',0))
+				dolibarr_set_const($this->db,'OWNTHEME_COL_TXT_MENU',"#b8c6e5",'chaine',0,'',0);
+			
+			if (!dolibarr_get_const($this->db,'OWNTHEME_COL_HEADER_BCKGRD',0))
+				dolibarr_set_const($this->db,'OWNTHEME_COL_HEADER_BCKGRD',"#474c80",'chaine',0,'',0);
+			if ( !dolibarr_get_const($this->db,'OWNTHEME_CUSTOM_CSS',0)) 
+				dolibarr_set_const($this->db,'OWNTHEME_CUSTOM_CSS',0,'yesno',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_CUSTOM_JS',0))
+				dolibarr_set_const($this->db,'OWNTHEME_CUSTOM_JS',0,'yesno',0,'',0);
+			// if (!dolibarr_get_const($this->db,'OWNTHEME_FIXED_MENU',0))
+				dolibarr_set_const($this->db,'OWNTHEME_FIXED_MENU',0,'yesno',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_D_HEADER_FONT_SIZE',0))
+				dolibarr_set_const($this->db,'OWNTHEME_D_HEADER_FONT_SIZE','1.7rem','chaine',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_S_HEADER_FONT_SIZE',0))
+				dolibarr_set_const($this->db,'OWNTHEME_S_HEADER_FONT_SIZE','1.6rem','chaine',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_D_VMENU_FONT_SIZE',0))
+				dolibarr_set_const($this->db,'OWNTHEME_D_VMENU_FONT_SIZE','1.2rem','chaine',0,'',0);
+			if (!dolibarr_get_const($this->db,'OWNTHEME_S_VMENU_FONT_SIZE',0))
+				dolibarr_set_const($this->db,'OWNTHEME_S_VMENU_FONT_SIZE','1.2rem','chaine',0,'',0);
+
+			return $this->_init($sql, $options);
 		}
-
-		$installed_ver = dolibarr_get_const($this->db,'MAIN_VERSION_LAST_INSTALL',0);
-		$upgraded_ver = dolibarr_get_const($this->db,'MAIN_VERSION_LAST_UPGRADE',0);
-		if ($upgraded_ver!="") {
-			$dol_version = $upgraded_ver;
-		} else {
-			$dol_version = $installed_ver;
-		}
-		dolibarr_set_const($this->db,'DOL_VERSION',$dol_version,'chaine',0,'Dolibarr version',1);
-		dolibarr_set_const($this->db,'MAIN_THEME','owntheme','chaine',0,'Sets OwnTheme Theme',1);
-		dolibarr_set_const($this->db,'MAIN_MENU_STANDARD','owntheme_menu.php','chaine',0,'',1);
-		dolibarr_set_const($this->db,'MAIN_MENUFRONT_STANDARD','owntheme_menu.php','chaine',0,'',1);
-		dolibarr_set_const($this->db,'MAIN_MENU_SMARTPHONE','owntheme_menu.php','chaine',0,'',1);
-		dolibarr_set_const($this->db,'MAIN_MENUFRONT_SMARTPHONE','owntheme_menu.php','chaine',0,'',1);
-
-		if (!dolibarr_get_const($this->db,'OWNTHEME_COL1'))
-			dolibarr_set_const($this->db,'OWNTHEME_COL1',"#6a89cc",'chaine',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_COL2'))
-			dolibarr_set_const($this->db,'OWNTHEME_COL2',"#60a3bc",'chaine',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_COL_BODY_BCKGRD'))
-			dolibarr_set_const($this->db,'OWNTHEME_COL_BODY_BCKGRD',"#E9E9E9",'chaine',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_COL_LOGO_BCKGRD'))
-			dolibarr_set_const($this->db,'OWNTHEME_COL_LOGO_BCKGRD',"#474c80",'chaine',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_COL_TXT_MENU'))
-			dolibarr_set_const($this->db,'OWNTHEME_COL_TXT_MENU',"#b8c6e5",'chaine',0,'',1);
-		
-		if (!dolibarr_get_const($this->db,'OWNTHEME_COL_HEADER_BCKGRD'))
-			dolibarr_set_const($this->db,'OWNTHEME_COL_HEADER_BCKGRD',"#474c80",'chaine',0,'',1);
-		if ( !dolibarr_get_const($this->db,'OWNTHEME_CUSTOM_CSS')) 
-			dolibarr_set_const($this->db,'OWNTHEME_CUSTOM_CSS',0,'yesno',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_CUSTOM_JS'))
-			dolibarr_set_const($this->db,'OWNTHEME_CUSTOM_JS',0,'yesno',0,'',1);
-		// if (!dolibarr_get_const($this->db,'OWNTHEME_FIXED_MENU'))
-			dolibarr_set_const($this->db,'OWNTHEME_FIXED_MENU',0,'yesno',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_D_HEADER_FONT_SIZE'))
-			dolibarr_set_const($this->db,'OWNTHEME_D_HEADER_FONT_SIZE','1.7rem','chaine',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_S_HEADER_FONT_SIZE'))
-			dolibarr_set_const($this->db,'OWNTHEME_S_HEADER_FONT_SIZE','1.6rem','chaine',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_D_VMENU_FONT_SIZE'))
-			dolibarr_set_const($this->db,'OWNTHEME_D_VMENU_FONT_SIZE','1.2rem','chaine',0,'',1);
-		if (!dolibarr_get_const($this->db,'OWNTHEME_S_VMENU_FONT_SIZE'))
-			dolibarr_set_const($this->db,'OWNTHEME_S_VMENU_FONT_SIZE','1.2rem','chaine',0,'',1);
-
-		return $this->_init($sql, $options);
+		return '';
 	}
 
 	/**
@@ -271,21 +313,46 @@ class modOwnTheme extends DolibarrModules
 	{
 		$sql = array();
 
-		dolibarr_set_const($this->db,'MAIN_THEME','eldy','chaine',0,'',1);
-		dolibarr_set_const($this->db,'MAIN_MENU_STANDARD','eldy_menu.php','chaine',0,'',1);
-		dolibarr_set_const($this->db,'MAIN_MENUFRONT_STANDARD','eldy_menu.php','chaine',0,'',1);
-		dolibarr_set_const($this->db,'MAIN_MENU_SMARTPHONE','eldy_menu.php','chaine',0,'',1);
-		dolibarr_set_const($this->db,'MAIN_MENUFRONT_SMARTPHONE','eldy_menu.php','chaine',0,'',1);
 		dolibarr_del_const($this->db,'MAIN_FORCETHEME');
 		dolibarr_del_const($this->db,'MAIN_MENU_STANDARD_FORCED');
 		dolibarr_del_const($this->db,'MAIN_MENUFRONT_STANDARD_FORCED');
 		dolibarr_del_const($this->db,'MAIN_MENU_SMARTPHONE_FORCED');
 		dolibarr_del_const($this->db,'MAIN_MENUFRONT_SMARTPHONE_FORCED');
+		
+		dolibarr_del_const($this->db,'MAIN_THEME');
+		dolibarr_del_const($this->db,'MAIN_MENU_STANDARD');
+		dolibarr_del_const($this->db,'MAIN_MENUFRONT_STANDARD');
+		dolibarr_del_const($this->db,'MAIN_MENU_SMARTPHONE');
+		dolibarr_del_const($this->db,'MAIN_MENUFRONT_SMARTPHONE');
+		
+		// Local
+		dolibarr_del_const($this->db,'MAIN_MODULE_OWNTHEME_CSS',0);
+		dolibarr_del_const($this->db,'MAIN_MODULE_OWNTHEME_HOOKS',0);
+		dolibarr_del_const($this->db,'MAIN_MODULE_OWNTHEME_JS',0);
 
-		$source = dol_buildpath('/owntheme/img/weather.org');
-		$dest = dol_buildpath('/theme/owntheme/weather');
-		cpy4($source,$dest);
+		// Theme
+		dolibarr_set_const($this->db,'MAIN_THEME','eldy','chaine',0,'',0);
+		dolibarr_set_const($this->db,'MAIN_MENU_STANDARD','eldy_menu.php','chaine',0,'',0);
+		dolibarr_set_const($this->db,'MAIN_MENUFRONT_STANDARD','eldy_menu.php','chaine',0,'',0);
+		dolibarr_set_const($this->db,'MAIN_MENU_SMARTPHONE','eldy_menu.php','chaine',0,'',0);
+		dolibarr_set_const($this->db,'MAIN_MENUFRONT_SMARTPHONE','eldy_menu.php','chaine',0,'',0);
 
+		dolibarr_del_const($this->db,'MAIN_FORCETHEME',0);
+		dolibarr_del_const($this->db,'MAIN_MENU_STANDARD_FORCED',0);
+		dolibarr_del_const($this->db,'MAIN_MENUFRONT_STANDARD_FORCED',0);
+		dolibarr_del_const($this->db,'MAIN_MENU_SMARTPHONE_FORCED',0);
+		dolibarr_del_const($this->db,'MAIN_MENUFRONT_SMARTPHONE_FORCED',0);
+
+		// $source = dol_buildpath('/owntheme/img/weather.org');
+		// $dest = dol_buildpath('/theme/owntheme/weather');
+		// cpy4($source,$dest);
+		// @chmod($todlt, 0777);
+		// dol_delete_dir_recursive($todlt,0,0);
+
+		//ADEDDCODE
+		$todlt = dol_buildpath('/theme/owntheme');
+		removeDirRecursivelyOwnTheme($todlt);
+		
 		if ( file_exists( dol_buildpath('/webmail/list_messages.php') ) ) 
 			copy(dol_buildpath('/owntheme/inst/webmail/list_messages.php'),dol_buildpath('/webmail/list_messages.php'));
 
@@ -306,6 +373,67 @@ class modOwnTheme extends DolibarrModules
 	}
 
 }
+
+
+
+//ADEDDCODE
+function removeDirRecursivelyOwnTheme($dir){
+	$count = 0;
+	if (dol_is_dir($dir))
+	{
+		$dir_osencoded=dol_osencode($dir);
+		if ($handle = opendir("$dir_osencoded"))
+		{
+			while (false !== ($item = readdir($handle)))
+			{
+				if (! utf8_check($item)) $item=utf8_encode($item);  // should be useless
+
+				if ($item != "." && $item != "..")
+				{
+					if (is_dir(dol_osencode("$dir/$item")) && ! is_link(dol_osencode("$dir/$item")))
+					{
+						$count=removeDirRecursivelyOwnTheme("$dir/$item");
+					}
+					else
+					{
+						@chmod("$dir/$item", octdec(777));
+						$result=dol_delete_file("$dir/$item",0,1);
+					}
+				}
+			}
+			
+			closedir($handle);
+
+			// if (empty($onlysub))
+			// {
+				$result=dol_delete_dir($dir, $nophperrors);
+			// }
+		}
+	}
+}
+
+
+function ownthemepermissionto($source){
+    if(is_dir($source)) {
+    	@chmod($source, 0775);
+        $dir_handle=opendir($source);
+        while($file=readdir($dir_handle)){
+            if($file!="." && $file!=".."){
+                if(is_dir($source."/".$file)){
+                    @chmod($source."/".$file, 0775);
+                    ownthemepermissionto($source."/".$file);
+                } else {
+                    @chmod($source."/".$file, 0664);
+                }
+            }
+        }
+        closedir($dir_handle);
+    } else {
+        @chmod($source, 0664);
+    }
+}
+
+
 // copy recursive
 function cpy4($source, $dest){
     if(is_dir($source)) {
@@ -327,3 +455,6 @@ function cpy4($source, $dest){
         copy($source, $dest);
     }
 }
+
+
+//ADEDDCODE entity=0;

@@ -32,13 +32,11 @@ $html.='</style>';
         $html.= '<tbody>';
             $html.= '<tr>';
                 $html.= '<td rowspan="2" class="logo" style=" height:25px;">';
-
-
+                    
                     $minifile = getImageFileNameForSize($marques->logo, '');
-                    // $urlfile = DOL_URL_ROOT.'/viewimage.php?modulepart=parcautomobile&entity='.$conf->entity.'&file=marques/'.$marques->rowid.'/'.$minifile.'&perm=download';
                     $urlfile = $conf->parcautomobile->dir_output.'/marques/'.$marques->rowid.'/'.$minifile;
                     $html.= '<img alt="Photo" style="height:120px;" src="'.$urlfile.'" >';
-
+                    
                 $html.= '</td>';
                 $html.= '<td class="info_vehicule">';
                     $html.= '<div><br><strong class="label_vehicule">'.$parc->get_nom($item->rowid).'</strong></div>';
@@ -70,7 +68,7 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('lieu').' :  </span></th>';
                     $html.= '<td ><span class="sp_td">'.$item->lieu.'</span></td>';
                 $html.= '</tr>';
-
+                
                 $html.= '<tr>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('num_chassi').' :  </span></th>';
                     $html.= '<td ><span class="sp_td">'.$item->num_chassi.'</span></td>';
@@ -104,7 +102,7 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<td colspan="3"><span class="sp_td">'.$item->kilometrage.' '.$item->unite.'</span> </td>';
                 $html.= '</tr>';
 
-
+                
 
                 $html.= '<tr>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('transmission').' : </span> </th>';
@@ -112,8 +110,8 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('type_carburant').' : </span></th>';
                     $html.= '<td ><span class="sp_td">'.$langs->trans($item->type_carburant).'</span></td>';
                 $html.= '</tr>';
-
-
+                
+                
 
                 $html.= '<tr>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('emission_co2').' : </span></th>';
@@ -129,7 +127,7 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<td ><span class="sp_td">'.$item->tax.'</span></td>';
                 $html.= '</tr>';
 
-
+                
 
                 $html.= '<tr>';
                 $html.= '</tr>';
@@ -140,7 +138,7 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('value_residuelle').' : </span></th>';
                     $html.= '<td ><span class="sp_td">'.$item->value_residuelle.'</span> </td>';
                 $html.= '</tr>';
-
+               
             $html.= '</tbody>';
         $html.= '</table>';
     $html.= '</div>';
@@ -159,7 +157,7 @@ $html.= '</div>';
             $sql="select * from vehiculesparc";
             $interventions->fetchAll('','',3,0,'ORDER BY  date ASC');
             $total_1 = 0;
-            for ($i=0; $i < count($interventions->rows); $i++) {
+            for ($i=0; $i < count($interventions->rows); $i++) { 
                 $service = $interventions->rows[$i];
                 $total_1 += $service->prix;
                 $typeintervention->fetch($service->typeintervention);
@@ -173,7 +171,7 @@ $html.= '</div>';
                     $html.= '<td align="center">'.$date.'</td>';
                     $html.= '<td align="center">'.number_format($service->prix,2,","," ").'</td>';
                 $html.= '</tr>';
-
+                            
             }
             if($total_1 > 0){
                 $html.= '<tr style="height:25px;line-height:3;background-color:#f1f1f7">';
@@ -200,7 +198,7 @@ $html.= '</div>';
             $sql="select * from vehiculesparc";
             $suivi_essence->fetchAll('','',3,0,'ORDER BY  date ASC');
             $total_2 = 0;
-            for ($i=0; $i < count($suivi_essence->rows); $i++) {
+            for ($i=0; $i < count($suivi_essence->rows); $i++) { 
                 $prix=$suivi->prix*$suivi->litre;
                 $total_2+=$prix;
                 $suivi = $suivi_essence->rows[$i];
@@ -214,7 +212,7 @@ $html.= '</div>';
                     $html.= '<td align="center">'.$suivi->litre.'</td>';
                     $html.= '<td align="center">'.number_format($prix,2,","," ").'</td>';
                 $html.= '</tr>';
-
+                            
             }
             if($total_2 > 0){
                 $html.= '<tr style="height:25px;line-height:3;background-color:#f1f1f7">';
@@ -225,7 +223,7 @@ $html.= '</div>';
         $html.= '</tbody>';
     $html.= '</table>';
 
-
+    
     $html.= '<br><br>';
 
     $html.= '<div class="title_div" > <span><b> &nbsp;'.$langs->trans("champs_add").':</span> </b></div>';
@@ -259,3 +257,5 @@ $html.= '</div>';
     $html.= '</table>';
 
     $html.= '<br><br>';
+
+

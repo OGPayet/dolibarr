@@ -923,7 +923,7 @@ function print_left_owntheme_menu($db,$menu_array_before,$menu_array_after,&$tab
 						global $mysoc;
 
 						//Local Taxes 1
-						if($mysoc->useLocalTax(1) && (isset($mysoc->localtax1_assuj) && $mysoc->localtax1_assuj=="1"))
+						if($mysoc && $mysoc->useLocalTax(1) && (isset($mysoc->localtax1_assuj) && $mysoc->localtax1_assuj=="1"))
 						{
 							$newmenu->add("/compta/localtax/list.php?leftmenu=tax_1_vat&amp;mainmenu=billing&amp;localTaxType=1",$langs->transcountry("LT1",$mysoc->country_code),1,$user->rights->tax->charges->lire);
 							if ($usemenuhider || empty($leftmenu) || preg_match('/^tax_1_vat/i',$leftmenu)) $newmenu->add("/compta/localtax/card.php?leftmenu=tax_1_vat&action=create&amp;localTaxType=1",$langs->trans("New"),2,$user->rights->tax->charges->creer);
@@ -933,7 +933,7 @@ function print_left_owntheme_menu($db,$menu_array_before,$menu_array_after,&$tab
 							if ($usemenuhider || empty($leftmenu) || preg_match('/^tax_1_vat/i',$leftmenu)) $newmenu->add("/compta/localtax/quadri_detail.php?leftmenu=tax_1_vat&amp;localTaxType=1", $langs->trans("ReportByQuarter"), 2, $user->rights->tax->charges->lire);
 						}
 						//Local Taxes 2
-						if($mysoc->useLocalTax(2) && (isset($mysoc->localtax2_assuj) && $mysoc->localtax2_assuj=="1"))
+						if($mysoc && $mysoc->useLocalTax(2) && (isset($mysoc->localtax2_assuj) && $mysoc->localtax2_assuj=="1"))
 						{
 							$newmenu->add("/compta/localtax/list.php?leftmenu=tax_2_vat&amp;mainmenu=billing&amp;localTaxType=2",$langs->transcountry("LT2",$mysoc->country_code),1,$user->rights->tax->charges->lire);
 							if ($usemenuhider || empty($leftmenu) || preg_match('/^tax_2_vat/i',$leftmenu)) $newmenu->add("/compta/localtax/card.php?leftmenu=tax_2_vat&action=create&amp;localTaxType=2",$langs->trans("New"),2,$user->rights->tax->charges->creer);
@@ -1827,7 +1827,15 @@ function print_left_owntheme_menu($db,$menu_array_before,$menu_array_after,&$tab
 			    sizes_calc();
 			});
 		</script>
-		<script type="text/javascript" src="<?php echo DOL_MAIN_URL_ROOT;?>/owntheme/js/jquery.slimscroll.min.js"></script>
+		<?php
+		global $dolibarr_main_url_root_alt;
+		$dircustom = DOL_DOCUMENT_ROOT.$dolibarr_main_url_root_alt.'/owntheme/';
+		$customtxt = $dolibarr_main_url_root_alt;
+		if (!is_dir($dircustom)) {
+		    $customtxt = "";
+		}
+		?>
+		<script type="text/javascript" src="<?php echo DOL_MAIN_URL_ROOT.$customtxt;?>/owntheme/js/jquery.slimscroll.min.js"></script>
 		<?php
 
 		if ($altok) print '<div class="blockvmenuend"></div>';    // End menu block

@@ -343,7 +343,7 @@ class RequestManagerKnowledgeBaseDictionaryLine extends DictionaryLine
      * @param   string	$value          Value to show
      * @return	string					Formatted value
      */
-    function showOutputField($fieldName, $value = null)
+    function showOutputFieldAD($fieldName, $value = null)
     {
         if ($fieldName == 'categorie') {
             if (isset($this->dictionary->fields[$fieldName])) {
@@ -379,7 +379,7 @@ class RequestManagerKnowledgeBaseDictionaryLine extends DictionaryLine
 	 * @param  int     $objectid       Current object id
 	 * @return string
 	 */
-	function showInputField($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+	function showInputFieldAD($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
     {
         if ($fieldName == 'categorie') {
             if (isset($this->dictionary->fields[$fieldName])) {

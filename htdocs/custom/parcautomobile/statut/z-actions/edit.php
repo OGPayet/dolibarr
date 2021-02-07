@@ -7,9 +7,9 @@ if ($action == 'update' && $request_method === 'POST') {
     // $d1 = GETPOST('debut');
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
-
+  
     $label = GETPOST('label');
-
+   
 
     $data = array(
         'label'         =>  addslashes($label),
@@ -19,11 +19,11 @@ if ($action == 'update' && $request_method === 'POST') {
     // $composantes_new = (GETPOST('composantes_new'));
     // $composantes = (GETPOST('composantes'));
     // $composants_deleted = explode(',', GETPOST('composants_deleted'));
-
+   
     if ($isvalid > 0) {
         header('Location: ./index.php?page='.$page);
         exit;
-    }
+    } 
     else {
         header('Location: ./card.php?id='. $id .'&update=0');
         exit;
@@ -59,7 +59,7 @@ if($action == "edit"){
             print '<br>';
             print '<input type="submit" style="display:none" id="sub_valid" value="'.$langs->trans('Validate').'" style="" name="bouton" class="butAction" />';
             print '<a  class="butAction" id="btn_valid">'.$langs->trans('Validate').'</a>';
-
+            
             print '<a href="./index.php?page='.$page.'" class="butAction">'.$langs->trans('Cancel').'</a>';
         print '</td>';
     print '</tr>';
@@ -79,3 +79,4 @@ if($action == "edit"){
         })
     })
 </script>
+

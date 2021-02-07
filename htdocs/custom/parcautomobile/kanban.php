@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 
 dol_include_once('/parcautomobile/class/vehiculeparc.class.php');
@@ -73,10 +73,10 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="kanban_parc">
           $parcautomobile = new vehiculeparc($db);
           $parcautomobile->fetchAll();
           $arr_statut=[];
-          for ($i=0; $i <count($statut->rows); $i++) {
+          for ($i=0; $i <count($statut->rows); $i++) { 
             $etape=$statut->rows[$i];
             $arr_statut[$etape->rowid]=0;
-            for ($j=0; $j < count($parcautomobile->rows) ; $j++) {
+            for ($j=0; $j < count($parcautomobile->rows) ; $j++) { 
               $parc=$parcautomobile->rows[$j];
               if($parc->statut == $etape->rowid){ $arr_statut[$etape->rowid]++; };
             }
@@ -132,9 +132,9 @@ print '<div id="kanban"></div>';
                       <?php
                         $statut->fetchAll();
                         $vehicules->fetchAll();
-                        for ($i=0; $i < count($statut->rows); $i++) {
+                        for ($i=0; $i < count($statut->rows); $i++) { 
                             $etape = $statut->rows[$i];
-                            for ($k=0; $k < count($vehicules->rows); $k++) {
+                            for ($k=0; $k < count($vehicules->rows); $k++) { 
                               $vehicule = $vehicules->rows[$k];
                               if($vehicule->statut == $etape->rowid){
                                 $tag='';
@@ -156,7 +156,7 @@ print '<div id="kanban"></div>';
                                   $urlfile = DOL_URL_ROOT.'/viewimage.php?modulepart=parcautomobile&entity='.$conf->entity.'&file=marques/'.$marque->rowid.'/'.$minifile.'&perm=download';
                                   $img='<img src=\''.$urlfile.'\' height=\'40px\'>';
 
-
+                                  
                                   $label='<div>';
                                     $label.='<div class=\'d_left\'  style=\'padding-right: 8px;\'>'.$img.'</div>';
                                     // $label.='<div class=\'d_right\'>';
@@ -168,7 +168,7 @@ print '<div id="kanban"></div>';
                                   print '{id:"'.$vehicule->rowid.'",state:"etape_'.$etape->rowid.'", label: "'.$label.'", tags:"'.$tag.'", hex: "'.$vehicule->color.'", resourceId: "'.$vehicule->rowid.'" },';
                               }
                             }
-                        }
+                        } 
                       ?>
                  ],
                  dataType: "array",
@@ -179,7 +179,7 @@ print '<div id="kanban"></div>';
                 var resourcesSource =
                 {
                     localData: [
-                    <?php
+                    <?php 
                       print '{ id: "", name: "", image: "'.dol_buildpath('/parcautomobile/img/user.png',2).'", common: true },';
                     ?>
                     ],
@@ -198,9 +198,9 @@ print '<div id="kanban"></div>';
                 resources: resourcesAdapterFunc(),
                 source: dataAdapter,
                 columns: [
-                <?php
+                <?php 
                   $statut->fetchAll();
-                  for ($i=0; $i < count($statut->rows); $i++) {
+                  for ($i=0; $i < count($statut->rows); $i++) { 
                     $item = $statut->rows[$i];
                     print '{ text: "'.$langs->trans($item->label).'", dataField: "etape_'.$item->rowid.'" },';
                   }
@@ -209,7 +209,7 @@ print '<div id="kanban"></div>';
                     // { text: "Done", dataField: "done" }
                 ?>
                 ]
-            });
+            }); 
 
             $('#kanban').on('itemMoved', function (event) {
                 var args = event.args;

@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS llx_requestmanagerdet
   subprice                      double(24,8) DEFAULT 0,       -- P.U. HT (exemple 100)
   total_ht                      double(24,8) DEFAULT 0,       -- Total HT de la ligne toute quantite et incluant remise ligne et globale
   total_tva                     double(24,8) DEFAULT 0,       -- Total TVA de la ligne toute quantite et incluant remise ligne et globale
-  total_localtax1               double(24,8) DEFAULT 0,       -- Total LocalTax1
+  total_localtax1               double(24,8) DEFAULT 0,       -- Total LocalTax1 
   total_localtax2               double(24,8) DEFAULT 0,       -- Total LocalTax2
   total_ttc                     double(24,8) DEFAULT 0,       -- Total TTC de la ligne toute quantite et incluant remise ligne et globale
   product_type                  integer      DEFAULT 0,
@@ -45,11 +45,11 @@ CREATE TABLE IF NOT EXISTS llx_requestmanagerdet
 
   buy_price_ht                  double(24,8) DEFAULT 0,       -- buying price
   fk_product_fournisseur_price  integer      DEFAULT NULL,    -- reference of supplier price when line was added (may be used to update buy_price_ht current price when future invoice will be created)
-
+  
   special_code                  integer      DEFAULT 0,       -- code pour les lignes speciales
   rang                          integer      DEFAULT 0,
   fk_unit                       integer      DEFAULT NULL,    -- lien vers table des unités
-
+  
   fk_multicurrency              integer,
   multicurrency_code            varchar(255),
   multicurrency_subprice        double(24,8) DEFAULT 0,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS llx_requestmanagerdet
   multicurrency_total_ttc       double(24,8) DEFAULT 0
 )ENGINE=innodb;
 
---
+-- 
 -- List of codes for special_code
 --
 -- 1 : frais de port

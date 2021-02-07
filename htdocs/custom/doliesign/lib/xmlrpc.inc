@@ -2402,7 +2402,7 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 				}
 				// be tolerant to line endings, and extra empty lines
 				$ar = preg_split("/\r?\n/", trim(substr($data, 0, $pos)));
-				while(list(,$line) = @each($ar))
+				foreach($ar as $line)
 				{
 					// take care of multi-line headers and cookies
 					$arr = explode(':',$line,2);
@@ -2684,7 +2684,7 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 			xml_set_default_handler($parser, 'xmlrpc_dh');
 
 			// first error check: xml not well formed
-			if(!xml_parse($parser, $data, count($data)))
+			if(!xml_parse($parser, $data, strlen($data)))
 			{
 				// thanks to Peter Kocks <peter.kocks@baygate.com>
 				if((xml_get_current_line_number($parser)) == 1)
@@ -2976,7 +2976,7 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 				echo "$key => $val<br />";
 				if($key == 'array')
 				{
-					while(list($key2, $val2) = each($val))
+					foreach($val as $key2 => $val2)
 					{
 						echo "-- $key2 => $val2<br />";
 					}
@@ -3123,7 +3123,9 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 			//if (is_object($o) && (get_class($o) == 'xmlrpcval' || is_subclass_of($o, 'xmlrpcval')))
 			//{
 				reset($this->me);
-				list($typ, $val) = each($this->me);
+				//list($typ, $val) = each($this->me);
+				$typ = key($this->me);
+				$val = current($this->me);
 				return '<value>' . $this->serializedata($typ, $val, $charset_encoding) . "</value>\n";
 			//}
 		}
@@ -3136,7 +3138,9 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 			//{
 				$ar=$o->me;
 				reset($ar);
-				list($typ, $val) = each($ar);
+				//list($typ, $val) = each($ar);
+				$typ = key($ar);
+				$val = current($ar);
 				return '<value>' . $this->serializedata($typ, $val) . "</value>\n";
 			//}
 		}
@@ -3181,7 +3185,8 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 		*/
 		function structeach()
 		{
-			return each($this->me['struct']);
+			return [key($this->me['struct']), current($this->me['struct'])];
+			//return each($this->me['struct']);
 		}
 
 		// DEPRECATED! this code looks like it is very fragile and has not been fixed
@@ -3198,8 +3203,8 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 
 			if(is_array($b))
 			{
-				@reset($b);
-				while(list($id,$cont) = @each($b))
+				//@reset($b);
+				foreach($b as $id=>$cont)
 				{
 					$b[$id] = $cont->scalarval();
 				}
@@ -3209,13 +3214,13 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 			if(is_object($b))
 			{
 				$t = get_object_vars($b);
-				@reset($t);
-				while(list($id,$cont) = @each($t))
+				//@reset($t);
+				foreach($t as $id=>$cont)
 				{
 					$t[$id] = $cont->scalarval();
 				}
-				@reset($t);
-				while(list($id,$cont) = @each($t))
+				//@reset($t);
+				foreach($t as $id => $cont)
 				{
 					@$b->$id = $cont;
 				}
@@ -3232,7 +3237,8 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 		function scalarval()
 		{
 			reset($this->me);
-			list(,$b)=each($this->me);
+			//list(,$b)=each($this->me);
+			$b = current($this->me);
 			return $b;
 		}
 
@@ -3379,7 +3385,9 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 				if (in_array('extension_api', $options))
 				{
 					reset($xmlrpc_val->me);
-					list($typ,$val) = each($xmlrpc_val->me);
+					//list($typ,$val) = each($xmlrpc_val->me);
+					$typ = key($xmlrpc_val->me);
+					$val = current($xmlrpc_val->me);
 					switch ($typ)
 					{
 						case 'dateTime.iso8601':
@@ -3553,7 +3561,7 @@ xmlrpc_encode_entitites($this->errstr, $GLOBALS['xmlrpc_internalencoding'], $cha
 				{
 					$arr = array();
 					reset($php_val);
-					while(list($k,$v) = each($php_val))
+					foreach($php_val as $k=>$v)
 					{
 						$arr[$k] = php_xmlrpc_encode($v, $options);
 					}

@@ -31,7 +31,7 @@ if (! $res) $res=@include("../../../main.inc.php");		// For "custom" directory
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 
-require_once DOL_DOCUMENT_ROOT . '/owntheme/lib/owntheme.lib.php';
+dol_include_once('/owntheme/lib/owntheme.lib.php');
 
 
 // Translations

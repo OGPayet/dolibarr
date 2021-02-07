@@ -146,8 +146,7 @@ class ActionsSynergiesTech
     function createFrom($parameters, &$object, &$action, $hookmanager)
     {
         global $conf;
-        if (
-            $object->element == "order_supplier" &&
+        if ($object->element == "order_supplier" &&
             $conf->global->SYNERGIESTECH_DO_NOT_KEEP_LINKED_OBJECT_WHEN_CLONING_SUPPLIER_ORDER &&
             !empty($object->context['createfromclone'])
         ) {
@@ -201,7 +200,7 @@ class ActionsSynergiesTech
         if (in_array('tab_supplier_order', $contexts)) {
             // List of lines to serialize
             $dispatched_sql = "SELECT p.ref, p.label, p.description, p.fk_product_type, SUM(IFNULL(eq.quantity, 0)) as nb_serialized,";
-            $dispatched_sql .= " e.rowid as warehouse_id, e.label as entrepot,";
+            $dispatched_sql .= " e.rowid as warehouse_id, e.ref as entrepot,";
             $dispatched_sql .= " cfd.rowid as dispatchlineid, cfd.fk_product, cfd.qty, cfd.eatby, cfd.sellby, cfd.batch, cfd.comment, cfd.status";
             $dispatched_sql .= " FROM " . MAIN_DB_PREFIX . "product as p,";
             $dispatched_sql .= " " . MAIN_DB_PREFIX . "commande_fournisseur_dispatch as cfd";
@@ -538,10 +537,11 @@ class ActionsSynergiesTech
                 print $form->formconfirm($_SERVER['PHP_SELF'] . "?id=" . $object->id, $langs->trans("SynergiesTechTicketGenerateReportConfirm"), '', 'synergiestech_generate_ticket_report_confirm', $formquestion, 'yes', 1, 200);
             }
 
-            if ($user->rights->synergiestech->generate->ticket_report)
+            if ($user->rights->synergiestech->generate->ticket_report) {
                 print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=synergiestech_generate_ticket_report">' . $langs->trans("SynergiesTechTicketGenerateReport") . '</a></div>';
-            else
+            } else {
                 print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("SynergiesTechTicketGenerateReport") . '</a></div>';
+            }
         } elseif (in_array('interventioncard', $contexts)) {
             // ReOpen
             if ($object->statut == 2 /* invoiced */ || $object->statut == 3 /* done */) {
@@ -554,22 +554,21 @@ class ActionsSynergiesTech
                     print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("ReOpen") . '</a></div>';
                 }
             }
-            if($object->statut == 0){ //draft
-                if($user->rights->synergiestech->intervention->validateWithoutCheck){
+            if ($object->statut == 0) { //draft
+                if ($user->rights->synergiestech->intervention->validateWithoutCheck) {
                     print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=validateWithoutCheck' . (empty($conf->global->MAIN_JUMP_TAG) ? '' : '#reopen') . '">' .
                     $langs->trans("SynergiesTechValidateWithoutCheck") . '</a></div>';
                 }
             }
-        } elseif (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)){
-
+        } elseif (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) {
             // Validate
-            if ($object->statut == 0 && count($object->lines) > 0)
-            {
+            if ($object->statut == 0 && count($object->lines) > 0) {
                 if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->fournisseur->commande->creer))
-                   || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->fournisseur->supplier_order_advance->validate)))
-                {
+                   || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->fournisseur->supplier_order_advance->validate))) {
                     $tmpbuttonlabel=$langs->trans('Validate');
-                    if ($user->rights->fournisseur->commande->approuver && empty($conf->global->SUPPLIER_ORDER_NO_DIRECT_APPROVE)) $tmpbuttonlabel = $langs->trans("ValidateAndApprove");
+                    if ($user->rights->fournisseur->commande->approuver && empty($conf->global->SUPPLIER_ORDER_NO_DIRECT_APPROVE)) {
+                        $tmpbuttonlabel = $langs->trans("ValidateAndApprove");
+                    }
 
                     print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=valid">';
                     print $tmpbuttonlabel;
@@ -577,118 +576,86 @@ class ActionsSynergiesTech
                 }
             }
             // Create event
-            if ($conf->agenda->enabled && ! empty($conf->global->MAIN_ADD_EVENT_ON_ELEMENT_CARD)) 	// Add hidden condition because this is not a "workflow" action so should appears somewhere else on page.
-            {
+            if ($conf->agenda->enabled && ! empty($conf->global->MAIN_ADD_EVENT_ON_ELEMENT_CARD)) {   // Add hidden condition because this is not a "workflow" action so should appears somewhere else on page.
                 print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create&amp;origin=' . $object->element . '&amp;originid=' . $object->id . '&amp;socid=' . $object->socid . '">' . $langs->trans("AddAction") . '</a></div>';
             }
 
             // Modify
-            if ($object->statut == 1)
-            {
-                if ($user->rights->fournisseur->commande->commander)
-                {
+            if ($object->statut == 1) {
+                if ($user->rights->fournisseur->commande->commander) {
                     print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reopen">'.$langs->trans("Modify").'</a>';
                 }
             }
 
             // Approve
-            if ($object->statut == 1)
-            {
-                if ($user->rights->fournisseur->commande->approuver)
-                {
-                    if (! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $conf->global->MAIN_FEATURES_LEVEL > 0 && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED && ! empty($object->user_approve_id))
-                    {
+            if ($object->statut == 1) {
+                if ($user->rights->fournisseur->commande->approuver) {
+                    if (! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $conf->global->MAIN_FEATURES_LEVEL > 0 && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED && ! empty($object->user_approve_id)) {
                         print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("FirstApprovalAlreadyDone")).'">'.$langs->trans("ApproveOrder").'</a>';
-                    }
-                    else
-                    {
+                    } else {
                         print '<a class="butAction"	href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=approve">'.$langs->trans("ApproveOrder").'</a>';
                     }
-                }
-                else
-                {
+                } else {
                     print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">'.$langs->trans("ApproveOrder").'</a>';
                 }
             }
 
             // Second approval (if option SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED is set)
-            if (! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $conf->global->MAIN_FEATURES_LEVEL > 0 && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED)
-            {
-                if ($object->statut == 1)
-                {
-                    if ($user->rights->fournisseur->commande->approve2)
-                    {
-                        if (! empty($object->user_approve_id2))
-                        {
+            if (! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $conf->global->MAIN_FEATURES_LEVEL > 0 && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) {
+                if ($object->statut == 1) {
+                    if ($user->rights->fournisseur->commande->approve2) {
+                        if (! empty($object->user_approve_id2)) {
                             print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("SecondApprovalAlreadyDone")).'">'.$langs->trans("Approve2Order").'</a>';
-                        }
-                        else
-                        {
+                        } else {
                             print '<a class="butAction"	href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=approve2">'.$langs->trans("Approve2Order").'</a>';
                         }
-                    }
-                    else
-                    {
+                    } else {
                         print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">'.$langs->trans("Approve2Order").'</a>';
                     }
                 }
             }
 
             // Refuse
-            if ($object->statut == 1)
-            {
-                if ($user->rights->fournisseur->commande->approuver || $user->rights->fournisseur->commande->approve2)
-                {
+            if ($object->statut == 1) {
+                if ($user->rights->fournisseur->commande->approuver || $user->rights->fournisseur->commande->approve2) {
                     print '<a class="butAction"	href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=refuse">'.$langs->trans("RefuseOrder").'</a>';
-                }
-                else
-                {
+                } else {
                     print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">'.$langs->trans("RefuseOrder").'</a>';
                 }
             }
 
             // Send
-            if (in_array($object->statut, array(2, 3, 4, 5)))
-            {
-                if ($user->rights->fournisseur->commande->commander)
-                {
+            if (in_array($object->statut, array(2, 3, 4, 5))) {
+                if ($user->rights->fournisseur->commande->commander) {
                     print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=presend&mode=init#formmailbeforetitle">'.$langs->trans('SendByMail').'</a>';
                 }
             }
 
             // Reopen
-            if (in_array($object->statut, array(2)))
-            {
+            if (in_array($object->statut, array(2))) {
                 $buttonshown=0;
-                if (! $buttonshown && $user->rights->fournisseur->commande->approuver)
-                {
+                if (! $buttonshown && $user->rights->fournisseur->commande->approuver) {
                     if (empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER_ONLY)
-                        || (! empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER_ONLY) && $user->id == $object->user_approve_id))
-                    {
+                        || (! empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER_ONLY) && $user->id == $object->user_approve_id)) {
                         print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reopen">'.$langs->trans("Disapprove").'</a>';
                         $buttonshown++;
                     }
                 }
-                if (! $buttonshown && $user->rights->fournisseur->commande->approve2 && ! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED))
-                {
+                if (! $buttonshown && $user->rights->fournisseur->commande->approve2 && ! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED)) {
                     if (empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER2_ONLY)
-                        || (! empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER2_ONLY) && $user->id == $object->user_approve_id2))
-                    {
+                        || (! empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER2_ONLY) && $user->id == $object->user_approve_id2)) {
                         print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reopen">'.$langs->trans("Disapprove").'</a>';
                     }
                 }
             }
-            if (in_array($object->statut, array(3, 4, 5, 6, 7, 9)))
-            {
-                if ($user->rights->fournisseur->commande->commander)
-                {
+            if (in_array($object->statut, array(3, 4, 5, 6, 7, 9))) {
+                if ($user->rights->fournisseur->commande->commander) {
                     print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reopen">'.$langs->trans("ReOpen").'</a>';
                 }
             }
 
             // Ship
-            if (! empty($conf->stock->enabled) && ! empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER))
-            {
+            if (! empty($conf->stock->enabled) && ! empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER)) {
                 if (in_array($object->statut, array(3,4))) {
                     if ($conf->fournisseur->enabled && $user->rights->fournisseur->commande->receptionner) {
                         print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fourn/commande/dispatch.php?id=' . $object->id . '">' . $langs->trans('OrderDispatch') . '</a></div>';
@@ -698,25 +665,18 @@ class ActionsSynergiesTech
                 }
             }
 
-            if ($object->statut == 2)
-            {
-                if ($user->rights->fournisseur->commande->commander)
-                {
+            if ($object->statut == 2) {
+                if ($user->rights->fournisseur->commande->commander) {
                     print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=makeorder#makeorder">'.$langs->trans("MakeOrder").'</a></div>';
-                }
-                else
-                {
+                } else {
                     print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">'.$langs->trans("MakeOrder").'</a></div>';
                 }
             }
 
             // Create bill
-            if (! empty($conf->facture->enabled))
-            {
-                if (! empty($conf->fournisseur->enabled) && ($object->statut >= 2 && $object->statut != 7 && $object->billed != 1))  // statut 2 means approved, 7 means canceled
-                {
-                    if ($user->rights->fournisseur->facture->creer)
-                    {
+            if (! empty($conf->facture->enabled)) {
+                if (! empty($conf->fournisseur->enabled) && ($object->statut >= 2 && $object->statut != 7 && $object->billed != 1)) {  // statut 2 means approved, 7 means canceled
+                    if ($user->rights->fournisseur->facture->creer) {
                         print '<a class="butAction" href="'.DOL_URL_ROOT.'/fourn/facture/card.php?action=create&amp;origin='.$object->element.'&amp;originid='.$object->id.'&amp;socid='.$object->socid.'">'.$langs->trans("CreateBill").'</a>';
                     }
                 }
@@ -739,33 +699,27 @@ class ActionsSynergiesTech
             // }
 
             // Create a remote order using WebService only if module is activated
-            if (! empty($conf->syncsupplierwebservices->enabled) && $object->statut >= 2) // 2 means accepted
-            {
+            if (! empty($conf->syncsupplierwebservices->enabled) && $object->statut >= 2) { // 2 means accepted
                 print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=webservice&amp;mode=init">'.$langs->trans('CreateRemoteOrder').'</a>';
             }
 
             // Clone
-            if ($user->rights->fournisseur->commande->creer)
-            {
+            if ($user->rights->fournisseur->commande->creer) {
                 print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&amp;socid='.$object->socid.'&amp;action=clone&amp;object=order">'.$langs->trans("ToClone").'</a>';
             }
 
             // Cancel
             // OpenDSI -- Show cancel button -- Start
             //if ($object->statut == 2)
-            if ($object->statut != 0)
+            if ($object->statut != 0) {
             // OpenDSI -- Show cancel button -- End
-            {
-
-                if ($user->rights->fournisseur->commande->commander)
-                {
+                if ($user->rights->fournisseur->commande->commander) {
                     print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=cancel">'.$langs->trans("CancelOrder").'</a>';
                 }
             }
 
             // Delete
-            if ($user->rights->fournisseur->commande->supprimer)
-            {
+            if ($user->rights->fournisseur->commande->supprimer) {
                 print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=delete">'.$langs->trans("Delete").'</a>';
             }
             return 1;
@@ -1061,7 +1015,7 @@ SCRIPT;
 
                 return 1;
             }
-        } else if (in_array('propalcard', $contexts)) {
+        } elseif (in_array('propalcard', $contexts)) {
             // accept or refuse proposal
             if ($action == 'statut') {
                 $out = '';
@@ -1116,7 +1070,7 @@ SCRIPT;
 
                 return 1;
             }
-        } else if (in_array('requestmanagerfastcard', $contexts)) {
+        } elseif (in_array('requestmanagerfastcard', $contexts)) {
             global $force_principal_company_confirmed, $force_out_of_time_confirmed, $create_and_take_in_charge_confirmed, $selectedEquipementId;
             $selectedActionJs = GETPOST('action_js') ? GETPOST('action_js') : '';
             $selectedActionCommId = GETPOST('actioncomm_id', 'int') ? intval(GETPOST('actioncomm_id', 'int')) : -1;
@@ -1193,38 +1147,102 @@ SCRIPT;
 
             // Confirm force principal company
             $formquestion = array();
-            if (!empty($selectedActionJs)) $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
-            if (!empty($selectedActionCommId)) $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
-            if (!empty($selectedCategories)) $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
-            if (!empty($selectedContacts)) $formquestion[] = array('type' => 'hidden', 'name' => 'contact_ids', 'value' => implode(',', $selectedContacts));
-            if (!empty($selectedDescription)) $formquestion[] = array('type' => 'hidden', 'name' => 'description', 'value' => $selectedDescription);
-            if (!empty($selectedEquipementId)) $formquestion[] = array('type' => 'hidden', 'name' => 'equipement_id', 'value' => implode(',', $selectedEquipementId));
-            if (!empty($selectedLabel)) $formquestion[] = array('type' => 'hidden', 'name' => 'label', 'value' => $selectedLabel);
-            if (!empty($selectedSocIdOrigin)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_origin', 'value' => $selectedSocIdOrigin);
-            if (!empty($selectedSocId)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid', 'value' => $selectedSocId);
-            if (!empty($selectedSocIdBenefactor)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_benefactor', 'value' => $selectedSocIdBenefactor);
-            if (!empty($selectedSocIdWatcher)) $formquestion[] = array('type' => 'hidden', 'name' => 'socid_watcher', 'value' => $selectedSocIdWatcher);
-            if (!empty($selectedFkSource)) $formquestion[] = array('type' => 'hidden', 'name' => 'source', 'value' => $selectedFkSource);
-            if (!empty($selectedFkType)) $formquestion[] = array('type' => 'hidden', 'name' => 'type', 'value' => $selectedFkType);
-            if (!empty($selectedFkUrgency)) $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
-            if (!empty($selectedRequesterNotification)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requester_by_email', 'value' => $selectedRequesterNotification);
-            if (!empty($origin)) $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
-            if (!empty($originid)) $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
-            if (!empty($force_principal_company_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_principal_company_confirmed', 'value' => $force_principal_company_confirmed ? 1 : 0);
-            if (!empty($force_out_of_time_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'force_out_of_time_confirmed', 'value' => $force_out_of_time_confirmed ? 1 : 0);
-            if (!empty($next_status)) $formquestion[] = array('type' => 'hidden', 'name' => 'next_status', 'value' => $next_status);
-            if (!empty($create_and_take_in_charge_confirmed)) $formquestion[] = array('type' => 'hidden', 'name' => 'create_and_take_in_charge_confirmed', 'value' => $create_and_take_in_charge_confirmed ? 1 : 0);
-            if (!empty($notify_assigned)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_assigned', 'value' => $notify_assigned);
-            if (!empty($notify_requesters)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requesters', 'value' => $notify_requesters);
-            if (!empty($notify_watchers)) $formquestion[] = array('type' => 'hidden', 'name' => 'notify_watchers', 'value' => $notify_watchers);
-            if (!empty($message_type)) $formquestion[] = array('type' => 'hidden', 'name' => 'message_type', 'value' => $message_type);
-            if (!empty($message_subject)) $formquestion[] = array('type' => 'hidden', 'name' => 'message_subject', 'value' => $message_subject);
-            if (!empty($message)) $formquestion[] = array('type' => 'hidden', 'name' => 'message', 'value' => $message);
-            if (!empty($btn_create_take_charge)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_charge', 'value' => $btn_create_take_charge);
-            if (!empty($btn_create_take_really_in_charge)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge', 'value' => $btn_create_take_really_in_charge);
-            if (!empty($btn_create_take_charge_with_message)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_charge_with_message', 'value' => $btn_create_take_charge_with_message);
-            if (!empty($btn_create_take_really_in_charge_with_message)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge_with_message', 'value' => $btn_create_take_really_in_charge_with_message);
-            if (!empty($btn_create_take_really_in_charge_with_message_and_clotured)) $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge_with_message_and_clotured', 'value' => $btn_create_take_really_in_charge_with_message_and_clotured);
+            if (!empty($selectedActionJs)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'action_js', 'value' => $selectedActionJs);
+            }
+            if (!empty($selectedActionCommId)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'actioncomm_id', 'value' => $selectedActionCommId);
+            }
+            if (!empty($selectedCategories)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'categories', 'value' => implode(',', $selectedCategories));
+            }
+            if (!empty($selectedContacts)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'contact_ids', 'value' => implode(',', $selectedContacts));
+            }
+            if (!empty($selectedDescription)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'description', 'value' => $selectedDescription);
+            }
+            if (!empty($selectedEquipementId)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'equipement_id', 'value' => implode(',', $selectedEquipementId));
+            }
+            if (!empty($selectedLabel)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'label', 'value' => $selectedLabel);
+            }
+            if (!empty($selectedSocIdOrigin)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'socid_origin', 'value' => $selectedSocIdOrigin);
+            }
+            if (!empty($selectedSocId)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'socid', 'value' => $selectedSocId);
+            }
+            if (!empty($selectedSocIdBenefactor)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'socid_benefactor', 'value' => $selectedSocIdBenefactor);
+            }
+            if (!empty($selectedSocIdWatcher)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'socid_watcher', 'value' => $selectedSocIdWatcher);
+            }
+            if (!empty($selectedFkSource)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'source', 'value' => $selectedFkSource);
+            }
+            if (!empty($selectedFkType)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'type', 'value' => $selectedFkType);
+            }
+            if (!empty($selectedFkUrgency)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'urgency', 'value' => $selectedFkUrgency);
+            }
+            if (!empty($selectedRequesterNotification)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requester_by_email', 'value' => $selectedRequesterNotification);
+            }
+            if (!empty($origin)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'origin', 'value' => $origin);
+            }
+            if (!empty($originid)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'originid', 'value' => $originid);
+            }
+            if (!empty($force_principal_company_confirmed)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'force_principal_company_confirmed', 'value' => $force_principal_company_confirmed ? 1 : 0);
+            }
+            if (!empty($force_out_of_time_confirmed)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'force_out_of_time_confirmed', 'value' => $force_out_of_time_confirmed ? 1 : 0);
+            }
+            if (!empty($next_status)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'next_status', 'value' => $next_status);
+            }
+            if (!empty($create_and_take_in_charge_confirmed)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'create_and_take_in_charge_confirmed', 'value' => $create_and_take_in_charge_confirmed ? 1 : 0);
+            }
+            if (!empty($notify_assigned)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'notify_assigned', 'value' => $notify_assigned);
+            }
+            if (!empty($notify_requesters)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'notify_requesters', 'value' => $notify_requesters);
+            }
+            if (!empty($notify_watchers)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'notify_watchers', 'value' => $notify_watchers);
+            }
+            if (!empty($message_type)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'message_type', 'value' => $message_type);
+            }
+            if (!empty($message_subject)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'message_subject', 'value' => $message_subject);
+            }
+            if (!empty($message)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'message', 'value' => $message);
+            }
+            if (!empty($btn_create_take_charge)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_charge', 'value' => $btn_create_take_charge);
+            }
+            if (!empty($btn_create_take_really_in_charge)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge', 'value' => $btn_create_take_really_in_charge);
+            }
+            if (!empty($btn_create_take_charge_with_message)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_charge_with_message', 'value' => $btn_create_take_charge_with_message);
+            }
+            if (!empty($btn_create_take_really_in_charge_with_message)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge_with_message', 'value' => $btn_create_take_really_in_charge_with_message);
+            }
+            if (!empty($btn_create_take_really_in_charge_with_message_and_clotured)) {
+                $formquestion[] = array('type' => 'hidden', 'name' => 'btn_create_take_really_in_charge_with_message_and_clotured', 'value' => $btn_create_take_really_in_charge_with_message_and_clotured);
+            }
 
             dol_include_once('/synergiestech/class/html.formsynergiestech.class.php');
             $formsynergiestech = new FormSynergiesTech($this->db);
@@ -1284,26 +1302,22 @@ SCRIPT;
                 );
                 return 1;
             }
-            if($action == 'validateWithoutCheck'){
+            if ($action == 'validateWithoutCheck') {
                 $langs->load('synergiestech@synergiestech');
 
 
                 $ref = substr($object->ref, 1, 4);
-                if ($ref == 'PROV')
-                {
+                if ($ref == 'PROV') {
                     global $soc;
                     $numref = $object->getNextNumRef($soc);
-                    if (empty($numref))
-                    {
+                    if (empty($numref)) {
                         $error++;
                         setEventMessages($object->error, $object->errors, 'errors');
                     }
-                }
-                else
-                {
+                } else {
                     $numref = $object->ref;
                 }
-                $text=$langs->trans('SynergiesTechValidateWithoutCheckConfirmation',$numref);
+                $text=$langs->trans('SynergiesTechValidateWithoutCheckConfirmation', $numref);
 
                 print $form->formconfirm(
                     $_SERVER["PHP_SELF"] . '?id=' . $object->id,
@@ -1359,7 +1373,7 @@ SCRIPT;
                         $formHtmlSynergiesTech = new FormSynergiesTech($this->db);
                         $formHtmlSynergiesTech->fetch_all_contract_for_these_company($object->socid, $object->socid_benefactor, true, true);
                         $listOfContract = $formHtmlSynergiesTech->getContractLinkedToEquipementId($linkto, true);
-                        foreach($listOfContract as $contract){
+                        foreach ($listOfContract as $contract) {
                             $object->setContract($contract->id);
                         }
                     }
@@ -1469,7 +1483,9 @@ SCRIPT;
                             }
                         }
 
-                        if ($error) break;
+                        if ($error) {
+                            break;
+                        }
                     }
 
                     if (!$error) {
@@ -1484,8 +1500,7 @@ SCRIPT;
                     $action = "synergiestech_returnproducts";
                 }
             } // Add message
-            elseif (
-                $action == 'stpremessage' && GETPOST('addmessage', 'alpha') && !$_POST['addfile'] && !$_POST['removAll'] && !$_POST['removedfile'] && !$_POST['modelselected'] &&
+            elseif ($action == 'stpremessage' && GETPOST('addmessage', 'alpha') && !$_POST['addfile'] && !$_POST['removAll'] && !$_POST['removedfile'] && !$_POST['modelselected'] &&
                 $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
             ) {
                 $error = 0;
@@ -1591,8 +1606,7 @@ SCRIPT;
                 $action = 'stpremessage';
                 return 1;
             } // Clear message
-            elseif (
-                $action == 'rm_reset_data_in_session' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
+            elseif ($action == 'rm_reset_data_in_session' && $user->rights->requestmanager->creer && $object->statut_type == RequestManager::STATUS_TYPE_IN_PROGRESS
             ) {
                 dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
                 $formrequestmanagermessage = new FormRequestManagerMessage($this->db, $object);
@@ -1602,12 +1616,13 @@ SCRIPT;
                 exit();
             }
 
-            if ($action == 'premessage') $action == 'stpremessage';
+            if ($action == 'premessage') {
+                $action == 'stpremessage';
+            }
         } elseif (in_array('contractcard', $contexts)) {
             $langs->load('synergiestech@synergiestech');
             if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
-                if (
-                    GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
+                if (GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
                     GETPOST('synergiestech_generate_ticket_report_date_endmonth') && GETPOST('synergiestech_generate_ticket_report_date_endday') && GETPOST('synergiestech_generate_ticket_report_date_endyear')
                 ) {
                     $synergiestech_generate_ticket_report_date_start = dol_mktime(0, 0, 0, GETPOST('synergiestech_generate_ticket_report_date_startmonth'), GETPOST('synergiestech_generate_ticket_report_date_startday'), GETPOST('synergiestech_generate_ticket_report_date_startyear'));
@@ -1786,8 +1801,9 @@ SCRIPT;
         } elseif (in_array('propalcard', $contexts)) {
             if ($object->id > 0) {
                 $object->fetch_optionals();
-                if (!$user->rights->synergiestech->propal->installation_value && !empty($object->array_options['options_sitevalue']))
+                if (!$user->rights->synergiestech->propal->installation_value && !empty($object->array_options['options_sitevalue'])) {
                     accessforbidden();
+                }
             }
         } elseif (in_array('requestmanagerfastcard', $contexts)) {
             global $force_principal_company_confirmed, $force_out_of_time_confirmed, $create_and_take_in_charge_confirmed;
@@ -1801,7 +1817,9 @@ SCRIPT;
                 $companyrelationships = new CompanyRelationships($this->db);
             }
 
-            if ($cancel) $action = '';
+            if ($cancel) {
+                $action = '';
+            }
             $shouldCreateARequestMessage = false;
             $shouldCloturedRequest = false;
             if (GETPOST('btn_create_take_charge_with_message') || GETPOST('btn_create_take_really_in_charge_with_message') || GETPOST('btn_create_take_really_in_charge_with_message_and_clotured')) {
@@ -2003,7 +2021,7 @@ SCRIPT;
                             $action = 'createfast';
                         }
                     }
-                } else if ($btnAction == 'associate') {
+                } elseif ($btnAction == 'associate') {
                     $associateList = GETPOST('associate_list', 'array') ? GETPOST('associate_list', 'array') : array();
                     if (count($associateList) <= 0) {
                         $object->errors[] = $langs->trans("RequestManagerCreateFastErrorNoRequestSelected");
@@ -2061,19 +2079,18 @@ SCRIPT;
                 } else {
                     setEventMessage($msg_error, 'errors');
                 }
-            } elseif ($action == 'setcontract'){
-                if($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER && $object->statut > 0){
+            } elseif ($action == 'setcontract') {
+                if ($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER && $object->statut > 0) {
                     //We check that user can validate this fichinter
                     dol_include_once('synergiestech/class/extendedInterventionValidation.class.php');
                     $InterventionValidationCheck = new ExtendedInterventionValidation($object, $this->db);
-                    if(!$InterventionValidationCheck->canThisNewContractBeLinkedToThisFichinter($user,GETPOST('contratid', 'int'))){
+                    if (!$InterventionValidationCheck->canThisNewContractBeLinkedToThisFichinter($user, GETPOST('contratid', 'int'))) {
                         $this->errors[] = $langs->trans("SynergiesTechNewContractCantBeChoosed");
                         $action = "contrat";
                     }
                 }
-            }
-            elseif ($action == 'confirm_validateWithoutCheck' && $confirm == 'yes'){
-                if($user->rights->synergiestech->intervention->validateWithoutCheck){
+            } elseif ($action == 'confirm_validateWithoutCheck' && $confirm == 'yes') {
+                if ($user->rights->synergiestech->intervention->validateWithoutCheck) {
                     $object->noValidationCheck = true;
                 }
                 $action = 'confirm_validate';
@@ -2084,8 +2101,7 @@ SCRIPT;
             }
         }
 
-        if($action == "dellink") {
-
+        if ($action == "dellink") {
             $sql = "SELECT fk_source, sourcetype, targettype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . GETPOST('dellinkid', 'int');
 
             $resql = $this->db->query($sql);
@@ -2094,22 +2110,20 @@ SCRIPT;
                     if ($obj->sourcetype == "fichinter" && $obj->targettype == "commande") {
                         $interventionId = $obj->fk_source;
                         $orderId = $obj->fk_target;
-                    } else if ($obj->targettype == "fichinter" && $obj->sourcetype == "commande") {
+                    } elseif ($obj->targettype == "fichinter" && $obj->sourcetype == "commande") {
                         $interventionId = $obj->fk_target;
                         $orderId = $obj->fk_source;
                     }
-                    if($interventionId > 0 && $orderId > 0 ){
+                    if ($interventionId > 0 && $orderId > 0) {
                         dol_include_once("fichinter/class/fichinter.class.php");
                         $fichInter = new Fichinter($this->db);
                         $fichInter->fetch($interventionId);
                         dol_include_once("/synergiestech/class/extendedInterventionValidation.class.php");
                         $InterventionValidationCheck = new ExtendedInterventionValidation($fichInter, $this->db);
-                        if($fichInter->statut > 0 && !$InterventionValidationCheck->canThisOrderBeUnlinkedToThisFichinter($user,$orderId)){
-                            if($user->rights->synergiestech->intervention->validateWithStaleContract){
+                        if ($fichInter->statut > 0 && !$InterventionValidationCheck->canThisOrderBeUnlinkedToThisFichinter($user, $orderId)) {
+                            if ($user->rights->synergiestech->intervention->validateWithStaleContract) {
                                 $this->errors[] = $langs->trans("SynergiesTechOrderCantbeUnlinkedAdvanced");
-                            }
-                            else
-                            {
+                            } else {
                                 $this->errors[] = $langs->trans("SynergiesTechOrderCantbeUnlinkedStandard");
                             }
                             $action = null;
@@ -2241,8 +2255,7 @@ SCRIPT;
         if (in_array('invoicelist', $contexts)) {
             $massaction = GETPOST('massaction', 'alpha');
 
-            if (
-                $massaction == 'synergiestech_valid' &&
+            if ($massaction == 'synergiestech_valid' &&
                 ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->facture->creer)) ||
                     (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && !empty($user->rights->facture->invoice_advance->validate)))
             ) {
@@ -2258,8 +2271,7 @@ SCRIPT;
                     $invoice = new Facture($this->db);
                     if ($invoice->fetch($invoice_id) > 0) {
                         // Classify to validated
-                        if (
-                            $invoice->statut == 0 && count($invoice->lines) > 0 &&
+                        if ($invoice->statut == 0 && count($invoice->lines) > 0 &&
                             ((($invoice->type == Facture::TYPE_STANDARD || $invoice->type == Facture::TYPE_REPLACEMENT ||
                                 $invoice->type == Facture::TYPE_DEPOSIT || $invoice->type == Facture::TYPE_PROFORMA || $invoice->type == Facture::TYPE_SITUATION) &&
                                 (!empty($conf->global->FACTURE_ENABLE_NEGATIVE) || $invoice->total_ttc >= 0)) || ($invoice->type == Facture::TYPE_CREDIT_NOTE && $invoice->total_ttc <= 0))
@@ -2321,8 +2333,12 @@ SCRIPT;
                                         if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
                                             $outputlangs = $langs;
                                             $newlang = '';
-                                            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) $newlang = GETPOST('lang_id', 'aZ09');
-                                            if ($conf->global->MAIN_MULTILANGS && empty($newlang)) $newlang = $invoice->thirdparty->default_lang;
+                                            if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) {
+                                                $newlang = GETPOST('lang_id', 'aZ09');
+                                            }
+                                            if ($conf->global->MAIN_MULTILANGS && empty($newlang)) {
+                                                $newlang = $invoice->thirdparty->default_lang;
+                                            }
                                             if (!empty($newlang)) {
                                                 $outputlangs = new Translate("", $conf);
                                                 $outputlangs->setDefaultLang($newlang);
@@ -2366,8 +2382,7 @@ SCRIPT;
         } elseif (in_array('contractlist', $contexts)) {
             $langs->load('synergiestech@synergiestech');
             if ($user->rights->synergiestech->generate->ticket_report && $action == 'synergiestech_generate_ticket_report_confirm' && $confirm == 'yes') {
-                if (
-                    GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
+                if (GETPOST('synergiestech_generate_ticket_report_date_startmonth') && GETPOST('synergiestech_generate_ticket_report_date_startday') && GETPOST('synergiestech_generate_ticket_report_date_startyear') &&
                     GETPOST('synergiestech_generate_ticket_report_date_endmonth') && GETPOST('synergiestech_generate_ticket_report_date_endday') && GETPOST('synergiestech_generate_ticket_report_date_endyear')
                 ) {
                     $synergiestech_generate_ticket_report_date_start = dol_mktime(0, 0, 0, GETPOST('synergiestech_generate_ticket_report_date_startmonth'), GETPOST('synergiestech_generate_ticket_report_date_startday'), GETPOST('synergiestech_generate_ticket_report_date_startyear'));
@@ -2478,16 +2493,14 @@ SCRIPT;
 
         // Force attach equipment
         if (!empty($conf->global->SYNERGIESTECH_FORCE_ATTACH_EQUIPMENTS_AFTER_SHIPPING_CREATED)) {
-            if (
-                !preg_match('/\/equipement\/tabs\/expeditionAdd\.php/i', $_SERVER["PHP_SELF"]) &&
+            if (!preg_match('/\/equipement\/tabs\/expeditionAdd\.php/i', $_SERVER["PHP_SELF"]) &&
                 preg_match('/\/equipement\/tabs\/expeditionAdd\.php/i', $_SERVER["HTTP_REFERER"])
             ) {
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
                 $query = parse_url($_SERVER["HTTP_REFERER"], PHP_URL_QUERY);
                 parse_str($query, $params);
 
-                if (
-                    isset($params['id']) && $params['id'] > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $params['id']) &&
+                if (isset($params['id']) && $params['id'] > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $params['id']) &&
                     synergiestech_has_shipping_equipment_to_serialize($this->db, $params['id'])
                 ) {
                     $langs->load('synergiestech@synergiestech');
@@ -2495,8 +2508,7 @@ SCRIPT;
                     header("Location: " . $_SERVER["HTTP_REFERER"]);
                     exit;
                 }
-            } elseif (
-                !preg_match('/\/equipement\/tabs\/expedition\.php/i', $_SERVER["PHP_SELF"]) &&
+            } elseif (!preg_match('/\/equipement\/tabs\/expedition\.php/i', $_SERVER["PHP_SELF"]) &&
                 preg_match('/\/equipement\/tabs\/expedition\.php/i', $_SERVER["HTTP_REFERER"])
             ) {
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
@@ -2513,8 +2525,7 @@ SCRIPT;
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
                 $shipping_id = GETPOST('id');
 
-                if (
-                    $shipping_id > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $shipping_id) &&
+                if ($shipping_id > 0 && !synergiestech_has_shipping_equipment_to_validate($this->db, $shipping_id) &&
                     synergiestech_has_shipping_equipment_to_serialize($this->db, $shipping_id)
                 ) {
                     header("Location: " . dol_buildpath('/equipement/tabs/expeditionAdd.php', 2) . '?id=' . $shipping_id);
@@ -2525,8 +2536,7 @@ SCRIPT;
 
         // Force set equipment
         if (!empty($conf->global->SYNERGIESTECH_FORCE_SET_EQUIPMENTS_AFTER_ORDER_SUPPLIER_DISPATCH)) {
-            if (
-                !preg_match('/\/equipement\/tabs\/supplier_order\.php/i', $_SERVER["PHP_SELF"]) &&
+            if (!preg_match('/\/equipement\/tabs\/supplier_order\.php/i', $_SERVER["PHP_SELF"]) &&
                 preg_match('/\/equipement\/tabs\/supplier_order\.php/i', $_SERVER["HTTP_REFERER"])
             ) {
                 dol_include_once('/synergiestech/lib/synergiestech.lib.php');
@@ -2666,7 +2676,7 @@ SCRIPT;
      */
     function showLinkToObjectBlock($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf, $langs;
+        global $conf, $langs, $user;
 
         $contexts = explode(':', $parameters['context']);
 
@@ -2689,12 +2699,16 @@ SCRIPT;
 
         if (is_object($thirdparty) && !empty($thirdparty->id) && $thirdparty->id > 0) {
             $listofidcompanytoscan = $thirdparty->id;
-            if (($thirdparty->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) $listofidcompanytoscan .= ',' . $thirdparty->parent;
+            if (($thirdparty->parent > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PARENT_IN_LINKTO)) {
+                $listofidcompanytoscan .= ',' . $thirdparty->parent;
+            }
             if (($object->fk_project > 0) && !empty($conf->global->THIRDPARTY_INCLUDE_PROJECT_THIRDPARY_IN_LINKTO)) {
                 include_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
                 $tmpproject = new Project($this->db);
                 $tmpproject->fetch($object->fk_project);
-                if ($tmpproject->socid > 0 && ($tmpproject->socid != $thirdparty->id)) $listofidcompanytoscan .= ',' . $tmpproject->socid;
+                if ($tmpproject->socid > 0 && ($tmpproject->socid != $thirdparty->id)) {
+                    $listofidcompanytoscan .= ',' . $tmpproject->socid;
+                }
                 unset($tmpproject);
             }
 
@@ -2732,7 +2746,7 @@ SCRIPT;
                         ' GROUP BY e.rowid, s.rowid',
                 ),
             );
-            if(in_array('interventioncard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER)){
+            if (in_array('interventioncard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER)) {
                 $principal_thirdparty_id = $object->socid;
                 $object->fetch_optionals();
                 $benefactorId = $object->array_options["options_companyrelationships_fk_soc_benefactor"];
@@ -2755,9 +2769,24 @@ SCRIPT;
 
             $conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;
             $conf->global->REQUESTMANAGER_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK = 1;
+        }
+        if (empty($user->rights->synergiestech->amount->customerpropal)) {
+            if (!is_object($object->thirdparty)) {
+                $object->fetch_thirdparty();
+            }
+            $listofidcompanytoscan = 0;
+            if (is_object($object->thirdparty) && !empty($object->thirdparty->id) && $object->thirdparty->id > 0) {
+                $listofidcompanytoscan = $object->thirdparty->id;
+            }
+            $possiblelinks['propal'] = array(
+                'enabled'=>$conf->propal->enabled,
+                'perms'=>1, 'label'=>'LinkToProposal',
+                'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."propal as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('propal').')'
+            );
+        }
+        if (is_array($possiblelinks)) {
             $this->results = $possiblelinks;
         }
-
         return 0;
     }
 
@@ -2810,7 +2839,7 @@ SCRIPT;
                         "lastname" => '', "firstname" => '',
                     );
                     $parameters['whitelist_of_properties'] = array(
-                        "lastname" => '', "firstname" => '', "id" => '', "gender" => '', "email" => '', "signature" => '', "address" => '', "zip" => '', "town" => '', "office_phone" => '', "office_fax" => '', "user_mobile" => '', "socid" => '', "contactid" => '', "photo" => '', "lang" => '', "rights" => '', "array_options" => '', "thirdparty" => '', "login" => ''
+                        "lastname" => '', "firstname" => '', "id" => '', "gender" => '', "email" => '', "signature" => '', "address" => '', "zip" => '', "town" => '', "office_phone" => '', "office_fax" => '', "user_mobile" => '', "socid" => '', "contact_id" => '', "photo" => '', "lang" => '', "rights" => '', "array_options" => '', "thirdparty" => '', "login" => ''
                     );
                     break;
                 case 'usergroup':
@@ -2818,32 +2847,43 @@ SCRIPT;
                         "name" => '',
                     );
                     break;
-				case 'requestmanager':
-				$parameters['whitelist_of_properties'] = array(
-                        "id" => '', "fk_parent"=>'',"ref"=>'',"ref_ext"=>'',"socid_origin"=>'',"socid"=>'',"socid_benefactor"=>'',"label"=>'',"description"=>'',"fk_type"=>'',"fk_category"=>'',"fk_source"=>'',"fk_urgency"=>'',"fk_impact"=>'',"fk_priority"=>'',"fk_reason_resolution"=>'',"requester_ids"=>'',"statut"=>'',"statut_type"=>'',"entity"=>'',"date_creation"=>'',"date_modification"=>'',"linkedObjectsIds"=>'',"thirdparty_origin"=>'',"thirdparty"=>'',"thirdparty_benefactor"=>'',"children_request_ids"=>'',"children_request_list"=>''
+                case 'requestmanager':
+                    $parameters['whitelist_of_properties'] = array(
+                        "id" => '', 'entity' => '', "fk_parent" => '', "ref" => '', "ref_ext" => '', "socid_origin" => '', "socid" => '', "socid_benefactor" => '', "socid_watcher" => '', "availability_for_thirdparty_principal" => '', "availability_for_thirdparty_benefactor" => '', "availability_for_thirdparty_watcher" => '', "label" => '', "description" => '', "fk_type" => '', "fk_category" => '', "fk_source" => '', "fk_urgency" => '', "fk_impact" => '', "fk_priority" => '', "fk_reason_resolution" => '', "requester_ids" => '', "statut" => '', "statut_type" => '', "entity" => '', "date_creation" => '', "date_modification" => '', "linkedObjectsIds" => '', "thirdparty_origin" => '', "thirdparty" => '', "thirdparty_benefactor" => '', "thirdparty_watcher" => '', "children_request_ids" => '', "children_request_list" => ''
                     );
-				break;
+                    break;
                 case 'societe':
                     $parameters['whitelist_of_properties_linked_object'] = array(
-                        "name" => '',"nom" => '', "name_alias" => '', "address" => '',"zip" => '', "town" => '',
+                        "name" => '', "nom" => '', "name_alias" => '', "address" => '', "zip" => '', "town" => '',
                         "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => ''
                     );
-					$parameters['whitelist_of_properties'] = array(
-            "name" => '', "nom" => '', "name_alias" => '', "address" => '', "zip" => '', "town" => '',
-            "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
-            "phone" => '', "fax" => '', "email" => '', "code_client" => '',
-            "code_fournisseur" => '',"ref" => '',
-            "id" => '', "linkedObjectsIds" => '',"thirdparty_principal_ids" => '',
-                        "thirdparty_benefactor_ids" => ''
-        );
-		break;
-		case 'propal':
-		if (DolibarrApiAccess::$user->societe_id > 0) {
-		$parameters['blacklist_of_properties'] = array(
-            "lines" => ''
-        );
-		}
-					
+                    $parameters['whitelist_of_properties'] = array(
+                        "name" => '', 'entity' => '', "nom" => '', "name_alias" => '', "address" => '', "zip" => '', "town" => '',
+                        "state_id" => '', "state_code" => '', "state" => '', "departement_code" => '', "departement" => '', "pays" => '',
+                        "phone" => '', "fax" => '', "email" => '', "code_client" => '',
+                        "code_fournisseur" => '', "ref" => '',
+                        "id" => '', "linkedObjectsIds" => '', "thirdparty_principal_ids" => '',
+                        "thirdparty_benefactor_ids" => '', "thirdparty_watcher_ids" => ''
+                    );
+                    $parameters['blacklist_of_properties'] = array(
+                        "ref_ext" => ''
+                    );
+                    break;
+                case 'propal':
+                    if (DolibarrApiAccess::$user->societe_id > 0) {
+                        $parameters['blacklist_of_properties'] = array(
+                            "lines" => '',
+                            "array_options" => array("options_sitevalue" => '', "options_companyrelationships_availability_principal" => '', "options_companyrelationships_availability_benefactor" => '')
+                        );
+                        $parameters['whitelist_of_properties'] = array(
+                            "id" => '', 'entity' => '', "ref" => '', "ref_client" => '',
+                            "total_ht" => '', "total_tva" => '', "total_ttc" => '',
+                            "socid" => '', "fk_project" => '', "statut" => '', "statut_libelle" => '',
+                            "date_validation" => '', "date" => '', "fin_validite" => '', "date_livraison" => '', "shipping_method_id" => '',
+                            "availability_id" => '', "availability_code" => '', "availability" => '', "fk_address" => '', "mode_reglement_id" => '',
+                            "mode_reglement_code" => '', "mode_reglement" => '', "thirdparty" => '', "array_options" => '', "cr_thirdparty_benefactor" => '', "lines" => '', "linkedObjectsIds" => ''
+                        );
+                    }
                     break;
                 case 'propaldet':
                     if (DolibarrApiAccess::$user->societe_id > 0) {
@@ -3073,7 +3113,7 @@ SCRIPT;
                 foreach ($listOfPatternToRemove as $text) {
                     $thirdpartyName = str_replace($text, "", $thirdpartyName);
                 }
-                if($prefix){
+                if ($prefix) {
                     $prefix .= " - ";
                 }
                 $prefix .= $thirdpartyName;
@@ -3101,7 +3141,7 @@ SCRIPT;
         global $db;
 
         $contexts = explode(':', $parameters['context']);
-        $contextWhenDisplayBannerTab = array('thirdpartycard','commcard');
+        $contextWhenDisplayBannerTab = array('thirdpartycard','commcard','thirdpartycomm');
         $contextsThatShouldActivateThisHook = array_intersect($contexts, $contextWhenDisplayBannerTab);
 
         if (count($contextsThatShouldActivateThisHook) > 0 && $object->client > 0) {
@@ -3144,7 +3184,6 @@ SCRIPT;
             $contractList = synergiestech_fetch_contract($object->socid, $object->socid_benefactor, $msg_error);
             if (!empty($contractList) || empty($msg_error)) {
                 if (!empty($contractList)) {
-
                     foreach ($contractList as $contract) {
                         if (($contract->nbofserviceswait + $contract->nbofservicesopened) > 0 && $contract->statut != 2) {
                             $contract->fetch_optionals();
@@ -3387,10 +3426,11 @@ SCRIPT;
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function printFieldPreListTitle(&$parameters, &$object, &$action, $hookmanager){
+    function printFieldPreListTitle(&$parameters, &$object, &$action, $hookmanager)
+    {
         $contexts = explode(':', $parameters['context']);
         global $conf;
-        if(in_array('supplierorderlist', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)){
+        if (in_array('supplierorderlist', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) {
             global $arrayfields;
             $arrayfields['cf.billed']['checked'] = 0;
             $arrayfields['cf.billed']['enabled'] = 0;
@@ -3406,10 +3446,11 @@ SCRIPT;
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function modifyFieldView(&$parameters, &$object, &$action, $hookmanager){
+    function modifyFieldView(&$parameters, &$object, &$action, $hookmanager)
+    {
         $contexts = explode(':', $parameters['context']);
         global $conf, $langs;
-        if(in_array('interventioncard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT)){
+        if (in_array('interventioncard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT)) {
             dol_include_once("/custom/synergiestech/class/html.formsynergiestech.class.php");
             $formSynergiesTech = new FormSynergiesTech($this->db);
             $out = "";
@@ -3445,10 +3486,11 @@ SCRIPT;
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    function inlineObjectDisplay(&$parameters, &$object, &$action, $hookmanager){
+    function inlineObjectDisplay(&$parameters, &$object, &$action, $hookmanager)
+    {
         $contexts = explode(':', $parameters['context']);
         global $conf, $langs;
-        if(in_array('commcard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT)){
+        if (in_array('commcard', $contexts) && !empty($conf->global->SYNERGIESTECH_FICHINTER_CUSTOMSELECTCONTRACT)) {
             dol_include_once("/custom/synergiestech/class/html.formsynergiestech.class.php");
             $formSynergiesTech = new FormSynergiesTech($this->db);
             $formSynergiesTech->load_cache_extrafields_contract();
@@ -3458,16 +3500,16 @@ SCRIPT;
             print '<tr class="oddeven">';
                 print '<td class="nowrap">';
                 $contrat->fetch($objp->id);
-				print $contrat->getNomUrl(1, 12);
-				print "</td>\n";
-				print '<td class="nowrap">' . $formSynergiesTech->getContractLabel($contrat,array("formule")) . "</td>\n";
+                print $contrat->getNomUrl(1, 12);
+                print "</td>\n";
+                print '<td class="nowrap">' . $formSynergiesTech->getContractLabel($contrat, array("formule")) . "</td>\n";
                 print '<td align="right" width="80px">' . $formSynergiesTech::$cache_extrafields_contract->showOutputField('startdate', $contrat->array_options['options_startdate']) . "</td>\n";
-				print '<td align="right" width="80px">' . $formSynergiesTech::$cache_extrafields_contract->showOutputField('realdate', $contrat->array_options['options_realdate']) . "</td>\n";
-				print '<td width="20">' . "" . '</td>';
-				print '<td align="right" class="nowrap" style="text-transform: capitalize;">';
-                print $formSynergiesTech->getContractLabel($contrat,array("status")) . " ";
+                print '<td align="right" width="80px">' . $formSynergiesTech::$cache_extrafields_contract->showOutputField('realdate', $contrat->array_options['options_realdate']) . "</td>\n";
+                print '<td width="20">' . "" . '</td>';
+                print '<td align="right" class="nowrap" style="text-transform: capitalize;">';
+                print $formSynergiesTech->getContractLabel($contrat, array("status")) . " ";
                 print $contrat->getLibStatut(3);
-				print "</td>\n";
+                print "</td>\n";
                 print '</tr>';
 
             $this->resprints = $out;
@@ -3484,19 +3526,58 @@ SCRIPT;
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    public function restrictedArea(&$parameters, &$object, &$action, $hookmanager) {
+    public function restrictedArea(&$parameters, &$object, &$action, $hookmanager)
+    {
         global $user;
         $feature = $parameters['features'];
         $objectId = $parameters['objectid'];
-        if($feature == 'propal' && $objectId){
+        if ($feature == 'propal' && $objectId) {
             dol_include_once('/comm/propal/class/propal.class.php');
             $propal = new Propal($this->db);
-            if($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && !empty($propal->array_options['options_sitevalue'] && !$user->rights->synergiestech->propal->installation_value))
-            {
-                accessforbidden();
+            if ($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && !empty($propal->array_options['options_sitevalue']) && empty($user->rights->synergiestech->propal->installation_value)) {
+                return 0;
+            }
+        } elseif ($feature == "propalstats") {
+            if (empty($user->rights->synergiestech->amount->customerpropal)) {
+                return 0;
+            } else {
+                return 1;
+            }
+        } elseif ($feature == "orderstats") {
+            if (empty($user->rights->synergiestech->amount->customerorder)) {
+                return 0;
+            } else {
                 return 1;
             }
         }
-        return 0;
+    }
+    /**
+     * Overloading the downloadDocument function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function downloadDocument($parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $user;
+        $userCanDownloadFile = true;
+        $modulePart = $parameters['modulepart'];
+        if ($modulePart == 'propal') {
+            $isUserAllowedToSeePrice = $user->rights->synergiestech->amount->customerpropal;
+            $isUserAllowedToDowloadFile = $user->rights->synergiestech->documents->customerpropal;
+            $userCanDownloadFile = $isUserAllowedToSeePrice && $isUserAllowedToDowloadFile;
+        } elseif ($modulePart == 'commande') {
+            $userCanDownloadFile = $user->rights->synergiestech->documents->customerorder;
+        } elseif ($modulePart == 'societe') {
+            $userCanDownloadFile = $user->rights->synergiestech->documents->thirdparty;
+        }
+
+        if (!$userCanDownloadFile) {
+            accessforbidden();
+            return 1;
+        }
     }
 }

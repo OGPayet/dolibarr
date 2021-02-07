@@ -65,7 +65,7 @@ $year = strftime("%Y",time());
 
 // List of fields to search into when doing a "search in all"
 $fieldstosearchall = array(
-    'e.label'=>"Ref",
+    'e.ref'=>"Ref",
     'e.lieu'=>"LocationSummary",
     'e.description'=>"Description",
     'e.address'=>"Address",
@@ -97,17 +97,17 @@ if (GETPOST('button_removefilter_x','alpha') || GETPOST('button_removefilter.x',
 $form=new Form($db);
 $warehouse=new Entrepot($db);
 
-$sql = "SELECT e.rowid, e.label as ref, e.statut, e.lieu, e.address, e.zip, e.town, e.fk_pays, e.fk_parent,";
+$sql = "SELECT e.rowid, e.ref as ref, e.statut, e.lieu, e.address, e.zip, e.town, e.fk_pays, e.fk_parent,";
 $sql.= " SUM(p.pmp * ps.reel) as estimatedvalue, SUM(p.price * ps.reel) as sellvalue, SUM(ps.reel) as stockqty";
 $sql.= " FROM ".MAIN_DB_PREFIX."entrepot as e";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product_stock as ps ON e.rowid = ps.fk_entrepot";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON ps.fk_product = p.rowid";
 $sql.= " WHERE  e.entity IN (".getEntity('stock').")";
-if ($search_ref) $sql.= natural_search("e.label", $search_ref);			// ref
+if ($search_ref) $sql.= natural_search("e.ref", $search_ref);			// ref
 if ($search_label) $sql.= natural_search("e.lieu", $search_label);		// label
 if ($search_status != '' && $search_status >= 0) $sql.= " AND e.statut = ".$search_status;
 if ($sall) $sql .= natural_search(array_keys($fieldstosearchall), $sall);
-$sql.= " GROUP BY e.rowid, e.label, e.statut, e.lieu, e.address, e.zip, e.town, e.fk_pays, e.fk_parent";
+$sql.= " GROUP BY e.rowid, e.ref, e.statut, e.lieu, e.address, e.zip, e.town, e.fk_pays, e.fk_parent";
 $totalnboflines=0;
 $result=$db->query($sql);
 if ($result)
@@ -191,7 +191,7 @@ if ($result)
 	print '</tr>';
 
 	print '<tr class="liste_titre">';
-	print_liste_field_titre("Ref",$_SERVER["PHP_SELF"], "e.label","",$param,"",$sortfield,$sortorder);
+	print_liste_field_titre("Ref",$_SERVER["PHP_SELF"], "e.ref","",$param,"",$sortfield,$sortorder);
 	print_liste_field_titre("LocationSummary",$_SERVER["PHP_SELF"], "e.lieu","",$param,"",$sortfield,$sortorder);
 	print_liste_field_titre("PhysicalStock", $_SERVER["PHP_SELF"], "stockqty",'',$param,'align="right"',$sortfield,$sortorder);
     print_liste_field_titre("EstimatedStockValue", $_SERVER["PHP_SELF"], "estimatedvalue",'',$param,'align="right"',$sortfield,$sortorder);

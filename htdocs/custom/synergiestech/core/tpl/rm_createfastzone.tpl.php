@@ -131,15 +131,15 @@ if ($zone === 1) {
     print '<tr>';
     // Source
     print '<td>' . $langs->trans('RequestManagerSource') . '</td>';
-    print '<td>' . $formrequestmanager->select_source($selectedFkSource, 'source', 1, 0, array(), 0, 0, 'minwidth300') . '</td>';
+    print '<td>' . $formrequestmanager->select_source($selectedFkSource, 'source', 1, 0, array(), 0, 0, 'minwidth100 maxwidth400') . '</td>';
     // Urgency
     print '<td>' . $langs->trans('RequestManagerUrgency') . '</td>';
-    print '<td>' . $formrequestmanager->select_urgency($selectedFkUrgency, 'urgency', 1, 0, array(), 0, 0, 'minwidth300') . '</td>';
+    print '<td>' . $formrequestmanager->select_urgency($selectedFkUrgency, 'urgency', 1, 0, array(), 0, 0, 'minwidth100 maxwidth400') . '</td>';
     // Type
     print '<td class="fieldrequired">' . $langs->trans('RequestManagerType') . '</td>';
     $groupslist = $usergroup_static->listGroupsForUser($user->id);
     print '<td>';
-    print $formrequestmanager->select_type(array_keys($groupslist), $selectedFkType, 'type', 1, 0, null, 0, 0, 'minwidth300');
+    print $formrequestmanager->select_type(array_keys($groupslist), $selectedFkType, 'type', 1, 0, null, 0, 0, 'minwidth100 maxwidth400');
     print '</td>';
     print '</tr>';
     print '</table>';
@@ -186,7 +186,7 @@ if ($zone === 1) {
     print '<tr>';
     // ThirdParty Origin
     print '<td class="fieldrequired">' . $langs->trans('RequestManagerThirdPartyOrigin') . '</td><td>';
-    print $form->select_company($selectedSocIdOrigin, 'socid_origin', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+    print $form->select_company($selectedSocIdOrigin, 'socid_origin', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth100 maxwidth400');
     if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
         $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . '&socid_origin=##SOCID##';
         if (!empty($conf->companyrelationships->enabled)) {
@@ -212,7 +212,7 @@ if ($zone === 1) {
     print '</td>';
     // Requester Contacts
     print '<td>' . $langs->trans('RequestManagerRequesterContacts') . '</td><td>';
-    print $formrequestmanager->multiselect_contacts($selectedSocIdOrigin, $selectedContacts, 'contact_ids', '', '', 0, 'minwidth300');
+    print $formrequestmanager->multiselect_contacts($selectedSocIdOrigin, $selectedContacts, 'contact_ids', '', '', 0, 'minwidth200 maxwidth400');
     if ($selectedSocIdOrigin > 0 && $user->rights->societe->contact->creer) {
         $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . ($selectedSocId ? '&socid=' . $selectedSocId : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '');
         $btnCreateContactLabel = (!empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT) ? $langs->trans("AddContact") : $langs->trans("AddContactAddress"));
@@ -229,7 +229,7 @@ if ($zone === 1) {
         print '<tr>';
         // ThirdParty Principal
         print '<td>' . $langs->trans('RequestManagerThirdPartyPrincipal') . '</td><td>';
-        print $form->select_company($selectedSocId, 'socid', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+        print $form->select_company($selectedSocId, 'socid', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth100 maxwidth400');
         if (!empty($conf->societe->enabled) && $user->rights->societe->creer) {
             $backToPage = dol_buildpath('/requestmanager/createfast.php', 1) . '?action=createfast' . ($selectedFkType ? '&type=' . $selectedFkType : '') . ($selectedSocIdOrigin ? '&socid_origin=' . $selectedSocIdOrigin : '') . ($selectedSocIdBenefactor ? '&socid_benefactor=' . $selectedSocIdBenefactor : '') . '&socid=##SOCID##';
             print ' <a id="new_thridparty" href="' . DOL_URL_ROOT . '/societe/card.php?action=create&client=3&fournisseur=0&backtopage=' . urlencode($backToPage) . '">' . $langs->trans("AddThirdParty") . '</a>';
@@ -237,7 +237,7 @@ if ($zone === 1) {
         print '</td>';
         // ThirdParty Benefactor
         print '<td>' . $langs->trans('RequestManagerThirdPartyBenefactor') . '</td><td>';
-        print $form->select_company($selectedSocIdBenefactor, 'socid_benefactor', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+        print $form->select_company($selectedSocIdBenefactor, 'socid_benefactor', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth100 maxwidth400');
         print '
         <script type="text/javascript">
             $(document).ready(function(){
@@ -251,7 +251,7 @@ if ($zone === 1) {
         print '<tr>';
         // ThirdParty Watcher
         print '<td>' . $langs->trans('RequestManagerThirdPartyWatcher') . '</td><td>';
-        print $form->select_company($selectedSocIdWatcher, 'socid_watcher', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth300');
+        print $form->select_company($selectedSocIdWatcher, 'socid_watcher', $filterSocId, 'SelectThirdParty', 0, 0, array(), 0, 'minwidth100 maxwidth400');
         print '
         <script type="text/javascript">
             $(document).ready(function(){
@@ -268,7 +268,7 @@ if ($zone === 1) {
     if ($conf->equipement->enabled) {
         print '<td>' . $langs->trans("Equipement") . '</td>';
         print '<td>';
-        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, '', 'equipement_id', 1, 0, null, 0, 'minwidth300');
+        print $formrequestmanager->select_benefactor_equipement($selectedSocId, $selectedSocIdBenefactor, '', 'equipement_id', 1, 0, null, 0, 'minwidth200 maxwidth400');
         print $formrequestmanager->multiselect_javascript_code($selectedEquipementId, 'equipement_id');
         print '</td>';
     }
@@ -398,7 +398,7 @@ if ($zone === 1) {
     }
     if (empty($msg_error_request)) {
         if ($nbRequest > 0) {
-            print '<h1 style="'. $textColor . ';text-align:center;font-size: 4em;">Attention, il y a ' . $nbRequest . ' demande(s) (voir ci-dessous)</h1>';
+            print '<h1 style="color:black;text-align:center;font-size: 4em;">Attention, il y a ' . $nbRequest . ' demande(s) (voir ci-dessous)</h1>';
         }
     } else {
         print '<br>' . $msg_error_request;

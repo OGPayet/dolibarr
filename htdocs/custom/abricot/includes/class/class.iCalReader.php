@@ -155,7 +155,7 @@ class ICalReader
                 break;
             }
         }
-
+       
         if (stristr($keyword, "DTSTART") or stristr($keyword, "DTEND")) {
             $keyword = explode(";", $keyword);
             $keyword = $keyword[0];
@@ -273,7 +273,7 @@ class ICalReader
         }
 
         $extendedEvents = array();
-
+       
         if ($rangeStart !== false) {
             $rangeStart = new DateTime();
         }
@@ -287,7 +287,7 @@ class ICalReader
         $rangeStart = $rangeStart->format('U');
         $rangeEnd   = $rangeEnd->format('U');
 
-
+       
 
         // loop through all events by adding two new elements
         foreach ($events as $anEvent) {
@@ -312,7 +312,7 @@ class ICalReader
     public function sortEventsWithOrder($events, $sortOrder = SORT_ASC)
     {
         $extendedEvents = array();
-
+       
         // loop through all events by adding two new elements
         foreach ($events as $anEvent) {
             if (!array_key_exists('UNIX_TIMESTAMP', $anEvent)) {
@@ -324,10 +324,10 @@ class ICalReader
                 $anEvent['REAL_DATETIME'] =
                             date("d.m.Y", $anEvent['UNIX_TIMESTAMP']);
             }
-
+           
             $extendedEvents[] = $anEvent;
         }
-
+       
         foreach ($extendedEvents as $key => $value) {
             $timestamp[$key] = $value['UNIX_TIMESTAMP'];
         }

@@ -26,6 +26,11 @@ class Listview
 {
     public $TSearchValue = array();
 
+	/**
+	 * @var DoliDB $db
+	 */
+    public $db;
+
     /**
      *  Constructor
      *
@@ -91,9 +96,11 @@ class Listview
 
 		$TParam['limit'] = array_merge(array('page'=>0, 'nbLine' => $conf->liste_limit, 'global'=>0), $TParam['limit']);
 
-		if (GETPOST('sortfield'))
-		{
+		if (GETPOST('sortfield')){
 			$TParam['sortfield'] = GETPOST('sortfield');
+		}
+
+		if (GETPOST('sortorder')) {
 			$TParam['sortorder'] = GETPOST('sortorder');
 		}
 
@@ -204,6 +211,8 @@ class Listview
 		{
 			if($TParam['operator'][$key] == '<' || $TParam['operator'][$key] == '>' || $TParam['operator'][$key]=='=' || $TParam['operator'][$key] == '>='|| $TParam['operator'][$key] == '<=')
 			{
+				$operator = substr($value,0,1);
+                if(in_array($operator, array('<', '>'))) $value = ltrim($value, $operator);
                 $TSQL[] = $sKey . ' ' . $TParam['operator'][$key] . ' "' . $value . '"';
 			}
 			elseif ($TParam['operator'][$key]=='IN')
@@ -248,14 +257,14 @@ class Listview
     private function search($sql, &$TParam)
     {
         $TSqlHaving=array();
-	$sqlGROUPBY='';
-	if(strpos($sql,'GROUP BY')!==false) {
-		$info = explode('GROUP BY', $sql);
+    	$sqlGROUPBY='';
+    	if(strpos($sql,'GROUP BY')!==false) {
+    		$info = explode('GROUP BY', $sql);
             $sql = $info[0];
             $sqlGROUPBY = $info[1];
-	}
+    	}
 
-	if (!empty($TParam['search']) && empty($TParam['no-auto-sql-search']) && !GETPOST('button_removefilter_x','alpha') && !GETPOST('button_removefilter.x','alpha') && !GETPOST('button_removefilter','alpha'))
+    	if (!empty($TParam['search']) && empty($TParam['no-auto-sql-search']) && !GETPOST('button_removefilter_x','alpha') && !GETPOST('button_removefilter.x','alpha') && !GETPOST('button_removefilter','alpha'))
 		{
 			foreach ($TParam['search'] as $field => $info)
 			{
@@ -339,7 +348,11 @@ class Listview
         $THeader = $this->initHeader($TParam);
 
 		$sql = $this->search($sql,$TParam);
-		$sql.= $this->db->order($TParam['sortfield'], $TParam['sortorder']);
+		if(!empty($TParam['sortOrderOverride'])){
+			$sql .= ' ORDER BY '.$TParam['sortOrderOverride'];
+		}else{
+			$sql .= $this->db->order($TParam['sortfield'], $TParam['sortorder']);
+		}
 
 		if (empty($conf->global->MAIN_DISABLE_FULL_SCANLIST))
 		{
@@ -443,7 +456,7 @@ class Listview
 			}
 			else
             {
-		$fsearch='<input type="text" name="'.$fieldname.'" id="'.$fieldname.'" value="'.$value.'" size="10" />';
+            	$fsearch='<input type="text" name="'.$fieldname.'" id="'.$fieldname.'" value="'.$value.'" size="10" />';
 			}
 
 			if(!empty($param_search['allow_is_null']))
@@ -548,7 +561,7 @@ class Listview
 		$javaScript = '<script language="javascript">
 		if(typeof(Listview_include)=="undefined") {
 			document.write("<script type=\"text/javascript\" src=\"'.DOL_URL_ROOT.'/core/js/listview.js?version='.DOL_VERSION.'\"></scr");
-			document.write("ipt>");
+	  		document.write("ipt>");
 		}
 		</script>';
 
@@ -709,7 +722,7 @@ class Listview
 		$out.= '<div class="div-table-responsive">';
 		$out.= '<table id="'.$this->id.'" class="'.$classliste.'" width="100%"><thead>';
 
-	if(count($TSearch)>0)
+    	if(count($TSearch)>0)
 		{
 			$out.='<tr class="liste_titre liste_titre_search barre-recherche liste_titre_filter">';
 
@@ -759,9 +772,17 @@ class Listview
 				else $search = $field;
 			}
 
+			$disablesortlink = 0;
+			if (isset($TParam['search'][$field]['disablesortlink'])){
+				$disablesortlink = $TParam['search'][$field]['disablesortlink'];
+			}
 
+			$tooltip = '';
+			if (isset($TParam['tooltip'][$field])){
+				$tooltip =$TParam['tooltip'][$field];
+			}
 
-            $out .= getTitleFieldOfList($label, 0, $_SERVER["PHP_SELF"], $search, '', '&'.$TParam['list']['param_url'].'&limit='.$TParam['limit']['nbLine'].$moreparams, $moreattrib, $TParam['sortfield'], $TParam['sortorder'], $prefix);
+            $out .= getTitleFieldOfList($label, 0, $_SERVER["PHP_SELF"], $search, '', '&'.$TParam['list']['param_url'].'&limit='.$TParam['limit']['nbLine'].$moreparams, $moreattrib, $TParam['sortfield'], $TParam['sortorder'], $prefix, $disablesortlink, $tooltip);
 			$out .= $head['more'];
 		}
 
@@ -884,6 +905,7 @@ class Listview
     private function parse_array(&$THeader, &$TData, &$TParam, &$TFieldInView)
     {
 		$this->totalRow = count($TData);
+		if(!empty($TParam['list']['totalRow'])) $this->totalRow = $TParam['list']['totalRow'];
 
 		$this->THideFlip = array_flip($TParam['hide']);
 		$this->TTotalTmp=array();
@@ -910,7 +932,7 @@ class Listview
 			$TField[$field]=true;
 		}
 
-		$contextpage=md5($_SERVER['PHP_SELF']);
+		$contextpage=md5($_SERVER['PHP_SELF'].$this->id);
 		if(!empty($TParam['allow-fields-select']))
 		{
 			$selectedfields = GETPOST('Listview'.$this->id.'_selectedfields');
@@ -919,7 +941,7 @@ class Listview
 			{
 				include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 				$tabparam['MAIN_SELECTEDFIELDS_'.$contextpage] = $selectedfields;
-			$result=dol_set_user_param($this->db, $conf, $user, $tabparam);
+	    		$result=dol_set_user_param($this->db, $conf, $user, $tabparam);
 			}
 
 			$tmpvar='MAIN_SELECTEDFIELDS_'.$contextpage;
@@ -929,12 +951,12 @@ class Listview
 				$TParam['hide'] = array();
 		        foreach($TField as $field => $dummy)
 		        {
-				$label = $TParam['title'][$field];
+		          	$label = $TParam['title'][$field];
 					if(!in_array($field, $tmparray))
 					{
-						$TParam['hide'][] = $field;
+				  		$TParam['hide'][] = $field;
 						$visible = 0;
-					}
+				  	}
 					else
 					{
 						// Overrive search from extrafields
@@ -953,7 +975,7 @@ class Listview
             {
 				foreach($TField as $field=>$dummy)
 		        {
-				$label = isset($TParam['title'][$field]) ? $TParam['title'][$field] : $field;
+		        	$label = isset($TParam['title'][$field]) ? $TParam['title'][$field] : $field;
 					$visible = (!in_array($field, $TParam['hide'])) ? 1 : 0;
 					$TFieldVisibility[$field]=array(
 						'label'=>$label,
@@ -1054,7 +1076,7 @@ class Listview
             foreach($THeader as $field=>$dummy)
             {
 				if (is_array($currentLine)) $value = isset($currentLine[$field]) ? $currentLine[$field]: '';
-		else $value = isset($currentLine->{$field}) ? $currentLine->{$field}: '';
+            	else $value = isset($currentLine->{$field}) ? $currentLine->{$field}: '';
 
                 if(is_object($value))
                 {
@@ -1179,7 +1201,7 @@ class Listview
      */
     private function parse_sql(&$THeader, &$TField, &$TParam, $sql)
     {
-	$this->sql = $this->limitSQL($sql, $TParam);
+    	$this->sql = $this->limitSQL($sql, $TParam);
 
 		$this->TTotalTmp=array();
 		$this->THideFlip = array_flip($TParam['hide']);

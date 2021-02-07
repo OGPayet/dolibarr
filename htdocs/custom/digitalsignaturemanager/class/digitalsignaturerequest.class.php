@@ -430,18 +430,21 @@ class DigitalSignatureRequest extends CommonObject
 		$result = $this->fetchCommon($id, $ref);
 		if ($result > 0) {
 			$result = $this->fetch_optionals();
+			if($result == 0) {
+				$result = 1;
+			}
 		}
-		if ($result >= 0) {
+		if ($result > 0) {
 			$result = $this->fetchAvailableCheckBox();
 		}
-		if ($result >= 0) {
+		if ($result > 0) {
 			$result = $this->fetchPeople();
 		}
-		if ($result >= 0) {
+		if ($result > 0) {
 			$result = $this->fetchDocuments();
 		}
 
-		if ($result >= 0) {
+		if ($result > 0) {
 			$result = $this->fetchSignatoryField();
 		}
 		return $result;
@@ -527,6 +530,7 @@ class DigitalSignatureRequest extends CommonObject
 			$errors = array_merge($errors, $document->errors);
 		}
 		$this->deleteCommon($user, $notrigger);
+		$this->deleteObjectLinked();
 		$errors = array_merge($errors, $this->errors);
 		$this->errors = $errors;
 		if (empty($errors)) {

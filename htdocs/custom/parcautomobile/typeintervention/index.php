@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 
 dol_include_once('/parcautomobile/class/typeintervention.class.php');
@@ -22,7 +22,7 @@ $sortorder 			= ($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
 $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -104,11 +104,11 @@ print_barre_liste($modname, $page, $_SERVER["PHP_SELF"], "", $sortfield, $sortor
 						$item = $typeintervention->rows[$i];
 
 						print '<tr '.$bc[$var].' >';
-						print '<td align="center" style="">';
-							print '<a href="'.dol_buildpath('/parcautomobile/typeintervention/card.php?id='.$item->rowid,2).'" >';
-								print $item->rowid;
-							print '</a>';
-						print '</td>';
+				    		print '<td align="center" style="">'; 
+					    		print '<a href="'.dol_buildpath('/parcautomobile/typeintervention/card.php?id='.$item->rowid,2).'" >';
+					    			print $item->rowid;
+					    		print '</a>';
+				    		print '</td>';
 							print '<td align="left">'.$item->label.'</td>';
 							print '<td align="center"></td>';
 						print '</tr>';

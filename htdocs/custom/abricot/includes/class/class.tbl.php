@@ -4,16 +4,16 @@
  Copyright (C) 2013-2015 ATM Consulting <support@atm-consulting.fr>
 
  This program and all files within this directory and sub directory
- is free software: you can redistribute it and/or modify it under
- the terms of the GNU General Public License as published by the
- Free Software Foundation, either version 3 of the License, or any
+ is free software: you can redistribute it and/or modify it under 
+ the terms of the GNU General Public License as published by the 
+ Free Software Foundation, either version 3 of the License, or any 
  later version.
-
+ 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
+ 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -59,14 +59,14 @@ switch ($pAction){
  */
 function draw_index($url,$datatable="",$idxchamps="",$post_char="",$title="Index",$opt='std'){
 global $app;
-
+	
 	if($datatable!=""){
 		$var =explode(";", $datatable);
 		if((isset($var[1]))&&($var[1]!=""))$condition=$var[1];
 		else $condition="";
-
+		
 		if($condition!="")$condition=" WHERE ".$condition;
-
+		
 		$db=new Tdb();
 		$Tindexexist=array();
 		$db->Execute("SELECT DISTINCT(".$idxchamps.") as 'indexfor' FROM ".$var[0]." $condition");
@@ -76,40 +76,40 @@ global $app;
 		}
 		$db->close();
 	}
-
-
+	
+	
 	$nb_col=0;
 	$old=$this->direct;
 	$r='';
 	$this->direct=false;
-
-
+	
+	
 	$r.="<br>";
 	$r.=$this->beg_cell();
 	$r.="<br>";
-	$r.=$this->beg_tbl('form');
+	$r.=$this->beg_tbl('form');	
 	$r.=$this->beg_line();
 
-
+	
 	if($post_char=="all")$r.=$this->cell("<span class=\"lien_inactif\"><font color=red>Tous</font></span>");
 	else $r.=$this->cell($this->link('Tous',$url.'&charIndex=all','lien'));
-
+	
 	$nb_col++;
-
+	
 	if($post_char=="0")$r.=$this->cell("<span class=\"lien_inactif\"><font color=red>#</font></span>");
 	else if(($datatable=="")||(isset($Tindexexist['!']))||(isset($Tindexexist['0'])))$r.=$this->cell($this->link('#',$url.'&charIndex=other','lien'));
 	else $r.=$this->cell("<span class=\"lien_inactif\">#</span>");
 		$nb_col++;
-
-
+		
+		
 			$l=ord("A");
-		for($i=$l;$i<$l+26;$i++){
+         	for($i=$l;$i<$l+26;$i++){
 				if($post_char==chr($i))$r.=$this->cell("<span class=\"lien_inactif\"><font color=red>".chr($i)."</font></span>");
-				else if(($datatable=="")||(isset($Tindexexist[chr($i)])))$r.=$this->cell($this->link(chr($i),$url.'&charIndex='.chr($i),'lien'));
+				else if(($datatable=="")||(isset($Tindexexist[chr($i)])))$r.=$this->cell($this->link(chr($i),$url.'&charIndex='.chr($i),'lien'));	
 				else $r.=$this->cell("<span class=\"lien_inactif\">".chr($i)."</span>");
-					$nb_col++;
+					$nb_col++;	
 			}
-
+			
 
 	$r.=$this->end_line();
 	$r.=$this->end_tbl();
@@ -117,19 +117,19 @@ global $app;
 
 	if($title){
 		$r=$this->end_line().$r;
-		$r=$this->Cell($title,-1,'',$nb_col).$r;
+		$r=$this->Cell($title,-1,'',$nb_col).$r;	
 		$r=$this->beg_line('formheader0').$r;
 	}
 
 	$r=$this->beg_tbl('formcadre').$r;
 	$r.=$this->end_tbl();
-
+	
 	$r.="<br>";
-
+	
 	$this->direct=$old;
-
+	
 	if ($this->direct) echo $r; else return $r;
-
+	
 }
 
 function TTbl($pDirect=TRUE){
@@ -146,9 +146,9 @@ function TTbl($pDirect=TRUE){
 
 function beg_tbl($pClass,$pWidth=-1,$pColSpace=0,$pIdTable='',$align=""){
     $r = "\n<TABLE 0";
-
+	
 	if($this->debug)$r.=" border=1";
-
+	
     if ($pIdTable<>'') {
             $r.=" id=\"$pIdTable\"";
     }
@@ -156,7 +156,7 @@ function beg_tbl($pClass,$pWidth=-1,$pColSpace=0,$pIdTable='',$align=""){
     $r.= " CELLSPACING='$pColSpace'";
     if ($pWidth > -1) $r .= " WIDTH='$pWidth'";
 	if($align!="")$r.=" align=\"$align\"";
-
+	
     $r.= ">\n";
     if ($this->direct) echo $r; else return $r;
 }
@@ -212,7 +212,7 @@ function Cell($pContent,$pWidth=-1,$pClass='',$pSpan='',$align="",$valign="",$nw
          $r.=" nowrap";
  }
  if($h)$r.=" height=$h";
-
+ 
  $r .= "> $pContent </TD>\n";
  if ($this->direct) echo $r ;else return $r;
 

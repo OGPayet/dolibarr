@@ -7,10 +7,10 @@ if ($action == 'update' && $request_method === 'POST') {
     // $d1 = GETPOST('debut');
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
-
+  
     $label = GETPOST('label');
     $marque = GETPOST('marque');
-
+   
 
     $data = array(
         'label'           =>  addslashes($label),
@@ -18,11 +18,11 @@ if ($action == 'update' && $request_method === 'POST') {
     );
 
     $isvalid = $modele->update($id, $data);
-
+   
     if ($isvalid > 0) {
         header('Location: ./index.php?page='.$page);
         exit;
-    }
+    } 
     else {
         header('Location: ./card.php?id='. $id .'&update=0');
         exit;
@@ -42,8 +42,8 @@ if($action == "edit"){
             $modele->fetch($id);
             $item = $modele;
             print '<tr>';
-                print '<td >'.$langs->trans('label_model').'</td>';
-                print '<td ><input type="text" class="" id="label" value="'.$item->label.'" style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';
+                print '<td style="width:20%;">'.$langs->trans('label_model').'</td>';
+                print '<td style="width:80%;"><input type="text" class="" id="label" value="'.$item->label.'" style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';
                 print '</td>';
             print '</tr>';
 
@@ -85,7 +85,7 @@ if($action == "edit"){
         $('#importer').click(function(){
             $('#fichier').trigger('click');
         });
-
+        
         $('#select_marque').select2();
 
         $('#type').select2();

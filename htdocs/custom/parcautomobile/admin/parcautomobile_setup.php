@@ -67,7 +67,7 @@ elseif ($action == 'parcautomobile_interventionmails') {
     $error = 0;
     if ($nbrd && $nbrd > 0){
         $res = dolibarr_set_const($db, $name, $nbrd, 'chaine', 0, '', 0);
-
+        
         // $sql = "UPDATE " . MAIN_DB_PREFIX. "cronjob SET frequency = '".$nbrd."', unitfrequency = 86400 WHERE module_name = 'parcautomobile' AND classesname = 'parcautomobile/class/interventions_parc.class.php' AND objectname = 'interventions_parc' AND methodename = 'checkInterventionsMails'";
         // $resql = $db->query($sql);
         // if($resql) $res = dolibarr_set_const($db, $name, $nbrd, 'chaine', 0, '', 0);
@@ -75,9 +75,9 @@ elseif ($action == 'parcautomobile_interventionmails') {
     }
 
     // if(!empty($msgcont)){
-
+        
     // }
-
+    
     if (! $res > 0) $error ++;
 
 
@@ -167,7 +167,7 @@ if (!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL)) {
     print '<table class="noborder" width="100%">';
 
     $nbd = 7;
-    if(!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_DAYS_BEFORE))
+    if(!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_DAYS_BEFORE)) 
         $nbd = $conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_DAYS_BEFORE;
 
     print '<tr>';
@@ -178,7 +178,7 @@ if (!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL)) {
 
         print '<input type="submit" class="butAction" value="'.$langs->trans("Validate").'">';
         print '</td>';
-
+       
 
     print '</tr>';
 
@@ -229,7 +229,7 @@ if (!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL)) {
 
 
     // $msgemail = $langs->trans("Content_Of_The_Email");
-    // if(!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_CONTENT_MSG))
+    // if(!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_CONTENT_MSG)) 
     //     $msgemail = $conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_CONTENT_MSG;
 
     // print '<tr>';
@@ -238,7 +238,7 @@ if (!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL)) {
 
     //     print '<textarea name="PARCAUTOMOBILE_INTERVENTION_EMAIL_CONTENT_MSG" rows="4" cols="80" style="width:100%;" class="flat">'.$msgemail.'</textarea>';
     //     print '</td>';
-
+       
 
     // print '</tr>';
 
@@ -249,7 +249,7 @@ if (!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL)) {
 
     print '<br>';
 
-
+  
     $cronid = '';
 
     $sql = "SELECT * FROM " . MAIN_DB_PREFIX. "cronjob WHERE module_name = 'parcautomobile' AND classesname = 'parcautomobile/class/interventions_parc.class.php' AND objectname = 'interventions_parc' AND methodename = 'checkInterventionsMails'";
@@ -284,7 +284,7 @@ if (!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL)) {
                 // print '<br>';
             }
             print '<li>';
-
+            
             // print $langs->trans("CopyTheLinkBelowToTheFile").' "<b>'.dol_buildpath('/conf/',1).'conf.php</b>" '.$langs->trans("WithTheLink").' :<br>';
             print $langs->trans("CopyTheLinkBelowToTheFile").' "<b>'.dol_buildpath('/conf/conf.php',1).'</b>" :<br>';
 
@@ -328,8 +328,8 @@ if (!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL)) {
 
 
 
-
-
+    
+    
 }
 
 print '</div>';

@@ -1,4 +1,4 @@
--- Copyright (C) 2009-2017 Regis Houssin  <regis.houssin@inodbox.com>
+-- Copyright (C) 2009-2018 Regis Houssin  <regis.houssin@inodbox.com>
 --
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -55,3 +55,14 @@ insert into llx_const (name, value, type, note, visible, entity) values (__ENCRY
 -- Mail Mailing
 --
 insert into llx_const (name, value, type, note, visible, entity) values (__ENCRYPT('MAILING_EMAIL_FROM')__,__ENCRYPT('dolibarr@domain.com')__,'chaine','EMail emmetteur pour les envois d emailings',0,__ENTITY__);
+
+--
+-- Accounting
+--
+INSERT INTO llx_accounting_journal (code, label, nature, active, entity) VALUES ('VT', 'Sale Journal',           2, 1, __ENTITY__);
+INSERT INTO llx_accounting_journal (code, label, nature, active, entity) VALUES ('AC', 'Purchase Journal',       3, 1, __ENTITY__);
+INSERT INTO llx_accounting_journal (code, label, nature, active, entity) VALUES ('BQ', 'Bank Journal',           4, 1, __ENTITY__);
+INSERT INTO llx_accounting_journal (code, label, nature, active, entity) VALUES ('OD', 'Other Journal',          1, 1, __ENTITY__);
+INSERT INTO llx_accounting_journal (code, label, nature, active, entity) VALUES ('AN', 'Has new Journal',        9, 1, __ENTITY__);
+INSERT INTO llx_accounting_journal (code, label, nature, active, entity) VALUES ('ER', 'Expense Report Journal', 5, 1, __ENTITY__);
+INSERT INTO llx_accounting_journal (code, label, nature, active, entity) VALUES ('INV', 'Inventory Journal'    , 8, 1, __ENTITY__);
