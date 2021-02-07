@@ -1,5 +1,6 @@
 <?php
 /* Copyright (C) 2015-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
+ * Copyright (C) 2018	   Nicolas ZABOURI	<info@inovea-conseil.com>
  * Copyright (C) 2018 	   Juanjo Menent  <jmenent@2byte.es>
  * Copyright (C) 2019 	   Ferran Marcet  <fmarcet@2byte.es>
  *
@@ -257,9 +258,20 @@ if (! $error && $massaction == 'confirm_presend')
 				{
 					// TODO Use future field $objectobj->fullpathdoc to know where is stored default file
 					// TODO If not defined, use $objectobj->modelpdf (or defaut invoice config) to know what is template to use to regenerate doc.
-					$filename=dol_sanitizeFileName($objectobj->ref).'.pdf';
-					$filedir=$uploaddir . '/' . dol_sanitizeFileName($objectobj->ref);
+					$filename = dol_sanitizeFileName($objectobj->ref).'.pdf';
+					$subdir = '';
+					// TODO Set subdir to be compatible with multi levels dir trees
+					// $subdir = get_exdir($objectobj->id, 2, 0, 0, $objectobj, $objectobj->element)
+					$filedir = $uploaddir . '/' . $subdir . dol_sanitizeFileName($objectobj->ref);
 					$file = $filedir . '/' . $filename;
+
+					// For supplier invoices, we use the file provided by supplier, not the one we generate
+					if ($objectobj->element == 'invoice_supplier')
+					{
+						$fileparams = dol_most_recent_file($uploaddir . '/' . get_exdir($objectobj->id,2,0,0,$objectobj,$objectobj->element).$objectobj->ref, preg_quote($objectobj->ref,'/').'([^\-])+');
+						$file = $fileparams['fullname'];
+					}
+
 					$mime = dol_mimetype($file);
 
 	   				if (dol_is_file($file))
@@ -481,9 +493,9 @@ if (! $error && $massaction == 'confirm_presend')
 										dol_syslog("Error in trigger ".$triggername.' '.$db->lasterror(), LOG_ERR);
 									}
 								}
-							}
 
-                            $nbsent++;   // Nb of email sent (may be lower than number of record selected if we group thirdparties)
+								$nbsent++;   // Nb of record sent
+							}
 						}
 						else
 						{
@@ -689,7 +701,10 @@ if ($massaction == 'confirm_createbills')
 							$lines[$i]->fk_fournprice,
 							$lines[$i]->pa_ht,
 							$lines[$i]->label,
-							$array_options
+							$array_options,
+							100,
+							0,
+							$lines[$i]->fk_unit
 							);
 						if ($result > 0)
 						{
@@ -797,6 +812,56 @@ if ($massaction == 'confirm_createbills')
 		$error++;
 	}
 }
+
+if (!$error && $massaction == 'cancelorders')
+{
+
+	$db->begin();
+
+	$nbok = 0;
+
+
+	$orders = GETPOST('toselect', 'array');
+	foreach ($orders as $id_order)
+	{
+
+		$cmd = new Commande($db);
+		if ($cmd->fetch($id_order) <= 0)
+			continue;
+
+		if ($cmd->statut != Commande::STATUS_VALIDATED)
+		{
+			$langs->load('errors');
+			setEventMessages($langs->trans("ErrorObjectMustHaveStatusValidToBeCanceled", $cmd->ref), null, 'errors');
+			$error++;
+			break;
+		}
+		else
+			$result = $cmd->cancel();
+
+		if ($result < 0)
+		{
+			setEventMessages($cmd->error, $cmd->errors, 'errors');
+			$error++;
+			break;
+		}
+		else
+			$nbok++;
+	}
+	if (!$error)
+	{
+		if ($nbok > 1)
+			setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+		else
+			setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+		$db->commit();
+	}
+	else
+	{
+		$db->rollback();
+	}
+}
+
 
 if (! $error && $massaction == "builddoc" && $permtoread && ! GETPOST('button_search'))
 {
@@ -983,7 +1048,7 @@ if (! $error && $massaction == 'validate' && $permtocreate)
 {
 	$objecttmp=new $objectclass($db);
 
-	if ($objecttmp->element == 'invoice' && ! empty($conf->stock->enabled) && ! empty($conf->global->STOCK_CALCULATE_ON_BILL))
+	if (($objecttmp->element == 'facture' || $objecttmp->element == 'invoice') && ! empty($conf->stock->enabled) && ! empty($conf->global->STOCK_CALCULATE_ON_BILL))
 	{
 		$langs->load("errors");
 		setEventMessages($langs->trans('ErrorMassValidationNotAllowedWhenStockIncreaseOnAction'), null, 'errors');
@@ -1044,7 +1109,41 @@ if (! $error && $massaction == 'validate' && $permtocreate)
 		//var_dump($listofobjectthirdparties);exit;
 	}
 }
+// Closed records
+if (!$error && $massaction == 'closed' && $objectclass == "Propal" && $permtoclose) {
+    $db->begin();
 
+    $objecttmp = new $objectclass($db);
+    $nbok = 0;
+    foreach ($toselect as $toselectid) {
+        $result = $objecttmp->fetch($toselectid);
+        if ($result > 0) {
+            $result = $objecttmp->cloture($user, 3);
+            if ($result <= 0) {
+                setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+                $error++;
+                break;
+            } else
+                $nbok++;
+        }
+        else {
+            setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+            $error++;
+            break;
+        }
+    }
+
+    if (!$error) {
+        if ($nbok > 1)
+            setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+        else
+            setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+        $db->commit();
+    }
+    else {
+        $db->rollback();
+    }
+}
 // Delete record from mass action (massaction = 'delete' for direct delete, action/confirm='delete'/'yes' with a confirmation step before)
 if (! $error && ($massaction == 'delete' || ($action == 'delete' && $confirm == 'yes')) && $permtodelete)
 {
@@ -1057,15 +1156,14 @@ if (! $error && ($massaction == 'delete' || ($action == 'delete' && $confirm == 
 		$result=$objecttmp->fetch($toselectid);
 		if ($result > 0)
 		{
-			// Refuse deletion for some status ?
-			/*
-       		if ($objectclass == 'Facture' && $objecttmp->status == Facture::STATUS_DRAFT)
-       		{
-       			$langs->load("errors");
-       			$nbignored++;
-       			$resaction.='<div class="error">'.$langs->trans('ErrorOnlyDraftStatusCanBeDeletedInMassAction',$objecttmp->ref).'</div><br>';
-       			continue;
-       		}*/
+			// Refuse deletion for some objects/status
+			if ($objectclass == 'Facture' && empty($conf->global->INVOICE_CAN_ALWAYS_BE_REMOVED) && $objecttmp->status != Facture::STATUS_DRAFT)
+			{
+				$langs->load("errors");
+				$nbignored++;
+				$resaction.='<div class="error">'.$langs->trans('ErrorOnlyDraftStatusCanBeDeletedInMassAction',$objecttmp->ref).'</div><br>';
+				continue;
+			}
 
 			if ($objectclass == "Task" && $objecttmp->hasChildren() > 0)
 			{
@@ -1079,14 +1177,14 @@ if (! $error && ($massaction == 'delete' || ($action == 'delete' && $confirm == 
 				}
 			}
 
-			if (in_array($objecttmp->element, array('societe','member'))) $result = $objecttmp->delete($objecttmp->id, $user, 1);
+			if (in_array($objecttmp->element, array('societe', 'member'))) $result = $objecttmp->delete($objecttmp->id, $user, 1);
 			else $result = $objecttmp->delete($user);
 
 			if ($result <= 0)
 			{
-				setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
-				$error++;
-				break;
+			    setEventMessages($objecttmp->error, $objecttmp->errors, 'errors');
+			    $error++;
+			    break;
 			}
 			else $nbok++;
 		}

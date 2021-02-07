@@ -1,6 +1,6 @@
 <?php
-/* Copyright (C) 2016       Laurent Destailleur         <eldy@users.sourceforge.net>
- * Copyright (C) 2016       Alexandre Spangaro          <aspangaro@zendsi.com>
+/* Copyright (C) 2016       Laurent Destailleur      <eldy@users.sourceforge.net>
+ * Copyright (C) 2016-2018  Alexandre Spangaro       <aspangaro@zendsi.com>
  * Copyright (C) 2019       Frédéric France             <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,25 +27,12 @@ require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/accounting.lib.php';
 
-// Langs
-$langs->load("compta");
-$langs->load("bills");
-$langs->load("other");
-$langs->load("main");
-$langs->load("accountancy");
+// Load translation files required by the page
+$langs->loadLangs(array("compta","bills","other","accountancy","loans","banks","admin","dict"));
 
 // Security check
 if ($user->societe_id > 0)
 	accessforbidden();
-
-$langs->load("admin");
-$langs->load("dict");
-$langs->load("bills");
-$langs->load("accountancy");
-$langs->load("compta");
-$langs->load("banks");
-$langs->load("loans");
-
 
 /*
  * Actions
@@ -91,7 +78,7 @@ if ($conf->accounting->enabled)
 	print "<br>\n";
 
 	$step++;
-	print img_picto('', 'puce').' '.$langs->trans("AccountancyAreaDescProd", $step, '<strong>'.$langs->transnoentitiesnoconv("MenuAccountancy").'-'.$langs->transnoentitiesnoconv("Setup")."-".$langs->transnoentitiesnoconv("MenuDefaultAccounts").'</strong>');
+	print img_picto('', 'puce').' '.$langs->trans("AccountancyAreaDescDefault", $step, '<strong>'.$langs->transnoentitiesnoconv("MenuAccountancy").'-'.$langs->transnoentitiesnoconv("Setup")."-".$langs->transnoentitiesnoconv("MenuDefaultAccounts").'</strong>');
 	print "<br>\n";
 
 	$step++;
@@ -161,9 +148,12 @@ if ($conf->accounting->enabled)
 	print img_picto('', 'puce').' '.$langs->trans("AccountancyAreaDescBind", chr(64+$step), $langs->transnoentitiesnoconv("BillsSuppliers"), '<strong>'.$langs->transnoentitiesnoconv("MenuAccountancy")."-".$langs->transnoentitiesnoconv("SuppliersVentilation").'</strong>')."\n";
 	print "<br>\n";
 
-	$step++;
-	print img_picto('', 'puce').' '.$langs->trans("AccountancyAreaDescBind", chr(64+$step), $langs->transnoentitiesnoconv("ExpenseReports"), '<strong>'.$langs->transnoentitiesnoconv("MenuAccountancy")."-".$langs->transnoentitiesnoconv("ExpenseReportsVentilation").'</strong>')."\n";
-	print "<br>\n";
+	if (! empty($conf->expensereport->enabled) || ! empty($conf->deplacement->enabled))
+	{
+		$step++;
+		print img_picto('', 'puce').' '.$langs->trans("AccountancyAreaDescBind", chr(64+$step), $langs->transnoentitiesnoconv("ExpenseReports"), '<strong>'.$langs->transnoentitiesnoconv("MenuAccountancy")."-".$langs->transnoentitiesnoconv("ExpenseReportsVentilation").'</strong>')."\n";
+		print "<br>\n";
+	}
 
 	$step++;
 	print img_picto('', 'puce').' '.$langs->trans("AccountancyAreaDescWriteRecords", chr(64+$step), $langs->transnoentitiesnoconv("Journalization"), $langs->transnoentitiesnoconv("WriteBookKeeping"))."\n";

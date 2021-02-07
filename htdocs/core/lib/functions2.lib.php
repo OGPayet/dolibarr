@@ -708,15 +708,16 @@ function array2table($data,$tableMarkup=1,$tableoptions='',$troptions='',$tdopti
  * @param   string		$mode			'next' for next value or 'last' for last value
  * @param   bool		$bentityon		Activate the entity filter. Default is true (for modules not compatible with multicompany)
  * @param	User		$objuser		Object user we need data from.
+ * @param	int			$forceentity	Entity id to force
  * @return 	string						New value (numeric) or error message
  */
-function get_next_value($db,$mask,$table,$field,$where='',$objsoc='',$date='',$mode='next', $bentityon=true, $objuser=null)
+function get_next_value($db,$mask,$table,$field,$where='',$objsoc='',$date='',$mode='next', $bentityon=true, $objuser=null, $forceentity=null)
 {
     global $conf,$user;
 
     if (! is_object($objsoc)) $valueforccc=$objsoc;
-    else if ($table == "commande_fournisseur" || $table == "facture_fourn" ) $valueforccc=$objsoc->code_fournisseur;
-    else $valueforccc=$objsoc->code_client;
+    else if ($table == "commande_fournisseur" || $table == "facture_fourn" ) $valueforccc=dol_string_unaccent($objsoc->code_fournisseur);
+    else $valueforccc=dol_string_unaccent($objsoc->code_client);
 
     $sharetable = $table;
     if ($table == 'facture' || $table == 'invoice') $sharetable = 'invoicenumber'; // for getEntity function
@@ -964,6 +965,7 @@ function get_next_value($db,$mask,$table,$field,$where='',$objsoc='',$date='',$m
     // Define $maskLike
     $maskLike = dol_string_nospecial($mask);
     $maskLike = str_replace("%","_",$maskLike);
+
     // Replace protected special codes with matching number of _ as wild card caracter
     $maskLike = preg_replace('/\{yyyy\}/i','____',$maskLike);
     $maskLike = preg_replace('/\{yy\}/i','__',$maskLike);
@@ -987,7 +989,8 @@ function get_next_value($db,$mask,$table,$field,$where='',$objsoc='',$date='',$m
 	$sql.= " AND ".$field." NOT LIKE '(PROV%)'";
     if ($bentityon) // only if entity enable
     	$sql.= " AND entity IN (".getEntity($sharetable).")";
-
+    else if (! empty($forceentity))
+    	$sql.= " AND entity = ".(int) $forceentity;
     if ($where) $sql.=$where;
     if ($sqlwhere) $sql.=' AND '.$sqlwhere;
 
@@ -1035,6 +1038,8 @@ function get_next_value($db,$mask,$table,$field,$where='',$objsoc='',$date='',$m
     	$sql.= " AND ".$field." NOT LIKE '%PROV%'";
     	if ($bentityon) // only if entity enable
         	$sql.= " AND entity IN (".getEntity($sharetable).")";
+        else if (! empty($forceentity))
+        	$sql.= " AND entity = ".(int) $forceentity;
         if ($where) $sql.=$where;
         if ($sqlwhere) $sql.=' AND '.$sqlwhere;
 
@@ -1089,6 +1094,8 @@ function get_next_value($db,$mask,$table,$field,$where='',$objsoc='',$date='',$m
             $maskrefclient_sql.= " WHERE ".$field." LIKE '".$maskrefclient_maskLike."'";
             if ($bentityon) // only if entity enable
             	$maskrefclient_sql.= " AND entity IN (".getEntity($sharetable).")";
+            else if (! empty($forceentity))
+            	$sql.= " AND entity = ".(int) $forceentity;
             if ($where) $maskrefclient_sql.=$where; //use the same optional where as general mask
             if ($sqlwhere) $maskrefclient_sql.=' AND '.$sqlwhere; //use the same sqlwhere as general mask
             $maskrefclient_sql.=' AND (SUBSTRING('.$field.', '.(strpos($maskwithnocode,$maskrefclient)+1).', '.dol_strlen($maskrefclient_maskclientcode).")='".$maskrefclient_clientcode."')";
@@ -1134,7 +1141,7 @@ function get_next_value($db,$mask,$table,$field,$where='',$objsoc='',$date='',$m
         // Now we replace the refclient
         if ($maskrefclient)
         {
-            //print "maskrefclient=".$maskrefclient." maskwithonlyymcode=".$maskwithonlyymcode." maskwithnocode=".$maskwithnocode."\n<br>";
+            //print "maskrefclient=".$maskrefclient." maskwithonlyymcode=".$maskwithonlyymcode." maskwithnocode=".$maskwithnocode." maskrefclient_clientcode=".$maskrefclient_clientcode."\n<br>";exit;
             $maskrefclient_maskbefore='{'.$maskrefclient.'}';
             $maskrefclient_maskafter=$maskrefclient_clientcode.str_pad($maskrefclient_counter,dol_strlen($maskrefclient_maskcounter),"0",STR_PAD_LEFT);
             $numFinal = str_replace($maskrefclient_maskbefore,$maskrefclient_maskafter,$numFinal);
@@ -1768,7 +1775,7 @@ function getSoapParams()
  */
 function dolGetElementUrl($objectid,$objecttype,$withpicto=0,$option='')
 {
-	global $db,$conf;
+	global $db, $conf, $langs;
 
 	$ret='';
 
@@ -1834,6 +1841,11 @@ function dolGetElementUrl($objectid,$objecttype,$withpicto=0,$option='')
 		$module='projet';
 		$subelement='task';
 	}
+	if ($objecttype == 'stock') {
+		$classpath = 'product/stock/class';
+		$module='stock';
+		$subelement='stock';
+	}
 
 	//print "objecttype=".$objecttype." module=".$module." subelement=".$subelement;
 
@@ -1844,22 +1856,30 @@ function dolGetElementUrl($objectid,$objecttype,$withpicto=0,$option='')
 		$classpath = 'fourn/class';
 		$module='fournisseur';
 	}
-	if ($objecttype == 'order_supplier')   {
+	elseif ($objecttype == 'order_supplier')   {
 		$classfile = 'fournisseur.commande';
 		$classname='CommandeFournisseur';
 		$classpath = 'fourn/class';
 		$module='fournisseur';
 	}
-
+	elseif ($objecttype == 'stock')   {
+		$classpath = 'product/stock/class';
+		$classfile='entrepot';
+		$classname='Entrepot';
+	}
 	if (! empty($conf->$module->enabled))
 	{
 		$res=dol_include_once('/'.$classpath.'/'.$classfile.'.class.php');
 		if ($res)
 		{
-			$object = new $classname($db);
-			$res=$object->fetch($objectid);
-			if ($res > 0) $ret=$object->getNomUrl($withpicto,$option);
-			unset($object);
+			if (class_exists($classname))
+			{
+				$object = new $classname($db);
+				$res=$object->fetch($objectid);
+				if ($res > 0) $ret=$object->getNomUrl($withpicto,$option);
+				unset($object);
+			}
+			else dol_syslog("Class with classname ".$classname." is unknown even after the include", LOG_ERR);
 		}
 	}
 	return $ret;
@@ -2271,6 +2291,9 @@ function getModuleDirForApiClass($module)
     }
     elseif ($module == 'ficheinter' || $module == 'interventions') {
     	$moduledirforclass = 'fichinter';
+    }
+    elseif ($module == 'tickets') {
+    	$moduledirforclass = 'ticket';
     }
 
     return $moduledirforclass;

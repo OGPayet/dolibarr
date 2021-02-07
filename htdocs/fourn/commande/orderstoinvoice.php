@@ -216,7 +216,7 @@ if (($action == 'create' || $action == 'add') && ! $error) {
 									$fk_parent_line = 0;
 								}
 								// FIXME Missing $lines[$i]->ref_supplier and $lines[$i]->label into addline and updateline methods. They are filled when coming from order for example.
-								$result = $object->addline($desc, $lines[$i]->subprice, $lines[$i]->tva_tx, $lines[$i]->localtax1_tx, $lines[$i]->localtax2_tx, $lines[$i]->qty, $lines[$i]->fk_product, $lines[$i]->remise_percent, $date_start, $date_end, 0, $lines[$i]->info_bits, 'HT', $product_type, -1, false, 0, $lines[$i]->fk_unit);
+								$result = $object->addline($desc, $lines[$i]->subprice, $lines[$i]->tva_tx, $lines[$i]->localtax1_tx, $lines[$i]->localtax2_tx, $lines[$i]->qty, $lines[$i]->fk_product, $lines[$i]->remise_percent, $date_start, $date_end, 0, $lines[$i]->info_bits, 'HT', $product_type, -1, false, 0, $lines[$i]->fk_unit, $line[$i]->id);
 
 								if ($result > 0) {
 									$lineid = $result;
@@ -371,7 +371,7 @@ if ($action == 'create' && !$error) {
 	$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 	print $hookmanager->resPrint;
 
-	if (empty($reshook) && ! empty($extrafields->attribute_label))
+	if (empty($reshook))
 	{
 		$object=new FactureFournisseur($db);
 		print $object->showOptionals($extrafields,'edit');
@@ -542,13 +542,12 @@ if (($action != 'create' && $action != 'add') && !$error) {
 
 		print '</td></tr>';
 
-		$var = True;
 		$generic_commande = new CommandeFournisseur($db);
 
-		while ( $i < $num ) {
+		while ($i < $num) {
 			$objp = $db->fetch_object($resql);
-			$var = ! $var;
-			print '<tr ' . $bc[$var] . '>';
+
+			print '<tr class="oddeven">';
 			print '<td class="nowrap">';
 
 			$generic_commande->id = $objp->rowid;

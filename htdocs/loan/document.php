@@ -1,6 +1,6 @@
 <?php
-/* Copyright (C) 2014-2016	Alexandre Spangaro   <aspangaro@zendsi.com>
- * Copyright (C) 2017      Ferran Marcet       	 <fmarcet@2byte.es>
+/* Copyright (C) 2014-2018  Alexandre Spangaro  <aspangaro@zendsi.com>
+ * Copyright (C) 2017       Ferran Marcet       <fmarcet@2byte.es>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,11 +32,8 @@ if (! empty($conf->projet->enabled)) {
 	require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
 }
 
-$langs->load("other");
-$langs->load("companies");
-$langs->load("compta");
-$langs->load("bills");
-$langs->load("loan");
+// Load translation files required by the page
+$langs->loadLangs(array("other","companies","compta","bills","loan"));
 
 $id = GETPOST('id','int');
 $action = GETPOST('action','aZ09');
@@ -50,7 +47,7 @@ $result = restrictedArea($user, 'loan', $id, '','');
 $sortfield = GETPOST("sortfield",'alpha');
 $sortorder = GETPOST("sortorder",'alpha');
 $page = GETPOST("page",'int');
-if ($page == -1) {
+if (empty($page) || $page == -1) {
     $page = 0;
 }
 $offset = $conf->liste_limit * $page;
@@ -148,7 +145,7 @@ if ($object->id)
 
     print '<table class="border" width="100%">';
     print '<tr><td class="titlefield">'.$langs->trans("NbOfAttachedFiles").'</td><td>'.count($filearray).'</td></tr>';
-    print '<tr><td>'.$langs->trans("TotalSizeOfAttachedFiles").'</td><td>'.$totalsize.' '.$langs->trans("bytes").'</td></tr>';
+    print '<tr><td>'.$langs->trans("TotalSizeOfAttachedFiles").'</td><td>'.dol_print_size($totalsize,1,1).'</td></tr>';
     print "</table>\n";
 
     print "</div>\n";

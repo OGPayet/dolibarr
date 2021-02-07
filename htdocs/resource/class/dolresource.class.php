@@ -119,23 +119,15 @@ class Dolresource extends CommonObject
     	{
     		$action='create';
 
-    		// Actions on extra fields (by external module or standard code)
-    		// TODO le hook fait double emploi avec le trigger !!
-    		$hookmanager->initHooks(array('actioncommdao'));
-    		$parameters=array('actcomm'=>$this->id);
-    		$reshook=$hookmanager->executeHooks('insertExtraFields',$parameters,$this,$action);    // Note that $action and $object may have been modified by some hooks
-    		if (empty($reshook))
-    		{
-    			if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
-    			{
-    				$result=$this->insertExtraFields();
-    				if ($result < 0)
-    				{
-    					$error++;
-    				}
-    			}
+    		// Actions on extra fields
+   			if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+   			{
+   				$result=$this->insertExtraFields();
+   				if ($result < 0)
+   				{
+   					$error++;
+   				}
     		}
-    		else if ($reshook < 0) $error++;
     	}
 
     	if (! $error)
@@ -213,13 +205,9 @@ class Dolresource extends CommonObject
     			$this->note_private				=	$obj->note_private;
     			$this->type_label				=	$obj->type_label;
 
-    			// Retreive all extrafield for thirdparty
+    			// Retreive all extrafield
     			// fetch optionals attributes and labels
-    			require_once(DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php');
-    			$extrafields=new ExtraFields($this->db);
-    			$extralabels=$extrafields->fetch_name_optionals_label($this->table_element,true);
-    			$this->fetch_optionals($this->id,$extralabels);
-
+    			$this->fetch_optionals();
     		}
     		$this->db->free($resql);
 
@@ -309,23 +297,15 @@ class Dolresource extends CommonObject
 		{
 			$action='update';
 
-			// Actions on extra fields (by external module or standard code)
-			// TODO le hook fait double emploi avec le trigger !!
-			$hookmanager->initHooks(array('actioncommdao'));
-			$parameters=array('actcomm'=>$this->id);
-			$reshook=$hookmanager->executeHooks('insertExtraFields',$parameters,$this,$action);    // Note that $action and $object may have been modified by some hooks
-			if (empty($reshook))
+			// Actions on extra fields
+			if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
 			{
-				if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+				$result=$this->insertExtraFields();
+				if ($result < 0)
 				{
-					$result=$this->insertExtraFields();
-					if ($result < 0)
-					{
-						$error++;
-					}
+					$error++;
 				}
 			}
-			else if ($reshook < 0) $error++;
 		}
 
 		// Commit or rollback
@@ -550,13 +530,13 @@ class Dolresource extends CommonObject
     	if ($limit) $sql.= $this->db->plimit($limit, $offset);
     	dol_syslog(get_class($this)."::fetch_all", LOG_DEBUG);
 
+        $this->lines=array();
     	$resql=$this->db->query($sql);
     	if ($resql)
     	{
     		$num = $this->db->num_rows($resql);
     		if ($num)
     		{
-    			$this->lines=array();
     			while ($obj = $this->db->fetch_object($resql))
     			{
     				$line = new Dolresource($this->db);
@@ -570,7 +550,7 @@ class Dolresource extends CommonObject
     				// Retreive all extrafield for thirdparty
     				// fetch optionals attributes and labels
 
-    				$line->fetch_optionals($line->id,$extralabels);
+    				$line->fetch_optionals();
 
     				$this->lines[] = $line;
     			}
@@ -849,6 +829,8 @@ class Dolresource extends CommonObject
 	    $sql .= ' ORDER BY resource_type';
 
 	    dol_syslog(get_class($this)."::getElementResources", LOG_DEBUG);
+
+        $resources = array();
 	    $resql = $this->db->query($sql);
 	    if ($resql)
 	    {
@@ -899,7 +881,7 @@ class Dolresource extends CommonObject
     {
     	global $langs;
 
-    	if (count($this->cache_code_type_resource)) return 0;    // Cache deja charge
+    	if (is_array($this->cache_code_type_resource) && count($this->cache_code_type_resource)) return 0;    // Cache deja charge
 
     	$sql = "SELECT rowid, code, label, active";
     	$sql.= " FROM ".MAIN_DB_PREFIX."c_type_resource";

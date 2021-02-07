@@ -45,11 +45,9 @@ if (! empty($conf->projet->enabled)) {
     require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 }
 
+// Load translation files required by the page
+$langs->loadLangs(array("sendings","bills",'deliveries','orders'));
 
-$langs->load("sendings");
-$langs->load("bills");
-$langs->load('deliveries');
-$langs->load('orders');
 if (!empty($conf->incoterm->enabled)) $langs->load('incoterm');
 
 $action=GETPOST('action', 'alpha');
@@ -77,9 +75,11 @@ include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php';  // Must be inclu
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $hookmanager->initHooks(array('deliverycard','globalcard'));
 
+
 /*
  * Actions
  */
+
 $parameters=array();
 $reshook=$hookmanager->executeHooks('doActions',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
 
@@ -193,27 +193,22 @@ elseif ($action == 'set_incoterms' && !empty($conf->incoterm->enabled))
 // Update extrafields
 if ($action == 'update_extras')
 {
+	$object->oldcopy = dol_clone($object);
+
 	// Fill array 'array_options' with data from update form
 	$extralabels = $extrafields->fetch_name_optionals_label($object->table_element);
-	$ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute'));
+	$ret = $extrafields->setOptionalsFromPost($extralabels, $object, GETPOST('attribute', 'none'));
 	if ($ret < 0) $error++;
 
 	if (! $error)
 	{
-		// Actions on extra fields (by external module or standard code)
-		// TODO le hook fait double emploi avec le trigger !!
-		$hookmanager->initHooks(array('livraisondao'));
-		$parameters = array('id' => $object->id);
-		$reshook = $hookmanager->executeHooks('insertExtraFields', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
-		if (empty($reshook)) {
-			$result = $object->insertExtraFields();
-			if ($result < 0)
-			{
-				setEventMessages($object->error, $object->errors, 'errors');
-				$error++;
-			}
-		} else if ($reshook < 0)
+		// Actions on extra fields
+		$result = $object->insertExtraFields('DELIVERY_MODIFY');
+		if ($result < 0)
+		{
+			setEventMessages($object->error, $object->errors, 'errors');
 			$error++;
+		}
 	}
 
 	if ($error)
@@ -250,9 +245,16 @@ if ($action == 'update_extras_line')
 }
 
 
+// Actions to build doc
+$upload_dir = $conf->expedition->dir_output.'/receipt';
+$permissioncreate = $user->rights->expedition->creer;
+include DOL_DOCUMENT_ROOT.'/core/actions_builddoc.inc.php';
+
+
 /*
  * Build document
  */
+/*
 if ($action == 'builddoc')	// En get ou en post
 {
 	// Save last template used to generate document
@@ -288,6 +290,7 @@ elseif ($action == 'remove_file')
 	if ($ret) setEventMessages($langs->trans("FileWasRemoved", GETPOST('urlfile')), null, 'mesgs');
 	else setEventMessages($langs->trans("ErrorFailToDeleteFile", GETPOST('urlfile')), null, 'errors');
 }
+*/
 
 
 /*
@@ -343,7 +346,7 @@ else
 			print '<input type="hidden" name="id" value="'.$object->id.'">';
 			print '<input type="hidden" name="ref" value="'.$object->ref.'">';
 
-			dol_fiche_head($head, 'delivery', $langs->trans("Shipment"), 0, 'sending');
+			dol_fiche_head($head, 'delivery', $langs->trans("Shipment"), -1, 'sending');
 
 			/*
 			 * Confirmation de la suppression
@@ -567,11 +570,11 @@ else
 			}
 
 			// Other attributes
-			if ($action = 'create_delivery') {
+			if ($action == 'create_delivery') {
 				// copy from expedition
 				$expeditionExtrafields = new Extrafields($db);
 				$expeditionExtrafieldLabels = $expeditionExtrafields->fetch_name_optionals_label($expedition->table_element);
-				if ($expedition->fetch_optionals($object->origin_id, $expeditionExtrafieldLabels) > 0) {
+				if ($expedition->fetch_optionals($object->origin_id) > 0) {
 					$object->array_options = array_merge($object->array_options, $expedition->array_options);
 				}
 			}
@@ -604,87 +607,85 @@ else
 			$var=true;
 			while ($i < $num_prod)
 			{
+				$parameters = array('i' => $i, 'line' => $object->lines[$i], 'num' => $num_prod);
+				$reshook = $hookmanager->executeHooks('printObjectLine', $parameters, $object, $action);
+				if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
+				if(empty($reshook)) {
 
-				print '<tr class="oddeven">';
-				if ($object->lines[$i]->fk_product > 0)
-				{
-					$product = new Product($db);
-					$product->fetch($object->lines[$i]->fk_product);
+					print '<tr class="oddeven">';
+					if ($object->lines[$i]->fk_product > 0) {
+						$product = new Product($db);
+						$product->fetch($object->lines[$i]->fk_product);
 
-					// Define output language
-					if (! empty($conf->global->MAIN_MULTILANGS) && ! empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE))
-					{
-						$outputlangs = $langs;
-						$newlang='';
-						if (empty($newlang) && ! empty($_REQUEST['lang_id'])) $newlang=$_REQUEST['lang_id'];
-						if (empty($newlang)) $newlang=$object->thirdparty->default_lang;
-						if (! empty($newlang))
-						{
-							$outputlangs = new Translate("",$conf);
-							$outputlangs->setDefaultLang($newlang);
+						// Define output language
+						if (!empty($conf->global->MAIN_MULTILANGS) && !empty($conf->global->PRODUIT_TEXTS_IN_THIRDPARTY_LANGUAGE)) {
+							$outputlangs = $langs;
+							$newlang = '';
+							if (empty($newlang) && !empty($_REQUEST['lang_id'])) $newlang = $_REQUEST['lang_id'];
+							if (empty($newlang)) $newlang = $object->thirdparty->default_lang;
+							if (!empty($newlang)) {
+								$outputlangs = new Translate("", $conf);
+								$outputlangs->setDefaultLang($newlang);
+							}
+
+							$label = (!empty($product->multilangs[$outputlangs->defaultlang]["label"])) ? $product->multilangs[$outputlangs->defaultlang]["label"] : $object->lines[$i]->product_label;
+						} else
+							$label = (!empty($object->lines[$i]->label) ? $object->lines[$i]->label : $object->lines[$i]->product_label);
+
+						print '<td>';
+
+						// Affiche ligne produit
+						$text = '<a href="' . DOL_URL_ROOT . '/product/card.php?id=' . $object->lines[$i]->fk_product . '">';
+						if ($object->lines[$i]->fk_product_type == 1) $text .= img_object($langs->trans('ShowService'), 'service');
+						else $text .= img_object($langs->trans('ShowProduct'), 'product');
+						$text .= ' ' . $object->lines[$i]->product_ref . '</a>';
+						$text .= ' - ' . $label;
+						$description = (!empty($conf->global->PRODUIT_DESC_IN_FORM) ? '' : dol_htmlentitiesbr($object->lines[$i]->description));
+						//print $description;
+						print $form->textwithtooltip($text, $description, 3, '', '', $i);
+						print_date_range($object->lines[$i]->date_start, $object->lines[$i]->date_end);
+						if (!empty($conf->global->PRODUIT_DESC_IN_FORM)) {
+							print (!empty($object->lines[$i]->description) && $object->lines[$i]->description != $object->lines[$i]->product_label) ? '<br>' . dol_htmlentitiesbr($object->lines[$i]->description) : '';
+						}
+					} else {
+						print "<td>";
+						if ($object->lines[$i]->fk_product_type == 1) $text = img_object($langs->trans('Service'), 'service');
+						else $text = img_object($langs->trans('Product'), 'product');
+
+						if (!empty($object->lines[$i]->label)) {
+							$text .= ' <strong>' . $object->lines[$i]->label . '</strong>';
+							print $form->textwithtooltip($text, $object->lines[$i]->description, 3, '', '', $i);
+						} else {
+							print $text . ' ' . nl2br($object->lines[$i]->description);
 						}
 
-						$label = (! empty($product->multilangs[$outputlangs->defaultlang]["label"])) ? $product->multilangs[$outputlangs->defaultlang]["label"] : $object->lines[$i]->product_label;
-					}
-					else
-						$label = ( ! empty($object->lines[$i]->label)?$object->lines[$i]->label:$object->lines[$i]->product_label);
-
-					print '<td>';
-
-					// Affiche ligne produit
-					$text = '<a href="'.DOL_URL_ROOT.'/product/card.php?id='.$object->lines[$i]->fk_product.'">';
-					if ($object->lines[$i]->fk_product_type==1) $text.= img_object($langs->trans('ShowService'),'service');
-					else $text.= img_object($langs->trans('ShowProduct'),'product');
-					$text.= ' '.$object->lines[$i]->product_ref.'</a>';
-					$text.= ' - '.$label;
-					$description=(! empty($conf->global->PRODUIT_DESC_IN_FORM)?'':dol_htmlentitiesbr($object->lines[$i]->description));
-					//print $description;
-					print $form->textwithtooltip($text,$description,3,'','',$i);
-					print_date_range($object->lines[$i]->date_start,$object->lines[$i]->date_end);
-					if (! empty($conf->global->PRODUIT_DESC_IN_FORM))
-					{
-						print (! empty($object->lines[$i]->description) && $object->lines[$i]->description!=$object->lines[$i]->product_label)?'<br>'.dol_htmlentitiesbr($object->lines[$i]->description):'';
-					}
-				}
-				else
-				{
-					print "<td>";
-					if ($object->lines[$i]->fk_product_type==1) $text = img_object($langs->trans('Service'),'service');
-					else $text = img_object($langs->trans('Product'),'product');
-
-					if (! empty($object->lines[$i]->label)) {
-						$text.= ' <strong>'.$object->lines[$i]->label.'</strong>';
-						print $form->textwithtooltip($text,$object->lines[$i]->description,3,'','',$i);
-					} else {
-						print $text.' '.nl2br($object->lines[$i]->description);
+						print_date_range($objp->date_start, $objp->date_end);
+						print "</td>\n";
 					}
 
-					print_date_range($objp->date_start,$objp->date_end);
-					print "</td>\n";
-				}
+					print '<td align="center">' . $object->lines[$i]->qty_asked . '</td>';
+					print '<td align="center">' . $object->lines[$i]->qty_shipped . '</td>';
 
-				print '<td align="center">'.$object->lines[$i]->qty_asked.'</td>';
-				print '<td align="center">'.$object->lines[$i]->qty_shipped.'</td>';
+					print "</tr>";
 
-				print "</tr>";
-
-				//Display lines extrafields
-				if (is_array($extralabelslines) && count($extralabelslines)>0) {
-					$colspan=2;
-					$mode = ($object->statut == 0) ? 'edit' : 'view';
-					$line = new LivraisonLigne($db);
-					$line->fetch_optionals($object->lines[$i]->id,$extralabelslines);
-					if ($action = 'create_delivery') {
-						$srcLine = new ExpeditionLigne($db);
-						$expeditionLineExtrafields = new Extrafields($db);
-						$expeditionLineExtrafieldLabels = $expeditionLineExtrafields->fetch_name_optionals_label($srcLine->table_element);
-						$srcLine->fetch_optionals($expedition->lines[$i]->id,$expeditionLineExtrafieldLabels);
-						$line->array_options = array_merge($line->array_options, $srcLine->array_options);
+					//Display lines extrafields
+					if (is_array($extralabelslines) && count($extralabelslines) > 0) {
+						$colspan = 2;
+						$mode = ($object->statut == 0) ? 'edit' : 'view';
+						$line = new LivraisonLigne($db);
+						$line->fetch_optionals($object->lines[$i]->id);
+						if ($action == 'create_delivery') {
+							$srcLine = new ExpeditionLigne($db);
+							$expeditionLineExtrafields = new Extrafields($db);
+							$expeditionLineExtrafieldLabels = $expeditionLineExtrafields->fetch_name_optionals_label($srcLine->table_element);
+							$srcLine->fetch_optionals($expedition->lines[$i]->id);
+							$line->array_options = array_merge($line->array_options, $srcLine->array_options);
+						}
+						print '<tr class="oddeven">';
+						print $line->showOptionals($extrafieldsline, $mode, array('style' => $bc[$var], 'colspan' => $colspan), $i);
+						print '</tr>';
 					}
-					print '<tr class="oddeven">';
-					print $line->showOptionals($extrafieldsline, $mode, array('style'=>$bc[$var], 'colspan'=>$colspan),$i);
-					print '</tr>';
 				}
 
 				$i++;

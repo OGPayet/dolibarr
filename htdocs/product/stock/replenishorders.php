@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2013	Cédric Salvador	<csalvador@gpcsolutions.fr>
  * Copyright (C) 2014	Regis Houssin	<regis.houssin@capnetworks.com>
+ * Copyright (C) 2019	Juanjo Menent   <jmenent@2byte.es>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +33,8 @@ require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.class.php';
 require_once DOL_DOCUMENT_ROOT.'/product/stock/lib/replenishment.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 
-$langs->load("products");
-$langs->load("stocks");
-$langs->load("orders");
+// Load translation files required by the page
+$langs->loadLangs(array('products', 'stocks', 'orders'));
 
 // Security check
 if ($user->societe_id) $socid=$user->societe_id;
@@ -52,7 +52,7 @@ $search_datemonth = GETPOST('search_datemonth', 'int');
 $search_dateday = GETPOST('search_dateday', 'int');
 $search_date = dol_mktime(0, 0, 0, $search_datemonth, $search_dateday, $search_dateyear);
 
-$limit = GETPOST('limit')?GETPOST('limit','int'):$conf->liste_limit;
+$limit = GETPOST('limit','int')?GETPOST('limit','int'):$conf->liste_limit;
 $sortfield = GETPOST("sortfield");
 $sortorder = GETPOST("sortorder");
 if (!$sortorder) $sortorder = 'DESC';
@@ -153,7 +153,9 @@ if (GETPOST('statut', 'int')) {
 $sql .= ' GROUP BY cf.rowid, cf.ref, cf.date_creation, cf.fk_statut';
 $sql .= ', cf.total_ttc, cf.fk_user_author, u.login, s.rowid, s.nom';
 $sql .= $db->order($sortfield, $sortorder);
-$sql .= $db->plimit($limit+1, $offset);
+if (! $sproduct) {
+	$sql .= $db->plimit($limit+1, $offset);
+}
 
 $resql = $db->query($sql);
 if ($resql)
@@ -269,7 +271,7 @@ if ($resql)
 
     $userstatic = new User($db);
 
-    while ($i < min($num,$conf->liste_limit))
+	while ($i < min($num,$sproduct?$num:$conf->liste_limit))
     {
         $obj = $db->fetch_object($resql);
 

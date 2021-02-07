@@ -30,9 +30,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/project.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 
-
-$langs->load("projects");
-$langs->load("companies");
+// Load translation files required by the page
+$langs->loadLangs(array('projects', 'companies'));
 
 $search_project_user = GETPOST('search_project_user','int');
 $mine = GETPOST('mode','aZ09')=='mine' ? 1 : 0;
@@ -58,7 +57,7 @@ $form=new Form($db);
 $formfile=new FormFile($db);
 
 $projectset = ($mine?$mine:(empty($user->rights->projet->all->lire)?0:2));
-$projectsListId = $projectstatic->getProjectsAuthorizedForUser($user, $projetset, 1);
+$projectsListId = $projectstatic->getProjectsAuthorizedForUser($user, $projectset, 1);
 //var_dump($projectsListId);
 
 
@@ -259,14 +258,13 @@ $sql = "SELECT COUNT(p.rowid) as nb, SUM(p.opp_amount)";
 $sql.= ", s.nom as name, s.rowid as socid";
 $sql.= " FROM ".MAIN_DB_PREFIX."projet as p";
 $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."societe as s on p.fk_soc = s.rowid";
-$sql.= " WHERE p.entity IN (".getEntity('project', $conf->entity).")";
+$sql.= " WHERE p.entity IN (".getEntity('project').")";
 $sql.= " AND p.fk_statut = 1";
 if ($mine || empty($user->rights->projet->all->lire)) $sql.= " AND p.rowid IN (".$projectsListId.")";		// If we have this test true, it also means projectset is not 2
 if ($socid)	$sql.= " AND (p.fk_soc IS NULL OR p.fk_soc = 0 OR p.fk_soc = ".$socid.")";
 $sql.= " GROUP BY s.nom, s.rowid";
 $sql.= $db->order($sortfield, $sortorder);
 
-$var=true;
 $resql = $db->query($sql);
 if ( $resql )
 {
