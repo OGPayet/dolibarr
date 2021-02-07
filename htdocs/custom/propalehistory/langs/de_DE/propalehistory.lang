@@ -1,0 +1,30 @@
+Module104090Name = Angebots-Verlauf
+PropalHistory = Angebots-Verlauf
+Module104090Desc = Speichere geänderte Versionen eines Angebotes
+HistoryVersionSuccessfullDelete = Version erfolgreich gelöscht
+HistoryVersionSuccessfullArchived = Version erfolgreich angelegt
+HistoryVersionSuccessfullRestored = Version erfolgreich wiederhergestellt
+AbricotNotFound=Free module Abricot needed here. Please download
+
+PROPALEHISTORY_AUTO_ARCHIVE_DESC = Automatisches Archivieren eines Verkaufsangebots, wenn es validiert wird
+PROPALEHISTORY_SHOW_VERSION_PDF_DESC = Versionsnummer auf dem PDF anzeigen (ab der 2. Version)
+PROPALEHISTORY_HIDE_VERSION_ON_TABS_DESC = Versionsnummer auf Registerkarten ausblenden
+
+AutoArchive = Angebot bei Genehmigung automatisch versionieren
+PROPALEHISTORY_SHOW_VERSION_PDF = Versionsnummer auf PDF ausgeben (ab 2. Version)
+
+ArchiveProposal = Angebot versionieren
+ArchiveProposalCheckboxLabel = Angebot versionieren?
+ConfirmModifyProposal = Änderung des Angebots bestätigen
+PROPALEHISTORY_ARCHIVE_ON_MODIFY = Versionierung abfragen bei Angebots-Änderung
+PropalHistoryAutoArchiveAndArchiveOnModifyCantBeUsedBoth = Versionierung bei Genehmigung und Änderung können nicht gleichzeitig aktiviert sein
+
+PROPALEHISTORY_ARCHIVE_PDF_TOO = Versionierung für PDF Dateien
+PROPALEHISTORY_HIDE_VERSION_ON_TABS = Versionsnummer im Tab nicht anzeigen
+PROPALEHISTORY_USE_COMPRESS_ARCHIVE = Versionsverlauf komprimieren
+
+ReturnInitialVersion = Zur aktuellen Version zurück
+PropaleHistoryArchiver = Versionieren
+Visualiser = Anzeigen
+Restaurer = Wiederherstellen
+VersionNumberShort = Version Nr.

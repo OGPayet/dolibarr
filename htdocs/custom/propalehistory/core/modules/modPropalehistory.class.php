@@ -62,7 +62,7 @@ class modPropalehistory extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Gestion de l'historique des propositions commerciales";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '1.4.0';
+        $this->version = '1.4.6';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -123,9 +123,9 @@ class modPropalehistory extends DolibarrModules
         // (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
         // Example:
         $this->const = array(
-		1 => array('PROPALEHISTORY_AUTO_ARCHIVE', 'chaine', 0, 'Archiver automatiquement une proposition commerciale lors de sa validation', 0, 'current', 0),
-		2 => array('PROPALEHISTORY_SHOW_VERSION_PDF', 'chaine', 0, 'Afficher le numéro de version sur le PDF (à partir de la 2e)', 0, 'current', 0),
-		3 => array('PROPALEHISTORY_HIDE_VERSION_ON_TABS', 'chaine', 0, 'Masquer le numéro de version dans les onglets', 0, 'current', 0)
+        	1 => array('PROPALEHISTORY_AUTO_ARCHIVE', 'chaine', 0, $langs->trans('PROPALEHISTORY_AUTO_ARCHIVE_DESC'), 0, 'current', 0),
+        	2 => array('PROPALEHISTORY_SHOW_VERSION_PDF', 'chaine', 0, $langs->trans('PROPALEHISTORY_SHOW_VERSION_PDF_DESC'), 0, 'current', 0),
+        	3 => array('PROPALEHISTORY_HIDE_VERSION_ON_TABS', 'chaine', 0, $langs->trans('PROPALEHISTORY_HIDE_VERSION_ON_TABS_DESC'), 0, 'current', 0)
         );
 
         // Array to add new pages in new tabs
@@ -162,14 +162,6 @@ class modPropalehistory extends DolibarrModules
         // Add here list of php file(s) stored in core/boxes that contains class to show a box.
         $this->boxes = array(); // Boxes list
         $r = 0;
-        // Example:
-
-        $this->boxes[$r][1] = "MyBox@mymodule";
-        $r ++;
-        /*
-          $this->boxes[$r][1] = "myboxb.php";
-          $r++;
-         */
 
         // Permissions
         $this->rights = array(); // Permission array used by this module

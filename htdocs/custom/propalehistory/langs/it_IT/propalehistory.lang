@@ -5,6 +5,10 @@ HistoryVersionSuccessfullArchived=Versione della proposta archiviata correttamen
 HistoryVersionSuccessfullRestored=Versione della proposta recuperata correttamente
 AbricotNotFound=Il modulo necessita dell'installazione del modulo Abricot per il corretto funzionamento. Prego scaricare il modulo Abricot
 
+PROPALEHISTORY_AUTO_ARCHIVE_DESC = Archiver automatiquement une proposition commerciale lors de sa validation
+PROPALEHISTORY_SHOW_VERSION_PDF_DESC = Afficher le numéro de version sur le PDF (à partir de la 2e)
+PROPALEHISTORY_HIDE_VERSION_ON_TABS_DESC = Masquer le numéro de version dans les onglets
+
 PropalHistory=Storico proposte commerciali
 AutoArchive=Archiviare automaticamente una proposta commerciale alla sua validazione
 PROPALEHISTORY_SHOW_VERSION_PDF=Visualizza il numero di versione sul file PDF (a partire dalla versione 2)
@@ -13,4 +17,5 @@ Visualiser=Visualizza
 PropaleHistoryArchiver=Archivia
 Supprimer=Elimina
 Restaurer=Recupera
+VersionNumberShort = Version n°
 ReturnInitialVersion=Ritorna versione corrente

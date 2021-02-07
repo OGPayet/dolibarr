@@ -44,6 +44,9 @@ class modHistory extends DolibarrModules
 
         $this->db = $db;
 
+		$this->editor_name = 'ATM-Consulting';
+		$this->editor_url = 'https://www.atm-consulting.fr';
+
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
 		$this->numero = 104400; // 104000 to 104999 for ATM CONSULTING
@@ -52,7 +55,7 @@ class modHistory extends DolibarrModules
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
 		// It is used to group modules in module setup page
-		$this->family = "other";
+		$this->family = "ATM";
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
@@ -82,7 +85,7 @@ class modHistory extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/history/css/history.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/history/js/history.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/history/js/history.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2')  	// Set here all hooks context managed by module
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@history')) // Set here all workflow context managed by module
@@ -162,7 +165,7 @@ class modHistory extends DolibarrModules
             ,'task:-info:NU:true'
 
             //TODO : for dolibarr 5.0 order class will manage correctly change so can be uncomment
-			,'order:+history:History:history@history:$user->rights->history->read:/history/history.php?type_object=commande&id=__ID__'
+ 			,'order:+history:History:history@history:$user->rights->history->read:/history/history.php?type_object=commande&id=__ID__'
             ,'order:-info:NU:true'
 
         );
@@ -170,8 +173,8 @@ class modHistory extends DolibarrModules
         // Dictionaries
 	    if (! isset($conf->history->enabled))
         {
-		$conf->history=new stdClass();
-		$conf->history->enabled=0;
+        	$conf->history=new stdClass();
+        	$conf->history->enabled=0;
         }
 		$this->dictionaries=array();
         /* Example:
@@ -288,7 +291,7 @@ class modHistory extends DolibarrModules
         dol_include_once('/history/config.php');
 
         global $db;
-
+        
         $o=new DeepHistory($db);
         $o->init_db_by_vars();
 

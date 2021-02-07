@@ -5,8 +5,11 @@ HistoryVersionSuccessfullArchived = Version proposal archived successfully
 HistoryVersionSuccessfullRestored = Version proposal successfully restored
 AbricotNotFound=Free module Abricot needed here. Please download
 
+PROPALEHISTORY_AUTO_ARCHIVE_DESC = Automatically archive a sales proposal when it is validated
+PROPALEHISTORY_SHOW_VERSION_PDF_DESC = Display version number on the PDF (from the 2nd version)
+PROPALEHISTORY_HIDE_VERSION_ON_TABS_DESC = Hide version number on tabs
 
-AutoArchive=Automatically archive a proposal when it is validate
+AutoArchive=Automatically archive a proposal when it is validated
 PROPALEHISTORY_SHOW_VERSION_PDF=Show the version number on the PDF (from page 2 and next)
 
 ArchiveProposal=Archive proposal
@@ -17,8 +20,10 @@ PropalHistoryAutoArchiveAndArchiveOnModifyCantBeUsedBoth=Archiving at validation
 
 PROPALEHISTORY_ARCHIVE_PDF_TOO=Archive the PDF too
 PROPALEHISTORY_HIDE_VERSION_ON_TABS=Hide version number in tabs
+PROPALEHISTORY_USE_COMPRESS_ARCHIVE = Compress archival data
 
 ReturnInitialVersion=Return initial version
 PropaleHistoryArchiver=Archive
 Visualiser=Show
 Restaurer=Restore
+VersionNumberShort = Version No.
