@@ -530,7 +530,7 @@ SCRIPT;
     $sql .= ' rm.datec, rm.tms,';
     $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
     $sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail,';
-    $sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details ';
+    $sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details, ';
  // Add fields from extrafields
  if (!empty($extrafields->attributes[$object->table_element]['label']))
  foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? ", ef.".$key.' as options_'.$key : '');
