@@ -28,7 +28,7 @@ $html.='tr.pair{background-color:#fafafd;}';
 $html.='.txt_condition{ border: 1px solid #e0e0e0; width: 99%;line-height:2}';
 $html.='.cnd{width: 6%;float: left;height: 25px;font-size: 12px;font-weight: bold;padding: 9px;background-color: #dcdcdf;width: 99%;line-height:2;color:black;}';
 $html.='</style>';
-
+    
 
 
 $html.= '<div class="title_div"><b>'.$langs->trans('detail_intervention').'</b></div>';
@@ -36,7 +36,7 @@ $html.='<div style="width:100% !important;">';
     $html.= '<div id="div_2">';
         $html.= '<table class="border_1" width="100%">';
             $html.= '<tbody>';
-
+                
                 $vehicules->fetch($item->vehicule);
                 $model->fetch($vehicules->model);
                 $marque->fetch($model->marque);
@@ -54,9 +54,9 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<td ><span class="sp_td">'.$user_->firstname.' '.$user_->lastname.'</span></td>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('fournisseur').' :  </span></th>';
                     $soc->fetch($item->fournisseur);
-                    $html.= '<td ><span class="sp_td">'.$soc->nom.'</span></td>';
+                    $html.= '<td ><span class="sp_td">'.$soc->nom.'</span></td>';               
                 $html.= '</tr>';
-
+                
 
                 $html.= '<tr class="pair">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('kilometrage_vehicule').' : </span> </th>';
@@ -64,7 +64,7 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('prix_inter').'  : </span></th>';
                     $html.= '<td ><span class="sp_td">'.number_format($item->prix,2,","," ").'  ('.$conf->currency.'-'.$langs->getCurrencySymbol($conf->currency).')</span></td>';
                 $html.= '</tr>';
-
+   
                 $html.= '<tr>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('responsable').' :  </span></th>';
                     $html.= '<td ><span class="sp_td">'.$user_->firstname.' '.$user_->lastname.'</span></td>';
@@ -82,24 +82,24 @@ $html.='<div style="width:100% !important;">';
                 $date=explode('-',$item->date);
                 $date_d = $date[2].'/'.$date[1].'/'.$date[0];
 
-
+               
                 $html.= '<tr class="pair">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('date').' : </span> </th>';
                     $html.= '<td> <span class="sp_td">'.$date_d.'</span> </td>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('ref_facture').' : </span></th>';
                     $html.= '<td ><span class="sp_td">'.$item->ref_facture.'</span></td>';
                 $html.= '</tr>';
-
+               
             $html.= '</tbody>';
         $html.= '</table>';
     $html.= '</div>';
 
-
+               
             $html.= '</tbody>';
         $html.= '</table>';
     $html.= '</div>';
 $html.= '</div>';
-
+    
     $html.= '<div class="cnd" > <span><b> &nbsp;'.$langs->trans("sevice_inclu").':</span> </b></div>';
     $html.= '<table class="border_services" width="100%">';
         $html.= '<tbody>';
@@ -126,13 +126,13 @@ $html.= '</div>';
                     $html.='<th colspan="2" align="right"><b>'.$langs->trans("Total").' : </b></th>';
                     $html.='<th align="center">'.number_format($total_1,2,","," ").'  ('.$conf->currency.'-'.$langs->getCurrencySymbol($conf->currency).')</th>';
                 $html.= '</tr>';
-            }
+            }           
         $html.= '</tbody>';
     $html.= '</table>';
 
     $html.= '<br><br>';
 
-
+   
 
 
     $html.= '<div id="conditions">';
@@ -174,3 +174,4 @@ $html.= '</div>';
     $html.= '</table>';
 
     $html.= '<br><br>';
+

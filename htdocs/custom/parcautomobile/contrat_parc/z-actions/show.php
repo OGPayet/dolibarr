@@ -1,7 +1,7 @@
 <?php
 
 if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
-
+    
     if (!$id || $id <= 0) {
         header('Location: ./card.php?action=request&error=dalete_failed&id='.$id);
         exit;
@@ -21,7 +21,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
         header('Location: index.php?delete='.$id.'&page='.$page);
         exit;
     }
-    else {
+    else {      
         header('Location: card.php?delete=1&page='.$page);
         exit;
     }
@@ -29,26 +29,26 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
 
 
 if( ($id && empty($action)) || $action == "delete" ){
-
+    
     if($action == "delete"){
         print $form->formconfirm("card.php?id=".$id."&page=".$page,$langs->trans('Confirmation') , $langs->trans('msgconfirmdelet'),"confirm_delete", 'index.php?page='.$page, 0, 1);
     }
 
-
+   
     $contrat->fetch($id);
     $item = $contrat;
 
-
-
+    
+    
     dol_include_once('/parcautomobile/class/parcautomobile.class.php');
     $parcautomobile = new parcautomobile($db);
     $linkback = '<a href="./index.php?page='.$page.'">'.$langs->trans("BackToList").'</a>';
     print $parcautomobile->showNavigations($item, $linkback);
 
+    
 
-
-
-
+    
+    
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" class="card_contract">';
 
     print '<input type="hidden" name="confirm" itemue="no" id="confirm" />';
@@ -120,12 +120,12 @@ if( ($id && empty($action)) || $action == "delete" ){
                             }
                             if($jour <= 15){
                                 $statuts = str_replace('<input type="radio" id="expire_bientot"', '<input type="radio" id="expire_bientot" checked ', $statuts);
-
+                                
                             }
                             print $statuts;
                         print '</div>';
                     print '</td>';
-                print '</tr>';
+                print '</tr>';  
         print '</tbody>';
     print '</table>';
     print '<div class="cl_parent">';
@@ -153,7 +153,7 @@ if( ($id && empty($action)) || $action == "delete" ){
                         }else
                             print '<td ></td>';
                     print '</tr>';
-
+                   
                     print '<tr>';
                         print '<td align="left">'.$langs->trans('activation_cout').'</td>';
                         print '<td >'.number_format($item->activation_couts,2,","," ").'('.$conf->currency.'-'.$langs->getCurrencySymbol($conf->currency).')</td>';
@@ -198,8 +198,8 @@ if( ($id && empty($action)) || $action == "delete" ){
         print '<div class="d_right">';
             print '<table class="border" width="100%">';
                 print '<tbody>';
-
-
+                   
+                   
 
                     print '<tr>';
                         print '<td align="left" >'.$langs->trans('kilometr_contrat').'</td>';
@@ -237,7 +237,7 @@ if( ($id && empty($action)) || $action == "delete" ){
             print '</table>';
         print '</div>';
     print '</div>';
-
+   
     print '<div style="clear:both;"></div>';
 
     print '<div id="sevices_inclus">';
@@ -294,7 +294,7 @@ if( ($id && empty($action)) || $action == "delete" ){
                         $total_=0;
                         $couts_recurrent = explode(',', $item->couts_recurrent);
                         foreach ($couts_recurrent as $value) {
-                            $costs->fetch($value);
+                            $costs->fetch($value); 
                             $total_+=$costs->prix;
                             $d=explode('-', $costs->date);
                             $date_c = $d[2].'/'.$d[1].'/'.$d[0];
@@ -318,28 +318,28 @@ if( ($id && empty($action)) || $action == "delete" ){
             print '</table>';
         print '</div>';
     print '</div>';
-
+   
 
     print '<div id="conditions">';
         print '<div class="cnd">'.$langs->trans('conditions').':</div>';
         print '<div class="txt_condition">'.nl2br($item->condition).'</div>';
     print '</div>';
 
-    if($extrafields->attributes[$object->table_element]['label']){
-        print '<div class="fichecenter">';
+        print '<div class="fichecenter">';    
             // print '<div class="liste_titre" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
             print '<br><br>';
             print '<div class="div_extrafield">';
                 print '<table class="noborder centpercent" width="100%">';
                     print '<body>';
-                        $colspn = 1+count($extrafields->attributes[$object->table_element]['label']);
-                        print '<tr class="liste_titre"> <th colspan="'.$colspn.'">'.$langs->trans("champs_add").'</th> </tr>';
-                        include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_view.tpl.php';
+                        if($extrafields->attributes[$object->table_element]['label']){
+                            $colspn = 1+count($extrafields->attributes[$object->table_element]['label']);
+                            print '<tr class="liste_titre"> <th colspan="'.$colspn.'">'.$langs->trans("champs_add").'</th> </tr>';
+                            include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_view.tpl.php';
+                        }
                     print '</tbody>';
                 print '</table>';
             print '</div>';
         print '</div>';
-    }
     // Actions
     print '<table class="" width="100%">';
     print '<tr>';
@@ -349,13 +349,13 @@ if( ($id && empty($action)) || $action == "delete" ){
             print '<a href="./card.php?id='.$id.'&action=delete" class="butAction butActionDelete">'.$langs->trans('Delete').'</a>';
             print '<a href="./index.php?page='.$page.'" class="butAction">'.$langs->trans('Cancel').'</a>';
             print '<a href="./card.php?id='.$item->rowid.'&action=pdf" class="butAction" style="float:right" target="_blank" >'.img_mime('test.pdf').' '.$langs->trans("export").'</a>';
-
+            
         print '</td>';
     print '</tr>';
     print '</table>';
 
     print '</form>';
-
+    
 }
 
 ?>

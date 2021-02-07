@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
@@ -24,7 +24,7 @@ $sortorder 			= ($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
 $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -55,10 +55,10 @@ print '<div class="m-portlet width50percent right tiers">';
 			print '<div class="m-portlet__head-title">';
 				print '<div class="mainmenu companies topmenuimage iconimg"><span class="mainmenu tmenuimage" id="mainmenuspan_companies"></span></div>';
 				print '<h3 class="m-portlet__head-text">'.$langs->trans('analyse_cout_estime').'</h3>';
-			print '</div>';
+			print '</div>';			
 		print '</div>';
 		print '<div class="m-portlet__head-tools">';
-
+			
 		print '</div>';
 	print '</div>';
 	print '<div class="m-portlet__body">';
@@ -84,14 +84,14 @@ $( function() {
 		// Create chart instance
 		var chart = am4core.create("chartdiv2", am4charts.XYChart);
 		// Add data
-		chart.data = [
+		chart.data = [ 
 		<?php
-		for ($i=0; $i < count($vehicules->rows); $i++) {
+		for ($i=0; $i < count($vehicules->rows); $i++) { 
 			$vehicule = $vehicules->rows[$i];
 			$data = $vehicules->datachart2($vehicule->rowid);
 		?>
 			{
-				"vehicule":"<?php echo $vehicules->get_nom($vehicule->rowid,1); ?>",
+			  	"vehicule":"<?php echo $vehicules->get_nom($vehicule->rowid,1); ?>",
 				"contrat": "<?php echo $data[$vehicule->rowid]['contrat'] ?>",
 				"services": "<?php echo $data[$vehicule->rowid]['services'] ?>",
 			},
@@ -125,13 +125,13 @@ $( function() {
 
 		createSeries("contrat", "Contrat", false);
 		createSeries("services", "Interventions", false);
-
+		
 
 		// Add legend
 		chart.legend = new am4charts.Legend();
 		chart.exporting.menu = new am4core.ExportMenu();
-
-	});
+		
+	}); 
 
 });
 </script>

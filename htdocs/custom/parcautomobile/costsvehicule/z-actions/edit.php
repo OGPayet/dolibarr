@@ -7,17 +7,17 @@ if ($action == 'update' && $request_method === 'POST') {
     // $d1 = GETPOST('debut');
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
-
+  
     $vehicule = GETPOST('vehicule');
     $type = GETPOST('type');
     $prix = GETPOST('prix');
-    $notes = GETPOST('notes');
+    $notes = GETPOST('notes_txt');
     if(GETPOST('date')){
         $date = explode('/', GETPOST('date'));
         $date = $date[2].'-'.$date[1].'-'.$date[0];
     }
 
-
+ 
     $object = new costsvehicule($db);
     $object->fetch($id);
 
@@ -29,14 +29,15 @@ if ($action == 'update' && $request_method === 'POST') {
 
     $ret = $extrafields->setOptionalsFromPost(null, $object);
     $isvalid = $object->update($id);
+
     // $composantes_new = (GETPOST('composantes_new'));
     // $composantes = (GETPOST('composantes'));
     // $composants_deleted = explode(',', GETPOST('composants_deleted'));
-
+   
     if ($isvalid > 0) {
         header('Location: ./card.php?id='.$id);
         exit;
-    }
+    } 
     else {
         header('Location: ./card.php?id='. $id .'&update=0');
         exit;
@@ -61,7 +62,7 @@ if($action == "edit"){
 
             $extrafields->fetch_name_optionals_label($object->table_element);
             $object->fetch_optionals();
-
+            
 
             print '<tr>';
                     print '<td align="left">'.$langs->trans('vehicule').'</td>';
@@ -95,8 +96,8 @@ if($action == "edit"){
     print '</table>';
 
   if($extrafields->attributes[$object->table_element]['label']){
-
-        print '<div class="fichecenter">';
+    
+        print '<div class="fichecenter">';    
                 print '<div class="div_extrafield">';
                     print '<table class="noborder nc_table_" width="100%">';
                         print '<body>';
@@ -136,3 +137,4 @@ if($action == "edit"){
         })
     })
 </script>
+

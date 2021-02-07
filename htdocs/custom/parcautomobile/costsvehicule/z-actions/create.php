@@ -11,7 +11,7 @@
             $date = explode('/', GETPOST('date'));
             $date=$date[2].'-'.$date[1].'-'.$date[0];
         }
-
+       
         $object = new costsvehicule($db);
 
         $object->vehicule = $vehicule;
@@ -26,7 +26,7 @@
         if ($avance > 0 ) {
             header('Location: ./card.php?id='. $avance.'&action=edit');
             exit;
-        }
+        } 
         else {
             header('Location: card.php?action=request&error=SQL_Create&msg='.$parcautomobile->error);
             exit;
@@ -70,12 +70,12 @@
                     print '<td align="left">'.$langs->trans('notes').'</td>';
                     print '<td ><textarea name="notes" id="notes_txt"></textarea></td>';
                 print '</tr>';
-
+                
             print '</tbody>';
         print '</table>';
         $object = new costsvehicule($db);
         if($extrafields->attributes[$object->table_element]['label']){
-            print '<div class="fichecenter">';
+            print '<div class="fichecenter">';    
                 // print '<div class="topheaderrecrutmenus" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
                 print '<div class="div_extrafield">';
                     print '<table class="noborder nc_table_" width="100%">';
@@ -98,7 +98,7 @@
                 print '<br>';
                 print '<input type="submit" style="display:none" id="sub_valid" value="'.$langs->trans('Validate').'" name="bouton" class="butAction" />';
                 print '<a  class="butAction" id="btn_valid">'.$langs->trans('Validate').'</a>';
-
+                
                 print '<a href="./index.php?page='.$page.'" class="butAction">'.$langs->trans('Cancel').'</a>';
             print '</tr>';
             print '</table>';

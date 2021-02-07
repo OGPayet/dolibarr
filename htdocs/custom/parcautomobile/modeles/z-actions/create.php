@@ -5,7 +5,7 @@
 
         $label = GETPOST('label');
         $marque = GETPOST('marque');
-
+       
 
         $insert = array(
             'label'           =>  addslashes($label),
@@ -15,10 +15,10 @@
         $modele->fetch($avance);
         // If no SQL error we redirect to the request card
         if ($avance > 0 ) {
-
+           
             header('Location: ./index.php?page='.$page);
             exit;
-        }
+        } 
         else {
             header('Location: card.php?action=request&error=SQL_Create&msg='.$recrutement->error);
             exit;
@@ -36,8 +36,8 @@
             print '<tbody>';
 
             print '<tr>';
-                print '<td >'.$langs->trans('label_model').'</td>';
-                print '<td ><input type="text" class="" id="label"  style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';
+                print '<td style="width:20%;">'.$langs->trans('label_model').'</td>';
+                print '<td style="width:80%;"><input type="text" class="" id="label"  style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';
                 print '</td>';
             print '</tr>';
 
@@ -48,7 +48,7 @@
 
             print '</tbody>';
         print '</table>';
-
+       
 
 
         // Actions

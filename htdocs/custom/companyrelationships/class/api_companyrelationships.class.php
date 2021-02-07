@@ -4954,11 +4954,13 @@ class CompanyRelationshipsApi extends DolibarrApi
 
 			if (isset($object)) {
 				$hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-				if (!$hasPerm) {
-					throw new RestException(401, 'Access not allowed for login ' . DolibarrApiAccess::$user->login);
-				}
+                if (!$hasPerm) {
+                    throw new RestException(401, 'Data not public - Access not allowed for login ' . DolibarrApiAccess::$user->login);
+                }
+                else {
+                    $accessallowed = true;
+                }
 			}
-			$accessallowed = true;
 		} else {
 			$accessallowed = $check_access['accessallowed'];
 			$sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];

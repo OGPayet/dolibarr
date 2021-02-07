@@ -1,7 +1,7 @@
 <?php
 
 if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
-
+    
     if (!$id || $id <= 0) {
         header('Location: ./card.php?action=request&error=dalete_failed&id='.$id);
         exit;
@@ -11,7 +11,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
 
     $marque->fetch($id);
     $modeles->fetchAll('','','',0,0,'AND marque ='.$id);
-    for ($i=0; $i < count($modeles) ; $i++) {
+    for ($i=0; $i < count($modeles) ; $i++) { 
         $model=$modeles->rows[$i];
         $modeles->fetch($model->rowid);
         $modeles->delete();
@@ -32,7 +32,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
         header('Location: index.php?delete='.$id.'&page='.$page);
         exit;
     }
-    else {
+    else {      
         header('Location: card.php?delete=1&page='.$page);
         exit;
     }
@@ -40,7 +40,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
 
 
 if( ($id && empty($action)) || $action == "delete" ){
-
+    
     // $h = 0;
     // $head = array();
     // $head[$h][0] = dol_buildpath("/parcautomobile/card.php?id=".$id, 1);
@@ -54,25 +54,25 @@ if( ($id && empty($action)) || $action == "delete" ){
         print $form->formconfirm("card.php?id=".$id."&page=".$page,$langs->trans('Confirmation') , $langs->trans('msgconfirmdelet'),"confirm_delete", 'index.php?page='.$page, 0, 1);
     }
 
-    // if (!$user->rights->avancementtravaux->gestion->consulter) {
+    // if (!$user->rights->avancementtravaux->lire) {
     //     accessforbidden();
     // }
     // $avancementtravaux->fetchAll('','',0,0,' and rowid = '.$id);
     $marque->fetch($id);
     $item = $marque;
 
-
-
+    
+    
     dol_include_once('/parcautomobile/class/parcautomobile.class.php');
     $parcautomobile = new parcautomobile($db);
     $linkback = '<a href="./index.php?page='.$page.'">'.$langs->trans("BackToList").'</a>';
     print $parcautomobile->showNavigations($item, $linkback);
 
+    
 
-
-
-
-
+    
+    
+   
     // $extrafields = new ExtraFields($db);
     // $extralabels=$extrafields->fetch_name_optionals_label($item->table_element);
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" class="">';
@@ -84,8 +84,8 @@ if( ($id && empty($action)) || $action == "delete" ){
 
         print '<tbody>';
             print '<tr>';
-                print '<td style="width:20% !important">'.$langs->trans('label_marque');
-                print '<td style="width:80% !important">'.$item->label.'</td>';
+                print '<td style="width:20%">'.$langs->trans('label_marque');
+                print '<td style="width:80%">'.$item->label.'</td>';
             print '</tr>';
 
             print '<tr>';
@@ -93,7 +93,7 @@ if( ($id && empty($action)) || $action == "delete" ){
                 print '<td>';
                     print '<div id="wrapper"> <ul>';
                         if(!empty($item->logo)){
-                            $minifile = getImageFileNameForSize($item->logo, '');
+                            $minifile = getImageFileNameForSize($item->logo, '');  
                             $dt_files = getAdvancedPreviewUrl('parcautomobile', '/marques/'.$item->rowid.'/'.$minifile, 1, '&entity='.(!empty($object->entity)?$object->entity:$conf->entity));
 
                             print '<li> <a href="'.$dt_files['url'].'" class="'.$dt_files['css'].'" target="'.$dt_files['target'].'" mime="'.$dt_files['mime'].'">' ;
@@ -107,7 +107,7 @@ if( ($id && empty($action)) || $action == "delete" ){
         print '</tbody>';
     print '</table>';
 
-
+   
     // Actions
     print '<table class="" width="100%">';
     print '<tr>';
@@ -121,9 +121,9 @@ if( ($id && empty($action)) || $action == "delete" ){
     print '</table>';
 
     print '</form>';
-
+    
     print '<div id="lightbox" style="display:none;"><p>X</p><div id="content"><img src="" /></div></div>';
-
+    
 }
 
 ?>

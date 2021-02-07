@@ -1,7 +1,7 @@
 <?php
 
 if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
-
+    
     if (!$id || $id <= 0) {
         header('Location: ./card.php?action=request&error=dalete_failed&id='.$id);
         exit;
@@ -20,7 +20,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
         header('Location: index.php?delete='.$id.'&page='.$page);
         exit;
     }
-    else {
+    else {      
         header('Location: card.php?delete=1&page='.$page);
         exit;
     }
@@ -28,12 +28,12 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
 
 
 if( ($id && empty($action)) || $action == "delete" ){
-
+    
     if($action == "delete"){
         print $form->formconfirm("card.php?id=".$id."&page=".$page,$langs->trans('Confirmation') , $langs->trans('msgconfirmdelet'),"confirm_delete", 'index.php?page='.$page, 0, 1);
     }
 
-
+   
     $object = new interventions_parc($db);
     $object->fetch($id);
     $item = $object;
@@ -42,14 +42,14 @@ if( ($id && empty($action)) || $action == "delete" ){
     $extrafields->fetch_name_optionals_label($object->table_element);
     $object->fetch($item->rowid);
     $object->fetch_optionals();
-
-
+    
+    
     dol_include_once('/parcautomobile/class/parcautomobile.class.php');
     $parcautomobile = new parcautomobile($db);
     $linkback = '<a href="./index.php?page='.$page.'">'.$langs->trans("BackToList").'</a>';
     print $parcautomobile->showNavigations($item, $linkback);
 
-
+    
 
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" class="card_interv" >';
 
@@ -59,7 +59,7 @@ if( ($id && empty($action)) || $action == "delete" ){
         print '<div class="title_div"> <span>'.$langs->trans("detail_inter").'</span> </div>';
         print '<table class="noborder" width="100%">';
             print '<tbody>';
-
+               
                 print '<tr>';
                     print '<td align="left" style="width: 20%;">'.$langs->trans('vehicule').'</td>';
                         $objvehicul = new vehiculeparc($db);
@@ -94,7 +94,7 @@ if( ($id && empty($action)) || $action == "delete" ){
                 print '<div class="title_div"> <span>'.$langs->trans("info_suplm").'</span> </div>';
                 print '<table class="noborder" width="100%">';
                     print '<tbody>';
-
+                        
                         $date = '';
                         if(!empty($item->date)){
                             $date= explode('-', $item->date);
@@ -104,7 +104,7 @@ if( ($id && empty($action)) || $action == "delete" ){
                             print '<td align="left" >'.$langs->trans('date').'</td>';
                             print '<td >'.$date.'</td>';
                         print '</tr>';
-
+                        
                         print '<tr>';
                             print '<td align="left" >'.$langs->trans('conducteur').'</td>';
                             $ache = '';
@@ -192,26 +192,27 @@ if( ($id && empty($action)) || $action == "delete" ){
 
         print '<div id="notes">';
             print '<div class="cnd">'.$langs->trans('notes').':</div>';
-            print '<div class="txt_condition">'.$item->notes.'</div>';
+            print '<div class="txt_condition" style="border: solid 1px rgba(0,0,0,.2);">'.$item->notes.'</div>';
         print '</div>';
 
-        if($extrafields->attributes[$object->table_element]['label']){
-            print '<div class="fichecenter">';
+            print '<div class="fichecenter">';    
                 // print '<div class="liste_titre" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
                 print '<br><br>';
                 print '<div class="div_extrafield">';
                     print '<table class="noborder centpercent" width="100%">';
                         print '<body>';
-                            $colspn = 1+count($extrafields->attributes[$object->table_element]['label']);
-
-                            print '<tr class="liste_titre"> <th colspan="'.$colspn.'">'.$langs->trans("champs_add").'</th> </tr>';
-                            include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_view.tpl.php';
+                            if($extrafields->attributes[$object->table_element]['label']){
+                                $colspn = 1+count($extrafields->attributes[$object->table_element]['label']);
+                                print '<tr class="liste_titre"> <th colspan="'.$colspn.'">'.$langs->trans("champs_add").'</th> </tr>';
+                                include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_view.tpl.php';
+                            }
                         print '</tbody>';
                     print '</table>';
                 print '</div>';
             print '</div>';
-        }
+
         // Actions
+        
         print '<table class="" width="100%">';
         print '<tr>';
             print '<td colspan="2" >';
@@ -226,10 +227,10 @@ if( ($id && empty($action)) || $action == "delete" ){
         print '</table>';
 
     print '</form>';
-
+    
 }
 
 ?>
 <style>
-
+    
 </style>

@@ -1,7 +1,7 @@
 <?php
 
 if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
-
+    
     if (!$id || $id <= 0) {
         header('Location: ./card.php?action=request&error=dalete_failed&id='.$id);
         exit;
@@ -17,7 +17,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
         header('Location: index.php?delete='.$id.'&page='.$page);
         exit;
     }
-    else {
+    else {      
         header('Location: card.php?delete=1&page='.$page);
         exit;
     }
@@ -25,7 +25,7 @@ if ($action == 'confirm_delete' && GETPOST('confirm') == 'yes' ) {
 
 
 if( ($id && empty($action)) || $action == "delete" ){
-
+    
     // $h = 0;
     // $head = array();
     // $head[$h][0] = dol_buildpath("/parcautomobile/card.php?id=".$id, 1);
@@ -38,8 +38,8 @@ if( ($id && empty($action)) || $action == "delete" ){
     if($action == "delete"){
         print $form->formconfirm("card.php?id=".$id."&page=".$page,$langs->trans('Confirmation') , $langs->trans('msgconfirmdelet'),"confirm_delete", 'index.php?page='.$page, 0, 1);
     }
-
-
+    
+    
     $object = new kilometrage($db);
     $object->fetch($id);
     $item = $object;
@@ -48,7 +48,7 @@ if( ($id && empty($action)) || $action == "delete" ){
     $extrafields->fetch_name_optionals_label($object->table_element);
     $object->fetch($item->rowid);
     $object->fetch_optionals();
-
+    
     dol_include_once('/parcautomobile/class/parcautomobile.class.php');
     $parcautomobile = new parcautomobile($db);
     $linkback = '<a href="./index.php?page='.$page.'">'.$langs->trans("BackToList").'</a>';
@@ -60,8 +60,8 @@ if( ($id && empty($action)) || $action == "delete" ){
     print '<input type="hidden" name="id" value="'.$id.'" />';
     print '<input type="hidden" name="page" value="'.$page.'" />';
 
-    print '<div class="fichecenter">';
-        // print '<div class="fichethirdleft">';
+    print '<div class="fichecenter">';    
+        // print '<div class="fichethirdleft">';    
 
         $vehicule->fetch($item->vehicule);
         print '<table class="noborder centpercent" width="100%">';
@@ -90,13 +90,13 @@ if( ($id && empty($action)) || $action == "delete" ){
                     print '<td >'.$langs->trans('unite').'</td>';
                     print '<td >'.$vehicule->unite.'</td>';
                 print '</tr>';
-
+                
             print '</tbody>';
         print '</table>';
         // print '</div>';
 
-        // print '<div class="fichetwothirdright">';
-        //     print '<div class="ficheaddleft">';
+        // print '<div class="fichetwothirdright">';    
+        //     print '<div class="ficheaddleft">';    
         //         print '<table class="noborder centpercent" width="100%">';
         //             print '<tbody>';
         //                 print '<tr class="liste_titre"> <th colspan="2">'.$langs->trans("detail_vehicul").'</th> </tr>';
@@ -120,22 +120,21 @@ if( ($id && empty($action)) || $action == "delete" ){
 
     print '<br><br>';
 
-    if($extrafields->attributes[$object->table_element]['label']){
-        print '<div class="fichecenter">';
+        print '<div class="fichecenter">';    
             // print '<div class="liste_titre" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
             print '<br><br>';
             print '<div class="div_extrafield">';
                 print '<table class="noborder centpercent" width="100%">';
                     print '<body>';
-                        $colspn = 1+count($extrafields->attributes[$object->table_element]['label']);
-
-                        print '<tr class="liste_titre"> <th colspan="'.$colspn.'">'.$langs->trans("champs_add").'</th> </tr>';
-                        include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_view.tpl.php';
+                        if($extrafields->attributes[$object->table_element]['label']){
+                            $colspn = 1+count($extrafields->attributes[$object->table_element]['label']);
+                            print '<tr class="liste_titre"> <th colspan="'.$colspn.'">'.$langs->trans("champs_add").'</th> </tr>';
+                            include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_view.tpl.php';
+                        }
                     print '</tbody>';
                 print '</table>';
             print '</div>';
         print '</div>';
-    }
 
     // Actions
     print '<table class="" width="100%">';
@@ -152,9 +151,9 @@ if( ($id && empty($action)) || $action == "delete" ){
     print '</table>';
 
     print '</form>';
-
+    
     print '<div id="lightbox" style="display:none;"><p>X</p><div id="content"><img src="" /></div></div>';
-
+    
 }
 
 ?>

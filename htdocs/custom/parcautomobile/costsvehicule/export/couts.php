@@ -26,7 +26,7 @@ $html.='tr.pair{background-color:#fafafd;}';
 $html.='.txt_condition{ border: 1px solid #e0e0e0; width: 99%;line-height:2}';
 $html.='.cnd{width: 6%;float: left;height: 25px;font-size: 12px;font-weight: bold;padding: 9px;background-color: #dcdcdf;width: 99%;line-height:2;color:black;}';
 $html.='</style>';
-
+    
 
 $html .= '<br><br>';
 $html.= '<div class="title_div"><b>'.$langs->trans('costsvehicule').'</b></div>';
@@ -37,7 +37,7 @@ $html.='<div style="width:100% !important;">';
         $html.= '<div class="cnd" > <span><b> &nbsp;'.$langs->trans("detail_vehicul").':</span> </b></div>';
         $html.= '<table class="border_1" width="100%">';
             $html.= '<tbody>';
-
+                
                 $vehicule->fetch($object->vehicule);
                 $model->fetch($vehicule->model);
                 $marque->fetch($model->marque);
@@ -65,12 +65,12 @@ $html.='<div style="width:100% !important;">';
                     if($vehicule->fournisseur){
                         $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('fournisseur').' :  </span></th>';
                         $soc->fetch($vehicule->fournisseur);
-                        $html.= '<td ><span class="sp_td">'.$soc->nom.'</span></td>';
+                        $html.= '<td ><span class="sp_td">'.$soc->nom.'</span></td>';               
                     }else{
                         $html.= '<th></th>';
                     }
                 $html.= '</tr>';
-
+   
                 $html.= '<tr>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('kilometrage_vehicule').' : </span> </th>';
                     $html.= '<td ><span class="sp_td">'.$vehicule->kilometrage.' '.$langs->trans($vehicule->unite).'</span> </td>';
@@ -92,7 +92,7 @@ $html.='<div style="width:100% !important;">';
         $html.= '<div class="cnd" > <span><b> &nbsp;'.$langs->trans("detail_cost").':</span> </b></div>';
         $html.= '<table  class="border_1" width="100%">';
             $html.= '<tbody>';
-
+            
             $html.= '<tr>';
             $html.= '<td align="left">'.$langs->trans('type').'</td>';
                 $html.= '<td >'.$item->type.'</td>';
@@ -109,7 +109,7 @@ $html.='<div style="width:100% !important;">';
                 $html.= '<td >'.$date.'</td>';
             $html.= '</tr>';
 
-
+           
         $html.= '</table>';
 
     $html.= '<br><br>';
@@ -163,3 +163,5 @@ $html.='<div style="width:100% !important;">';
 
     $html.= '</div>';
 $html.= '</div>';
+    
+

@@ -14,14 +14,14 @@ class NCPDF extends TCPDF {
     //Page header
     public function Header() {
         global $conf;
-
+        
     }
 
     public function Footer() {
         return $this->Cell(0, 10, 'Page '.$this->PageNo().'/'.$this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
     }
 
-
+	
 }
 
 $pdf = new NCPDF('P', 'mm', 'A4', true, 'UTF-8', false, false);

@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 
 
@@ -18,6 +18,7 @@ $modname = $langs->trans("list_contrats");
 $typecontrat        = new typecontrat($db);
 $contrat        = new contrat_parc($db);
 $vehicules        = new vehiculeparc($db);
+$extrafields = new ExtraFields($db);
 $form           = new Form($db);
 $user_  = new User($db);
 $soc = new Societe($db);
@@ -31,10 +32,10 @@ $action   			= $_GET['action'];
 
 
 $extrafields->fetch_name_optionals_label($object->table_element);
-$search_array_options = $extrafields->getOptionalsFromPost($object->table_element, '', 'search_');
+$search_array_options = $extrafields->getOptionalsFromPost($object->table_element, '', 'search_');	
 
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -49,7 +50,7 @@ if (is_array($extrafields->attributes[$object->table_element]['label']) && count
 			$arrayfields["ef.".$key] = array(
 				'label'=>$extrafields->attributes[$object->table_element]['label'][$key],
 				'checked'=>(($extrafields->attributes[$object->table_element]['list'][$key] < 0) ? 0 : 1),
-				'position'=>$extrafields->attributes[$object->table_element]['pos'][$key],
+				'position'=>$extrafields->attributes[$object->table_element]['pos'][$key], 
 				'enabled'=>(abs($extrafields->attributes[$object->table_element]['list'][$key]) != 3 && $extrafields->attributes[$object->table_element]['perms'][$key])
 			);
 		}
@@ -214,13 +215,13 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 
 					$obj = new contrat_parc($db);
 						$obj->fetch($item->rowid);
-					$obj->fetch_optionals();
+	    				$obj->fetch_optionals();
 					print '<tr '.$bc[$var].' >';
-					print '<td align="center" style="">';
-						print '<a href="'.dol_buildpath('/parcautomobile/contrat_parc/card.php?id='.$item->rowid,2).'" >';
-							print $item->rowid;
-						print '</a>';
-					print '</td>';
+			    		print '<td align="center" style="">'; 
+				    		print '<a href="'.dol_buildpath('/parcautomobile/contrat_parc/card.php?id='.$item->rowid,2).'" >';
+				    			print $item->rowid;
+				    		print '</a>';
+			    		print '</td>';
 						$date=explode('-', $item->date_debut);
 						$date_d=$date[2].'/'.$date[1].'/'.$date[0];
 
@@ -242,13 +243,13 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 							}
 						print '</td>';
 
-				print '<td align="center">';
+	                	print '<td align="center">';
 							if($item->fournisseur){
 								$soc = new Societe($db);
 								$soc->fetch($item->fournisseur);
-						print $soc->getNomUrl(1);
+		                		print $soc->getNomUrl(1);
 							}
-				print '</td>';
+	                	print '</td>';
 
 						print '<td align="center">';
 							if($item->conducteur > 0){
@@ -268,14 +269,14 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'">'."\n";
 						print '<td align="center">'.$langs->trans($item->etat).'</td>';
 
 						if($extrafields->attributes[$obj->table_element]['label'] && count($extrafields->attributes[$obj->table_element]['label'])){
-						foreach ($extrafields->attributes[$obj->table_element]['label'] as $key => $val){
+				    		foreach ($extrafields->attributes[$obj->table_element]['label'] as $key => $val){
 								if($extrafields->attributes[$obj->table_element]['list'][$key] == 2 || $extrafields->attributes[$obj->table_element]['list'][$key] == 1 || $extrafields->attributes[$obj->table_element]['list'][$key] == 4){
 									print '<td align="center">';
 										$value = $obj->array_options['options_'.$key];
 										$tmpkey = 'options_'.$key;
 										print $extrafields->showOutputField($key, $value, '', $obj->table_element);
 									print '</td>';
-							}
+	        					}
 							}
 						}
 

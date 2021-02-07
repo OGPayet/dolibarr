@@ -99,7 +99,7 @@
     box-sizing: content-box;
 }
 .jqx-position-reset {
-    position: static !important;
+    position: static !important; 
 }
 .jqx-border-reset {
     border: none !important;
@@ -147,7 +147,7 @@
 /*jqxButton, jqxToggleButton, jqxRepeatButton Style*/
 .jqx-button{outline: none; border: 1px solid transparent; padding: 3px; text-align: center; vertical-align: central; margin: 0 0 0 0; cursor: default; }
 button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button {
-    box-sizing: border-box !important; -moz-box-sizing: border-box !important;
+    box-sizing: border-box !important; -moz-box-sizing: border-box !important; 
 }
 
 .jqx-buttongroup{}
@@ -189,8 +189,8 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 /*jqxChart Style*/
 .jqx-knob-label,
 .jqx-chart-axis-text,
-.jqx-chart-label-text,
-.jqx-chart-tooltip-text,
+.jqx-chart-label-text, 
+.jqx-chart-tooltip-text, 
 .jqx-chart-legend-text
 {
     fill: #333333;
@@ -247,7 +247,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     margin: 1px;
     border: 1px solid transparent;
     color: inherit !important;
-    *color: expression(this.parentNode.currentStyle['color']) !important;
+    *color: expression(this.parentNode.currentStyle['color']) !important;     
     outline: none;
     font-weight: normal !important;
     line-height:14px;
@@ -259,10 +259,10 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 /*applied to the Grid's bottom-right area between the horizontal and vertical scrollbars.*/
 .jqx-grid-bottomright
 {
-
+   
 }
 /*applied to the Grid's header area.*/
-.jqx-grid-header
+.jqx-grid-header 
 {
     border-style: solid;
     border-width: 0px 0px 1px 0px;
@@ -278,7 +278,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     border-color: transparent;
     white-space: nowrap;
     border-style: solid;
-    font-weight: normal;
+    font-weight: normal;  
     overflow: hidden;
     text-align: left;
     padding: 0px;
@@ -330,7 +330,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
  }
   /*applied to the column's resize line.*/
  .jqx-grid-column-resizeline {
-   border-right: 1px dotted #555;
+   border-right: 1px dotted #555; 
  }
  /*applied to the validation popup during cell editing.*/
  .jqx-grid-validation
@@ -342,7 +342,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 .jqx-grid-validation-label {
     color: #fff !important;
     background: #df2227 !important;
-    border: 1px solid #df2227 !important;
+    border: 1px solid #df2227 !important;    
 }
   .jqx-grid-validation-arrow-up
  {
@@ -358,7 +358,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
  }
   /*applied to the column's resize start line.*/
   .jqx-grid-column-resizestartline {
-   border-right: 1px solid #444;
+   border-right: 1px solid #444; 
  }
   /*applied to the sort ascending menu item in the Grid's Context Menu*/
  .jqx-grid-sortasc-icon
@@ -471,12 +471,12 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     font-weight: normal;
  }
  /*applied to a grouping column.*/
- .jqx-grid-group-column
+ .jqx-grid-group-column 
  {
     border: 1px solid transparent;
     white-space: nowrap;
     border-style: solid;
-    font-weight: normal;
+    font-weight: normal;  
     overflow: hidden;
     text-align: left;
     padding: 0px;
@@ -502,7 +502,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     text-decoration: none;
     cursor: pointer;
     color: inherit;
-    *color: expression(this.parentNode.currentStyle['color']);
+    *color: expression(this.parentNode.currentStyle['color']);     
 }
  .jqx-grid-group-column  a:visited{
     color: inherit;
@@ -513,7 +513,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     outline: 0 none;
     text-decoration: none;
     cursor: pointer;
-     *color: expression(this.parentNode.currentStyle['color']);
+     *color: expression(this.parentNode.currentStyle['color']);    
 }
 /*applied to a grid cell*/
 .jqx-grid-cell {
@@ -521,14 +521,14 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     border-width: 0px 1px 1px 0px;
     margin-right: 1px;
     margin-bottom: 1px;
-    border-color: transparent;
+    border-color: transparent;  
     background: #fff;
     white-space: nowrap;
-    font-weight: normal;
+    font-weight: normal; 
     font-size: inherit;
-    overflow: hidden;
-    position: absolute !important;
-    height: 100%;
+    overflow: hidden; 
+    position: absolute !important; 
+    height: 100%; 
  }
 .jqx-grid-cell-locked {
     color: #aaa !important;
@@ -536,31 +536,31 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 .jqx-grid-cell-left-align {
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-bottom: 2px;
-    text-align: left;
-    margin-right: 2px;
+    padding-bottom: 2px; 
+    text-align: left; 
+    margin-right: 2px; 
     margin-left: 4px;
 }
 .jqx-grid-cell-middle-align {
     text-overflow: ellipsis;
     overflow: hidden;
-    padding-bottom: 2px;
+    padding-bottom: 2px; 
     text-align: center;
 }
 .jqx-grid-cell-right-align {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-bottom: 2px;
-    text-align: right;
-    margin-right: 4px;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    padding-bottom: 2px; 
+    text-align: right; 
+    margin-right: 4px; 
     margin-left: 2px;
 }
 
 /*applied to a grid cell that is part of a rows group.*/
- .jqx-grid-group-cell{
-    overflow: hidden;
-    position: absolute !important;
-    height: 100%;
+ .jqx-grid-group-cell{ 
+    overflow: hidden; 
+    position: absolute !important; 
+    height: 100%; 
     background: #fff;
  }
 /*applied to the grid cells in the sort column*/
@@ -590,7 +590,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     border-style: solid;
     border-width: 0px 0px 1px 0px;
     white-space: nowrap;
-    font-weight: normal;
+    font-weight: normal;   
  }
 .jqx-widget .jqx-grid-cleared-cell, .jqx-grid-cleared-cell {
     border: transparent !important;
@@ -617,11 +617,11 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     margin-right: 0px;
     position: relative;
     width: 15px;
-    height: 16px;
+    height: 16px;   
     vertical-align: top;
 }
 .jqx-tree-grid-checkbox {
-   float: none !important;
+   float: none !important; 
    width: 14px;
    height: 14px;
    cursor: pointer;
@@ -629,7 +629,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
    margin-left: 2px !important;
 }
 .jqx-tree-grid-icon {
-   float: none !important;
+   float: none !important; 
    width: 14px;
    height: 14px;
    margin-right: 4px;
@@ -734,7 +734,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
  }
   /*applied to a grid cell. Represents the alternating cell background.*/
 .jqx-grid-cell-alt {
-    background: #f9f9f9;
+    background: #f9f9f9;  
  }
 /*applied to a sorted and alternating grid cell*/
 .jqx-grid-cell-sort-alt {
@@ -795,7 +795,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     padding-right: 0px;
     background-image: url(images/loader.gif);
     background-position: 50% 50%;
-    background-repeat: no-repeat;
+    background-repeat: no-repeat;  
     z-index: 9999;
     display: block;
 }
@@ -859,7 +859,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 .jqx-progressbar-disabled
 {
     outline: none;
-    border: 1px solid transparent;
+    border: 1px solid transparent; 
     height: 2em;
 }
 
@@ -962,7 +962,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     right: 0;
     text-align: left;
     cursor: pointer;
-    *color: expression(this.parentNode.currentStyle['color']);
+    *color: expression(this.parentNode.currentStyle['color']);     
 }
 /*applied to a sub menu item when the mouse is over the item.*/
 .jqx-menu-item-hover
@@ -975,7 +975,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     padding: 4px 8px 4px 8px;
     text-align: left;
     cursor: pointer;
-    *color: expression(this.parentNode.currentStyle['color']);
+    *color: expression(this.parentNode.currentStyle['color']);     
 }
 /*applied to a top-level menu item when the mouse is over it.*/
 .jqx-menu-item-top-hover
@@ -988,7 +988,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     padding: 4px 8px 4px 8px;
     top: 50%;
     cursor: pointer;
-    *color: expression(this.parentNode.currentStyle['color']);
+    *color: expression(this.parentNode.currentStyle['color']);     
 }
 /*applied to a sub menu item when its sub menu is opened.*/
 .jqx-menu-item-selected
@@ -1000,7 +1000,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     padding: 4px 8px 4px 8px;
     text-align: left;
     cursor: pointer;
-    *color: expression(this.parentNode.currentStyle['color']);
+    *color: expression(this.parentNode.currentStyle['color']);     
 }
 /*applied to a disabled sub menu item.*/
 .jqx-menu-item-disabled
@@ -1163,7 +1163,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     color: inherit;
     outline: none;
     background-color: transparent;
-    *color: expression(this.parentNode.currentStyle['color']);
+    *color: expression(this.parentNode.currentStyle['color']);     
 }
 
 /*applied to the menu widget when it is disabled.*/
@@ -1275,7 +1275,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     background-color: transparent;
     border: 0px solid transparent;
     list-style: none;
-    left: 100%;
+    left: 100%; 
     right: 0;
     text-align: left;
     outline: none;
@@ -1492,7 +1492,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     padding-top: 5px;
     background: transparent;
     height: auto;
-    position: relative;
+    position: relative; 
 }
 .jqx-tabs-title-bottom
 {
@@ -1500,7 +1500,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 .jqx-tabs-title a:link
 {
     color: inherit;
-    *color: expression(this.parentNode.currentStyle['color']);
+    *color: expression(this.parentNode.currentStyle['color']);    
     text-decoration: none;
 }
 .jqx-tabs-title a:hover
@@ -1550,7 +1550,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 .jqx-tabs-title-hover-top
 {
     outline: none;
-    border: 1px solid transparent;
+    border: 1px solid transparent;    
     padding-bottom: 5px;
 }
 /*applied to the tab's title when the tab is hovered and the jqxTab's position property is set to 'bottom' .*/
@@ -1563,7 +1563,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 /*applied to the tab's title when the tab is disabled.*/
 .jqx-tabs-title-disable
 {
-
+ 
 }
 /*applied to the tab's header.*/
 .jqx-tabs-header
@@ -1814,7 +1814,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     -moz-border-radius: 100%;
     -webkit-border-radius: 100%;
     border-radius: 100%;
-    width: 7px;
+    width: 7px; 
     height: 7px;
     margin-left: 2px;
     margin-top: 2px;
@@ -1834,11 +1834,11 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
     margin: 0 0 0 0;
     -moz-border-radius: 100%;
     -webkit-border-radius: 100%;
-    border-radius: 100%;
-    width: 6px;
+    border-radius: 100%; 
+    width: 6px; 
     height: 6px;
     margin-left: 2px;
-    margin-top: 2px;
+    margin-top: 2px;  
 }
 /*applied to the radio button when it is in indeterminate state and disabled.*/
 .jqx-radiobutton-check-indeterminate-disabled
@@ -1865,7 +1865,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 {
     margin: 0px;
     padding: 0px;
-    outline: none;
+    outline: none;    
     background-color: transparent;
     background-repeat: no-repeat;
     cursor: pointer;
@@ -1954,10 +1954,10 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 .jqx-calendar-title-navigation
 {
     cursor: pointer;
-    background-color: transparent;
-    margin: 0;
-    padding: 0;
-    border: none;
+    background-color: transparent; 
+    margin: 0; 
+    padding: 0; 
+    border: none; 
     width: 25px;
     height: 25px;
 }
@@ -1966,7 +1966,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 {
     margin: 0; padding: 0;
     border: none;
-    width: 100%;
+    width: 100%; 
 }
 /*applied to the calendar's title content.*/
 .jqx-calendar-title-content
@@ -1991,14 +1991,14 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 }
 /*applied to the calendar's navigation title when the calendar is disabled.*/
 .jqx-calendar-title-header-disabled
-{
+{   
     border-bottom-width: 1px;
-    border-bottom-style:solid;
-    margin: 0 0 0 0;
+    border-bottom-style:solid; 
+    margin: 0 0 0 0;    
     border-left: 0px solid transparent;
     border-right: 0px solid transparent;
-    border-top: 0px solid transparent;
-
+    border-top: 0px solid transparent;    
+    
 }
 /*applied to a calendar cell.*/
 .jqx-calendar-cell
@@ -2236,7 +2236,7 @@ button.jqx-button, input[type=button].jqx-button,  input[type=submit].jqx-button
 of the horizontal scrollbar.*/
 .jqx-panel-bottomright
 {
-
+  
 }
 /*applied to the DropDownButton's Popup.*/
 .jqx-dropdownbutton-popup {
@@ -2316,11 +2316,11 @@ of the horizontal scrollbar.*/
 .jqx-listitem-element
 {
   -ms-touch-action: none;
-  border: none;
-  width:100%;
-  height: 100%;
-  align:left;
-  valign:top;
+  border: none; 
+  width:100%; 
+  height: 100%; 
+  align:left; 
+  valign:top; 
   position: absolute;
 }
 /*jqxComboBox Style*/
@@ -2346,8 +2346,8 @@ of the horizontal scrollbar.*/
     -moz-border-radius-bottomleft: 3px;
     -webkit-border-bottom-left-radius: 3px;
     border-bottom-left-radius: 3px;
-    border-right: 1px solid transparent;
-    -moz-background-clip: padding; background-clip: padding-box; -webkit-background-clip: padding-box;
+    border-right: 1px solid transparent; 
+    -moz-background-clip: padding; background-clip: padding-box; -webkit-background-clip: padding-box;    
 }
 .jqx-combobox-content-rtl {
     border: none;
@@ -2364,8 +2364,8 @@ of the horizontal scrollbar.*/
     -webkit-border-bottom-right-radius: 0px;
     border-bottom-right-radius: 3px;
     border-right: none;
-    border-left: 1px solid transparent;
-    -moz-background-clip: padding; background-clip: padding-box; -webkit-background-clip: padding-box;
+    border-left: 1px solid transparent; 
+    -moz-background-clip: padding; background-clip: padding-box; -webkit-background-clip: padding-box;  
 }
 /*applied to the ComboBox's input field.*/
 .jqx-combobox-input
@@ -2436,7 +2436,7 @@ of the horizontal scrollbar.*/
     margin: 2px;
     white-space: nowrap;
     border-style: solid;
-    font-weight: normal;
+    font-weight: normal;  
     overflow: hidden;
     text-align: left;
 
@@ -2447,7 +2447,7 @@ of the horizontal scrollbar.*/
     outline: 0 none;
     text-decoration: none;
     cursor: pointer;
-    *color: expression(this.parentNode.currentStyle['color']);
+    *color: expression(this.parentNode.currentStyle['color']);    
 }
 /*applied to the ComboBox when the widget is disabled.*/
 .jqx-combobox-state-disabled
@@ -2477,7 +2477,7 @@ of the horizontal scrollbar.*/
 {
     padding: 3px;
     margin: 1px;
-    white-space: normal !important;
+    white-space: normal !important; 
     cursor: default;
 }
 /*jqxDropDownList Style*/
@@ -2526,7 +2526,7 @@ of the horizontal scrollbar.*/
 }
 /*applied to the dropdownlist in selected state.*/
 .jqx-dropdownlist-state-selected
-{
+{ 
     overflow: hidden;
     background-color: transparent;
     border: 1px solid transparent;
@@ -2564,7 +2564,7 @@ of the horizontal scrollbar.*/
 {
     margin: 0px;
     padding: 0px;
-    border: 1px solid transparent;
+    border: 1px solid transparent; 
 }
 /*applied to the scrollbar buttons in hovered state.*/
 .jqx-scrollbar-button-state-hover
@@ -2593,7 +2593,7 @@ of the horizontal scrollbar.*/
 .jqx-scrollbar-thumb-state-hover-horizontal
 {
     margin: 0px;
-    padding: 0px;
+    padding: 0px;   
     border: 1px solid transparent;
 }
 /*applied to the horizontal scrollbar thumb in default state.*/
@@ -2644,12 +2644,12 @@ of the horizontal scrollbar.*/
 {
     outline: none;
     border-width: 0px;
-    border-bottom: 1px solid transparent;
+    border-bottom: 1px solid transparent; 
     overflow: hidden;
     padding: 5px;
     height: auto;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: hidden;  
 }
 /*applied to the window’s header when the window is disabled*/
 .jqx-window-header-disabled
@@ -2679,7 +2679,7 @@ of the horizontal scrollbar.*/
 {
     cursor: pointer;
     background-image: url(images/close.png);
-    background-repeat: no-repeat;
+    background-repeat: no-repeat;    
 }
 /*applied to the window's collapse button*/
 .jqx-window-collapse-button
@@ -2737,7 +2737,7 @@ of the horizontal scrollbar.*/
 .jqx-slider-tick
 {
     border-left: 1px solid transparent;
-    z-index: 9;
+    z-index: 9; 
 }
 /*applied to the ticks when the slider is in horizontal mode*/
 .jqx-slider-tick-horizontal
@@ -2773,23 +2773,23 @@ of the horizontal scrollbar.*/
     top: 0px;
     -moz-border-radius: 100%;
     -webkit-border-radius: 100%;
-    border-radius: 100%;
+    border-radius: 100%;   
 }
 .jqx-slider-button
 {
     cursor: pointer;
     -moz-border-radius: 100%;
     -webkit-border-radius: 100%;
-    border-radius: 100%;
+    border-radius: 100%;  
     box-sizing: content-box !important;
 }
 /*applied to the slider's thumb when the slider is in horizontal mode*/
 .jqx-slider-slider-horizontal
-{
+{   
     margin-top: -5px;
     -moz-border-radius: 100%;
     -webkit-border-radius: 100%;
-    border-radius: 100%;
+    border-radius: 100%;  
     border: 1px solid transparent;
 }
 /*applied to the slider's thumb when the slider is in vertical mode*/
@@ -2823,7 +2823,7 @@ of the horizontal scrollbar.*/
 /*applied to the div which is between the thumbs in a range slider or from beginning of the track to the current thumb position in the default slider*/
 .jqx-slider-rangebar
 {
-
+ 
 }
 
 /* jqxSplitter */
@@ -2854,7 +2854,7 @@ of the horizontal scrollbar.*/
     position: absolute;
     border: 1px solid transparent;
     border-left-width: 0px;
-    border-right-width: 0px;
+    border-right-width: 0px;   
     cursor: n-resize;
     cursor: row-resize;
 }
@@ -2886,7 +2886,7 @@ of the horizontal scrollbar.*/
 .jqx-splitter-panel
 {
     border: none;
-    outline: none;
+    outline: none;   
     position: absolute;
     overflow: hidden;
 }
@@ -2898,7 +2898,7 @@ of the horizontal scrollbar.*/
 }
 .jqx-draggable
 {
-
+    
 }
 .jqx-draggable-dragging
 {
@@ -2948,10 +2948,10 @@ of the horizontal scrollbar.*/
 
 .jqx-switchbutton
 {
-     outline: none;
+     outline: none; 
     overflow: hidden;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px; 
+    -webkit-border-radius: 5px; 
     border-radius: 5px;
     border: 1px solid #ccc;
 }
@@ -2974,11 +2974,11 @@ of the horizontal scrollbar.*/
 }
 .jqx-switchbutton-label-on
 {
-
+    
 }
 .jqx-switchbutton-label-off
 {
-
+    
 }
 
 /*left, right, up and down arrow icons.*/
@@ -3227,7 +3227,7 @@ of the horizontal scrollbar.*/
     border-color: transparent;
 }
 .jqx-editor-inline p {
-    margin: 0px;padding:0 .2em;
+    margin: 0px;padding:0 .2em; 
 }
 .jqx-editor-inline-focus {
     border-width: 1px;
@@ -3251,10 +3251,10 @@ of the horizontal scrollbar.*/
     margin: 0;
     padding: 0 4px 4px;
     empty-cells: show;
-    border-collapse: separate;
+    border-collapse: separate; 
 }
 .jqx-editor-color-picker td {
-    border-collapse: separate;
+    border-collapse: separate; 
     border: 1px solid transparent;
     cursor: pointer;
     margin: 0;
@@ -3374,7 +3374,7 @@ of the horizontal scrollbar.*/
 }
 .jqx-editor-toolbar-item {
     display: inline-block;
-    margin-left: 2px;
+    margin-left: 2px;    
     vertical-align: middle;
 }
 .jqx-editor-toolbar-separator {
@@ -3773,7 +3773,7 @@ of the horizontal scrollbar.*/
   cursor: pointer;
 }
 .jqx-scheduler-agenda-appointment-resource, .jqx-scheduler-agenda-appointment-resource-rtl {
-    margin: 5px;
+    margin: 5px; 
     cursor: pointer;
 }
 .jqx-scheduler-agenda-appointment-resource-rtl, .jqx-scheduler-agenda-appointment-rtl {
@@ -3813,7 +3813,7 @@ of the horizontal scrollbar.*/
 .jqx-fill-state-focus {border-color: #555; }
 .jqx-fill-state-disabled {cursor: default; color: #000; opacity: .55; filter:Alpha(Opacity=45);}
 .jqx-fill-state-normal td, .jqx-fill-state-hover td, .jqx-fill-state-pressed td, .jqx-fill-state-disabled td, .jqx-fill-state-focus td, .jqx-widget td, .jqx-widget-content td, .jqx-widget-header td {
-    box-sizing: border-box; -moz-box-sizing: border-box;
+    box-sizing: border-box; -moz-box-sizing: border-box; 
 }
 .jqx-widget .jqx-grid-cell, .jqx-widget .jqx-grid-column-header, .jqx-widget .jqx-grid-group-cell {border-color: #aaa;}
 .jqx-widget .jqx-grid-column-menubutton, .jqx-widget .jqx-grid-column-sortascbutton, .jqx-widget .jqx-grid-column-sortdescbutton, .jqx-widget .jqx-grid-column-filterbutton
@@ -3823,7 +3823,7 @@ of the horizontal scrollbar.*/
 }
 .jqx-grid-column-header a:link, .jqx-grid-column-header a:visited
 {
-   *color: expression(this.parentNode.currentStyle['color']);
+   *color: expression(this.parentNode.currentStyle['color']);    
 }
 .jqx-grid-bottomright, .jqx-panel-bottomright, .jqx-listbox-bottomright
 {
@@ -3862,7 +3862,7 @@ of the horizontal scrollbar.*/
     padding: 0 0 0 0;
     outline: none;
     border-width: 1px;
-    border-style: solid;
+    border-style: solid; 
     -moz-background-clip: padding; background-clip: padding-box; -webkit-background-clip: padding-box;
 }
 input[type=text].jqx-input, input[type=password].jqx-input {
@@ -3931,7 +3931,7 @@ input[type=text].jqx-input, input[type=password].jqx-input {
     -ms-touch-action: auto;
 }
 .jqx-menu-popup {
-
+   
 }
 .jqx-menu-vertical
 {
@@ -3939,7 +3939,7 @@ input[type=text].jqx-input, input[type=password].jqx-input {
 }
 .jqx-color-picker
 {
-
+ 
 }
 .jqx-color-picker-panel
 {
@@ -3963,7 +3963,7 @@ input[type=text].jqx-input, input[type=password].jqx-input {
     overflow: hidden;
 }
 .jqx-color-picker-map-overlay
-{
+{ 
     background-color: transparent;
     background-image: url('images/colorpicker/map-saturation-overlay.png');
     background-repeat: no-repeat;
@@ -4017,7 +4017,7 @@ input[type=text].jqx-input, input[type=password].jqx-input {
     height: 16px;
     margin: 0 auto;
     position: relative;
-    top: 50%;
+    top: 50%; 
     margin-top: -8px;
 }
 .jqx-input-icon
@@ -4052,7 +4052,7 @@ ol.jqx-listmenu, ul.jqx-listmenu
     line-height: 1;
      counter-reset: section;
 }
-.jqx-listmenu li
+.jqx-listmenu li 
 {
    margin-left: 0px;
    list-style: none;
@@ -4066,7 +4066,7 @@ ol.jqx-listmenu, ul.jqx-listmenu
 {
     padding: 15px;
 }
-.jqx-listmenu-item
+.jqx-listmenu-item 
 {
     cursor: pointer;
     padding: 15px;
@@ -4116,9 +4116,9 @@ ol.jqx-listmenu, ul.jqx-listmenu
     -webkit-border-radius: 3px;
     border-radius: 3px;
     border: 1px solid;
-    outline: none;
-    width: 97%;
-    padding: 3px;
+    outline: none;    
+    width: 97%;   
+    padding: 3px; 
     padding-left: 10px;
     padding-right: 10px;
     border-color: #c7c7c7;
@@ -4139,13 +4139,13 @@ ol li .jqx-listmenu-item-label:before
 }
 .jqx-listmenu div
 {
-   clear: both;
+   clear: both; 
 }
 .jqx-listmenu-auto-separator
 {
 }
 .jqx-listmenu-item-readonly
-{
+{   
     cursor: default;
 }
 .jqx-tooltip
@@ -4174,7 +4174,7 @@ ol li .jqx-listmenu-item-label:before
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    -moz-background-clip: padding; background-clip: padding-box; -webkit-background-clip: padding-box;
+    -moz-background-clip: padding; background-clip: padding-box; -webkit-background-clip: padding-box;   
 }
 .jqx-tooltip-arrow
 {
@@ -4310,7 +4310,7 @@ ol li .jqx-listmenu-item-label:before
     box-sizing: content-box !important;
 }
 .jqx-rangeselector-markers {
-
+    
 }
 .jqx-rangeselector-content, .jqx-rangeselector-ticks, .jqx-rangeselector-labels, .jqx-rangeselector-shutter, .jqx-rangeselector-markers, .jqx-rangeselector-marker-arrow
 {
@@ -4415,10 +4415,10 @@ ol li .jqx-listmenu-item-label:before
     background-image: none !important;
 }
 .jqx-rangeselector-marker-arrow-top {
-    border-bottom-color: transparent !important;
+    border-bottom-color: transparent !important; 
 }
 .jqx-rangeselector-marker-arrow-bottom {
-    border-top-color: transparent !important;
+    border-top-color: transparent !important; 
 }
 .jqx-rangeselector-marker-left-arrow
 {
@@ -4450,11 +4450,11 @@ ol li .jqx-listmenu-item-label:before
 }
 .jqx-action-button {
     border: none;
-    border-left: 1px solid #c7c7c7;
+    border-left: 1px solid #c7c7c7; 
 }
 .jqx-action-button-rtl {
     border: none;
-    border-right: 1px solid #c7c7c7;
+    border-right: 1px solid #c7c7c7;     
     cursor: pointer;
 }
 /*jqxBulletChart*/
@@ -4563,8 +4563,8 @@ ol li .jqx-listmenu-item-label:before
 .jqx-notification-table
 {
     width: 100%;
-    font-size: inherit;
-    font-weight: inherit;
+    font-size: inherit; 
+    font-weight: inherit; 
     font-style: inherit;
     color:inherit;
 }
@@ -6527,7 +6527,7 @@ ol li .jqx-listmenu-item-label:before
 }
 
 .jqx-kanban-item-content {
-
+   
 }
 
 .jqx-kanban-item-avatar {
@@ -6604,18 +6604,18 @@ ol li .jqx-listmenu-item-label:before
 }
 
 .jqx-bar-gauge-tooltip {
-    position:absolute;
-    left:20px;
-    top:20px;
-    display:none;
+    position:absolute; 
+    left:20px; 
+    top:20px; 
+    display:none; 
     padding: 6px 12px;
     border:black solid 1px;
-    background-color: white;
+    background-color: white; 
     color: #333333;
     font-size: 11px;
     font-weight:100;
     font-family: Verdana;
-    border:black solid 1px;
+    border:black solid 1px; 
     border-radius:3px;
     opacity: 1;
     white-space: nowrap;
@@ -6624,12 +6624,12 @@ ol li .jqx-listmenu-item-label:before
 
 .jqx-bar-gauge-measure-text {
     position: absolute;
-    top: 0;
-    right: 0;
-    visibility: hidden;
-    z-index:-99999;
-    margin:0px;
-    padding:0px;
+    top: 0; 
+    right: 0; 
+    visibility: hidden; 
+    z-index:-99999; 
+    margin:0px; 
+    padding:0px; 
     border-width:0px;
 }
 .jqx-scrollbar-mobile {
@@ -6800,26 +6800,26 @@ ol li .jqx-listmenu-item-label:before
 .jqx-element-container {
 }
 .jqx-resize-trigger, .jqx-resize-trigger-shrink {
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: absolute; 
+    left: 0; 
+    top: 0; 
     transition: 0s
 }
 .jqx-resize-trigger-shrink {
-    width: 200%;
+    width: 200%; 
     height: 200%;
 }
 .jqx-resize-trigger-container {
     display: block;
     visibility:hidden;
     position: relative;
-    top: -100%;
-    left: 0;
+    top: -100%; 
+    left: 0; 
     min-height:0.1px;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    pointer-events: none;
+    height: 100%; 
+    width: 100%; 
+    overflow: hidden; 
+    pointer-events: none; 
     z-index: -1;
     visibility:hidden;
 }
@@ -6880,7 +6880,7 @@ ol li .jqx-listmenu-item-label:before
     position: relative;
     left: 5px;
     float: left;
-    vertical-align: middle;
+    vertical-align: middle;    
 }
 
 

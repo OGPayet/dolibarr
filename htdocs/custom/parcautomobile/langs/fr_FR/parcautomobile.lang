@@ -48,10 +48,10 @@ erreur_calcul = Remplire la quantité des litres
 # DROITS
 Permission_label=Consulter
 
-# MENU
+# MENU	
 parcautomobile = Parc automobile
-list_vehicules = Liste des véhicules
-vehicules = Véhicules
+list_vehicules = Liste des véhicules	
+vehicules = Véhicules	
 configuration = Configuration
 marque_model = Modèle de la marque du véhicule
 typeintervention = Types d'intervention
@@ -65,7 +65,7 @@ parc = Parc
 add_parc = Nouveau parc
 add_vehicule=Nouveau véhicule
 modeles_vehicule = Modèles de Véhicule
-info_suplm = Informations supplémentaires
+info_suplm = Informations supplémentaires 
 contrats = Contrats
 analyse = Analyse
 couts = Coûts
@@ -137,7 +137,7 @@ ref_facture = Référence de la facture
 kilometrique = 	Relevé kilomètrique
 detail_contrat = Détails du contrat
 detail_cost = Détails des dépenses
-total_costs = Totale des costs de vehicule :
+total_costs = Totale des costs de vehicule : 
 
 
 #contrat
@@ -187,7 +187,7 @@ modeles = Modèles
 
 #typecontrat
 label_typecontrat = Type de contrat
-
+	
 #statut
 label_statut = Statut
 etiquettes_parc = Étiquettes

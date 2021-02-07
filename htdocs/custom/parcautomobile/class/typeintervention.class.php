@@ -1,9 +1,9 @@
-<?php
-require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+<?php 
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php'; 
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT .'/product/stock/class/mouvementstock.class.php';
-
-class typeintervention extends Commonobject{
+ 
+class typeintervention extends Commonobject{ 
 
 	public $errors = array();
 	public $rowid;
@@ -11,8 +11,8 @@ class typeintervention extends Commonobject{
 
 	public $element='typeintervention';
 	public $table_element='typeintervention';
-
-	public function __construct($db){
+	
+	public function __construct($db){ 
 		$this->db = $db;
 		return 1;
     }
@@ -31,7 +31,7 @@ class typeintervention extends Commonobject{
 		}
 
 		$sql .= substr($sql_column, 2)." ) VALUES ( ".substr($sql_value, 2)." )";
-	// print_r($sql);die();
+    	// print_r($sql);die();
 		$resql = $this->db->query($sql);
 		if (!$resql) {
 			$this->db->rollback();
@@ -39,7 +39,7 @@ class typeintervention extends Commonobject{
 			print_r($this->errors);
 			die();
 			return 0;
-		}
+		} 
 		return $this->db->db->insert_id;
 	}
 
@@ -55,8 +55,8 @@ class typeintervention extends Commonobject{
         if (count($data) && is_array($data))
             foreach ($data as $key => $value) {
 	            $val = is_numeric($value) ? $value : '"'. $value .'"';
-			$val = ($value == '') ? 'NULL' : $val;
-		$sql .= '`'. $key. '` = '. $val .',';
+	        	$val = ($value == '') ? 'NULL' : $val;
+            	$sql .= '`'. $key. '` = '. $val .',';
 	        }
 
         $sql  = substr($sql, 0, -1);
@@ -71,7 +71,7 @@ class typeintervention extends Commonobject{
 			print_r($this->errors);
 			die();
 			return -1;
-		}
+		} 
 		return 1;
 	}
 
@@ -81,17 +81,17 @@ class typeintervention extends Commonobject{
 
 		$sql 	= 'DELETE FROM ' . MAIN_DB_PREFIX .get_class($this).' WHERE rowid = ' . $this->rowid;
 		$resql 	= $this->db->query($sql);
-
+		
 		if (!$resql) {
 			$this->db->rollback();
 			$this->errors[] = 'Error '.get_class($this).' : '.$this->db->lasterror();
 			return -1;
-		}
+		} 
 
 		return 1;
 	}
 
-
+    
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '', $filtermode = 'AND')
 	{
 		dol_syslog(__METHOD__, LOG_DEBUG);
@@ -109,7 +109,7 @@ class typeintervention extends Commonobject{
 			if($offset==1)
 				$sql .= " limit ".$limit;
 			else
-				$sql .= " limit ".$offset.",".$limit;
+				$sql .= " limit ".$offset.",".$limit;				
 		}
 
 		$this->rows = array();
@@ -123,7 +123,7 @@ class typeintervention extends Commonobject{
                 $line->id    		 =  $obj->rowid;
                 $line->rowid    		 =  $obj->rowid;
 				$line->label 		 =  $obj->label;
-
+				
                 // ....
 
 				$this->rows[] 	= $line;
@@ -148,13 +148,13 @@ class typeintervention extends Commonobject{
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
-
+			
 			if ($numrows) {
 				$obj 			  	  = $this->db->fetch_object($resql);
                 $this->id         	  = $obj->rowid;
                 $this->rowid      	  = $obj->rowid;
                 $this->label        	  = $obj->label;
-
+               
                 // ....
 			}
 
@@ -180,12 +180,12 @@ class typeintervention extends Commonobject{
 	    $nodatarole = '';
 	    $id = (!empty($id)) ? $id : $name;
 
-	    $moreforfilter.='<select width="100%" '.$attr.' class="flat" id="select_'.$id.'" name="'.$name.'">';
+	    $moreforfilter.='<select width="100%" '.$attr.' class="flat minwidth200 maxwidth200" id="select_'.$id.'" name="'.$name.'">';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+    	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
+    	$resql = $this->db->query($sql);
 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -225,16 +225,16 @@ class typeintervention extends Commonobject{
         $linkend = "";
         $result = "";
         if(!empty($this->label)){
-		$ref=$this->label;
+        	$ref=$this->label;
         }else
-		$ref=$this->rowid;
+        	$ref=$this->rowid;
         if ($ref) {
             $linkstart = '<a href="'.$url.'"';
             $linkstart.=$linkclose.'>';
             $linkend='</a>';
 
             $result .= $linkstart;
-            if ($withpicto)
+            if ($withpicto) 
                 $result.= '<img height="16" src="'.DOL_URL_ROOT.'/postes/img/object_postes.png" >&nbsp;';
             if ($withpicto != 2) $result.= $ref;
         }
@@ -250,7 +250,7 @@ class typeintervention extends Commonobject{
         $resql = $this->db->query($sql);
 
         if($resql){
-            while ($obj = $this->db->fetch_object($resql))
+            while ($obj = $this->db->fetch_object($resql)) 
             {
                 $tot = $obj->tot;
             }
@@ -259,7 +259,7 @@ class typeintervention extends Commonobject{
     }
 
     public function getdateformat($date,$time=true){
-
+        
         $d = explode(' ', $date);
         $date = explode('-', $d[0]);
         $d2 = explode(':', $d[1]);
@@ -308,16 +308,16 @@ class typeintervention extends Commonobject{
 	    $moreforfilter = '';
 	    $nodatarole = '';
 	    $id = (!empty($id)) ? $id : $name;
-
+	    
 	    $objet = "label";
 	    $moreforfilter.='<select class="flat" id="'.$id.'" name="'.$name.'" '.$nodatarole.'>';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
-	$resql = $this->db->query($sql);
+    	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+    	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
-
+			
 			while ($obj = $this->db->fetch_object($resql)) {
 				$moreforfilter.='<option value="'.$obj->$val.'" data-ref="'.$obj->$opt.'"';
 	            if ($obj->$val == $selected) $moreforfilter.=' selected';
@@ -340,10 +340,10 @@ class typeintervention extends Commonobject{
 		// $select.='<select class="flat" id="'.$id.'" name="'.$name.'" >';
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
-	$sql = "SELECT rowid ,ref,entity,label FROM ".MAIN_DB_PREFIX."product WHERE fk_product_type = 0";
+    	$sql = "SELECT rowid ,ref,entity,label FROM ".MAIN_DB_PREFIX."product WHERE fk_product_type = 0";
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
-	$select.='<option value="0"></option>';
+    	$resql = $this->db->query($sql);
+    	$select.='<option value="0"></option>'; 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
 			while ($obj = $this->db->fetch_object($resql)) {
@@ -370,9 +370,9 @@ class typeintervention extends Commonobject{
         $q = $movement.trim($qte);
         $type=0;
         if($movement=="+"){
-		$type=1;
+        	$type=1;
         }
-
+        
         if($id_entrepot){
             $t=$mouvementstock->_create($user,$prod,$id_entrepot,$q,$type,0,'','');
         }
@@ -390,14 +390,14 @@ class typeintervention extends Commonobject{
 		$postes = $this->fetchAll();
 		$nb=count($this->rows);
 		$select = '<select class="flat" id="select_'.$id.'" name="'.$name.'" >';
-		$select.='<option value="0">&nbsp;</option>';
-			for ($i=0; $i < $nb; $i++) {
+	    	$select.='<option value="0">&nbsp;</option>';
+			for ($i=0; $i < $nb; $i++) { 
 				$item=$this->rows[$i];
 				$select.='<option value="'.$item->rowid.'"';
 	            if ($item->rowid == $selected) $select.='selected';
 	            $select.='>'.$item->ref.'</option>';
 			}
-
+    	
 		$select.='</select>';
 		$select.='<script>$(function(){$("#select_'.$id.'").select2()})</script>';
 	    return $select;
@@ -410,7 +410,7 @@ class typeintervention extends Commonobject{
 			$select.='<option value="Partiellement disponible">Partiellement disponible</option>';
 			$select.='<option value="Disponible">Disponible</option>';
 		$select .= '</select>';
-
+		
 		return $select;
 	}
 
@@ -422,8 +422,8 @@ class typeintervention extends Commonobject{
 
 	    $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql = "SELECT * FROM ".MAIN_DB_PREFIX.get_class($this);
-	$resql = $this->db->query($sql);
+    	$sql = "SELECT * FROM ".MAIN_DB_PREFIX.get_class($this);
+    	$resql = $this->db->query($sql);
 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -436,10 +436,10 @@ class typeintervention extends Commonobject{
 		}
 
 	    return $moreforfilter;
-
+		
 	}
-
-}
+	
+} 
 
 
 ?>

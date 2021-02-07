@@ -7,14 +7,14 @@ if ($action == 'update' && $request_method === 'POST') {
     // $d1 = GETPOST('debut');
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
-
+  
     $kilometre= GETPOST('kilometrage');
     $vehicule = GETPOST('vehicule');
     $unite = GETPOST('unite');
     $date_=explode('/', GETPOST('date'));
     $date=$date_[2].'-'.$date_[1].'-'.$date_[0];
 
-
+  
     $object = new kilometrage($db);
     $object->fetch($id);
 
@@ -30,7 +30,7 @@ if ($action == 'update' && $request_method === 'POST') {
     // $composantes_new = (GETPOST('composantes_new'));
     // $composantes = (GETPOST('composantes'));
     // $composants_deleted = explode(',', GETPOST('composants_deleted'));
-
+   
     if ($isvalid > 0) {
         if($kilometre > $max){
             $objvehicul = new vehiculeparc($db);
@@ -40,7 +40,7 @@ if ($action == 'update' && $request_method === 'POST') {
         }
         header('Location: ./card.php?id='.$id);
         exit;
-    }
+    } 
     else {
         header('Location: ./card.php?id='. $id .'&update=0');
         exit;
@@ -65,7 +65,7 @@ if($action == "edit"){
             $extrafields->fetch_name_optionals_label($object->table_element);
             // $object->fetch($item->rowid);
             $object->fetch_optionals();
-
+           
             $date=explode('-', $item->date);
             $date=$date[2].'/'.$date[1].'/'.$date[0];
             print '<tr>';
@@ -91,7 +91,7 @@ if($action == "edit"){
     print '</table>';
 
     if($extrafields->attributes[$object->table_element]['label']){
-        print '<div class="fichecenter">';
+        print '<div class="fichecenter">';    
             print '<div class="div_extrafield">';
                 print '<table class="noborder nc_table_" width="100%">';
                     print '<body>';
@@ -130,3 +130,5 @@ if($action == "edit"){
         })
     })
 </script>
+
+

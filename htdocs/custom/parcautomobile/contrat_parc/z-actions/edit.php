@@ -7,7 +7,7 @@ if ($action == 'update' && $request_method === 'POST') {
     // $d1 = GETPOST('debut');
     // $f1 = GETPOST('fin');
     $id=GETPOST('id');
-
+    
 $date_fac = dol_mktime(0, 0, 0, GETPOST('date_facmonth', 'int'), GETPOST('date_facday', 'int'), GETPOST('date_facyear', 'int'));
 $date_f = dol_mktime(0, 0, 0, GETPOST('date_fmonth', 'int'), GETPOST('date_fday', 'int'), GETPOST('date_fyear', 'int'));
 $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday', 'int'), GETPOST('date_dyear', 'int'));
@@ -72,7 +72,7 @@ $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday'
         //     'condition'         =>  addslashes($conditions),
         //     'services_inclus'   =>  addslashes($services),
         // );
-
+        
         $object = new contrat_parc($db);
         $object->fetch($id);
 
@@ -184,7 +184,7 @@ $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday'
                 $d = explode('/', $value['date']);
                 $date_c=$d[2].'-'.$d[1].'-'.$d[0];
 
-
+               
                 $cot = new costsvehicule($db);
                 $cot->fetch($key);
                 $cot->vehicule = $vehicule_;
@@ -192,7 +192,7 @@ $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday'
                 $cot->id_contrat = $id;
                 $cot->prix = $value['prix'];
                 $cot->date = $date_c;
-
+                
 
 
                 $cot->update($key);
@@ -200,7 +200,7 @@ $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday'
         }
         header('Location: ./card.php?id='.$id);
         exit;
-    }
+    } 
     else {
         header('Location: ./card.php?id='. $id .'&update=0');
         exit;
@@ -283,14 +283,14 @@ if($action == "edit"){
                             }
                             if($jour <= 15){
                                 $statuts = str_replace('<input type="radio" id="expire_bientot"', '<input type="radio" id="expire_bientot" checked ', $statuts);
-
+                                
                             }
 
                             print $statuts;
                         print '</div>';
                     print '</td>';
-                print '</tr>';
-
+                print '</tr>';  
+               
         print '</tbody>';
     print '</table>';
     print '<div class="cl_parent">';
@@ -302,7 +302,7 @@ if($action == "edit"){
                         print '<td align="left">'.$langs->trans('vehicule').'</td>';
                         print '<td >'.$vehicule->select_with_filter($item->vehicule).'</td>';
                     print '</tr>';
-
+                   
                     print '<tr>';
                         print '<td align="left" >'.$langs->trans('label_typecontrat').'</td>';
                         print '<td>'.$typecontrat->select_with_filter($item->typecontrat).'</td>';
@@ -390,7 +390,7 @@ if($action == "edit"){
                         print '<td >'.$vehicule->select_conducteur($item->conducteur).'</td>';
                     print '</tr>';
 
-
+                  
                     print '<tr>';
                         print '<td align="left" >'.$langs->trans('ref_contrat').'</td>';
                         print '<td >';
@@ -503,7 +503,7 @@ if($action == "edit"){
     print '</div>';
 
     if($extrafields->attributes[$object->table_element]['label']){
-        print '<div class="fichecenter">';
+        print '<div class="fichecenter">';    
                 print '<div class="div_extrafield">';
                     print '<table class="noborder nc_table_" width="100%">';
                         print '<body>';
@@ -537,7 +537,7 @@ if($action == "edit"){
 
 ?>
 <style>
-
+   
 </style>
 <script>
     $(document).ready(function() {

@@ -4,19 +4,18 @@
 
 
         $label = GETPOST('label');
-
+       
 
         $insert = array(
-            'label'         =>  $label,
+            'label'  =>  trim(addslashes($label)),
         );
         $avance = $typecontrat->create(1,$insert);
         $typecontrat->fetch($avance);
         // If no SQL error we redirect to the request card
         if ($avance > 0 ) {
-
             header('Location: ./index.php?page='.$page);
             exit;
-        }
+        } 
         else {
             header('Location: card.php?action=request&error=SQL_Create&msg='.$recrutement->error);
             exit;
@@ -41,7 +40,7 @@
 
             print '</tbody>';
         print '</table>';
-
+       
 
 
         // Actions

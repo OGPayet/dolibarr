@@ -28,7 +28,7 @@ $html.='tr.pair{background-color:#fafafd;}';
 $html.='.txt_condition{ border: 1px solid #e0e0e0; width: 99%;line-height:2}';
 $html.='.cnd{width: 6%;float: left;height: 25px;font-size: 12px;font-weight: bold;padding: 9px;background-color: #dcdcdf;width: 99%;line-height:2;color:black;}';
 $html.='</style>';
-
+    
 
 
 $html.= '<div class="title_div"><b>'.$langs->trans('detail_contrat').'</b></div>';
@@ -36,7 +36,7 @@ $html.='<div style="width:100% !important;">';
     $html.= '<div id="div_2">';
         $html.= '<table class="border_1" width="100%">';
             $html.= '<tbody>';
-
+                
                 $vehicule->fetch($item->vehicule);
                 $model->fetch($vehicule->model);
                 $marque->fetch($model->marque);
@@ -54,9 +54,9 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<td ><span class="sp_td">'.$user_->firstname.' '.$user_->lastname.'</span></td>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('fournisseur').' :  </span></th>';
                     $soc->fetch($item->fournisseur);
-                    $html.= '<td ><span class="sp_td">'.$soc->nom.'</span></td>';
+                    $html.= '<td ><span class="sp_td">'.$soc->nom.'</span></td>';               
                 $html.= '</tr>';
-
+                
 
                 $html.= '<tr class="pair">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('activation_cout').'  : </span></th>';
@@ -64,7 +64,7 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('montant_recurrent').'  : </span></th>';
                     $html.= '<td ><span class="sp_td">'.number_format($item->montant_recurrent,2,","," ").'  ('.$conf->currency.'-'.$langs->getCurrencySymbol($conf->currency).') &nbsp;&nbsp;'.$langs->trans($item->type_montant).'</span></td>';
                 $html.= '</tr>';
-
+   
                 $html.= '<tr>';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('kilometrage_vehicule').' : </span> </th>';
                     $html.= '<td ><span class="sp_td">'.$item->kilometrage.' '.$langs->trans($vehicule->unite).'</span> </td>';
@@ -86,7 +86,7 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('date_f').' : </span></th>';
                     $html.= '<td ><span class="sp_td">'.$date_f.'</span></td>';
                 $html.= '</tr>';
-
+               
                 $html.= '<tr>';
                     $user_->fetch($item->responsable);
                     $date=explode('-',$item->date_facture);
@@ -101,12 +101,12 @@ $html.='<div style="width:100% !important;">';
         $html.= '</table>';
     $html.= '</div>';
 
-
+               
             $html.= '</tbody>';
         $html.= '</table>';
     $html.= '</div>';
 $html.= '</div>';
-
+    
     $html.= '<div class="cnd" > <span><b> &nbsp;'.$langs->trans("sevice_inclu").':</span> </b></div>';
     $html.= '<table class="border_services" width="100%">';
         $html.= '<tbody>';
@@ -128,8 +128,8 @@ $html.= '</div>';
                     $html.= '</tr>';
                 }
             }
-
-
+                   
+           
             $html.= '<tr style="height:25px;line-height:3;background-color:#f1f1f7">';
                 $html.='<th colspan="2" align="right"><b>'.$langs->trans("Total").' : </b></th>';
                 $html.='<th align="center"><b>'.number_format($total_1,2,","," ").'  ('.$conf->currency.'-'.$langs->getCurrencySymbol($conf->currency).')</b></th>';
@@ -153,7 +153,7 @@ $html.= '</div>';
                 $total_2=0;
                 $couts_recurrent = explode(',', $item->couts_recurrent);
                 foreach ($couts_recurrent as $value) {
-                    $costs->fetch($value);
+                    $costs->fetch($value); 
                     $total_2+=$costs->prix;
                     $d=explode('-', $costs->date);
                     $date_c = $d[2].'/'.$d[1].'/'.$d[0];

@@ -1,7 +1,7 @@
 <?php
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 
@@ -23,7 +23,7 @@ $sortorder 			= ($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
 $id 				= $_GET['id'];
 $action   			= $_GET['action'];
 
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
@@ -97,7 +97,7 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="index_ettique
 				print '</td>';
 			print '</tr>';
 		print '</thead>';
-
+		
 		print '<tbody>';
 
 			$colspn = 7;
@@ -107,13 +107,13 @@ print '<form method="get" action="'.$_SERVER["PHP_SELF"].'" class="index_ettique
 					$item = $etiquettes_parc->rows[$i];
 
 					print '<tr '.$bc[$var].' >';
-					print '<td align="center" style="">';
-						print '<a href="'.dol_buildpath('/parcautomobile/etiquettes_parc/card.php?id='.$item->rowid,2).'" >';
-							print $item->label;
-						print '</a>';
-					print '</td>';
-					// $user->fetch($item->color);
-					print '<td align="center" style=""><span class="color_etq" style="background-color:'.$item->color.'; padding:5px">'.$item->color.'</span></td>';
+			    		print '<td align="center" style="">'; 
+				    		print '<a href="'.dol_buildpath('/parcautomobile/etiquettes_parc/card.php?id='.$item->rowid,2).'" >';
+				    			print $item->label;
+				    		print '</a>';
+			    		print '</td>';
+			    		// $user->fetch($item->color);
+			    		print '<td align="center" style=""><span class="color_etq" style="background-color:'.$item->color.'; padding:5px">'.$item->color.'</span></td>';
 						print '<td align="center"></td>';
 					print '</tr>';
 				}

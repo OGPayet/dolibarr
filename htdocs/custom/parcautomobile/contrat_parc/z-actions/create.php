@@ -126,7 +126,7 @@
                         $dd=$couts->create(1);
                         $couts_recurrent[]=$dd;
                     }
-
+                    
                 }
             }
             if(count($couts_recurrent)>0){
@@ -138,7 +138,7 @@
             }
             header('Location: ./card.php?id='. $avance.'&action=edit');
             exit;
-        }
+        } 
         else {
             header('Location: card.php?action=request&error=SQL_Create&msg='.$parcautomobile->error);
             exit;
@@ -232,7 +232,7 @@
                     //     print $statuts;
                     // print '</td>';
                 print '</tr>';
-
+                
             print '</tbody>';
         print '</table>';
 
@@ -246,7 +246,7 @@
                             print '<td >'.$vehicule->select_with_filter().'</td>';
                         print '</tr>';
 
-
+                       
                         print '<tr>';
                             print '<td align="left" >'.$langs->trans('label_typecontrat').'</td>';
                             print '<td >'.$typecontrat->select_with_filter().'</td>';
@@ -270,7 +270,7 @@
                                 print $contrat->types_montant();
                             print '</td>';
                         print '</tr>';
-
+                       
                         print '<tr>';
                             print '<td align="left" >'.$langs->trans('date_d').'</td>';
                             print '<td ><input type="text" class="datepickerparc" id="date_d" value="'.date('d/m/Y').'" name="date_d"  autocomplete="off"/>';
@@ -297,7 +297,7 @@
             print '<div class="d_right">';
                  print '<table class="border nc_table_" width="100%">';
                     print '<tbody>';
-
+                       
                         print '<tr>';
                             print '<td align="left" >'.$langs->trans('kilometr_contrat').'</td>';
                             print '<td>';
@@ -316,7 +316,7 @@
                             print '<td >'.$vehicule->select_conducteur().'</td>';
                         print '</tr>';
 
-
+                       
 
                         print '<tr>';
                             print '<td align="left" >'.$langs->trans('ref_contrat').'</td>';
@@ -330,7 +330,7 @@
                 print '</table>';
             print '</div>';
         print '</div>';
-
+        
         print '<div style="clear:both;"></div>';
         print '<div id="sevices_inclus">';
             $head = service_inclus('contrats');
@@ -390,7 +390,7 @@
         $object = new contrat_parc($db);
         if($extrafields->attributes[$object->table_element]['label']){
 
-            print '<div class="fichecenter">';
+            print '<div class="fichecenter">';    
                 // print '<div class="topheaderrecrutmenus" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
                 print '<div class="div_extrafield">';
                     print '<table class="noborder nc_table_" width="100%">';
@@ -425,7 +425,7 @@
     .etapes{
       cursor: pointer;
     }
-
+   
 </style>
 
 <script>
@@ -435,3 +435,4 @@
         })
     })
 </script>
+

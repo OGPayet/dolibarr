@@ -1,35 +1,15 @@
-<?php
-// $res=0;
-// if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-// if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+<?php 
 
+$res=0;
+if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
-// require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
-// dol_include_once('/parcautomobile/class/interventions_parc.class.php');
-// global $langs, $db;
+dol_include_once('/core/lib/functions.lib.php');
 
-// $interventions = new interventions_parc($db);
-
-
-// $datesent = dolibarr_get_const($db,'PARCAUTOMOBILE_CHECKINTERVENTIONSFORMAIL',0);
-
-// $datenow = date('Y-m-d');
-
-// $diffday = 0;
-
-// $action   			= $_GET['action'];
-
-// if(!empty($datesent) && $action == "testmail"){
-// 	$diffday = $interventions->checkInterventionsMails($datesent, $datenow);
-// }
-// if(empty($datesent) || $diffday < 0){
-// 	// $interventions->checkInterventionsMails();
-// }
-// echo "diffday : ".$diffday;
-
-// // if(!empty($_SESSION["checkifsentemail"])){
-
-// // }
+// Define mime type
+top_httphead('text/javascript');
+global $langs;
+$var = false;
 
 ?>
 
@@ -44,4 +24,17 @@ function textarea_autosize(x){
         $(this).css('height', 'auto');
         $(this).height($(this)[0].scrollHeight);
     });
+}
+
+function getConducts(that) {
+	var type=$(that).val();
+    var id_conduct=$('#id_conduct').val();
+	$.ajax({
+		data:{'type':type,'id_conduct':id_conduct},
+        url:"<?php echo dol_escape_js(dol_buildpath('/parcautomobile/conducteur.php',2)); ?>",
+        type:'POST',
+        success:function(data){
+        	$('.Conducttype').html(data);
+        }
+	})
 }

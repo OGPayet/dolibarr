@@ -384,32 +384,42 @@ class InterventionSurveyApi extends DolibarrApi
 
         //Add linked equipment to the intervention and update intervention survey
         $this->interventionSurvey->fetchObjectLinked();
-        if ($request_data->linkedObjectsIds && $request_data->linkedObjectsIds->equipement) {
-            $alreadyLinkedEquipementsIds = [];
-            if ($this->interventionSurvey->linkedObjectsIds && $this->interventionSurvey->linkedObjectsIds['equipement']) {
-                $alreadyLinkedEquipementsIds = array_values((array) $this->interventionSurvey->linkedObjectsIds['equipement']);
+        $requestDataLinkEquipementIds = array();
+        if($request_data->linkedObjectsIds)
+        {
+            if(is_array($request_data->linkedObjectsIds))
+            {
+                $requestDataLinkEquipementIds = $request_data->linkedObjectsIds['equipement'];
             }
+            elseif(is_object($request_data->linkedObjectsIds)) {
+                $requestDataLinkEquipementIds = $request_data->linkedObjectsIds->equipement;
+            }
+            $requestDataLinkEquipementIds = array_values((array) $requestDataLinkEquipementIds);
+        }
+        $alreadyLinkedEquipmentsIds = [];
+        if ($this->interventionSurvey->linkedObjectsIds && $this->interventionSurvey->linkedObjectsIds['equipement']) {
+            $alreadyLinkedEquipmentsIds = array_values((array) $this->interventionSurvey->linkedObjectsIds['equipement']);
+        }
 
-            $newLinkedEquipementsIds = [];
-            foreach ((array) $request_data->linkedObjectsIds->equipement as $requestDataLinkedEquipementId) {
-                if (!in_array($requestDataLinkedEquipementId, $alreadyLinkedEquipementsIds)) {
-                    $newLinkedEquipementsIds[] = $requestDataLinkedEquipementId;
-                }
-            }
+        $newLinkedEquipmentsIds = [];
+		foreach ((array) $requestDataLinkEquipementIds as $requestDataLinkedEquipementId) {
+			if (!in_array($requestDataLinkedEquipementId, $alreadyLinkedEquipmentsIds)) {
+				$newLinkedEquipmentsIds[] = $requestDataLinkedEquipementId;
+			}
+		}
 
-            foreach ($newLinkedEquipementsIds as $newLinkedEquipementId) {
-                if ((int) $newLinkedEquipementId > 0) {
-                    $this->interventionSurvey->add_object_linked('equipement', (int) $newLinkedEquipementId);
-                }
-            }
+		foreach ($newLinkedEquipmentsIds as $newLinkedEquipementId) {
+			if ((int) $newLinkedEquipementId > 0) {
+				$this->interventionSurvey->add_object_linked('equipement', (int) $newLinkedEquipementId);
+			}
+		}
 
             //If we want to unlinked some equipement, links should be deleted here
             //We update survey with data from dictionnary as some equipment may have been removed/deleted
-            if (!empty($newLinkedEquipementsIds)) {
-                $this->interventionSurvey->fetchObjectLinkedIdsWithCache(true, true);
-                $this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
-            }
-        }
+		if (!empty($newLinkedEquipmentsIds)) {
+			$this->interventionSurvey->fetchObjectLinkedIdsWithCache(true, true);
+			$this->interventionSurvey->softUpdateOfSurveyFromDictionary(DolibarrApiAccess::$user);
+		}
 
         if ($result > 0) {
             $this->db->commit();

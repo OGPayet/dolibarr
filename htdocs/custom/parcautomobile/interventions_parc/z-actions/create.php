@@ -14,7 +14,7 @@
             $date = explode('/', GETPOST('date'));
             $date=$date[2].'-'.$date[1].'-'.$date[0];
         }
-
+       
         $services=NULL;
         if(!empty(GETPOST('services')) && count(GETPOST('services')) > 0){
             $services = json_encode(GETPOST('services'));
@@ -27,7 +27,7 @@
             'typeintervention'  =>  $type,
             'prix'              =>  $prix,
             'date'              =>  $date,
-            'notes'             =>  addslashes($notes),
+            'notes'             =>  $notes,
             'ref_facture'       =>  $ref_facture,
             'kilometrage'       =>  $kilometre,
             'fournisseur'       =>  $fournisseur,
@@ -38,7 +38,7 @@
         $object->typeintervention = $type;
         $object->prix = $prix;
         $object->date = $date;
-        $object->notes = addslashes($notes);
+        $object->notes = $notes;
         $object->ref_facture = $ref_facture;
         $object->kilometrage = $kilometre;
         $object->fournisseur = $fournisseur;
@@ -89,7 +89,7 @@
                 $test = $kilom->create(1);
 
                 // $test=$kilometrage->create(1);
-
+                
                 if($test){
                     $max=$kilometrage->Max_kilometrage($vehicule);
                     $vehicl = new vehiculeparc($db);
@@ -102,7 +102,7 @@
             // header('Location: ./card.php?id='. $avance.'&action=edit');
             header('Location: ./index.php');
             exit;
-        }
+        } 
 
         else {
             header('Location: card.php?action=request&error=SQL_Create&msg='.$parcautomobile->error);
@@ -145,7 +145,7 @@
                     print '</tr>';
                 print '</tbody>';
             print '</table>';
-
+            
             print '<div class="div_2"> ';
                 print '<div class="div_left"> ';
                     print '<div class="title_div"> <span>'.$langs->trans("info_suplm").'</span> </div>';
@@ -173,7 +173,7 @@
                                 print '</td>';
                             print '</tr>';
 
-
+                           
                         print '</tbody>';
                     print '</table>';
                 print '</div>';
@@ -230,7 +230,7 @@
 
         $object = new interventions_parc($db);
         if($extrafields->attributes[$object->table_element]['label']){
-            print '<div class="fichecenter">';
+            print '<div class="fichecenter">';    
                 print '<div class="topheaderrecrutmenus" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
                 print '<div class="div_extrafield">';
                     print '<table class="noborder nc_table_" width="100%">';
@@ -251,7 +251,7 @@
                     print '<br>';
                     print '<input type="submit" style="display:none" id="sub_valid" value="'.$langs->trans('Validate').'" name="bouton" class="butAction" />';
                     print '<a  class="butAction" id="btn_valid">'.$langs->trans('Validate').'</a>';
-
+                    
                     print '<a href="./index.php?page='.$page.'" class="butAction">'.$langs->trans('Cancel').'</a>';
                 print '</tr>';
             print '</table>';

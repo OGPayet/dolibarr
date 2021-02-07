@@ -45,16 +45,16 @@ class modparcautomobile extends DolibarrModules
 
 		// $this->editor_name = 'Editor';
 		// $this->editor_url = 'https://www.site.ma';
-
+		
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-		$this->numero = 1909680988;
+		$this->numero = 1909680988; 
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'parcautomobile';
 
 		// Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
 		// It is used to group modules in module setup page
-		$this->family = "Next";
+		$this->family = "NextConcept";
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
@@ -69,7 +69,7 @@ class modparcautomobile extends DolibarrModules
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
 		$this->picto='parcautomobile@parcautomobile';
-
+		
 		// Defined all module parts (triggers, login, substitutions, menus, css, etc...)
 		// for default path (eg: /parcautomobile/core/xxxxx) (0=disable, 1=enable)
 		// for specific path of parts (eg: /parcautomobile/core/modules/barcode)
@@ -84,7 +84,7 @@ class modparcautomobile extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/parcautomobile/css/parcautomobile.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/parcautomobile/js/parcautomobile.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/parcautomobile/js/parcautomobile.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2')  	// Set here all hooks context managed by module
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@parcautomobile')) // Set here all workflow context managed by module
@@ -148,8 +148,8 @@ class modparcautomobile extends DolibarrModules
         // Dictionaries
 	    if (! isset($conf->parcautomobile->enabled))
         {
-		$conf->parcautomobile=new stdClass();
-		$conf->parcautomobile->enabled=0;
+        	$conf->parcautomobile=new stdClass();
+        	$conf->parcautomobile->enabled=0;
         }
 		$this->dictionaries=array();
         /* Example:
@@ -221,12 +221,12 @@ class modparcautomobile extends DolibarrModules
 			'langs'=>'parcautomobile@parcautomobile',
 			'position'=>203,
 			'enabled'=>'1',
-			'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+			'perms'=>'$user->rights->parcautomobile->lire',
 			'target'=>'',
 			'user'=>2);
 		$r++;
 
-
+		
 		$this->menu[$r]=array('fk_menu'=>'fk_mainmenu=parcautomobile',
 				'type'=>'left',
 				'titre'=>'vehicules',
@@ -235,7 +235,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>1,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 		$r++;
@@ -247,7 +247,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>2,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -259,7 +259,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>2,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -271,7 +271,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>2,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -283,7 +283,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>2,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -295,11 +295,11 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>2,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
-
+			
 
 			$this->menu[$r]=array('fk_menu'=>'fk_mainmenu=parcautomobile,fk_leftmenu=vehicules',
 				'type'=>'left',
@@ -308,7 +308,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>2,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -320,12 +320,12 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>2,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
 
-
+			
 			$this->menu[$r]=array('fk_menu'=>'fk_mainmenu=parcautomobile,fk_leftmenu=vehicules',
 				'type'=>'left',
 				'titre'=>'modeles_vehicule',
@@ -333,9 +333,9 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>2,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
-				'user'=>2);
+				'user'=>2);	
 			$r++;
 
 
@@ -347,7 +347,7 @@ class modparcautomobile extends DolibarrModules
 			'langs'=>'parcautomobile@parcautomobile',
 			'position'=>3,
 			'enabled'=>'1',
-			'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+			'perms'=>'$user->rights->parcautomobile->lire',
 			'target'=>'',
 			'user'=>2);
 		$r++;
@@ -359,7 +359,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>4,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -371,7 +371,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>4,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -384,7 +384,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>5,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 		$r++;
@@ -397,7 +397,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>6,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -409,7 +409,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>10,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -421,7 +421,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>7,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -433,7 +433,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>8,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -445,7 +445,7 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>9,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
@@ -458,14 +458,14 @@ class modparcautomobile extends DolibarrModules
 				'langs'=>'parcautomobile@parcautomobile',
 				'position'=>10,
 				'enabled'=>'1',
-				'perms'=>'$user->rights->parcautomobile->gestion->consulter',
+				'perms'=>'$user->rights->parcautomobile->lire',
 				'target'=>'',
 				'user'=>2);
 			$r++;
 
 
 		$r=1;
-
+		
 	}
 
 
@@ -477,16 +477,16 @@ class modparcautomobile extends DolibarrModules
 		$sqlm = array();
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."parc` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`label` varchar(255) NULL,
-					`adress` varchar(355) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`label` varchar(255) NULL,
+				  	`adress` varchar(355) NULL
 				);";
 		$resql = $this->db->query($sql);
 
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."vehiculeparc` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`plaque` varchar(255) DEFAULT NULL,
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`plaque` varchar(255) DEFAULT NULL,
 					`logo` varchar(255) DEFAULT NULL,
 					`model` int(11) DEFAULT NULL,
 					`conducteur` int(11) DEFAULT NULL,
@@ -516,98 +516,98 @@ class modparcautomobile extends DolibarrModules
 
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."kilometrage` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`vehicule` int(11) NULL,
-					`kilometrage` DECIMAL NULL,
-					`unite` varchar(255) NULL,
-					`date` varchar(255) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`vehicule` int(11) NULL,
+				  	`kilometrage` DECIMAL NULL,
+				  	`unite` varchar(255) NULL,
+				  	`date` varchar(255) NULL
 				);";
 		$resql = $this->db->query($sql);
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."interventions_parc` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`typeintervention` int(11) NULL,
-					`vehicule` int(11) NULL,
-					`acheteur` int(11) NULL,
-					`kilometrage` DECIMAL NULL,
-					`fournisseur` int(11) NULL,
-					`ref_facture`  varchar(255) NULL,
-					`prix` DECIMAL NULL,
-					`date` date NULL,
-					`service_inclus` text NULL,
-					`notes` text NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`typeintervention` int(11) NULL,
+				  	`vehicule` int(11) NULL,
+				  	`acheteur` int(11) NULL,
+				  	`kilometrage` DECIMAL NULL,
+				  	`fournisseur` int(11) NULL,
+				  	`ref_facture`  varchar(255) NULL,
+				  	`prix` DECIMAL NULL,
+				  	`date` date NULL,
+				  	`service_inclus` text NULL,
+				  	`notes` text NULL
 				);";
 		$resql = $this->db->query($sql);
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."costsvehicule` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`type` varchar(255) NULL,
-					`vehicule` int(11) NULL,
-					`id_contrat` int(11) NULL,
-					`id_intervention` int(11) NULL,
-					`id_suiviessence` int(11) NULL,
-					`prix` DECIMAL NULL,
-					`date` date NULL,
-					`notes` text NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`type` varchar(255) NULL,
+				  	`vehicule` int(11) NULL,
+				  	`id_contrat` int(11) NULL,
+				  	`id_intervention` int(11) NULL,
+				  	`id_suiviessence` int(11) NULL,
+				  	`prix` DECIMAL NULL,
+				  	`date` date NULL,
+				  	`notes` text NULL
 				);";
 		$resql = $this->db->query($sql);
 
-
+		
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."typeintervention` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`label` varchar(255) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`label` varchar(255) NULL
 				);";
 		$resql = $this->db->query($sql);
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."suivi_essence` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`vehicule` int(11) NULL,
-					`litre` float NULL,
-					`prix` float NULL,
-					`date` date NULL,
-					`acheteur` int(11) NULL,
-					`fournisseur` int(11) NULL,
-					`ref_facture` varchar(255) NULL,
-					`kilometrage` DECIMAL NULL,
-					`remarques` text NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`vehicule` int(11) NULL,
+				  	`litre` float NULL,
+				  	`prix` float NULL,
+				  	`date` date NULL,
+				  	`acheteur` int(11) NULL,
+				  	`fournisseur` int(11) NULL,
+				  	`ref_facture` varchar(255) NULL,
+				  	`kilometrage` DECIMAL NULL,
+				  	`remarques` text NULL
 				);";
 		$resql = $this->db->query($sql);
 
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."contrat_parc` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`vehicule` int(11) NULL,
-					`kilometrage` DECIMAL NULL,
-					`typecontrat` int(11) NULL,
-					`activation_couts` float NULL,
-					`type_montant`  varchar(255) NULL,
-					`montant_recurrent` float NULL,
-					`date_facture` date NULL,
-					`date_debut` date NULL,
-					`date_fin` date NULL,
-					`responsable` int(11) NULL,
-					`fournisseur` int(11) NULL,
-					`conducteur` int(11) NULL,
-					`ref_contrat` varchar(255) NULL,
-					`etat` varchar(255) NULL,
-					`condition` text NULL,
-					`services_inclus` text NULL,
-					`couts_recurrent` varchar(255) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`vehicule` int(11) NULL,
+				  	`kilometrage` DECIMAL NULL,
+				  	`typecontrat` int(11) NULL,
+				  	`activation_couts` float NULL,
+				  	`type_montant`  varchar(255) NULL,
+				  	`montant_recurrent` float NULL,
+				  	`date_facture` date NULL,
+				  	`date_debut` date NULL,
+				  	`date_fin` date NULL,
+				  	`responsable` int(11) NULL,
+				  	`fournisseur` int(11) NULL,
+				  	`conducteur` int(11) NULL,
+				  	`ref_contrat` varchar(255) NULL,
+				  	`etat` varchar(255) NULL,
+				  	`condition` text NULL,
+				  	`services_inclus` text NULL,
+				  	`couts_recurrent` varchar(255) NULL
 				);";
 		$resql = $this->db->query($sql);
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."typecontrat` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`label` varchar(255) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`label` varchar(255) NULL
 				);";
 		$resql = $this->db->query($sql);
 
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."statut` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`label` varchar(255) NULL,
-					`color` varchar(255) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`label` varchar(255) NULL,
+				  	`color` varchar(255) NULL
 				);";
 		$resql = $this->db->query($sql);
 
@@ -620,9 +620,9 @@ class modparcautomobile extends DolibarrModules
 		$resql = $this->db->query($sql);
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."etiquettes_parc` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`label` varchar(255) NULL,
-					`color` varchar(255) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`label` varchar(255) NULL,
+				  	`color` varchar(255) NULL
 				);";
 		$resql = $this->db->query($sql);
 
@@ -634,25 +634,25 @@ class modparcautomobile extends DolibarrModules
 		(5, 'Profilé', '#000000'),
 		(6, 'Camion', '#004080'),
 		(7, 'Remorque', '#ff8000');";
-
+		
 		$resql = $this->db->query($sql);
 
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."marques` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`label` varchar(255) NULL,
-					`logo` varchar(255) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`label` varchar(255) NULL,
+				  	`logo` varchar(255) NULL
 				);";
 		$resql = $this->db->query($sql);
-
+		
 		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."modeles` (
-					`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					`label` varchar(255) NULL,
-					`marque` int(11) NULL
+				  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				  	`label` varchar(255) NULL,
+				  	`marque` int(11) NULL
 				);";
 		$resql = $this->db->query($sql);
 
 		// // $result=$this->_load_tables('/parcautomobile/sql/');
-		return $this->_init($sqlm, $options);
+		return $this->_init($sqlm, $options);	
 	}
 
 	/**
@@ -668,7 +668,7 @@ class modparcautomobile extends DolibarrModules
 		$sql = array();
 
 		if (!dolibarr_get_const($this->db,'PARCAUTOMOBILE_MRSTANLEY_MODULETEST',0)){
-
+		
 			$resql = $this->db->query("DROP TABLE `".MAIN_DB_PREFIX."parc`");
 			$resql = $this->db->query("DROP TABLE `".MAIN_DB_PREFIX."vehiculeparc`");
 			$resql = $this->db->query("DROP TABLE `".MAIN_DB_PREFIX."kilometrage`");

@@ -1,5 +1,5 @@
-<?php
-require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
+<?php 
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php'; 
 require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT .'/product/stock/class/mouvementstock.class.php';
 
@@ -7,7 +7,7 @@ require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 dol_include_once('/parcautomobile/class/vehiculeparc.class.php');
 require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
 
-class interventions_parc extends Commonobject{
+class interventions_parc extends Commonobject{ 
 
 	public $errors = array();
 	public $rowid;
@@ -25,12 +25,12 @@ class interventions_parc extends Commonobject{
 
 	public $element='interventions_parc';
 	public $table_element='interventions_parc';
-
-	public function __construct($db){
+	
+	public function __construct($db){ 
 		$this->db = $db;
 		return 1;
     }
-
+   
     public function checkInterventionsMails()
 	{
 		global $conf, $langs;
@@ -43,28 +43,28 @@ class interventions_parc extends Commonobject{
 		$diffday = 0;
 
 		$nbd = 7;
-	    if(!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_DAYS_BEFORE))
+	    if(!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_DAYS_BEFORE)) 
 	        $nbd = $conf->global->PARCAUTOMOBILE_INTERVENTION_EMAIL_DAYS_BEFORE;
 
 	    if(!empty($conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL)){
 
 		    $societename = '';
 		    if(!empty($conf->global->MAIN_INFO_SOCIETE_NOM))
-			$societename = $conf->global->MAIN_INFO_SOCIETE_NOM;
+		    	$societename = $conf->global->MAIN_INFO_SOCIETE_NOM;
 
 		    if($conf->parcautomobile->enabled){
 
-			$body = '';
-			$frlng = 0;
-			$lgs = explode("_", $conf->global->MAIN_LANG_DEFAULT);
-			if (isset($lgs[0]) && $lgs[0] == 'fr'){
-				$frlng = 1;
-			}
+		    	$body = '';
+		    	$frlng = 0;
+		    	$lgs = explode("_", $conf->global->MAIN_LANG_DEFAULT);
+		    	if (isset($lgs[0]) && $lgs[0] == 'fr'){
+		    		$frlng = 1;
+		    	}
 
-
+		    	
 
 				$title = html_entity_decode("Monitoring intervention on vehicle");
-			if($frlng) $title = html_entity_decode("Suivi d'intervention sur véhicule");
+		    	if($frlng) $title = html_entity_decode("Suivi d'intervention sur véhicule");
 
 			    if (count($this->rows) > 0) {
 					for ($i=0; $i < count($this->rows) ; $i++) {
@@ -77,7 +77,7 @@ class interventions_parc extends Commonobject{
 					        $datevalid=$date2[2].'/'.$date2[1].'/'.$date2[0];
 							$vehicules = new vehiculeparc($this->db);
 							$vehicules->fetch($item->vehicule);
-
+							
 							if(!empty($vehicules->sendmail)){
 
 								$diffday = $this->calculateDatesBetween($item->datevalidate, $datenow);
@@ -89,17 +89,17 @@ class interventions_parc extends Commonobject{
 									$body = "Hello,<br><br>";
 									$body .= "We inform you that there are only <b>__RESTEDAYS__</b> __NBRDAYS__ left before the validity date (__VALIDATEDAY__) of intervention number <b>__REFOFINTERV__</b> of the vehicle <b>__VEHICULEINFO__</b>.<br><br>";
 									$body .= "Best regards,<br>";
-
-								if($frlng){
+									
+							    	if($frlng){
 										$body = "Bonjour,<br><br>";
 										$body .= "Nous vous informons qu'il ne reste que <b>__RESTEDAYS__</b> __NBRDAYS__ avant la date de validité (__VALIDATEDAY__) de l'intervention numéro <b>__REFOFINTERV__</b> du véhicule <b>__VEHICULEINFO__</b>.<br><br>";
 										$body .= "Bien Cordialement,<br>";
-								}
+							    	}
 
 									// echo $body."<br>";
-								if(!empty($societename)) $body .= $societename."<br>";
+							    	if(!empty($societename)) $body .= $societename."<br>";
 
-
+									
 
 									$item->substitutionarray['__RESTEDAYS__'] = ($diffday*-1);
 
@@ -122,15 +122,15 @@ class interventions_parc extends Commonobject{
 									$body .= "We inform you that the validity date (__VALIDATEDAY__) of intervention number <b>__REFOFINTERV__</b> of the vehicle <b>__VEHICULEINFO__</b> has expired <b>__RESTEDAYS__</b> __NBRDAYS__ ago.<br><br>";
 									$body .= "Best regards,<br>";
 
-								if ($frlng){
+							    	if ($frlng){
 										$body = "Bonjour,<br><br>";
 										$body .= "Nous vous informons que la date de validité (__VALIDATEDAY__) de l'intervention numéro <b>__REFOFINTERV__</b> du véhicule <b>__VEHICULEINFO__</b> est expiré depuis <b>__RESTEDAYS__</b> __NBRDAYS__.<br><br>";
 										$body .= "Bien Cordialement,<br>";
-								}
-								// echo $body."<br>";
-								if(!empty($societename)) $body .= $societename."<br>";
+							    	}
+							    	// echo $body."<br>";
+							    	if(!empty($societename)) $body .= $societename."<br>";
 
-
+									
 
 									$item->substitutionarray['__RESTEDAYS__'] = ($diffday*1);
 
@@ -147,23 +147,23 @@ class interventions_parc extends Commonobject{
 
 									$mail = $this->sendMailToAdmin($item,$title,$body);
 
-
+			
 								}
 								elseif($diffday == 0){
 									$body = "Hello,<br><br>";
 									$body .= "We inform you that the end of validity day (__VALIDATEDAY__) of intervention number <b>__REFOFINTERV__</b> of the vehicle <b>__VEHICULEINFO__</b> has been reached.<br><br>";
 									$body .= "Best regards,<br>";
 
-								if ($frlng){
+							    	if ($frlng){
 										$body = "Bonjour,<br><br>";
 										$body .= "Nous vous informons que le jour de fin de validité (__VALIDATEDAY__) de l'intervention numéro <b>__REFOFINTERV__</b> du véhicule <b>__VEHICULEINFO__</b> est atteint.<br><br>";
 										$body .= "Bien Cordialement,<br>";
-								}
-								// echo $body."<br>";
-								if(!empty($societename)) $body .= $societename."<br>";
+							    	}
+							    	// echo $body."<br>";
+							    	if(!empty($societename)) $body .= $societename."<br>";
 
-								// echo $body;die;
-
+							    	// echo $body;die;
+									
 
 									$item->substitutionarray['__VALIDATEDAY__'] = $datevalid;
 									$item->substitutionarray['__REFOFINTERV__'] = '<a href="'.dol_buildpath('/parcautomobile/interventions_parc/card.php?id='.$item->rowid,2).'" target="_blank">#'.$item->rowid.'</a> ';
@@ -172,44 +172,44 @@ class interventions_parc extends Commonobject{
 
 									$mail = $this->sendMailToAdmin($item,$title,$body);
 
-
+			
 								}
 							}
-
+							
 						}
 
 					}
-				}
+				}	
 		    }
 	    }
-
-
+		
+		
 		return 0;
 
     }
 
     public function sendMailToAdmin($object, $title="", $body=""){
 
+    	
 
+    	global $langs, $conf;
 
-	global $langs, $conf;
+    	$langs->load('parcautomobile@parcautomobile');
 
-	$langs->load('parcautomobile@parcautomobile');
+    	$object->sujet = $title;
+    	$object->body = $body;
 
-	$object->sujet = $title;
-	$object->body = $body;
-
-	$socemail = "";
+    	$socemail = "";
 		if($conf->global->MAIN_INFO_SOCIETE_MAIL)
 			$socemail = $conf->global->MAIN_INFO_SOCIETE_MAIL;
 
 		if(!empty($socemail)){
 
-		$object->email_from = $socemail;
-		$object->sendto = $socemail;
+	    	$object->email_from = $socemail;
+	    	$object->sendto = $socemail;
 
 
-		// Le message est-il en html
+	    	// Le message est-il en html
 			$msgishtml = -1; // Inconnu par defaut
 			if (preg_match('/[\s\t]*<html>/i', $object->body)) $msgishtml = 1;
 
@@ -254,18 +254,18 @@ class interventions_parc extends Commonobject{
 
 
     }
-
+    
 	public function calculateDatesBetween($start, $end)
 	{
 		$date1 = date_create($start);
 		$date2 = date_create($end);
 		$diff = date_diff($date1,$date2);
-
+		
 		$diffday = $diff->format("%R%a");
 		return $diffday;
     }
 
-
+	
 
 	public function create($echo_sql=0)
 	{
@@ -275,13 +275,13 @@ class interventions_parc extends Commonobject{
 		$sql.= " typeintervention, vehicule, acheteur, kilometrage, fournisseur, ref_facture, prix, date, service_inclus, notes, datevalidate, checkmail )";
 
 		$sql.= " VALUES (";
-		$sql.= ($this->typeintervention>0?$this->typeintervention:"null");
-		$sql.=  ", ".($this->vehicule>0?$this->vehicule:"null");
-		$sql.=  ", ".($this->acheteur>0?$this->acheteur:"null");
-		$sql.= ", ".($this->kilometrage>0?$this->kilometrage:"null");
-		$sql.= ", ".($this->fournisseur>0?$this->fournisseur:"null");
+		$sql.= ($this->typeintervention>0?$this->typeintervention:"null");	
+		$sql.=  ", ".($this->vehicule>0?$this->vehicule:"null");	
+		$sql.=  ", ".($this->acheteur>0?$this->acheteur:"null");	
+		$sql.= ", ".($this->kilometrage>0?$this->kilometrage:"null");	
+		$sql.= ", ".($this->fournisseur>0?$this->fournisseur:"null");	
 		$sql.= ", ".($this->ref_facture?"'".$this->db->escape($this->ref_facture)."' ":"null");
-		$sql.= ", ".($this->prix>0?$this->prix:"null");
+		$sql.= ", ".($this->prix>0?$this->prix:"null");	
         $sql .= ", ".($this->date != '' ? "'".$this->db->idate($this->date)."' " : 'null');
 		$sql.= ", ".($this->service_inclus?"'".$this->db->escape($this->service_inclus)."' ":"null");
 		$sql.= ", ".($this->notes?"'".$this->db->escape($this->notes)."'":"null");
@@ -302,7 +302,7 @@ class interventions_parc extends Commonobject{
 			// print_r($this->errors);
 			// die();
 			return 0;
-		}
+		} 
 		return $this->db->db->insert_id;
 	}
 
@@ -331,7 +331,7 @@ class interventions_parc extends Commonobject{
 		$sql .= ", checkmail = ".($this->checkmail? "'".$this->db->idate($this->checkmail)."'" :"null ");
 
 
-
+        
         $sql  = substr($sql, 0, -1);
         $sql .= " WHERE rowid = " . $id;
 
@@ -345,8 +345,8 @@ class interventions_parc extends Commonobject{
 			// print_r($this->errors);
 			// die();
 			return -1;
-
-		}
+			
+		} 
 		return 1;
 	}
 
@@ -371,7 +371,7 @@ class interventions_parc extends Commonobject{
 			// print_r($this->errors);
 			// die();
 			return 0;
-		}
+		} 
 		return $this->db->db->insert_id;
 	}
 
@@ -387,8 +387,8 @@ class interventions_parc extends Commonobject{
         if (count($data) && is_array($data))
             foreach ($data as $key => $value) {
 	            $val = is_numeric($value) ? $value : '"'. $value .'"';
-			$val = ($value == '') ? 'NULL' : $val;
-		$sql .= '`'. $key. '` = '. $val .',';
+	        	$val = ($value == '') ? 'NULL' : $val;
+            	$sql .= '`'. $key. '` = '. $val .',';
 	        }
 
         $sql  = substr($sql, 0, -1);
@@ -402,8 +402,8 @@ class interventions_parc extends Commonobject{
 			// print_r($this->errors);
 			// die();
 			return -1;
-
-		}
+			
+		} 
 		return 1;
 	}
 
@@ -413,7 +413,7 @@ class interventions_parc extends Commonobject{
 
 		$sql 	= 'DELETE FROM ' . MAIN_DB_PREFIX .get_class($this).' WHERE rowid = ' . $this->rowid;
 		$resql 	= $this->db->query($sql);
-
+		
         if ($resql)
         {
 	        $sql = "DELETE FROM ".MAIN_DB_PREFIX.$this->table_element."_extrafields";
@@ -422,8 +422,8 @@ class interventions_parc extends Commonobject{
 	        $resql = $this->db->query($sql);
 	        if (!$resql)
 	        {
-			$this->errors[] = $this->db->lasterror();
-			$error++;
+	        	$this->errors[] = $this->db->lasterror();
+	        	$error++;
 	        }
         }
 		if (!$resql) {
@@ -431,13 +431,13 @@ class interventions_parc extends Commonobject{
 			$this->errors[] = 'Error '.get_class($this).' : '.$this->db->lasterror();
 			print_r($this->errors);die();
 			return -1;
-		}
+		} 
 
 
 		return 1;
 	}
 
-
+    
 	public function fetchAllold($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '', $filtermode = 'AND')
 	{
 		dol_syslog(__METHOD__, LOG_DEBUG);
@@ -455,7 +455,7 @@ class interventions_parc extends Commonobject{
 			if($offset==1)
 				$sql .= " limit ".$limit;
 			else
-				$sql .= " limit ".$offset.",".$limit;
+				$sql .= " limit ".$offset.",".$limit;				
 		}
 		// die($sql);
 		$this->rows = array();
@@ -480,7 +480,7 @@ class interventions_parc extends Commonobject{
 				$line->fournisseur 		 =  $obj->fournisseur;
 				$line->kilometrage 		 =  $obj->kilometrage;
 				$line->service_inclus    =  $obj->service_inclus;
-
+				
                 // ....
 
 				$this->rows[] 	= $line;
@@ -503,13 +503,13 @@ class interventions_parc extends Commonobject{
 		$sql .= MAIN_DB_PREFIX .$this->table_element;
 
 		if (!empty($join)) {
-			$sql .= " ".$join;
+			$sql .= " ".$join; 
 		}
-
+		
 		if (!empty($filter)) {
 			$sql .= " WHERE 1>0 ".$filter;
 		}
-
+		
 		if (!empty($sortfield)) {
 			$sql .= $this->db->order($sortfield, $sortorder);
 		}
@@ -518,7 +518,7 @@ class interventions_parc extends Commonobject{
 			if($offset==1)
 				$sql .= " limit ".$limit;
 			else
-				$sql .= " limit ".$offset.",".$limit;
+				$sql .= " limit ".$offset.",".$limit;				
 		}
 
 		// echo $sql;
@@ -566,7 +566,7 @@ class interventions_parc extends Commonobject{
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
-
+			
 			if ($numrows) {
 				$obj 			  	     = $this->db->fetch_object($resql);
                 $this->id         	     = $obj->rowid;
@@ -584,7 +584,7 @@ class interventions_parc extends Commonobject{
 				$this->kilometrage 		 =  $obj->kilometrage;
 				$this->service_inclus   =  $obj->service_inclus;
 				$this->fetch_optionals();
-
+               	
                 // ....
 			}
 
@@ -613,9 +613,9 @@ class interventions_parc extends Commonobject{
 	    $moreforfilter.='<select width="100%" '.$attr.' class="flat" id="select_'.$id.'" name="'.$name.'">';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+    	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
+    	$resql = $this->db->query($sql);
 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -655,16 +655,16 @@ class interventions_parc extends Commonobject{
         $linkend = "";
         $result = "";
         if(!empty($this->ref)){
-		$ref=$this->ref;
+        	$ref=$this->ref;
         }else
-		$ref=$this->rowid;
+        	$ref=$this->rowid;
         if ($ref) {
             $linkstart = '<a href="'.$url.'"';
             $linkstart.=$linkclose.'>';
             $linkend='</a>';
 
             $result .= $linkstart;
-            if ($withpicto)
+            if ($withpicto) 
                 $result.= '<img height="16" src="'.DOL_URL_ROOT.'/postes/img/object_postes.png" >&nbsp;';
             if ($withpicto != 2) $result.= $ref;
         }
@@ -680,7 +680,7 @@ class interventions_parc extends Commonobject{
         $resql = $this->db->query($sql);
 
         if($resql){
-            while ($obj = $this->db->fetch_object($resql))
+            while ($obj = $this->db->fetch_object($resql)) 
             {
                 $tot = $obj->tot;
             }
@@ -689,7 +689,7 @@ class interventions_parc extends Commonobject{
     }
 
     public function getdateformat($date,$time=true){
-
+        
         $d = explode(' ', $date);
         $date = explode('-', $d[0]);
         $d2 = explode(':', $d[1]);
@@ -738,16 +738,16 @@ class interventions_parc extends Commonobject{
 	    $moreforfilter = '';
 	    $nodatarole = '';
 	    $id = (!empty($id)) ? $id : $name;
-
+	    
 	    $objet = "label";
 	    $moreforfilter.='<select class="flat" id="'.$id.'" name="'.$name.'" '.$nodatarole.'>';
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
-	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
-	$resql = $this->db->query($sql);
+    	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+    	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
-
+			
 			while ($obj = $this->db->fetch_object($resql)) {
 				$moreforfilter.='<option value="'.$obj->$val.'" data-ref="'.$obj->$opt.'"';
 	            if ($obj->$val == $selected) $moreforfilter.=' selected';
@@ -770,10 +770,10 @@ class interventions_parc extends Commonobject{
 		// $select.='<select class="flat" id="'.$id.'" name="'.$name.'" >';
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
-	$sql = "SELECT rowid ,ref,entity,label FROM ".MAIN_DB_PREFIX."product WHERE fk_product_type = 0";
+    	$sql = "SELECT rowid ,ref,entity,label FROM ".MAIN_DB_PREFIX."product WHERE fk_product_type = 0";
 		//echo $sql."<br>";
-	$resql = $this->db->query($sql);
-	$select.='<option value="0"></option>';
+    	$resql = $this->db->query($sql);
+    	$select.='<option value="0"></option>'; 
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
 			while ($obj = $this->db->fetch_object($resql)) {
@@ -800,9 +800,9 @@ class interventions_parc extends Commonobject{
         $q = $movement.trim($qte);
         $type=0;
         if($movement=="+"){
-		$type=1;
+        	$type=1;
         }
-
+        
         if($id_entrepot){
             $t=$mouvementstock->_create($user,$prod,$id_entrepot,$q,$type,0,'','');
         }
@@ -820,14 +820,14 @@ class interventions_parc extends Commonobject{
 		$postes = $this->fetchAll();
 		$nb=count($this->rows);
 		$select = '<select class="flat" id="select_'.$id.'" name="'.$name.'" >';
-		$select.='<option value="0">&nbsp;</option>';
-			for ($i=0; $i < $nb; $i++) {
+	    	$select.='<option value="0">&nbsp;</option>';
+			for ($i=0; $i < $nb; $i++) { 
 				$item=$this->rows[$i];
 				$select.='<option value="'.$item->rowid.'"';
 	            if ($item->rowid == $selected) $select.='selected';
 	            $select.='>'.$item->ref.'</option>';
 			}
-
+    	
 		$select.='</select>';
 		$select.='<script>$(function(){$("#select_'.$id.'").select2()})</script>';
 	    return $select;
@@ -840,11 +840,11 @@ class interventions_parc extends Commonobject{
 			$select.='<option value="Partiellement disponible">Partiellement disponible</option>';
 			$select.='<option value="Disponible">Disponible</option>';
 		$select .= '</select>';
-
+		
 		return $select;
 	}
-
-}
+	
+} 
 
 
 ?>

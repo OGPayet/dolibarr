@@ -43,7 +43,7 @@ class ActionsParcautomobile{
 		global $langs, $user, $confirm, $conf;
 
 		$error = 0; // Error counter
-
+		
 		$documents = new parcautomobile($this->db);
 		$langs->load('parcautomobile@parcautomobile');
 
@@ -56,7 +56,7 @@ class ActionsParcautomobile{
 		// print_r($parameters);
 		// $context = $parameters['currentcontext'];
 
-		// echo '<br>'.$context.'<br> <br>';
+	 	// echo '<br>'.$context.'<br> <br>';
 
 
 		// // print_r($user->rights->agenda->myactions->create);
@@ -72,7 +72,7 @@ class ActionsParcautomobile{
 
 		// // if($context == 'propallist' || $context == 'invoicelist' || $context == 'supplierinvoicelist')
 		// $_SESSION["parcautomobile"] = $context;
-
+		
 
 
 	}
@@ -91,7 +91,7 @@ class ActionsParcautomobile{
 	{
 	    $error = 0; // Error counter
 	    global $langs, $db, $conf, $user;
-
+	    
 	}
-
+	
 }

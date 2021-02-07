@@ -7,7 +7,7 @@
         $unite = GETPOST('unite');
         $date_=explode('/', GETPOST('date'));
         $date=$date_[2].'-'.$date_[1].'-'.$date_[0];
-
+        
         $object = new kilometrage($db);
         $max = $object->Max_kilometrage($vehicule);
 
@@ -17,7 +17,7 @@
         $object->date = $date;
         $ret = $extrafields->setOptionalsFromPost(null, $object);
         $avance = $object->create(1);
-
+        
         $object->fetch($avance);
         // If no SQL error we redirect to the request card
         if ($avance > 0 ) {
@@ -29,7 +29,7 @@
             }
             header('Location: ./card.php?id='. $avance.'');
             exit;
-        }
+        } 
         else {
             header('Location: card.php?action=request&error=SQL_Create&msg='.$recrutement->error);
             exit;
@@ -66,9 +66,9 @@
 
                 print '</tbody>';
             print '</table>';
-
+            
         if($extrafields->attributes[$object->table_element]['label']){
-            print '<div class="fichecenter">';
+            print '<div class="fichecenter">';    
                 print '<div class="topheaderrecrutmenus" style="text-align:left !important"><span>'.$langs->trans('champs_add').'</span></div>';
                 print '<div class="div_extrafield">';
                     print '<table class="noborder nc_table_" width="100%">';

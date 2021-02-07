@@ -1,7 +1,7 @@
-<?php
+<?php 
 $res=0;
 if (! $res && file_exists("../../main.inc.php")) $res=@include("../../main.inc.php");       // For root directory
-if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom"
+if (! $res && file_exists("../../../main.inc.php")) $res=@include("../../../main.inc.php"); // For "custom" 
 
 dol_include_once('/parcautomobile/class/typeintervention.class.php');
 dol_include_once('/core/class/html.form.class.php');
@@ -21,17 +21,17 @@ $page           = GETPOST('page');
 $id             = (int) ( (!empty($_GET['id'])) ? $_GET['id'] : GETPOST('id') ) ;
 
 $error  = false;
-if (!$user->rights->parcautomobile->gestion->consulter) {
+if (!$user->rights->parcautomobile->lire) {
     accessforbidden();
 }
 
 if(in_array($action, ["add","edit"])) {
-    if (!$user->rights->parcautomobile->gestion->update) {
+    if (!$user->rights->parcautomobile->creer) {
       accessforbidden();
     }
 }
 if($action == "delete") {
-    if (!$user->rights->parcautomobile->gestion->delete) {
+    if (!$user->rights->parcautomobile->supprimer) {
       accessforbidden();
     }
 
