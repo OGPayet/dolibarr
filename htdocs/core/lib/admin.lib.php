@@ -273,10 +273,11 @@ function run_sql($sqlfile, $silent = 1, $entity = '', $usesavepoint = 1, $handle
         if ($offsetforchartofaccount > 0)
         {
         	// Replace lines
-        	// 'INSERT INTO llx_accounting_account (__ENTITY__, rowid, fk_pcg_version, pcg_type, pcg_subtype, account_number, account_parent, label, active) VALUES (1401, 'PCG99-ABREGE','CAPIT', 'XXXXXX', '1', 0, '...', 1);'
+        	// 'INSERT INTO llx_accounting_account (entity, rowid, fk_pcg_version, pcg_type, account_number, account_parent, label, active) VALUES (__ENTITY__, 1401, 'PCG99-ABREGE', 'CAPIT', '1234', 1400, '...', 1);'
         	// with
-        	// 'INSERT INTO llx_accounting_account (__ENTITY__, rowid, fk_pcg_version, pcg_type, pcg_subtype, account_number, account_parent, label, active) VALUES (1401 + 200100000, 'PCG99-ABREGE','CAPIT', 'XXXXXX', '1', 0, '...', 1);'
-        	$newsql = preg_replace('/VALUES\s*\(__ENTITY__, \s*(\d+)\s*,(\s*\'[^\',]*\'\s*,\s*\'[^\',]*\'\s*,\s*\'[^\',]*\'\s*,\s*\'[^\',]*\'\s*),\s*\'?([^\',]*)\'?/ims', 'VALUES (__ENTITY__, \1 + '.$offsetforchartofaccount.', \2, \3 + '.$offsetforchartofaccount, $newsql);
+            // 'INSERT INTO llx_accounting_account (entity, rowid, fk_pcg_version, pcg_type, account_number, account_parent, label, active) VALUES (__ENTITY__, 1401 + 200100000, 'PCG99-ABREGE','CAPIT', '1234', 1400 + 200100000, '...', 1);'
+            // Note: string with 1234 instead of '1234' is also supported
+        	$newsql = preg_replace('/VALUES\s*\(__ENTITY__, \s*(\d+)\s*,(\s*\'[^\',]*\'\s*,\s*\'[^\',]*\'\s*,\s*\'?[^\',]*\'?\s*),\s*\'?([^\',]*)\'?/ims', 'VALUES (__ENTITY__, \1 + '.$offsetforchartofaccount.', \2, \3 + '.$offsetforchartofaccount, $newsql);
         	$newsql = preg_replace('/([,\s])0 \+ '.$offsetforchartofaccount.'/ims', '\1 0', $newsql);
         	//var_dump($newsql);
         	$arraysql[$i] = $newsql;
@@ -577,9 +578,9 @@ function modules_prepare_head()
 	$h = 0;
 	$head = array();
 
-	$head[$h][0] = DOL_URL_ROOT."/admin/modules.php?mode=common";
+	$head[$h][0] = DOL_URL_ROOT."/admin/modules.php?mode=commonkanban";
 	$head[$h][1] = $langs->trans("AvailableModules");
-	$head[$h][2] = 'common';
+	$head[$h][2] = 'commonkanban';
 	$h++;
 
 	$head[$h][0] = DOL_URL_ROOT."/admin/modules.php?mode=marketplace";
@@ -663,7 +664,7 @@ function security_prepare_head()
 
     $head[$h][0] = DOL_URL_ROOT."/admin/perms.php";
     $head[$h][1] = $langs->trans("DefaultRights");
-    if ($nbPerms > 0) $head[$h][1] .= '<span class="badge marginleftonlyshort">'.$nbPerms.'</span>';
+    if ($nbPerms > 0) $head[$h][1] .= (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER) ? '<span class="badge marginleftonlyshort">'.$nbPerms.'</span>' : '');
     $head[$h][2] = 'default';
     $h++;
 
@@ -720,14 +721,14 @@ function translation_prepare_head()
     $h = 0;
     $head = array();
 
-    $head[$h][0] = DOL_URL_ROOT."/admin/translation.php?mode=overwrite";
-    $head[$h][1] = $langs->trans("TranslationOverwriteKey").'<span class="fa fa-plus-circle valignmiddle paddingleft"></span>';
-    $head[$h][2] = 'overwrite';
-    $h++;
-
     $head[$h][0] = DOL_URL_ROOT."/admin/translation.php?mode=searchkey";
     $head[$h][1] = $langs->trans("TranslationKeySearch");
     $head[$h][2] = 'searchkey';
+    $h++;
+
+    $head[$h][0] = DOL_URL_ROOT."/admin/translation.php?mode=overwrite";
+    $head[$h][1] = $langs->trans("TranslationOverwriteKey").'<span class="fa fa-plus-circle valignmiddle paddingleft"></span>';
+    $head[$h][2] = 'overwrite';
     $h++;
 
     complete_head_from_modules($conf, $langs, null, $head, $h, 'translation_admin');
@@ -1379,9 +1380,14 @@ function complete_elementList_with_modules(&$elementList)
                             $dirmod[$i] = $dir;
                             //print "x".$modName." ".$orders[$i]."\n<br>";
 
-                            if (!empty($objMod->module_parts['contactelement']))
-                            {
-                            	$elementList[$objMod->name] = $langs->trans($objMod->name);
+                            if (!empty($objMod->module_parts['contactelement'])) {
+                            	if (is_array($objMod->module_parts['contactelement'])) {
+									foreach ($objMod->module_parts['contactelement'] as $elem => $title) {
+										$elementList[$elem] = $langs->trans($title);
+									}
+								} else {
+									$elementList[$objMod->name] = $langs->trans($objMod->name);
+								}
                             }
 
                             $j++;
@@ -1409,7 +1415,7 @@ function complete_elementList_with_modules(&$elementList)
  *
  *	@param	array	$tableau		Array of constants array('key'=>array('type'=>type, 'label'=>label)
  *									where type can be 'string', 'text', 'textarea', 'html', 'yesno', 'emailtemplate:xxx', ...
- *	@param	int		$strictw3c		0=Include form into table (deprecated), 1=Form is outside table to respect W3C (no form into table), 2=No form nor button at all (form is output by caller, recommanded)
+ *	@param	int		$strictw3c		0=Include form into table (deprecated), 1=Form is outside table to respect W3C (deprecated), 2=No form nor button at all (form is output by caller, recommended)
  *  @param  string  $helptext       Help
  *	@return	void
  */
@@ -1420,6 +1426,9 @@ function form_constantes($tableau, $strictw3c = 0, $helptext = '')
 
     $form = new Form($db);
 
+    if (empty($strictw3c)) {
+    	dol_syslog("Warning: Function form_constantes is calle with parameter strictw3c = 0, this is deprecated. Value must be 2 now.", LOG_DEBUG);
+    }
     if (!empty($strictw3c) && $strictw3c == 1)
     {
         print "\n".'<form action="'.$_SERVER["PHP_SELF"].'" method="POST">';
@@ -1584,12 +1593,13 @@ function form_constantes($tableau, $strictw3c = 0, $helptext = '')
 	                		//var_dump($modelmail);
 	                		$moreonlabel = '';
 	                		if (!empty($arrayofmessagename[$modelmail->label])) $moreonlabel = ' <span class="opacitymedium">('.$langs->trans("SeveralLangugeVariatFound").')</span>';
-	                		$arrayofmessagename[$modelmail->label] = $langs->trans(preg_replace('/\(|\)/', '', $modelmail->label)).$moreonlabel;
+	                		// The 'label' is the key that is unique if we exclude the language
+	                		$arrayofmessagename[$modelmail->label.':'.$tmp[1]] = $langs->trans(preg_replace('/\(|\)/', '', $modelmail->label)).$moreonlabel;
 	                	}
                 	}
                 	//var_dump($arraydefaultmessage);
                 	//var_dump($arrayofmessagename);
-                	print $form->selectarray('constvalue_'.$obj->name, $arrayofmessagename, $obj->value, 'None', 1, 0, '', 0, 0, 0, '', '', 1);
+                	print $form->selectarray('constvalue_'.$obj->name, $arrayofmessagename, $obj->value.':'.$tmp[1], 'None', 0, 0, '', 0, 0, 0, '', '', 1);
                 }
                 else	// type = 'string' ou 'chaine'
                 {
@@ -1780,7 +1790,9 @@ function company_admin_prepare_head()
 	$head[$h][2] = 'accountant';
 	$h++;
 
-	complete_head_from_modules($conf, $langs, null, $head, $h, 'company_admin', 'remove');
+	complete_head_from_modules($conf, $langs, null, $head, $h, 'mycompany_admin', 'add');
+
+	complete_head_from_modules($conf, $langs, null, $head, $h, 'mycompany_admin', 'remove');
 
 	return $head;
 }

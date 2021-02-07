@@ -7,7 +7,7 @@
  * Copyright (C) 2014      Cedric GROSS         <c.gross@kreiz-it.fr>
  * Copyright (C) 2015      Marcos García        <marcosgdf@gmail.com>
  * Copyright (C) 2017      Open-DSI             <support@open-dsi.fr>
- * Copyright (C) 2018       Frédéric France         <frederic.france@netlogic.fr>
+ * Copyright (C) 2018      Frédéric France      <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ if (empty($filtert) && empty($conf->global->AGENDA_ALL_CALENDARS))
 
 $sortfield = GETPOST("sortfield", 'alpha');
 $sortorder = GETPOST("sortorder", 'alpha');
-$page = GETPOST("page", "int");
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, or '' or -1
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
 $offset = $limit * $page;
@@ -430,7 +430,7 @@ if (!empty($conf->use_javascript_ajax))	// If javascript on
     $s .= '</script>'."\n";
 
 	// Local calendar
-	$s .= '<div class="nowrap clear inline-block minheight20"><input type="checkbox" id="check_mytasks" name="check_mytasks" checked disabled> '.$langs->trans("LocalAgenda").' &nbsp; </div>';
+	$s .= '<div class="nowrap inline-block minheight20"><input type="checkbox" id="check_mytasks" name="check_mytasks" checked disabled> '.$langs->trans("LocalAgenda").' &nbsp; </div>';
 
 	// External calendars
 	if (is_array($showextcals) && count($showextcals) > 0)
@@ -493,7 +493,7 @@ $sql .= ' a.datep2,';
 $sql .= ' a.percent,';
 $sql .= ' a.fk_user_author,a.fk_user_action,';
 $sql .= ' a.transparency, a.priority, a.fulldayevent, a.location,';
-$sql .= ' a.fk_soc, a.fk_contact,';
+$sql .= ' a.fk_soc, a.fk_contact, a.fk_project,';
 $sql .= ' a.fk_element, a.elementtype,';
 $sql .= ' ca.code as type_code, ca.libelle as type_label, ca.color as type_color';
 $sql .= ' FROM '.MAIN_DB_PREFIX.'c_actioncomm as ca, '.MAIN_DB_PREFIX."actioncomm as a";
@@ -608,7 +608,9 @@ if ($resql)
 
         // Create a new object action
         $event = new ActionComm($db);
+
         $event->id = $obj->id;
+        $event->ref = $event->id;
 
         $event->datep = $db->jdate($obj->datep); // datep and datef are GMT date. Example: 1970-01-01 01:00:00, jdate will return 0 if TZ of PHP server is Europe/Berlin
         $event->datef = $db->jdate($obj->datep2);
@@ -631,6 +633,8 @@ if ($resql)
         $event->transparency = $obj->transparency;
         $event->fk_element = $obj->fk_element;
         $event->elementtype = $obj->elementtype;
+
+        $event->fk_project = $obj->fk_project;
 
         $event->thirdparty_id = $obj->fk_soc;
         $event->contact_id = $obj->fk_contact;
@@ -718,7 +722,10 @@ if ($showbirthday)
         {
             $obj = $db->fetch_object($resql);
             $event = new ActionComm($db);
+
             $event->id = $obj->rowid; // We put contact id in action id for birthdays events
+            $event->ref = $event->id;
+
             $datebirth = dol_stringtotime($obj->birthday, 1);
             //print 'ee'.$obj->birthday.'-'.$datebirth;
             $datearray = dol_getdate($datebirth, true);
@@ -754,6 +761,96 @@ if ($showbirthday)
     else
     {
         dol_print_error($db);
+    }
+}
+
+if ($conf->global->AGENDA_SHOW_HOLIDAYS)
+{
+    $sql = "SELECT u.rowid as uid, u.lastname, u.firstname, u.statut, x.rowid, x.date_debut as date_start, x.date_fin as date_end, x.halfday, x.statut as status";
+    $sql .= " FROM ".MAIN_DB_PREFIX."holiday as x, ".MAIN_DB_PREFIX."user as u";
+    $sql .= " WHERE u.rowid = x.fk_user";
+    $sql .= " AND u.statut = '1'"; // Show only active users  (0 = inactive user, 1 = active user)
+    $sql .= " AND (x.statut = '2' OR x.statut = '3')"; // Show only public leaves (2 = leave wait for approval, 3 = leave approved)
+
+    if ($action == 'show_day')
+    {
+        // Request only leaves for the current selected day
+        $sql .= " AND '".$year."-".$month."-".$day."' BETWEEN x.date_debut AND x.date_fin";
+    }
+    elseif ($action == 'show_week')
+    {
+        // TODO: Add filter to reduce database request
+    }
+    elseif ($action == 'show_month')
+    {
+        // TODO: Add filter to reduce database request
+    }
+
+    $resql = $db->query($sql);
+    if ($resql)
+    {
+        $num = $db->num_rows($resql);
+        $i   = 0;
+
+        while ($i < $num)
+        {
+            $obj = $db->fetch_object($resql);
+
+            $dateStartArray = dol_getdate(dol_stringtotime($obj->date_start, 1), true);
+            $dateEndArray   = dol_getdate(dol_stringtotime($obj->date_end, 1), true);
+
+            $event = new ActionComm($db);
+
+            // Need the id of the leave object for link to it
+            $event->id                      = $obj->rowid;
+            $event->ref                     = $event->id;
+
+            $event->type_code               = 'HOLIDAY';
+            $event->datep                   = dol_mktime(0, 0, 0, $dateStartArray['mon'], $dateStartArray['mday'], $dateStartArray['year'], true);
+            $event->datef                   = dol_mktime(0, 0, 0, $dateEndArray['mon'], $dateEndArray['mday'], $dateEndArray['year'], true);
+            $event->date_start_in_calendar  = $event->datep;
+            $event->date_end_in_calendar    = $event->datef;
+
+            if ($obj->status == 3)
+            {
+                // Show no symbol for leave with state "leave approved"
+                $event->percentage = -1;
+            }
+            elseif ($obj->status == 2)
+            {
+                // Show TO-DO symbol for leave with state "leave wait for approval"
+                $event->percentage = 0;
+            }
+
+            if ($obj->halfday == 1)
+            {
+                $event->label = $obj->lastname.' ('.$langs->trans("Morning").')';
+            }
+            elseif ($obj->halfday == -1)
+            {
+                $event->label = $obj->lastname.' ('.$langs->trans("Afternoon").')';
+            }
+            else
+            {
+                $event->label = $obj->lastname;
+            }
+
+            $annee  = date('Y', $event->date_start_in_calendar);
+            $mois   = date('m', $event->date_start_in_calendar);
+            $jour   = date('d', $event->date_start_in_calendar);
+            $daykey = dol_mktime(0, 0, 0, $mois, $jour, $annee);
+
+            do
+            {
+                $eventarray[$daykey][] = $event;
+
+                $daykey += 60 * 60 * 24;
+            }
+
+            while ($daykey <= $event->date_end_in_calendar);
+
+            $i++;
+        }
     }
 }
 
@@ -947,6 +1044,8 @@ if (count($listofextcals))
                 if ($addevent)
                 {
                     $event->id = $icalevent['UID'];
+                    $event->ref = $event->id;
+
                     $event->icalname = $namecal;
                     $event->icalcolor = $colorcal;
                     $usertime = 0; // We dont modify date because we want to have date into memory datep and datef stored as GMT date. Compensation will be done during output.
@@ -1512,7 +1611,11 @@ function show_day_events($db, $day, $month, $year, $monthshown, $style, &$eventa
                     {
                         print $event->getNomUrl(1, $maxnbofchar, 'cal_event', 'birthday', 'contact');
                     }
-                    if ($event->type_code != 'BIRTHDAY')
+					elseif ($event->type_code == 'HOLIDAY')
+                    {
+                        print $event->getNomUrl(1, $maxnbofchar, 'cal_event', 'holiday', 'user');
+                    }
+                    elseif ($event->type_code != 'BIRTHDAY' && $event->type_code != 'HOLIDAY')
                     {
                         // Picto
                         if (empty($event->fulldayevent))
@@ -1533,7 +1636,7 @@ function show_day_events($db, $day, $month, $year, $monthshown, $style, &$eventa
                             // Hour start
                             if ($tmpyearstart == $annee && $tmpmonthstart == $mois && $tmpdaystart == $jour)
                             {
-                                $daterange .= dol_print_date($event->date_start_in_calendar, '%H:%M'); // Il faudrait utiliser ici tzuser, mais si on ne peut pas car qd on rentre un date dans fiche action, en input la conversion local->gmt se base sur le TZ server et non user
+                                $daterange .= dol_print_date($event->date_start_in_calendar, 'hour'); // Il faudrait utiliser ici tzuser, mais si on ne peut pas car qd on rentre un date dans fiche action, en input la conversion local->gmt se base sur le TZ server et non user
                                 if ($event->date_end_in_calendar && $event->date_start_in_calendar != $event->date_end_in_calendar)
                                 {
                                     if ($tmpyearstart == $tmpyearend && $tmpmonthstart == $tmpmonthend && $tmpdaystart == $tmpdayend)
@@ -1553,7 +1656,7 @@ function show_day_events($db, $day, $month, $year, $monthshown, $style, &$eventa
                             if ($event->date_end_in_calendar && $event->date_start_in_calendar != $event->date_end_in_calendar)
                             {
                                 if ($tmpyearend == $annee && $tmpmonthend == $mois && $tmpdayend == $jour)
-                                $daterange .= dol_print_date($event->date_end_in_calendar, '%H:%M'); // Il faudrait utiliser ici tzuser, mais si on ne peut pas car qd on rentre un date dans fiche action, en input la conversion local->gmt se base sur le TZ server et non user
+                                $daterange .= dol_print_date($event->date_end_in_calendar, 'hour'); // Il faudrait utiliser ici tzuser, mais si on ne peut pas car qd on rentre un date dans fiche action, en input la conversion local->gmt se base sur le TZ server et non user
                             }
                         }
                         else
@@ -1601,7 +1704,7 @@ function show_day_events($db, $day, $month, $year, $monthshown, $style, &$eventa
                         if ($event->type_code == 'ICALEVENT') print '<br>('.dol_trunc($event->icalname, $maxnbofchar).')';
 
                         $thirdparty_id = ($event->thirdparty_id > 0 ? $event->thirdparty_id : ((is_object($event->societe) && $event->societe->id > 0) ? $event->societe->id : 0));
-                        $contact_id = ($event->contact_id > 0 ? $event->contact_id : ((is_object($event->contact) && $event->cotact->id > 0) ? $event->contact->id : 0));
+                        $contact_id = ($event->contact_id > 0 ? $event->contact_id : ((is_object($event->contact) && $event->contact->id > 0) ? $event->contact->id : 0));
 
                         // If action related to company / contact
                         $linerelatedto = '';
@@ -1741,6 +1844,17 @@ function dol_color_minus($color, $minus, $minusunit = 16)
  */
 function sort_events_by_date($a, $b)
 {
+	// Sort holidays at first
+    if ($a->type_code === 'HOLIDAY')
+    {
+        return -1;
+    }
+
+    if ($b->type_code === 'HOLIDAY')
+    {
+        return 1;
+    }
+
     // datep => Event start time
     // datef => Event end time
 

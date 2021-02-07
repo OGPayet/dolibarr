@@ -455,16 +455,19 @@ if (($action == 'send' || $action == 'relance') && !$_POST['addfile'] && !$_POST
 						$object->email_subject = $subject;
 						$object->email_msgid = $mailfile->msgid;
 
-						// Call of triggers (you should have set $triggersendname to execute trigger. $trigger_name is deprcated)
+						// Call of triggers (you should have set $triggersendname to execute trigger. $trigger_name is deprecated)
 						if (!empty($triggersendname) || !empty($trigger_name))
 						{
-    						include_once DOL_DOCUMENT_ROOT.'/core/class/interfaces.class.php';
-    						$interface = new Interfaces($db);
-    						$result = $interface->run_triggers(empty($triggersendname) ? $trigger_name : $triggersendname, $object, $user, $langs, $conf);
-							if ($result < 0) {
-    							setEventMessages($interface->error, $interface->errors, 'errors');
+							// Call trigger
+							$result = $object->call_trigger(empty($triggersendname) ? $trigger_name : $triggersendname, $user);
+							if ($result < 0) $error++;
+							// End call triggers
+
+							if ($error) {
+								setEventMessages($object->error, $object->errors, 'errors');
     						}
 						}
+						// End call of triggers
 					}
 
 					// Redirect here
@@ -488,7 +491,12 @@ if (($action == 'send' || $action == 'relance') && !$_POST['addfile'] && !$_POST
 					}
 					else
 					{
-						$mesg .= 'No mail sent. Feature is disabled by option MAIN_DISABLE_ALL_MAILS';
+						$mesg .= $langs->transnoentities('ErrorFailedToSendMail', dol_escape_htmltag($from), dol_escape_htmltag($sendto));;
+						if (!empty($conf->global->MAIN_DISABLE_ALL_MAILS)) {
+							$mesg .= '<br>Feature is disabled by option MAIN_DISABLE_ALL_MAILS';
+						} else {
+							$mesg .= '<br>Unkown Error, please refers to your administrator';
+						}
 					}
 					$mesg .= '</div>';
 

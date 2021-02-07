@@ -195,6 +195,7 @@ $name = array();
 
 // Show array
 print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input type="hidden" name="token" value="'.newToken().'">'."\n";
 // Extra parameters management
 foreach ($headerparams as $key => $value)
 {
@@ -235,6 +236,9 @@ if ($socid) $sql .= " AND f.fk_soc = ".$socid;
 $sql .= " GROUP BY u.rowid, u.lastname, u.firstname";
 $sql .= " ORDER BY u.rowid";
 
+$amount = array();
+
+dol_syslog("cabyuser", LOG_DEBUG);
 $result = $db->query($sql);
 if ($result) {
     $num = $db->num_rows($result);
@@ -461,7 +465,7 @@ if (count($amount)) {
     print '<tr class="liste_total">';
     print '<td>'.$langs->trans("Total").'</td>';
     if ($modecompta != 'CREANCES-DETTES') {
-        print '<td colspan="1"></td>';
+        print '<td></td>';
     } else {
         print '<td class="right">'.price($catotal_ht).'</td>';
     }

@@ -22,7 +22,7 @@
  *	\brief      File of predefined functions for HTML forms for order module
  */
 
-require_once DOL_DOCUMENT_ROOT .'/core/class/html.form.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 
 /**
  *	Class to manage HTML output components for orders
@@ -62,7 +62,10 @@ class FormOrder extends Form
 		    $options[$value] = $tmpsupplierorder->getLibStatut($short);
 	    }
 
-	    print Form::selectarray($hmlname, $options, $selected, 1);
+	    if (is_array($selected)) $selectedarray = $selected;
+	    else $selectedarray = explode(',', $selected);
+
+	    print Form::multiselectarray($hmlname, $options, $selectedarray, 0);
     }
 
 	/**
@@ -78,14 +81,14 @@ class FormOrder extends Form
 	{
 		global $langs;
 
-        $listofmethods=array();
+        $listofmethods = array();
 
 		$sql = "SELECT rowid, code, libelle as label";
-		$sql.= " FROM ".MAIN_DB_PREFIX."c_input_method";
-		$sql.= " WHERE active = 1";
+		$sql .= " FROM ".MAIN_DB_PREFIX."c_input_method";
+		$sql .= " WHERE active = 1";
 
 		dol_syslog(get_class($this)."::selectInputMethod", LOG_DEBUG);
-		$resql=$this->db->query($sql);
+		$resql = $this->db->query($sql);
 
 		if (!$resql) {
 			dol_print_error($this->db);

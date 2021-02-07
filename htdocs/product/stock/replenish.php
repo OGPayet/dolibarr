@@ -66,7 +66,7 @@ $texte = '';
 
 $sortfield = GETPOST('sortfield', 'alpha');
 $sortorder = GETPOST('sortorder', 'alpha');
-$page = GETPOST('page', 'int');
+$page = GETPOSTISSET('pageplusone') ? (GETPOST('pageplusone') - 1) : GETPOST("page", 'int');
 if (empty($page) || $page == -1) { $page = 0; }     // If $page is not defined, or '' or -1
 $limit = GETPOST('limit', 'int') ?GETPOST('limit', 'int') : $conf->liste_limit;
 $offset = $limit * $page;
@@ -82,10 +82,11 @@ if (!$sortorder) {
 // Define virtualdiffersfromphysical
 $virtualdiffersfromphysical = 0;
 if (!empty($conf->global->STOCK_CALCULATE_ON_SHIPMENT)
-|| !empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER)
-|| !empty($conf->global->STOCK_CALCULATE_ON_SHIPMENT_CLOSE)
-|| !empty($conf->global->STOCK_CALCULATE_ON_RECEPTION)
-|| !empty($conf->global->STOCK_CALCULATE_ON_RECEPTION_CLOSE))
+	|| !empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER)
+	|| !empty($conf->global->STOCK_CALCULATE_ON_SHIPMENT_CLOSE)
+	|| !empty($conf->global->STOCK_CALCULATE_ON_RECEPTION)
+	|| !empty($conf->global->STOCK_CALCULATE_ON_RECEPTION_CLOSE)
+	|| !empty($conf->mrp->enabled))
 {
     $virtualdiffersfromphysical = 1; // According to increase/decrease stock options, virtual and physical stock may differs.
 }
@@ -98,6 +99,7 @@ $parameters = array();
 $reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 
+
 /*
  * Actions
  */
@@ -106,7 +108,7 @@ if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x'
 {
     $sref = '';
     $snom = '';
-    $sal = '';
+    $sall = '';
     $salert = '';
 	$draftorder = '';
 }
@@ -160,7 +162,7 @@ if ($action == 'order' && isset($_POST['valid']))
 							$desc = $productsupplier->description;
 						}
 	                    $line->desc = $desc;
-                        if (! empty($conf->global->MAIN_MULTILANGS))
+                        if (!empty($conf->global->MAIN_MULTILANGS))
                         {
                             // TODO Get desc in language of thirdparty
                         }
@@ -303,7 +305,6 @@ if (!empty($conf->global->STOCK_ALLOW_ADD_LIMIT_STOCK_BY_WAREHOUSE) && $fk_entre
 	$sqlalertstock = 'p.seuil_stock_alerte';
 }
 
-
 $sql = 'SELECT p.rowid, p.ref, p.label, p.description, p.price,';
 $sql .= ' p.price_ttc, p.price_base_type,p.fk_product_type,';
 $sql .= ' p.tms as datem, p.duration, p.tobuy,';
@@ -362,8 +363,8 @@ $sql .= ', s.fk_product';
 
 if ($usevirtualstock)
 {
-	if (! empty($conf->commande->enabled)) {
-		$sqlCommandesCli = "(SELECT ".$db->ifsql("SUM(cd1.qty) IS NULL", "0", "SUM(cd1.qty)")." as qty";	// We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
+	if (!empty($conf->commande->enabled)) {
+		$sqlCommandesCli = "(SELECT ".$db->ifsql("SUM(cd1.qty) IS NULL", "0", "SUM(cd1.qty)")." as qty"; // We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
 		$sqlCommandesCli .= " FROM ".MAIN_DB_PREFIX."commandedet as cd1, ".MAIN_DB_PREFIX."commande as c1";
 		$sqlCommandesCli .= " WHERE c1.rowid = cd1.fk_commande AND c1.entity IN (".getEntity('commande').")";
 		$sqlCommandesCli .= " AND cd1.fk_product = p.rowid";
@@ -372,8 +373,8 @@ if ($usevirtualstock)
 		$sqlCommandesCli = '0';
 	}
 
-	if (! empty($conf->expedition->enabled)) {
-		$sqlExpeditionsCli = "(SELECT ".$db->ifsql("SUM(ed2.qty) IS NULL", "0", "SUM(ed2.qty)")." as qty";	// We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
+	if (!empty($conf->expedition->enabled)) {
+		$sqlExpeditionsCli = "(SELECT ".$db->ifsql("SUM(ed2.qty) IS NULL", "0", "SUM(ed2.qty)")." as qty"; // We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
 		$sqlExpeditionsCli .= " FROM ".MAIN_DB_PREFIX."expedition as e2,";
 		$sqlExpeditionsCli .= " ".MAIN_DB_PREFIX."expeditiondet as ed2,";
                 $sqlExpeditionsCli .= " ".MAIN_DB_PREFIX."commande as c2,";
@@ -387,8 +388,8 @@ if ($usevirtualstock)
 		$sqlExpeditionsCli = '0';
 	}
 
-	if (! empty($conf->fournisseur->enabled)) {
-		$sqlCommandesFourn = "(SELECT ".$db->ifsql("SUM(cd3.qty) IS NULL", "0", "SUM(cd3.qty)")." as qty";	// We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
+	if (!empty($conf->fournisseur->enabled)) {
+		$sqlCommandesFourn = "(SELECT ".$db->ifsql("SUM(cd3.qty) IS NULL", "0", "SUM(cd3.qty)")." as qty"; // We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
 		$sqlCommandesFourn .= " FROM ".MAIN_DB_PREFIX."commande_fournisseurdet as cd3,";
 		$sqlCommandesFourn .= " ".MAIN_DB_PREFIX."commande_fournisseur as c3";
 		$sqlCommandesFourn .= " WHERE c3.rowid = cd3.fk_commande";
@@ -396,7 +397,7 @@ if ($usevirtualstock)
 		$sqlCommandesFourn .= " AND cd3.fk_product = p.rowid";
 		$sqlCommandesFourn .= " AND c3.fk_statut IN (3,4))";
 
-		$sqlReceptionFourn = "(SELECT ".$db->ifsql("SUM(fd4.qty) IS NULL", "0", "SUM(fd4.qty)")." as qty";	// We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
+		$sqlReceptionFourn = "(SELECT ".$db->ifsql("SUM(fd4.qty) IS NULL", "0", "SUM(fd4.qty)")." as qty"; // We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
 		$sqlReceptionFourn .= " FROM ".MAIN_DB_PREFIX."commande_fournisseur as cf4,";
 		$sqlReceptionFourn .= " ".MAIN_DB_PREFIX."commande_fournisseur_dispatch as fd4";
 		$sqlReceptionFourn .= " WHERE fd4.fk_commande = cf4.rowid AND cf4.entity IN (".getEntity('supplier_order').")";
@@ -407,8 +408,8 @@ if ($usevirtualstock)
 		$sqlReceptionFourn = '0';
 	}
 
-	if (! empty($conf->mrp->enabled)) {
-		$sqlProductionToConsume = "(SELECT GREATEST(0, ".$db->ifsql("SUM(".$db->ifsql("mp5.role = 'toconsume'", 'mp5.qty', '- mp5.qty').") IS NULL", "0", "SUM(".$db->ifsql("mp5.role = 'toconsume'", 'mp5.qty', '- mp5.qty').")").") as qty";	// We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
+	if (!empty($conf->mrp->enabled)) {
+		$sqlProductionToConsume = "(SELECT GREATEST(0, ".$db->ifsql("SUM(".$db->ifsql("mp5.role = 'toconsume'", 'mp5.qty', '- mp5.qty').") IS NULL", "0", "SUM(".$db->ifsql("mp5.role = 'toconsume'", 'mp5.qty', '- mp5.qty').")").") as qty"; // We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
 		$sqlProductionToConsume .= " FROM ".MAIN_DB_PREFIX."mrp_mo as mm5,";
 		$sqlProductionToConsume .= " ".MAIN_DB_PREFIX."mrp_production as mp5";
 		$sqlProductionToConsume .= " WHERE mm5.rowid = mp5.fk_mo AND mm5.entity IN (".getEntity('mo').")";
@@ -416,7 +417,7 @@ if ($usevirtualstock)
 		$sqlProductionToConsume .= " AND mp5.role IN ('toconsume', 'consummed')";
 		$sqlProductionToConsume .= " AND mm5.status IN (1,2))";
 
-		$sqlProductionToProduce = "(SELECT GREATEST(0, ".$db->ifsql("SUM(".$db->ifsql("mp5.role = 'toproduce'", 'mp5.qty', '- mp5.qty').") IS NULL", "0", "SUM(".$db->ifsql("mp5.role = 'toconsume'", 'mp5.qty', '- mp5.qty').")").") as qty";	// We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
+		$sqlProductionToProduce = "(SELECT GREATEST(0, ".$db->ifsql("SUM(".$db->ifsql("mp5.role = 'toproduce'", 'mp5.qty', '- mp5.qty').") IS NULL", "0", "SUM(".$db->ifsql("mp5.role = 'toconsume'", 'mp5.qty', '- mp5.qty').")").") as qty"; // We need the ifsql because if result is 0 for product p.rowid, we must return 0 and not NULL
 		$sqlProductionToProduce .= " FROM ".MAIN_DB_PREFIX."mrp_mo as mm5,";
 		$sqlProductionToProduce .= " ".MAIN_DB_PREFIX."mrp_production as mp5";
 		$sqlProductionToProduce .= " WHERE mm5.rowid = mp5.fk_mo AND mm5.entity IN (".getEntity('mo').")";
@@ -489,11 +490,14 @@ $head[1][1] = $langs->trans("ReplenishmentOrders");
 $head[1][2] = 'replenishorders';
 
 
-print load_fiche_titre($langs->trans('Replenishment'), '', 'generic');
+print load_fiche_titre($langs->trans('Replenishment'), '', 'stock');
 
 dol_fiche_head($head, 'replenish', '', -1, '');
 
-print $langs->trans("ReplenishmentStatusDesc").'<br>'."\n";
+print '<span class="opacitymedium">'.$langs->trans("ReplenishmentStatusDesc").'</span><br>'."\n";
+if (empty($fk_warhouse) && !empty($conf->global->STOCK_ALLOW_ADD_LIMIT_STOCK_BY_WAREHOUSE)) {
+	print '<span class="opacitymedium">'.$langs->trans("ReplenishmentStatusDescPerWarehouse").'</span>'."<br>\n";
+}
 if ($usevirtualstock == 1)
 {
 	print $langs->trans("CurentSelectionMode").': ';
@@ -591,16 +595,16 @@ if (!empty($conf->global->STOCK_ALLOW_ADD_LIMIT_STOCK_BY_WAREHOUSE) && $fk_entre
 {
 	$stocklabel .= ' ('.$langs->trans("AllWarehouses").')';
 }
-print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST" name="formulaire">'.
-	'<input type="hidden" name="token" value="'.newToken().'">'.
-	'<input type="hidden" name="fk_supplier" value="'.$fk_supplier.'">'.
-	'<input type="hidden" name="fk_entrepot" value="'.$fk_entrepot.'">'.
-	'<input type="hidden" name="sortfield" value="'.$sortfield.'">'.
-	'<input type="hidden" name="sortorder" value="'.$sortorder.'">'.
-	'<input type="hidden" name="type" value="'.$type.'">'.
-	'<input type="hidden" name="linecount" value="'.$num.'">'.
-	'<input type="hidden" name="action" value="order">'.
-	'<input type="hidden" name="mode" value="'.$mode.'">';
+print '<form action="'.$_SERVER["PHP_SELF"].'" method="POST" name="formulaire">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
+print '<input type="hidden" name="fk_supplier" value="'.$fk_supplier.'">';
+print '<input type="hidden" name="fk_entrepot" value="'.$fk_entrepot.'">';
+print '<input type="hidden" name="sortfield" value="'.$sortfield.'">';
+print '<input type="hidden" name="sortorder" value="'.$sortorder.'">';
+print '<input type="hidden" name="type" value="'.$type.'">';
+print '<input type="hidden" name="linecount" value="'.$num.'">';
+print '<input type="hidden" name="action" value="order">';
+print '<input type="hidden" name="mode" value="'.$mode.'">';
 
 // Fields title search
 print '<tr class="liste_titre_filter">';
@@ -706,7 +710,7 @@ while ($i < ($limit ? min($num, $limit) : $num))
 		//depending on conf, use either physical stock or
 		//virtual stock to compute the stock to buy value
 
-		if(empty($usevirtualstock)) $stocktobuy = max(max($desiredstock, $alertstock) - $stock - $ordered, 0);
+		if (empty($usevirtualstock)) $stocktobuy = max(max($desiredstock, $alertstock) - $stock - $ordered, 0);
 		else $stocktobuy = max(max($desiredstock, $alertstock) - $stock, 0); //ordered is already in $stock in virtual mode
 
 		$disabled = '';
@@ -762,7 +766,7 @@ while ($i < ($limit ? min($num, $limit) : $num))
 		print '<td class="right">'.$warning.$stock.'</td>';
 
 		// Already ordered
-		print '<td class="right"><a href="replenishorders.php?sproduct='.$prod->id.'">'.$ordered.'</a> '.$picto.'</td>';
+		print '<td class="right"><a href="replenishorders.php?search_product='.$prod->id.'">'.$ordered.'</a> '.$picto.'</td>';
 
 		// To order
 		//print '<td class="right"><input type="text" name="tobuy'.$i.'" value="'.$stocktobuy.'" '.$disabled.'></td>';

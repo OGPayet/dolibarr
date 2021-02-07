@@ -23,8 +23,8 @@
  */
 
 // Define size of logo small and mini
-$maxwidthsmall = 270; $maxheightsmall = 150;
-$maxwidthmini = 128; $maxheightmini = 72;
+$maxwidthsmall = 350; $maxheightsmall = 200; // Near 16/9eme
+$maxwidthmini = 128; $maxheightmini = 72; // 16/9eme
 $quality = 80;
 
 
@@ -33,11 +33,17 @@ $quality = 80;
  *      Return if a filename is file name of a supported image format
  *
  *      @param	string	$file       Filename
+ *      @param	int		$acceptsvg	0=Default (depends on setup), 1=Always accept SVG as image files
  *      @return int         		-1=Not image filename, 0=Image filename but format not supported for conversion by PHP, 1=Image filename with format supported by this PHP
  */
-function image_format_supported($file)
+function image_format_supported($file, $acceptsvg = 0)
 {
-    $regeximgext = '\.gif|\.jpg|\.jpeg|\.png|\.bmp|\.xpm|\.xbm|\.svg'; // See also into product.class.php
+	global $conf;
+
+    $regeximgext = '\.gif|\.jpg|\.jpeg|\.png|\.bmp|\.webp|\.xpm|\.xbm'; // See also into product.class.php
+    if ($acceptsvg || ! empty($conf->global->MAIN_ALLOW_SVG_FILES_AS_IMAGES)) {
+    	$regeximgext .= '|\.svg';		// Not allowed by default. SVG can contains javascript
+    }
 
     // Case filename is not a format image
     $reg = array();
@@ -46,10 +52,11 @@ function image_format_supported($file)
     // Case filename is a format image but not supported by this PHP
     $imgfonction = '';
     if (strtolower($reg[1]) == '.gif')  $imgfonction = 'imagecreatefromgif';
-    if (strtolower($reg[1]) == '.png')  $imgfonction = 'imagecreatefrompng';
     if (strtolower($reg[1]) == '.jpg')  $imgfonction = 'imagecreatefromjpeg';
     if (strtolower($reg[1]) == '.jpeg') $imgfonction = 'imagecreatefromjpeg';
+    if (strtolower($reg[1]) == '.png')  $imgfonction = 'imagecreatefrompng';
     if (strtolower($reg[1]) == '.bmp')  $imgfonction = 'imagecreatefromwbmp';
+    if (strtolower($reg[1]) == '.webp')  $imgfonction = 'imagecreatefromwebp';
     if (strtolower($reg[1]) == '.xpm')  $imgfonction = 'imagecreatefromxpm';
     if (strtolower($reg[1]) == '.xbm')  $imgfonction = 'imagecreatefromxbm';
     if (strtolower($reg[1]) == '.svg')  $imgfonction = 'imagecreatefromsvg'; // Never available
@@ -60,10 +67,12 @@ function image_format_supported($file)
             // Fonctions of conversion not available in this PHP
             return 0;
         }
+
+        // Filename is a format image and supported for conversion by this PHP
+        return 1;
     }
 
-    // Filename is a format image and supported for conversion by this PHP
-    return 1;
+    return 0;
 }
 
 
@@ -180,6 +189,9 @@ function dol_imageResizeOrCrop($file, $mode, $newWidth, $newHeight, $src_x = 0, 
 		case 4:	// IMG_WBMP
 			$imgfonction = 'imagecreatefromwbmp';
 			break;
+		case 17:	// IMG_WBMP
+			$imgfonction = 'imagecreatefromwebp';
+			break;
 	}
 	if ($imgfonction)
 	{
@@ -212,6 +224,11 @@ function dol_imageResizeOrCrop($file, $mode, $newWidth, $newHeight, $src_x = 0, 
 			$img = imagecreatefromwbmp($filetoread);
 			$extImg = '.bmp';
 			$newquality = 'NU'; // Quality is not used for this format
+			break;
+		case 18: // Webp
+			$img = imagecreatefromwebp($filetoread);
+			$extImg = '.webp';
+			$newquality = '100'; // % quality maximum
 			break;
 	}
 
@@ -255,6 +272,9 @@ function dol_imageResizeOrCrop($file, $mode, $newWidth, $newHeight, $src_x = 0, 
 		case 4:	// Bmp
 			$trans_colour = imagecolorallocatealpha($imgThumb, 255, 255, 255, 0);
 			break;
+		case 18: // Webp
+			$trans_colour = imagecolorallocatealpha($imgThumb, 255, 255, 255, 127);
+			break;
 	}
 	if (function_exists("imagefill")) imagefill($imgThumb, 0, 0, $trans_colour);
 
@@ -282,6 +302,9 @@ function dol_imageResizeOrCrop($file, $mode, $newWidth, $newHeight, $src_x = 0, 
 			break;
 		case 4:	// Bmp
 			imagewbmp($imgThumb, $imgThumbName);
+			break;
+		case 18: // Webp
+			imagewebp($imgThumb, $imgThumbName, $newquality);
 			break;
 	}
 
@@ -328,7 +351,7 @@ function correctExifImageOrientation($fileSource, $fileDest, $quality = 95)
 			$infoImg = getimagesize($fileSource); // Get image infos
 
 			$orientation = $exif['Orientation'];
-			if($orientation != 1){
+			if ($orientation != 1) {
 				$img = imagecreatefromjpeg($fileSource);
 				$deg = 0;
 				switch ($orientation) {
@@ -413,42 +436,42 @@ function vignette($file, $maxWidth = 160, $maxHeight = 120, $extName = '_small',
 {
 	require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
-	global $conf,$langs;
+	global $conf, $langs;
 
 	dol_syslog("vignette file=".$file." extName=".$extName." maxWidth=".$maxWidth." maxHeight=".$maxHeight." quality=".$quality." outdir=".$outdir." targetformat=".$targetformat);
 
 	// Clean parameters
-	$file=trim($file);
+	$file = trim($file);
 
 	// Check parameters
-	if (! $file)
+	if (!$file)
 	{
 		// Si le fichier n'a pas ete indique
 		return 'ErrorBadParameters';
 	}
-	elseif (! file_exists($file))
+	elseif (!file_exists($file))
 	{
 		// Si le fichier passe en parametre n'existe pas
         dol_syslog($langs->trans("ErrorFileNotFound", $file), LOG_ERR);
 	    return $langs->trans("ErrorFileNotFound", $file);
 	}
-	elseif(image_format_supported($file) < 0)
+	elseif (image_format_supported($file) < 0)
 	{
         dol_syslog('This file '.$file.' does not seem to be an image format file name.', LOG_WARNING);
 	    return 'ErrorBadImageFormat';
 	}
-	elseif(!is_numeric($maxWidth) || empty($maxWidth) || $maxWidth < -1) {
+	elseif (!is_numeric($maxWidth) || empty($maxWidth) || $maxWidth < -1) {
 		// Si la largeur max est incorrecte (n'est pas numerique, est vide, ou est inferieure a 0)
         dol_syslog('Wrong value for parameter maxWidth', LOG_ERR);
 	    return 'Error: Wrong value for parameter maxWidth';
 	}
-	elseif(!is_numeric($maxHeight) || empty($maxHeight) || $maxHeight < -1) {
+	elseif (!is_numeric($maxHeight) || empty($maxHeight) || $maxHeight < -1) {
 		// Si la hauteur max est incorrecte (n'est pas numerique, est vide, ou est inferieure a 0)
         dol_syslog('Wrong value for parameter maxHeight', LOG_ERR);
 	    return 'Error: Wrong value for parameter maxHeight';
 	}
 
-	$filetoread = realpath(dol_osencode($file)); 	// Chemin canonique absolu de l'image
+	$filetoread = realpath(dol_osencode($file)); // Chemin canonique absolu de l'image
 
 	$infoImg = getimagesize($filetoread); // Recuperation des infos de l'image
 	$imgWidth = $infoImg[0]; // Largeur de l'image
@@ -462,8 +485,8 @@ function vignette($file, $maxWidth = 160, $maxHeight = 120, $extName = '_small',
 		}
 	}
 
-	if ($maxWidth  == -1) $maxWidth=$infoImg[0];	// If size is -1, we keep unchanged
-	if ($maxHeight == -1) $maxHeight=$infoImg[1];	// If size is -1, we keep unchanged
+	if ($maxWidth == -1) $maxWidth = $infoImg[0]; // If size is -1, we keep unchanged
+	if ($maxHeight == -1) $maxHeight = $infoImg[1]; // If size is -1, we keep unchanged
 
 	// Si l'image est plus petite que la largeur et la hauteur max, on ne cree pas de vignette
 	if ($infoImg[0] < $maxWidth && $infoImg[1] < $maxHeight)
@@ -531,7 +554,7 @@ function vignette($file, $maxWidth = 160, $maxHeight = 120, $extName = '_small',
 			break;
 	}
 
-    if (! is_resource($img))
+    if (!is_resource($img))
     {
         dol_syslog('Failed to detect type of image. We found infoImg[2]='.$infoImg[2], LOG_WARNING);
         return 0;
@@ -539,7 +562,7 @@ function vignette($file, $maxWidth = 160, $maxHeight = 120, $extName = '_small',
 
 	$exifAngle = false;
     if ($ort && !empty($conf->global->MAIN_USE_EXIF_ROTATION)) {
-		switch($ort)
+		switch ($ort)
 		{
 			case 3: // 180 rotate left
 				$exifAngle = 180;
@@ -563,7 +586,7 @@ function vignette($file, $maxWidth = 160, $maxHeight = 120, $extName = '_small',
     {
 		$rotated = false;
 
-    	if($infoImg[2] === 'IMAGETYPE_PNG') // In fact there is no exif on PNG but just in case
+    	if ($infoImg[2] === 'IMAGETYPE_PNG') // In fact there is no exif on PNG but just in case
     	{
 			imagealphablending($img, false);
 			imagesavealpha($img, true);

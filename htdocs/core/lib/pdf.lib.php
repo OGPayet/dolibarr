@@ -348,7 +348,7 @@ function pdfBuildThirdpartyName($thirdparty, Translate $outputlangs, $includeali
 	if ($thirdparty instanceof Societe) {
 		$socname .= $thirdparty->name;
 		if (($includealias || !empty($conf->global->PDF_INCLUDE_ALIAS_IN_THIRDPARTY_NAME)) && !empty($thirdparty->name_alias)) {
-		    $socname .= "\n".$thirdparty->name_alias;
+		    $socname .= " - ".$thirdparty->name_alias;
 		}
 	} elseif ($thirdparty instanceof Contact) {
 		$socname = $thirdparty->socname;
@@ -386,7 +386,7 @@ function pdf_build_address($outputlangs, $sourcecompany, $targetcompany = '', $t
 	$stringaddress = '';
 	if (is_object($hookmanager))
 	{
-		$parameters = array('sourcecompany'=>&$sourcecompany, 'targetcompany'=>&$targetcompany, 'targetcontact'=>&$targetcontact, 'outputlangs'=>$outputlangs, 'mode'=>$mode, 'usecontact'=>$usecontact);
+		$parameters = array('sourcecompany' => &$sourcecompany, 'targetcompany' => &$targetcompany, 'targetcontact' => &$targetcontact, 'outputlangs' => $outputlangs, 'mode' => $mode, 'usecontact' => $usecontact);
 		$action = '';
 		$reshook = $hookmanager->executeHooks('pdf_build_address', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
 		$stringaddress .= $hookmanager->resPrint;
@@ -914,7 +914,7 @@ function pdf_pagefoot(&$pdf, $outputlangs, $paramfreetext, $fromcompany, $marge_
 		// <img alt="" src="/dolibarr_dev/htdocs/viewimage.php?modulepart=medias&amp;entity=1&amp;file=image/ldestailleur_166x166.jpg" style="height:166px; width:166px" />
 		// become
 		// <img alt="" src="'.DOL_DATA_ROOT.'/medias/image/ldestailleur_166x166.jpg" style="height:166px; width:166px" />
-		$newfreetext = preg_replace('/(<img.*src=")[^\"]*viewimage\.php[^\"]*modulepart=medias[^\"]*file=([^\"]*)("[^\/]*\/>)/', '\1'.'file:/'.DOL_DATA_ROOT.'/medias/\2\3', $newfreetext);
+		$newfreetext = preg_replace('/(<img.*src=")[^\"]*viewimage\.php[^\"]*modulepart=medias[^\"]*file=([^\"]*)("[^\/]*\/>)/', '\1file:/'.DOL_DATA_ROOT.'/medias/\2\3', $newfreetext);
 
 		$line .= $outputlangs->convToOutputCharset($newfreetext);
 	}
@@ -1388,7 +1388,7 @@ function pdf_getlinedesc($object, $i, $outputlangs, $hideref = 0, $hidedesc = 0,
 		if (!empty($libelleproduitservice) && !empty($ref_prodserv)) $ref_prodserv .= " - ";
 	}
 
-	if (!empty($ref_prodserv) && !empty($conf->global->ADD_HTML_FORMATING_INTO_DESC_DOC)) { $ref_prodserv = '<b>'.$ref_prodserv.'</b>'; }
+	if (!empty($ref_prodserv) && !empty($conf->global->PDF_BOLD_PRODUCT_REF_AND_PERIOD)) { $ref_prodserv = '<b>'.$ref_prodserv.'</b>'; }
 	$libelleproduitservice = $prefix_prodserv.$ref_prodserv.$libelleproduitservice;
 
 	// Add an additional description for the category products
@@ -1425,7 +1425,7 @@ function pdf_getlinedesc($object, $i, $outputlangs, $hideref = 0, $hidedesc = 0,
 			$period = '('.$outputlangs->transnoentitiesnoconv('DateUntil', dol_print_date($object->lines[$i]->date_end, $format, false, $outputlangs)).')';
 		}
 		//print '>'.$outputlangs->charset_output.','.$period;
-		if (!empty($conf->global->ADD_HTML_FORMATING_INTO_DESC_DOC)) {
+		if (!empty($conf->global->PDF_BOLD_PRODUCT_REF_AND_PERIOD)) {
 		    $libelleproduitservice .= '<b style="color:#333666;" ><em>'."__N__</b> ".$period.'</em>';
 		} else {
 		    $libelleproduitservice .= "__N__".$period;
@@ -1983,9 +1983,9 @@ function pdf_getlinetotalexcltax($object, $i, $outputlangs, $hidedetails = 0)
     {
 	    if ($object->lines[$i]->special_code == 3)
     	{
-    		return $outputlangs->transnoentities("Option");
+    		$result .= $outputlangs->transnoentities("Option");
     	}
-        if (empty($hidedetails) || $hidedetails > 1)
+        elseif (empty($hidedetails) || $hidedetails > 1)
         {
         	$total_ht = ($conf->multicurrency->enabled && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_total_ht : $object->lines[$i]->total_ht);
         	if ($object->lines[$i]->situation_percent > 0)
@@ -2044,7 +2044,24 @@ function pdf_getlinetotalwithtax($object, $i, $outputlangs, $hidedetails = 0)
     	{
     		$result .= $outputlangs->transnoentities("Option");
     	}
-		elseif (empty($hidedetails) || $hidedetails > 1) $result .= price($sign * ($object->lines[$i]->total_ht) + ($object->lines[$i]->total_ht) * ($object->lines[$i]->tva_tx) / 100, 0, $outputlangs);
+    	elseif (empty($hidedetails) || $hidedetails > 1)
+    	{
+    		$total_ttc = ($conf->multicurrency->enabled && $object->multicurrency_tx != 1 ? $object->lines[$i]->multicurrency_total_ttc : $object->lines[$i]->total_ttc);
+    		if ($object->lines[$i]->situation_percent > 0)
+    		{
+    			// TODO Remove this. The total should be saved correctly in database instead of being modified here.
+    			$prev_progress = 0;
+    			$progress = 1;
+    			if (method_exists($object->lines[$i], 'get_prev_progress'))
+    			{
+    				$prev_progress = $object->lines[$i]->get_prev_progress($object->id);
+    				$progress = ($object->lines[$i]->situation_percent - $prev_progress) / 100;
+    			}
+    			$result .= price($sign * ($total_ttc / ($object->lines[$i]->situation_percent / 100)) * $progress, 0, $outputlangs);
+    		} else {
+    			$result .= price($sign * $total_ttc, 0, $outputlangs);
+    		}
+    	}
 	}
 	return $result;
 }
@@ -2156,7 +2173,7 @@ function pdf_getLinkedObjects($object, $outputlangs)
 		elseif ($objecttype == 'fichinter')
 		{
 			$outputlangs->load('interventions');
-			foreach($objects as $elementobject)
+			foreach ($objects as $elementobject)
 			{
 				$linkedobjects[$objecttype]['ref_title'] = $outputlangs->transnoentities("InterRef");
 				$linkedobjects[$objecttype]['ref_value'] = $outputlangs->transnoentities($elementobject->ref);

@@ -25,11 +25,11 @@ require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 
 // Load translation files required by the page
-$langs->loadLangs(array("user","other","admin"));
+$langs->loadLangs(array("user", "other", "admin"));
 
-if (! $user->admin) accessforbidden();
+if (!$user->admin) accessforbidden();
 
-$action=GETPOST('action', 'alpha');
+$action = GETPOST('action', 'alpha');
 
 
 /*
@@ -76,7 +76,7 @@ $head[$h][1] = $langs->trans("Miscellaneous");
 $head[$h][2] = 'misc';
 $h++;
 
-dol_fiche_head($head, 'misc', $langs->trans("Menus"), -1);
+dol_fiche_head($head, 'misc', '', -1);
 
 
 // Other Options

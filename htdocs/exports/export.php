@@ -39,6 +39,7 @@ $langs->loadlangs(array('admin', 'exports', 'other', 'users', 'companies', 'proj
 //if (! $user->admin)
 //  accessforbidden();
 
+// Map icons, array duplicated in import.php, was not synchronized, TODO put it somewhere only once
 $entitytoicon = array(
 	'invoice'      => 'bill',
     'invoice_line' => 'bill',
@@ -54,13 +55,13 @@ $entitytoicon = array(
     'payment'      => 'payment',
 	'tax'          => 'generic',
     'tax_type'     => 'generic',
-    'stock'        => 'generic',
     'other'        => 'generic',
 	'account'      => 'account',
 	'product'      => 'product',
     'virtualproduct'=>'product',
 	'subproduct'   => 'product',
 	'product_supplier_ref'      => 'product',
+    'stock'        => 'stock',
 	'warehouse'    => 'stock',
 	'batch'        => 'stock',
 	'stockbatch'   => 'stock',
@@ -78,7 +79,7 @@ $entitytoicon = array(
     'bomline'      => 'bom'
 );
 
-// Translation code
+// Translation code, array duplicated in import.php, was not synchronized, TODO put it somewhere only once
 $entitytolang = array(
 	'user'         => 'User',
 	'company'      => 'Company',
@@ -147,6 +148,7 @@ $htmlother = new FormOther($db);
 $formfile = new FormFile($db);
 $sqlusedforexport = '';
 
+$head = array();
 $upload_dir = $conf->export->dir_temp.'/'.$user->id;
 
 //$usefilters=($conf->global->MAIN_FEATURES_LEVEL > 1);
@@ -379,7 +381,7 @@ if ($step == 2 && $action == 'select_model')
     {
 		$fieldsarray = preg_split("/,(?! [^(]*\))/", $objexport->hexa);
 		$i = 1;
-		foreach($fieldsarray as $val)
+		foreach ($fieldsarray as $val)
 		{
 			$array_selected[$val] = $i;
 			$i++;
@@ -410,12 +412,12 @@ if ($step == 4 && $action == 'submitFormField')
 			$newcode = (string) preg_replace('/\./', '_', $code);
 			//print 'xxx'.$code."=".$newcode."=".$type."=".$_POST[$newcode]."\n<br>";
 			$filterqualified = 1;
-			if (!isset($_POST[$newcode]) || $_POST[$newcode] == '') $filterqualified = 0;
-			elseif (preg_match('/^List/', $type) && (is_numeric($_POST[$newcode]) && $_POST[$newcode] <= 0)) $filterqualified = 0;
+			if (!GETPOSTISSET($newcode) || GETPOST($newcode, 'restricthtml') == '') $filterqualified = 0;
+			elseif (preg_match('/^List/', $type) && (is_numeric(GETPOST($newcode, 'restricthtml')) && GETPOST($newcode, 'restricthtml') <= 0)) $filterqualified = 0;
 			if ($filterqualified)
 			{
 				//print 'Filter on '.$newcode.' type='.$type.' value='.$_POST[$newcode]."\n";
-				$objexport->array_export_FilterValue[0][$code] = $_POST[$newcode];
+				$objexport->array_export_FilterValue[0][$code] = GETPOST($newcode, 'restricthtml');
 			}
 		}
 		$array_filtervalue = (!empty($objexport->array_export_FilterValue[0]) ? $objexport->array_export_FilterValue[0] : '');
@@ -458,15 +460,14 @@ if ($step == 1 || !$datatoexport)
     	$sortedarrayofmodules = dol_sort_array($objexport->array_export_module, 'module_position', 'asc', 0, 0, 1);
     	foreach ($sortedarrayofmodules as $key => $value)
         {
+			//var_dump($objexport->array_import_code[$key]);
             print '<tr class="oddeven"><td nospan="nospan">';
-	        //print img_object($objexport->array_export_module[$key]->getName(),$export->array_export_module[$key]->picto).' ';
-            print $objexport->array_export_module[$key]->getName();
+			print $objexport->array_export_module[$key]->getName();
             print '</td><td>';
-			$icon = preg_replace('/:.*$/', '', $objexport->array_export_icon[$key]);
-			$label = $objexport->array_export_label[$key];
-            //print $value.'-'.$icon.'-'.$label."<br>";
-			print img_object($objexport->array_export_module[$key]->getName(), $icon).' ';
-            print $label;
+			$entity = preg_replace('/:.*$/', '', $objexport->array_export_icon[$key]);
+			$entityicon = strtolower(!empty($entitytoicon[$entity]) ? $entitytoicon[$entity] : $entity);
+ 			print img_object($objexport->array_export_module[$key]->getName(), $entityicon).' ';
+            print $objexport->array_export_label[$key];
             print '</td><td class="right">';
             if ($objexport->array_export_perms[$key])
             {
@@ -521,11 +522,10 @@ if ($step == 2 && $datatoexport)
     // Lot de donnees a exporter
     print '<tr><td>'.$langs->trans("DatasetToExport").'</td>';
     print '<td>';
-	$icon = preg_replace('/:.*$/', '', $objexport->array_export_icon[0]);
-    $label = $objexport->array_export_label[0];
-    //print $value.'-'.$icon.'-'.$label."<br>";
-    print img_object($objexport->array_export_module[0]->getName(), $icon).' ';
-    print $label;
+	$entity = preg_replace('/:.*$/', '', $objexport->array_export_icon[0]);
+	$entityicon = strtolower(!empty($entitytoicon[$entity]) ? $entitytoicon[$entity] : $entity);
+    print img_object($objexport->array_export_module[0]->getName(), $entityicon).' ';
+    print $objexport->array_export_label[0];
     print '</td></tr>';
 
     print '</table>';
@@ -727,11 +727,10 @@ if ($step == 3 && $datatoexport)
 	// Lot de donnees a exporter
 	print '<tr><td>'.$langs->trans("DatasetToExport").'</td>';
 	print '<td>';
-	$icon = preg_replace('/:.*$/', '', $objexport->array_export_icon[0]);
-	$label = $objexport->array_export_label[0];
-	//print $value.'-'.$icon.'-'.$label."<br>";
-	print img_object($objexport->array_export_module[0]->getName(), $icon).' ';
-	print $label;
+	$entity = preg_replace('/:.*$/', '', $objexport->array_export_icon[0]);
+	$entityicon = strtolower(!empty($entitytoicon[$entity]) ? $entitytoicon[$entity] : $entity);
+	print img_object($objexport->array_export_module[0]->getName(), $entityicon).' ';
+	print $objexport->array_export_label[0];
 	print '</td></tr>';
 
 	// Nbre champs exportes
@@ -919,8 +918,9 @@ if ($step == 4 && $datatoexport)
     // Lot de donnees a exporter
     print '<tr><td>'.$langs->trans("DatasetToExport").'</td>';
     print '<td>';
-	$icon = preg_replace('/:.*$/', '', $objexport->array_export_icon[0]);
-    print img_object($objexport->array_export_module[0]->getName(), $icon).' ';
+	$entity = preg_replace('/:.*$/', '', $objexport->array_export_icon[0]);
+	$entityicon = strtolower(!empty($entitytoicon[$entity]) ? $entitytoicon[$entity] : $entity);
+    print img_object($objexport->array_export_module[0]->getName(), $entityicon).' ';
     print $objexport->array_export_label[0];
     print '</td></tr>';
 
@@ -1189,8 +1189,9 @@ if ($step == 5 && $datatoexport)
     // Dataset to export
     print '<tr><td>'.$langs->trans("DatasetToExport").'</td>';
     print '<td>';
-	$icon = preg_replace('/:.*$/', '', $objexport->array_export_icon[0]);
-    print img_object($objexport->array_export_module[0]->getName(), $icon).' ';
+	$entity = preg_replace('/:.*$/', '', $objexport->array_export_icon[0]);
+	$entityicon = strtolower(!empty($entitytoicon[$entity]) ? $entitytoicon[$entity] : $entity);
+    print img_object($objexport->array_export_module[0]->getName(), $entityicon).' ';
     print $objexport->array_export_label[0];
     print '</td></tr>';
 
@@ -1266,22 +1267,17 @@ if ($step == 5 && $datatoexport)
     print '</div>';
 
 
-    print '<table width="100%">';
-
     if ($sqlusedforexport && $user->admin)
     {
-    	print '<tr><td>';
-    	print info_admin($langs->trans("SQLUsedForExport").':<br> '.$sqlusedforexport);
-    	print '</td></tr>';
+    	print info_admin($langs->trans("SQLUsedForExport").':<br> '.$sqlusedforexport, 0, 0, 1, '', 'TechnicalInformation');
     }
-	print '</table>';
 
 
     if (!is_dir($conf->export->dir_temp)) dol_mkdir($conf->export->dir_temp);
 
     // Show existing generated documents
     // NB: La fonction show_documents rescanne les modules qd genallowed=1, sinon prend $liste
-    print $formfile->showdocuments('export', '', $upload_dir, $_SERVER["PHP_SELF"].'?step=5&datatoexport='.$datatoexport, $liste, 1, (!empty($_POST['model']) ? $_POST['model'] : 'csv'), 1, 1, 0, 0, 0, '', '&nbsp;', '', '', '');
+    print $formfile->showdocuments('export', '', $upload_dir, $_SERVER["PHP_SELF"].'?step=5&datatoexport='.$datatoexport, $liste, 1, (!empty($_POST['model']) ? $_POST['model'] : 'csv'), 1, 1, 0, 0, 0, '', 'none', '', '', '');
 }
 
 llxFooter();
