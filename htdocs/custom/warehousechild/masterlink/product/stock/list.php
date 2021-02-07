@@ -212,11 +212,8 @@ $arrayfields = array(
 //    'e.tobuy'=>array('label'=>$langs->trans("Status").' ('.$langs->trans("Buy").')', 'checked'=>1, 'position'=>1000)
 );
 // Extra fields
-if (is_array($extrafields->attribute_label) && count($extrafields->attribute_label)) {
-    foreach ($extrafields->attribute_label as $key => $val) {
-        $arrayfields["ef.".$key] = array('label' => $extrafields->attribute_label[$key], 'checked' => $extrafields->attribute_list[$key], 'position' => $extrafields->attribute_pos[$key]);
-    }
-}
+// Extra fields
+include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
 
 
 
@@ -305,9 +302,9 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
         $sql .= ', pac.rowid prod_comb_id';
     }
     // Add fields from extrafields
-    foreach ($extrafields->attribute_label as $key => $val)
-        $sql        .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef.".$key.' as options_'.$key : '');
-    // Add fields from hooks
+	if (!empty($extrafields->attributes[$object->table_element]['label']))
+	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? ", ef.".$key.' as options_'.$key : '');
+// Add fields from hooks
     $parameters = array();
     $reshook    = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
     $sql        .= $hookmanager->resPrint;
@@ -351,18 +348,8 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
         $sql .= " AND pac.rowid IS NULL";
     }
 
-    // Add where from extra fields
-    foreach ($search_array_options as $key => $val) {
-        $crit   = $val;
-        $tmpkey = preg_replace('/search_options_/', '', $key);
-        $typ    = $extrafields->attribute_type[$tmpkey];
-        $mode   = 0;
-        if (in_array($typ, array('int', 'double', 'real'))) $mode   = 1;           // Search on a numeric
-        if (in_array($typ, array('sellist')) && $crit != '0' && $crit != '-1') $mode   = 2;      // Search on a foreign key int
-        if ($crit != '' && (!in_array($typ, array('select', 'sellist')) || $crit != '0')) {
-            $sql .= natural_search('ef.'.$tmpkey, $crit, $mode);
-        }
-    }
+	// Add where from extra fields
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_sql.tpl.php';
     // Add where from hooks
     $parameters = array();
     $reshook    = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook
@@ -373,9 +360,6 @@ if (is_object($objcanvas) && $objcanvas->displayCanvasExists($action)) {
     if (!empty($conf->variants->enabled) && $search_hidechildproducts && ($search_type === 0)) {
         $sql .= ', pac.rowid';
     }
-    // Add fields from extrafields
-    foreach ($extrafields->attribute_label as $key => $val)
-        $sql              .= ($extrafields->attribute_type[$key] != 'separate' ? ",ef.".$key : '');
     // Add fields from hooks
     $parameters       = array();
     $reshook          = $hookmanager->executeHooks('printFieldSelect', $parameters);    // Note that $action and $object may have been modified by hook
