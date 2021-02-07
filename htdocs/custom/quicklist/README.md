@@ -1,3 +1,3 @@
 Quick List
 ========================
-Ce module permet gérer des filtres personalisés pour les listes.
+Ce module permet gérer des filtres personnalisés pour les listes.

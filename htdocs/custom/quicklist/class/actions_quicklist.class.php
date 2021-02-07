@@ -55,18 +55,28 @@ class ActionsQuickList
      * @var array
      */
     private $invalid_params = [ 'token', 'confirm', 'formfilteraction',
-        'button_search_y', 'button_search.y', 'button_search',
+        'button_search_x', 'button_search.x', 'button_search',
         'button_removefilte_x', 'button_removefilter.x', 'button_removefilter',
         'action', 'massaction', 'confirmmassaction', 'checkallactions', 'toselect[]',
         'button_quicklist_addfilter_x', 'button_quicklist_addfilter.x', 'button_quicklist_addfilter',
         'filter_name', 'filter_scope', 'filter_scope_usergroup', 'filter_update_url', 'filter_menu', 'filter_id',
-        'filter_hashtag', 'filter_default', 'id', 'socid', 'ref', 'lineid',
+        'filter_hashtag', 'filter_default', 'mainmenu', 'leftmenu',
     ];
+
+	/**
+	 * @var array
+	 */
+	private $authorized_invalid_params = [ 'token', 'confirm', 'formfilteraction',
+		'action', 'massaction', 'confirmmassaction', 'checkallactions', 'toselect[]',
+		'button_quicklist_addfilter_x', 'button_quicklist_addfilter.x', 'button_quicklist_addfilter',
+		'filter_name', 'filter_scope', 'filter_scope_usergroup', 'filter_update_url', 'filter_menu',
+		'filter_hashtag', 'filter_default',
+	];
 
     /**
      * @var array
      */
-    private $ids_params = [ 'id', 'socid', 'ref', 'lineid' ];
+    private $ids_params = [ 'id', 'socid', 'contact_id', 'ref', 'lineid', 'idmenu' ];
 
     /**
      * Constructor
@@ -88,51 +98,91 @@ class ActionsQuickList
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
     function doActions($parameters, &$object, &$action, $hookmanager)
-    {
-        global $langs, $user;
+	{
+		global $langs, $user;
 
-        $langs->load('quicklist@quicklist');
-        $context = quicklist_get_context($parameters['context']);
-        if (empty($context))
-            return 0;
+		$langs->load('quicklist@quicklist');
+		$context = $this->getListContext($parameters['context']);
+		if (empty($context))
+			return 0;
 
-        $act = GETPOST("action", 'alpha');
-
-        //--------------------------------------------------------------------
-        // Get filter
-        //--------------------------------------------------------------------
-        $filter_id = GETPOST("filter_id", 'int');
-        $quicklist = new QuickList($this->db);
-        if ($filter_id > 0) {
-            $quicklist->fetch($filter_id);
-        } elseif ($act != 'quicklist_addfilter_confirm') {
-            if ($quicklist->fetch_default($context) == 0)
-                return 0;
-        }
+		$quicklist = new QuickList($this->db);
+		$act = $action;
 
         //--------------------------------------------------------------------
         // Base url
         //--------------------------------------------------------------------
         $params = array();
         foreach (array_merge($_POST, $_GET) as $key => $value) {
-            if (!in_array($key, $this->invalid_params) && $value != '') {
+            if (!in_array($key, $this->invalid_params) && !in_array($key, $this->ids_params) && $value != '') {
                 $params[$key] = $value;
             }
         }
         $params_url = count($params) ? http_build_query($params, '', '&') : '';
 
-        //--------------------------------------------------------------------
-        // params of ids for the url (cards case)
-        //--------------------------------------------------------------------
-        $ids_params = array();
-        foreach (array_merge($_POST, $_GET) as $key => $value) {
-            if (in_array($key, $this->ids_params) && $value != '') {
-                $ids_params[$key] = $value;
-            }
-        }
-        $ids_params_url = count($ids_params) ? http_build_query($ids_params, '', '&') : '';
+		//--------------------------------------------------------------------
+		// Get filter by params or reset filter selected
+		//--------------------------------------------------------------------
+		// All tests are required to be compatible with all browsers
+		$btn_search = GETPOST('button_search_x', 'alpha') || GETPOST('button_search.x', 'alpha') || GETPOST('button_search', 'alpha');
+		$btn_remove_filter = GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x', 'alpha') || GETPOST('button_removefilter', 'alpha');
+		if ($btn_search || $btn_remove_filter) {
+			if (isset($_SESSION['quicklist_current_filter'][$context])) unset($_SESSION['quicklist_current_filter'][$context]);
+			$act = '';
+		}
 
-        //--------------------------------------------------------------------
+		//--------------------------------------------------------------------
+		// Get filter
+		//--------------------------------------------------------------------
+		$result = 0;
+		$filter_id = GETPOST("filter_id", 'int');
+		if (!($filter_id > 0) && isset($_SESSION['quicklist_current_filter'][$context])) $filter_id = $_SESSION['quicklist_current_filter'][$context];
+		if (!empty($params_url) && !isset($_SESSION['quicklist_current_filter'][$context]) && !$btn_remove_filter) {
+			$result = $quicklist->fetch(0, $params_url, $context);
+			if ($result < 0) {
+				setEventMessages($quicklist->error, $quicklist->errors, 'errors');
+				return 0;
+			}
+		}
+		if ($result == 0 && $filter_id > 0) {
+			$result = $quicklist->fetch($filter_id);
+			if ($result < 0) {
+				setEventMessages($quicklist->error, $quicklist->errors, 'errors');
+				return 0;
+			}
+		}
+		if ($result == 0 && $act != 'quicklist_addfilter_confirm' && !$btn_search && (empty($params_url)) && !isset($_SESSION['quicklist_current_filter'][$context])) {
+			if (isset($_SESSION['quicklist_current_filter'][$context])) return 0;
+			$result = $quicklist->fetch_default($context);
+			if ($result < 0) {
+				setEventMessages($quicklist->error, $quicklist->errors, 'errors');
+				return 0;
+			} elseif ($result == 0) return 0;
+		}
+
+		//--------------------------------------------------------------------
+		// params of ids for the url (cards case)
+		//--------------------------------------------------------------------
+		$ids_params = array();
+		foreach (array_merge($_POST, $_GET) as $key => $value) {
+			if (in_array($key, $this->ids_params) && $value != '') {
+				$ids_params[$key] = $value;
+			}
+		}
+		$ids_params_url = count($ids_params) ? http_build_query($ids_params, '', '&') : '';
+
+		//--------------------------------------------------------------------
+		// params of invalid for the url (cards case)
+		//--------------------------------------------------------------------
+		$invalid_params_url = array();
+		foreach (array_merge($_POST, $_GET) as $key => $value) {
+			if (in_array($key, $this->authorized_invalid_params) && $value != '') {
+				$invalid_params_url[$key] = $value;
+			}
+		}
+		$invalid_params_url = count($invalid_params_url) ? http_build_query($invalid_params_url, '', '&') : '';
+
+		//--------------------------------------------------------------------
         // Add filter
         //--------------------------------------------------------------------
         if ($act == 'quicklist_addfilter_confirm') {
@@ -145,12 +195,12 @@ class ActionsQuickList
 
             if ($result) {
                 $quicklist->name = GETPOST("filter_name", 'alpha');
-                $quicklist->context = $context;
+                $quicklist->page_context = $context;
                 $quicklist->params = $params_url;
                 $quicklist->scope = GETPOST("filter_scope", 'alpha');
                 $quicklist->fk_menu = $fk_menu;
                 $quicklist->default = GETPOST("filter_default", 'alpha') ? 1 : 0;
-                $quicklist->hash_tag = GETPOST("filter_hashtag", 'alpha');
+                $quicklist->hash_tag = urldecode(GETPOST("filter_hashtag", 'alpha'));
                 $result = $quicklist->create($user);
                 if ($result < 0) {
                     setEventMessages($langs->trans('QuickListFilterSavedError', $quicklist->errorsToString()), null, 'errors');
@@ -169,8 +219,7 @@ class ActionsQuickList
         //--------------------------------------------------------------------
         // Edit filter
         //--------------------------------------------------------------------
-        //elseif ($act == 'quicklist_editfilter_confirm' && $quicklist->fk_user_author == $user->id) {
-			elseif ($act == 'quicklist_editfilter_confirm') {
+        elseif ($act == 'quicklist_editfilter_confirm' && $quicklist->fk_user_author == $user->id) {
             $result = true;
             $fk_menu = null;
             if (!empty(GETPOST("filter_menu", 'alpha'))) {
@@ -187,7 +236,7 @@ class ActionsQuickList
                 $quicklist->name = GETPOST("filter_name", 'alpha');
                 if (!empty(GETPOST("filter_update_url", 'alpha'))) {
                     $quicklist->params = $params_url;
-                    $quicklist->hash_tag = GETPOST("filter_hashtag", 'alpha');
+                    $quicklist->hash_tag = urldecode(GETPOST("filter_hashtag", 'alpha'));
                 }
                 $quicklist->scope = GETPOST("filter_scope", 'alpha');
                 $quicklist->fk_menu = $fk_menu;
@@ -210,7 +259,7 @@ class ActionsQuickList
         //--------------------------------------------------------------------
         // Delete filter
         //--------------------------------------------------------------------
-        elseif ($act == 'quicklist_deletefilter_confirm') {
+        elseif ($act == 'quicklist_deletefilter_confirm' && $quicklist->fk_user_author == $user->id) {
             $result = true;
             // TODO delete menu
             if ($result) {
@@ -227,14 +276,20 @@ class ActionsQuickList
             }
         }
         //--------------------------------------------------------------------
-        // Default filter
+        // Set filter
         //--------------------------------------------------------------------
-        elseif (!isset($_SESSION['quicklist_current_filter'][$context])) {
+        elseif (!empty($quicklist->params) && !isset($_SESSION['quicklist_filter_applied'][$context]) && empty($act)) {
             $_SESSION['quicklist_current_filter'][$context] = $quicklist->id;
-            header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($quicklist->params) ? '?' . $quicklist->params : '') . (!empty($ids_params_url) ? (!empty($quicklist->params) ? '&' : '?') . $ids_params_url : ''));
+			$_SESSION['quicklist_filter_applied'][$context] = true;
+			$location_params = array();
+			if (!empty($quicklist->params)) $location_params[] = $quicklist->params;
+			if (!empty($ids_params_url)) $location_params[] = $ids_params_url;
+			if (!empty($invalid_params_url)) $location_params[] = $invalid_params_url;
+            header('Location: ' . $_SERVER["PHP_SELF"] . (!empty($location_params) ? '?' . implode('&', $location_params) : ''));
             exit;
         }
 
+        if (isset($_SESSION['quicklist_filter_applied'][$context])) unset($_SESSION['quicklist_filter_applied'][$context]);
         return 0;
     }
 
@@ -251,7 +306,7 @@ class ActionsQuickList
     {
         global $conf, $langs, $user;
 
-        $context = quicklist_get_context($parameters['context']);
+        $context = $this->getListContext($parameters['context']);
         if (empty($context))
             return 0;
 
@@ -276,7 +331,7 @@ class ActionsQuickList
         //--------------------------------------------------------------------
         $params = array();
         foreach (array_merge($_POST, $_GET) as $key => $value) {
-            if (!in_array($key, $this->invalid_params) && $value != '') {
+            if (!in_array($key, $this->invalid_params) && !in_array($key, $this->ids_params) && $value != '') {
                 $params[$key] = $value;
             }
         }
@@ -398,6 +453,7 @@ class ActionsQuickList
                 $formconfirm .= '        $("#filter_scope_usergroup").closest("tr").hide();' . "\n";
                 $formconfirm .= '      }' . "\n";
                 $formconfirm .= '    });' . "\n";
+                $formconfirm .= '    $(\'select#filter_scope_usergroup\').closest(\'td\').find(\'li.select2-search.select2-search--inline\').addClass(\'minwidth300\');' . "\n";
                 $formconfirm .= '  });' . "\n";
                 $formconfirm .= '});' . "\n";
                 $formconfirm .= '</script>' . "\n";
@@ -429,14 +485,15 @@ class ActionsQuickList
         if (is_array($filters_list)) {
             foreach ($filters_list as $filter) {
                 $has_selected_fields = strpos($filter->params, '&selectedfields=') != -1 || strpos($filter->params, '?selectedfields=') != -1;
-                $tmp = array();
+                $tmp = array("filter_id=" . $filter->id);
                 if (!empty($ids_params_url)) $tmp[] = $ids_params_url;
-                if (!empty($filter->params)) $tmp[] = $filter->params;
                 if ($has_selected_fields) $tmp[] = 'formfilteraction=listafterchangingselectedfields';
-                $url = $_SERVER["PHP_SELF"] . (!empty($tmp) ? "?" . implode('&', $tmp) : '');
-                $value = ['id' => $filter->id, 'name' => $filter->name,
-                    'url' => $url,
-                    'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author, 'default' => !empty($filter->default)];
+                $url = $_SERVER["PHP_SELF"] . "?" . implode('&', $tmp);
+                $value = [
+                	'id' => $filter->id, 'name' => $filter->name, 'url' => $url,
+                    'hash_tag' => $filter->hash_tag, 'author' => $filter->fk_user_author == $user->id, 'default' => !empty($filter->default),
+					'selected' => $_SESSION['quicklist_current_filter'][$context] == $filter->id
+				];
                 switch ($filter->scope) {
                     case QuickList::QUICKLIST_SCOPE_PRIVATE:
                         $filters['private'][] = $value;
@@ -462,4 +519,23 @@ class ActionsQuickList
 
         return 0;
     }
+
+	/**
+	 * Get context of the list page
+	 *
+	 * @param   string  $context    All context
+	 *
+	 * @return  string				Context of the list page
+	 */
+	protected function getListContext($context)
+	{
+		$context_list = preg_grep('/(.*list$)/i', explode(':', $context));
+		if (count($context_list)) {
+			foreach ($context_list as $value) {
+				return $value;
+			}
+		}
+
+		return '';
+	}
 }

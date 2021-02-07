@@ -1,14 +1,19 @@
 # Dolibarr language file - fr_FR - quicklist
 CHARSET=UTF-8
 Module163011Name=Quick List
-Module163011Desc=Module pour gérer des filtres personalisés sur les listes
+Module163011Desc=Module pour gérer des filtres personnalisés sur les listes
 
 QuickListSetup=Configuration du module "Quick List"
 
 QuickListShowFiltersListAboveTableName=Affiche filtres
-QuickListShowFiltersListAboveTableDesc=Affiche la liste des filtres clickables au dessus du tableau
+QuickListShowFiltersListAboveTableDesc=Affiche la liste des filtres cliquables au dessus du tableau
+QuickListAdminColorsButton=Couleurs des filtres
+QUICKLIST_COLOR_BUTTON_MINUS=Définir la couleur de fond du bouton de suppression des filtres
+QUICKLIST_COLOR_BUTTON_FILTER=Définir la couleur de fond du/des boutons de filtre
+QUICKLIST_COLOR_BUTTON_PLUS=Définir la couleur de fond du bouton d'ajout des filtres
 
 QuickListHelp=Options complémentaires
+QuickListApplyFilter=Appliquer le filtre
 QuickListAddFilter=Ajouter un filtre
 QuickListSearch=Rechercher...
 QuickListEditFilter=Modifier le filtre

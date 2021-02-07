@@ -103,7 +103,8 @@ $search_img_url = img_picto('', 'searchicon.png@quicklist', '', false, 1);
   background-color: #ccc;
 }
 #quicklistElements .item.filter, #quicklistElements .item.filter span.right {
-  text-decoration: none;
+    text-decoration: none;
+    color: black;
 }
 #quicklistElements .item.filter:hover {background-color: #ddd}
 #quicklistElements .item.filter span {
@@ -126,4 +127,58 @@ $search_img_url = img_picto('', 'searchicon.png@quicklist', '', false, 1);
 .quicklist-filter-list .button {
   margin-left: 5px !important;
   margin-right: 0 !important;
+  vertical-align: bottom;
+}
+
+.quicklist-filter-list .inputimage {
+    border: 1px solid #bbbbbb;
+    border-bottom-color: #a2a2a2;
+    vertical-align: bottom;
+}
+
+.quicklist-button {
+    margin-left: 5px !important;
+    display: inline-block;
+    text-align: center;
+    background-color: buttonface;
+    cursor: default;
+    box-sizing: border-box;
+    line-height: 26px;
+    border: unset;
+    border-radius: 40px;
+    cursor:pointer;
+}
+a.quicklist-button {
+    padding: 0px 6px;
+    text-decoration: none;
+}
+
+.quicklist-color-icon {
+    color: #fff;
+}
+
+.quicklist-button-plus {
+    <?php if (!empty($conf->global->QUICKLIST_COLOR_BUTTON_PLUS)) { ?>
+        background: <?php print $conf->global->QUICKLIST_COLOR_BUTTON_PLUS; ?>;
+    <?php } else { ?>
+        background: #00cfb5;
+    <?php } ?>
+}
+
+.quicklist-button-minus {
+    <?php if (!empty($conf->global->QUICKLIST_COLOR_BUTTON_MINUS)) { ?>
+        background: <?php print $conf->global->QUICKLIST_COLOR_BUTTON_MINUS; ?>;
+    <?php } else { ?>
+        background: #f86285;
+    <?php } ?>
+}
+
+.quicklist-button-filter {
+    <?php if (!empty($conf->global->QUICKLIST_COLOR_BUTTON_FILTER)) { ?>
+        background: <?php print $conf->global->QUICKLIST_COLOR_BUTTON_FILTER; ?>;
+    <?php } else { ?>
+        background: #5393ee;
+    <?php } ?>
+    color: #fff !important;
+    font-weight: bold;
 }

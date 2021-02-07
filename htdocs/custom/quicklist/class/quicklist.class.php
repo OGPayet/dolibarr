@@ -55,7 +55,7 @@ class QuickList extends CommonObject
      * Context of filter
      * @var string
      */
-    public $context;
+    public $page_context;
     /**
      * Parameters of the url of filter
      * @var string
@@ -152,7 +152,7 @@ class QuickList extends CommonObject
         $sql .= ")";
         $sql .= " VALUES (" . $conf->entity;
         $sql .= ", '" . $this->db->escape($this->name) . "'";
-        $sql .= ", '" . $this->db->escape($this->context) . "'";
+        $sql .= ", '" . $this->db->escape($this->page_context) . "'";
         $sql .= ", " . (!empty($this->params) ? "'" . $this->db->escape($this->params) . "'" : "NULL");
         $sql .= ", " . $user->id;
         $sql .= ", '" . $this->db->idate($now) . "'";
@@ -191,19 +191,44 @@ class QuickList extends CommonObject
     /**
      *  Get object
      *
-     * @param    int    $id     Id of object to load
+	 * @param    int    	$id     	Id of object to load
+	 * @param    string		$params    	Params of object to load
+	 * @param    string     $context	Context of the page of object to load
      *
      * @return   int            >0 if OK, <0 if KO, 0 if not found
      */
-    function fetch($id)
+    function fetch($id, $params = '', $context = '')
     {
+		global $conf, $user;
+
         // Check parameters
-        if (empty($id)) return -1;
+        if (empty($id) && (empty($params) || empty($context))) return -1;
 
         $sql = 'SELECT ql.rowid, ql.entity, ql.name, ql.context, ql.params, ql.fk_user_author, ql.date_creation, ql.scope, ql.fk_menu, ql.default, ql.hash_tag';
         $sql .= ' FROM ' . MAIN_DB_PREFIX . 'quicklist as ql';
-        $sql .= " WHERE ql.entity IN (" . getEntity('quicklist', 1) . ")";
-        $sql .= " AND ql.rowid=" . $id;
+		if (!empty($params) && !empty($context)) {
+			$sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'quicklist_usergroup as qlug';
+			$sql .= '   ON ql.rowid = qlug.fk_quicklist';
+		}
+		$sql .= " WHERE ql.entity IN (" . getEntity('quicklist', 1) . ")";
+        if (!empty($params) && !empty($context)) {
+			$usergroup_ids = array();
+			$usergroup = new UserGroup($this->db);
+			$groupslist = $usergroup->listGroupsForUser($user->id);
+			foreach ($groupslist as $group) {
+				if ($group->entity == $conf->entity|| (is_array($group->usergroup_entity) && in_array($conf->entity, $group->usergroup_entity))) {
+					$usergroup_ids[] = $group->id;
+				}
+			}
+			$sql .= " AND ql.context = '".$this->db->escape($context)."'";
+			$sql .= " AND ql.params = '".$this->db->escape($params)."'";
+			$sql .= " AND (";
+			$sql .= "   ql.fk_user_author = " . $user->id;
+			if (count($usergroup_ids) > 0) $sql .= "   OR qlug.fk_usergroup IN (" . implode(',', $usergroup_ids) . ")";
+			$sql .= "   OR ql.scope = " . self::QUICKLIST_SCOPE_PUBLIC;
+			$sql .= " )";
+		}
+        else $sql .= " AND ql.rowid=" . $id;
 
         dol_syslog(get_class($this) . "::fetch", LOG_DEBUG);
         $result = $this->db->query($sql);
@@ -212,7 +237,7 @@ class QuickList extends CommonObject
                 $this->id = $obj->rowid;
                 $this->entity = $obj->entity;
                 $this->name = $obj->name;
-                $this->context = $obj->context;
+                $this->page_context = $obj->context;
                 $this->params = $obj->params;
                 $this->fk_user_author = $obj->fk_user_author;
                 $this->date_creation = $this->db->jdate($obj->date_creation);
@@ -259,7 +284,7 @@ class QuickList extends CommonObject
         $sql .= ' LEFT JOIN ' . MAIN_DB_PREFIX . 'quicklist_usergroup as qlug';
         $sql .= '   ON ql.rowid = qlug.fk_quicklist';
         $sql .= " WHERE ql.entity IN (" . getEntity('quicklist', 1) . ")";
-        $sql .= " AND context = '".$this->db->escape($context)."'";
+        $sql .= " AND ql.context = '".$this->db->escape($context)."'";
         $sql .= " AND (";
         $sql .= "   ql.fk_user_author = " . $user->id;
         if (count($usergroup_ids) > 0) $sql .= "   OR qlug.fk_usergroup IN (" . implode(',', $usergroup_ids) . ")";
@@ -309,7 +334,7 @@ class QuickList extends CommonObject
         $sql = "UPDATE " . MAIN_DB_PREFIX . "quicklist SET";
         $sql .= " entity = " . $this->entity;
         $sql .= ", name = '" . $this->db->escape($this->name) . "'";
-        $sql .= ", context = '" . $this->db->escape($this->context) . "'";
+        $sql .= ", context = '" . $this->db->escape($this->page_context) . "'";
         $sql .= ", params = " . (!empty($this->params) ? "'" . $this->db->escape($this->params) . "'" : "NULL");
         $sql .= ", fk_user_author = " . $this->fk_user_author;
         $sql .= ", date_creation = '" . $this->db->idate($this->date_creation) . "'";

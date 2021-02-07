@@ -54,13 +54,14 @@ class modQuickList extends DolibarrModules
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'quicklist';
 
-		// Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
-		// It is used to group modules by family in module setup page
-        $this->family = "opendsi";
+        $family = (!empty($conf->global->EASYA_VERSION) ? 'easya' : 'opendsi');
+        // Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
+        // It is used to group modules by family in module setup page
+        $this->family = $family;
         // Module position in the family
         $this->module_position = 500;
         // Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-        $this->familyinfo = array('opendsi' => array('position' => '001', 'label' => $langs->trans("OpenDsiFamily")));
+        $this->familyinfo = array($family => array('position' => '001', 'label' => $langs->trans($family."Family")));
         // Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
         $this->special = 0;
 
@@ -71,15 +72,19 @@ class modQuickList extends DolibarrModules
         $this->descriptionlong = "";
         $this->editor_name = 'Open-DSI';
         $this->editor_url = 'http://www.open-dsi.fr';
-
+		
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.8';
+        $this->version = '4.0.21';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto='opendsi@quicklist';
+        if((float)DOL_VERSION <= 11.0) {
+            $this->picto='opendsi@'.strtolower($this->name);
+        } else {
+            $this->picto='opendsi_big@'.strtolower($this->name);
+        }
 
 		// Defined all module parts (triggers, login, substitutions, menus, css, etc...)
 		// for default path (eg: /mymodule/core/xxxxx) (0=disable, 1=enable)
@@ -95,7 +100,7 @@ class modQuickList extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/mymodule/css/mymodule.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/mymodule/js/mymodule.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/mymodule/js/mymodule.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2',...) // Set here all hooks context managed by module. You can also set hook context 'all'
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
@@ -129,6 +134,43 @@ class modQuickList extends DolibarrModules
 		//                             1=>array('MYMODULE_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
 		// );
 		$this->const = array();
+        $r = 0;
+
+        $r ++;
+        $this->const [$r] [0] = "QUICKLIST_SHOW_FILTERS_LIST_ABOVE_TABLE";
+        $this->const [$r] [1] = "chaine";
+        $this->const [$r] [2] = 1;
+        $this->const [$r] [3] = 'Quicklist show filters';
+        $this->const [$r] [4] = 1;
+        $this->const [$r] [5] = 'allentities';
+        $this->const [$r] [6] = 1;
+
+        $r ++;
+        $this->const [$r] [0] = "QUICKLIST_COLOR_BUTTON_MINUS";
+        $this->const [$r] [1] = "chaine";
+        $this->const [$r] [2] = "#F86285";
+        $this->const [$r] [3] = 'Quicklist background color minus';
+        $this->const [$r] [4] = 1;
+        $this->const [$r] [5] = 'allentities';
+        $this->const [$r] [6] = 0;
+
+        $r ++;
+        $this->const [$r] [0] = "QUICKLIST_COLOR_BUTTON_FILTER";
+        $this->const [$r] [1] = "chaine";
+        $this->const [$r] [2] = "#5393EE";
+        $this->const [$r] [3] = 'Quicklist background color filter';
+        $this->const [$r] [4] = 1;
+        $this->const [$r] [5] = 'allentities';
+        $this->const [$r] [6] = 0;
+
+        $r ++;
+        $this->const [$r] [0] = "QUICKLIST_COLOR_BUTTON_PLUS";
+        $this->const [$r] [1] = "chaine";
+        $this->const [$r] [2] = "#00CFB5";
+        $this->const [$r] [3] = 'Quicklist background color plus';
+        $this->const [$r] [4] = 1;
+        $this->const [$r] [5] = 'allentities';
+        $this->const [$r] [6] = 0;
 
 		// Array to add new pages in new tabs
 		// Example: $this->tabs = array('objecttype:+tabname1:Title1:mylangfile@mymodule:$user->rights->mymodule->read:/mymodule/mynewtab1.php?id=__ID__',  					// To add a new tab identified by code tabname1
@@ -158,10 +200,10 @@ class modQuickList extends DolibarrModules
 
 		if (! isset($conf->quicklist) || ! isset($conf->quicklist->enabled))
         {
-		$conf->quicklist=new stdClass();
-		$conf->quicklist->enabled=0;
+        	$conf->quicklist=new stdClass();
+        	$conf->quicklist->enabled=0;
         }
-
+        
         // Dictionaries
 		$this->dictionaries=array();
         /* Example:
@@ -297,3 +339,4 @@ class modQuickList extends DolibarrModules
 		return $this->_remove($sql, $options);
 	}
 }
+

@@ -7,8 +7,13 @@ QuickListSetup=Configuration of the module "Quick List"
 
 QuickListShowFiltersListAboveTableName=Show filters
 QuickListShowFiltersListAboveTableDesc=Show clickable filters list above the table
+QuickListAdminColorsButton=Filters colors
+QUICKLIST_COLOR_BUTTON_MINUS=Set background color of minus button
+QUICKLIST_COLOR_BUTTON_FILTER=Set background color of filters button
+QUICKLIST_COLOR_BUTTON_PLUS=Set background color of plus button
 
 QuickListHelp=Additional options
+QuickListApplyFilter=Apply filter
 QuickListAddFilter=Add a filter
 QuickListSearch=Search...
 QuickListEditFilter=Edit filter

@@ -59,30 +59,6 @@ function quicklist_admin_prepare_head()
 }
 
 /**
- * Get context of the list page
- *
- * @param   string  $context    All context
- *
- * @return  string				Context of the list page
- */
-function quicklist_get_context($context)
-{
-    $context_list = preg_grep('/(.*list$)/i', explode(':', $context));
-    if (count($context_list)) {
-        foreach ($context_list as $value) {
-            return $value;
-        }
-    }
-
-    $result = preg_match('/.*([^\/]*\/[^\/]*)$/i', $_SERVER["SELF"], $matches);
-    if ($result) {
-        return $matches[1];
-    }
-
-    return '';
-}
-
-/**
  * Print confirm form
  *
  * @param   string  $formconfirm    Confirm form
