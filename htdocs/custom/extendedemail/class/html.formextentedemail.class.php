@@ -95,18 +95,18 @@ class FormExtentedEmail
         $resql=$this->db->query($sql);
         if ($resql)
         {
-		// Enhance with select2
+    		// Enhance with select2
 	        if ($conf->use_javascript_ajax)
 	        {
 				include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-			$comboenhancement = ajax_combobox($htmlname);
+	           	$comboenhancement = ajax_combobox($htmlname);
                 $out.= $comboenhancement;
                 $nodatarole=($comboenhancement?' data-role="none"':'');
             }
 
             $out.= '<select class="flat minwidth200" id="'.$htmlname.'" name="'.$htmlname.'"'.($disabled?' disabled':'').$nodatarole.'>';
 
-		$num = $this->db->num_rows($resql);
+        	$num = $this->db->num_rows($resql);
             $i = 0;
             if ($num)
             {

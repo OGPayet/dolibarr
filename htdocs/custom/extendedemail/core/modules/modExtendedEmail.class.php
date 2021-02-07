@@ -54,13 +54,16 @@ class modExtendedEmail extends DolibarrModules
 		// Key text used to identify module (for permissions, menus, etc...)
 		$this->rights_class = 'extendedemail';
 
-		// Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
-		// It is used to group modules by family in module setup page
-        $this->family = "opendsi";
+        $family = (!empty($conf->global->EASYA_VERSION) ? 'easya' : 'opendsi');
+        // Family can be 'crm','financial','hr','projects','products','ecm','technic','interface','other'
+        // It is used to group modules by family in module setup page
+        $this->family = $family;
         // Module position in the family
         $this->module_position = 500;
         // Gives the possibility to the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
-        $this->familyinfo = array('opendsi' => array('position' => '001', 'label' => $langs->trans("OpenDsiFamily")));
+        $this->familyinfo = array($family => array('position' => '001', 'label' => $langs->trans($family."Family")));
+        // Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
+        $this->special = 0;
 
 		// Module label (no space allowed), used if translation string 'ModuleXXXName' not found (where XXX is value of numeric property 'numero' of module)
 		$this->name = preg_replace('/^mod/i','',get_class($this));
@@ -69,15 +72,19 @@ class modExtendedEmail extends DolibarrModules
         $this->descriptionlong = "";
         $this->editor_name = 'Open-DSI';
         $this->editor_url = 'http://www.open-dsi.fr';
-
+		
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '4.0.6';
+        $this->version = '4.0.9';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
-		$this->picto='opendsi@extendedemail';
+        if((float)DOL_VERSION <= 11.0) {
+            $this->picto='opendsi@'.$this->name;
+        } else {
+            $this->picto='opendsi_big@'.$this->name;
+        }
 
 		// Defined all module parts (triggers, login, substitutions, menus, css, etc...)
 		// for default path (eg: /mymodule/core/xxxxx) (0=disable, 1=enable)
@@ -93,7 +100,7 @@ class modExtendedEmail extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/mymodule/css/mymodule.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/mymodule/js/mymodule.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/mymodule/js/mymodule.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2',...) // Set here all hooks context managed by module. You can also set hook context 'all'
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
@@ -132,7 +139,8 @@ class modExtendedEmail extends DolibarrModules
             1=>array('EXTENDEDEMAIL_ADD_USER_TO_SENDTOCC','chaine','0','Permettre la sélection des utilisateurs internes en "Copie à"',0, 'current', 0),
             2=>array('EXTENDEDEMAIL_ADD_USER_TO_SENDTOCCC','chaine','0','Permettre la sélection des utilisateurs internes en "Copie cachée à"',0, 'current', 0),
             3=>array('EXTENDEDEMAIL_HIDE_NO_EMAIL','chaine','1','Cacher les destinataires sans courriel',0, 'current', 0),
-            4=>array('EXTENDEDEMAIL_MAX_LINE_HIDE_LIST','chaine','10','Nombre maximum de destinataires affichés dans la liste',0, 'current', 0),
+            4=>array('EXTENDEDEMAIL_MAX_LINE_HIDE_LIST','chaine','10','Nombre maximum de destinataires affichés dans la liste', 0, 'current', 0),
+            5=>array('EXTENDEDEMAIL_SHIPPING_CONTACT_CODES','chaine','SHIPPING','', 0, 'current', 0),
         );
 
 		// Array to add new pages in new tabs
@@ -165,10 +173,10 @@ class modExtendedEmail extends DolibarrModules
 
 		if (! isset($conf->extendedemail) || ! isset($conf->extendedemail->enabled))
         {
-		$conf->extendedemail=new stdClass();
-		$conf->extendedemail->enabled=0;
+        	$conf->extendedemail=new stdClass();
+        	$conf->extendedemail->enabled=0;
         }
-
+        
         // Dictionaries
         $tabsql = 'SELECT f.rowid as rowid, f.email, f.name, f.active, f.entity FROM '.MAIN_DB_PREFIX.'c_extentedemail_generic_email as f';
         $tabfieldinsert = "email,name";
@@ -224,18 +232,18 @@ class modExtendedEmail extends DolibarrModules
 		$r=0;
 
         $this->rights[$r][0] = 163003;
-	$this->rights[$r][1] = 'Consulter les associations utilisateur/adresse générique';
-	$this->rights[$r][3] = 0;
-	$this->rights[$r][4] = 'user_generic_email';
-	$this->rights[$r][5] = 'read';
-	$r++;
+    	$this->rights[$r][1] = 'Consulter les associations utilisateur/adresse générique';
+    	$this->rights[$r][3] = 0;
+    	$this->rights[$r][4] = 'user_generic_email';
+    	$this->rights[$r][5] = 'read';
+    	$r++;
 
         $this->rights[$r][0] = 163004;
-	$this->rights[$r][1] = 'Créer/modifier les associations utilisateur/adresse générique';
-	$this->rights[$r][3] = 0;
-	$this->rights[$r][4] = 'user_generic_email';
-	$this->rights[$r][5] = 'create';
-	$r++;
+    	$this->rights[$r][1] = 'Créer/modifier les associations utilisateur/adresse générique';
+    	$this->rights[$r][3] = 0;
+    	$this->rights[$r][4] = 'user_generic_email';
+    	$this->rights[$r][5] = 'create';
+    	$r++;
 
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
@@ -336,3 +344,4 @@ class modExtendedEmail extends DolibarrModules
 		return $this->_remove($sql, $options);
 	}
 }
+

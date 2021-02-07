@@ -15,6 +15,11 @@ ExtendedEmailMaxLineHideList                        = Nombre maximum de destinat
 ExtendedEmailAddContactsThirdpartyParentToSendto    = Permettre la sélection des contacts des sociétés mères en tant que "Destinataire(s)" (depuis les fiches standards de Dolibarr)
 ExtendedEmailAddContactsThirdpartyParentToSendtocc  = Permettre la sélection des contacts des sociétés mères en "Copie à" (depuis les fiches standards de Dolibarr)
 ExtendedEmailAddContactsThirdpartyParentToSendtoccc = Permettre la sélection des contacts des sociétés mères en "Copie cachée à" (depuis les fiches standards de Dolibarr)
+ExtendedEmailAddContactsOfObjectToSendTo            = Permettre la sélection des contacts de la fiche en tant que "Destinataire(s)" (depuis les fiches standards de Dolibarr)
+ExtendedEmailAddContactsOfObjectToSendToCC          = Permettre la sélection des contacts de la fiche en "Copie à" (depuis les fiches standards de Dolibarr)
+ExtendedEmailAddContactsOfObjectToSendToCCC         = Permettre la sélection des contacts de la fiche en "Copie cachée à" (depuis les fiches standards de Dolibarr)
+ExtendedEmailShippingContactEmailByDefault          = Selection par défaut de l'email du contact de livraison
+ExtendedEmailShippingContactCodes                   = Liste des codes du dictionnaire "Types de contacts/adresses" des contacts externe de livraison (séparé par des virgule sans espace)
 
 ############################################################
 ### Dictionnaire

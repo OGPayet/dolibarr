@@ -3,6 +3,16 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 
 ## [Non Distribué]
 
+## [4.0.9] - 27-09-2020
+### Fix
+- Corrections esthétiques & comptabilité v12
+
+## [4.0.8] - 23-11-2018
+### Ajouter
+- Correction des destinataires déjà sélectionnés lors d'une erreur ou de la sélection d'un modèle.
+- Ajout des contacts des fiches depuis l'envoi d'email des fiches standards de Dolibarr.
+- Possibilité de sélectionner par défaut le courriel du contact de livraison de la fiche.
+
 ## [4.0.7] - 15-10-2018
 ### Ajouter
 - Correction JS lors d'ajout de courriels manuellement.
@@ -40,14 +50,16 @@ Le format du fichier est basé sur [Tenez un ChangeLog](http://keepachangelog.co
 ## [4.0.1] - 19-10-2017
 ### Modifier
 - Modification du titre des onglets dans la page d'admin du module.
-- Amélioration des performaces pour les tests des adresses emails.
+- Amélioration des performances pour les tests des adresses emails.
 - Modification du Copyright.
 - Modification des fichiers de langues.
 
 ## [4.0.0] - 08-09-2017
 - Version initial.
 
-[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.7...HEAD
+[Non Distribué]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.9...HEAD
+[4.0.9]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.8...v4.0.9
+[4.0.8]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.7...v4.0.8
 [4.0.7]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.6...v4.0.7
 [4.0.6]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.5...v4.0.6
 [4.0.5]: http://git.open-dsi.fr/dolibarr-extension/extendedemail/compare/v4.0.4...v4.0.5

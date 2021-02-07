@@ -70,6 +70,14 @@ if (preg_match('/set_(.*)/',$action,$reg)) {
         $errors[] = $db->lasterror();
         $error++;
     }
+    
+    if (!$errors) {
+        $res = dolibarr_set_const($db, 'EXTENDEDEMAIL_SHIPPING_CONTACT_CODES', GETPOST('EXTENDEDEMAIL_SHIPPING_CONTACT_CODES', "alpha"), 'chaine', 0, '', $conf->entity);
+        if (!$res > 0) {
+            $errors[] = $db->lasterror();
+            $error++;
+        }
+    }
 
     if (!$error) {
         setEventMessage($langs->trans("SetupSaved"));
@@ -209,6 +217,84 @@ if (!empty($conf->use_javascript_ajax)) {
     }
 }
 print '</td></tr>' . "\n";
+
+
+// EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTO
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("ExtendedEmailAddContactsOfObjectToSendTo") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTO');
+} else {
+    if (empty($conf->global->EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTO)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTO">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTO">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCC
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("ExtendedEmailAddContactsOfObjectToSendToCC") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCC');
+} else {
+    if (empty($conf->global->EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCC)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCC">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCC">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCCC
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("ExtendedEmailAddContactsOfObjectToSendToCCC") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCCC');
+} else {
+    if (empty($conf->global->EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCCC)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCCC">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_EXTENDEDEMAIL_ADD_CONTACTS_OF_OBJECT_TO_SENDTOCCC">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// EXTENDEDEMAIL_SHIPPING_CONTACT_EMAIL_BY_DEFAULT
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("ExtendedEmailShippingContactEmailByDefault") . '</td>' . "\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('EXTENDEDEMAIL_SHIPPING_CONTACT_EMAIL_BY_DEFAULT');
+} else {
+    if (empty($conf->global->EXTENDEDEMAIL_SHIPPING_CONTACT_EMAIL_BY_DEFAULT)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_EXTENDEDEMAIL_SHIPPING_CONTACT_EMAIL_BY_DEFAULT">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_EXTENDEDEMAIL_SHIPPING_CONTACT_EMAIL_BY_DEFAULT">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// EXTENDEDEMAIL_SHIPPING_CONTACT_CODES
+$var=!$var;
+print '<tr '.$bc[$var].'>'."\n";
+print '<td>'.$langs->trans("ExtendedEmailShippingContactCodes").'</td>'."\n";
+print '<td align="center">&nbsp;</td>' . "\n";
+print '<td align="right">'."\n";
+print '<input type="text" name="EXTENDEDEMAIL_SHIPPING_CONTACT_CODES" value="'.dol_escape_htmltag($conf->global->EXTENDEDEMAIL_SHIPPING_CONTACT_CODES).'">';
+print '</td></tr>'."\n";
 
 // EXTENDEDEMAIL_HIDE_NO_EMAIL
 $var = !$var;

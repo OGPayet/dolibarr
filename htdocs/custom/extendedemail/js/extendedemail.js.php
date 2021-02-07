@@ -86,7 +86,7 @@ var extendedemail_regex = new RegExp('^([^<]*)(?:\<([^>]*)\>)?$', 'i');
 var extendedemail_regex_email = new RegExp('^' + REGEX_EMAIL + '$', 'i');
 var extendedemail_regex_name_email = new RegExp('^([^<]*)\<' + REGEX_EMAIL + '\>$', 'i');
 
-function extendedemail_select_email(input_htmlname, select_htmlname, label, users_email, hide_no_email, read_only, max_options) {
+function extendedemail_select_email(input_htmlname, select_htmlname, label, selected_users_email, users_email, hide_no_email, read_only, max_options) {
   var separator = ',';
   var input = $('input#' + input_htmlname);
   var select = $('select#' + select_htmlname);
@@ -105,7 +105,8 @@ function extendedemail_select_email(input_htmlname, select_htmlname, label, user
         var infos = extendedemail_get_email_infos(values.length + 1, value);
         if (infos && !(hide_no_email && infos.disabled)) {
           values.push(infos);
-          selectedvalues.push(infos);
+          if (infos.email && infos.email.length > 0)
+            selectedvalues.push(infos.email);
         }
       });
     }
@@ -115,17 +116,20 @@ function extendedemail_select_email(input_htmlname, select_htmlname, label, user
         var infos = extendedemail_get_email_infos(values.length + 1, option.text());
         if (infos && !(hide_no_email && infos.disabled)) {
           values.push(infos);
-          if (option.is(':selected')) selectedvalues.push(infos.email);
+          if (option.is(':selected') && infos.email && infos.email.length > 0) selectedvalues.push(infos.email);
         }
       });
     }
+    console.log('values', values);
     values.sort(function(a, b) {
-      var aName = a.name.toLowerCase();
-      var bName = b.name.toLowerCase();
+      var aName = name in a ? a.name.toLowerCase() : '';
+      var bName = name in b > 0 ? b.name.toLowerCase() : '';
       return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
     });
+    selectedvalues = $.merge(selectedvalues, selected_users_email);
     values = $.merge(values, users_email);
     //console.log('values', values);
+    console.log('selectedvalues', selectedvalues);
 
     selecttd.empty();
     selecttd.append('<input type="hidden" id="' + input_htmlname + '" name="' + input_htmlname + '" value="">');
@@ -189,7 +193,7 @@ function extendedemail_select_email(input_htmlname, select_htmlname, label, user
           this.onKeyDown_original = this.onKeyDown;
 
           var KEY_BACKSPACE = 8;
-		var KEY_DELETE    = 46;
+         	var KEY_DELETE    = 46;
           this.onKeyDown = function (e) {
             switch (e.keyCode) {
               case KEY_BACKSPACE:
@@ -383,3 +387,4 @@ function extendedemail_get_email_infos(id, input) {
 
   return false;
 }
+

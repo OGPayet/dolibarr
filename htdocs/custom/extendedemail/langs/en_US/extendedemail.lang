@@ -11,3 +11,5 @@ EXTENDEDEMAIL_ADD_USER_TO_SENDTOCCC=Add internal users in "Cached copy to"
 ExtendedEmailPlaceholder=Choose a recipient ...
 ExtendedEmailAdd=Add
 ExtendedEmailInvalidEmail=Invalid email address
+
+ExtendedEmailAutoSelectShippingContactEmail
