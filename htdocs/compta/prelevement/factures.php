@@ -71,12 +71,14 @@ llxHeader('',$langs->trans("WithdrawalsReceipts"));
 
 if ($prev_id > 0 || $ref)
 {
-  	if ($object->fetch($prev_id, $ref) == 0)
+  	if ($object->fetch($prev_id, $ref) >= 0)
     {
     	$head = prelevement_prepare_head($object);
 		dol_fiche_head($head, 'invoices', $langs->trans("WithdrawalsReceipts"), -1, 'payment');
 
-		dol_banner_tab($object, 'ref', '', 1, 'ref', 'ref');
+		$linkback = '<a href="'.DOL_URL_ROOT.'/compta/prelevement/bons.php">'.$langs->trans("BackToList").'</a>';
+
+		dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref');
 
 		print '<div class="fichecenter">';
 		print '<div class="underbanner clearboth"></div>';
@@ -158,7 +160,7 @@ $sql.= " AND pl.fk_prelevement_bons = p.rowid";
 $sql.= " AND f.fk_soc = s.rowid";
 $sql.= " AND pf.fk_facture = f.rowid";
 $sql.= " AND f.entity = ".$conf->entity;
-if ($prev_id) $sql.= " AND p.rowid=".$prev_id;
+if ($object->id) $sql.= " AND p.rowid=".$object->id;
 if ($socid) $sql.= " AND s.rowid = ".$socid;
 $sql.= $db->order($sortfield,$sortorder);
 
@@ -203,7 +205,7 @@ if ($result)
   	print_liste_field_titre("Bill",$_SERVER["PHP_SELF"],"p.ref",'',$param,'',$sortfield,$sortorder);
   	print_liste_field_titre("ThirdParty",$_SERVER["PHP_SELF"],"s.nom",'',$param,'',$sortfield,$sortorder);
   	print_liste_field_titre("AmountInvoice",$_SERVER["PHP_SELF"],"f.total_ttc","",$param,'align="right"',$sortfield,$sortorder);
-  	print_liste_field_titre("AmountRequested",$_SERVER["PHP_SELF"],"pl.amount_requested","",$param,'align="right"',$sortfield,$sortorder);
+  	print_liste_field_titre("AmountRequested",$_SERVER["PHP_SELF"],"pl.amount","",$param,'align="right"',$sortfield,$sortorder);
   	print_liste_field_titre("StatusDebitCredit",$_SERVER["PHP_SELF"],"","",$param,'align="center"',$sortfield,$sortorder);
 	print_liste_field_titre('');
 	print "</tr>\n";
