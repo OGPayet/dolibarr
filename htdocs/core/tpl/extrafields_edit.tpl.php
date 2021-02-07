@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  * Need to have following variables defined:
  * $object (invoice, order, ...)
@@ -37,11 +37,13 @@ if (empty($conf) || ! is_object($conf))
 <?php
 
 // Other attributes
-$parameters = array();
+if (! isset($parameters)) $parameters = array();
 $reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
 print $hookmanager->resPrint;
 if (empty($reshook)) {
-	print $object->showOptionals($extrafields, 'edit');
+	$params=array();
+	$params['cols']=$parameters['colspanvalue'];
+	print $object->showOptionals($extrafields, 'edit', $params);
 }
 
 ?>

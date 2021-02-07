@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -54,12 +54,12 @@ class Canvas
     public $control;           	// Initialized by getCanvas with controller instance
 
 
-   /**
-	*   Constructor
-	*
-	*   @param     DoliDB	$db          	Database handler
-	*   @param     string   $actiontype		Action type ('create', 'view', 'edit', 'list')
-	*/
+    /**
+	 *   Constructor
+	 *
+	 *   @param     DoliDB	$db          	Database handler
+	 *   @param     string   $actiontype		Action type ('create', 'view', 'edit', 'list')
+	 */
 	public function __construct($db, $actiontype = 'view')
 	{
 		$this->db = $db;
@@ -176,6 +176,7 @@ class Canvas
 		global $db, $conf, $langs, $user, $canvas;
 		global $form, $formfile;
 
+		//var_dump($this->card.'-'.$action);
 		include $this->template_dir.(!empty($this->card)?$this->card.'_':'').$this->_cleanaction($action).'.tpl.php';        // Include native PHP template
 	}
 

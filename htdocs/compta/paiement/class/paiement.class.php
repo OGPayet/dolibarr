@@ -21,7 +21,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -68,18 +68,18 @@ class Paiement extends CommonObject
 	 */
 	public $montant;
 
-	public $amount;            // Total amount of payment
-	public $amounts=array();   // Array of amounts
-	public $multicurrency_amounts=array();   // Array of amounts
+	public $amount;                        // Total amount of payment (in the main currency)
+	public $multicurrency_amount;          // Total amount of payment (in the currency of the bank account)
+	public $amounts=array();               // array: invoice ID => amount for that invoice (in the main currency)>
+	public $multicurrency_amounts=array(); // array: invoice ID => amount for that invoice (in the invoice's currency)>
 	public $author;
-	public $paiementid;	// Type de paiement. Stocke dans fk_paiement
-	// de llx_paiement qui est lie aux types de
-    //paiement de llx_c_paiement
+	public $paiementid;			// Type of payment. Id saved into fields fk_paiement on llx_paiement
+	public $paiementcode;		// Code of payment.
 
     /**
      * @var string type libelle
      */
-    public $type_libelle;
+    public $type_label;
 
     /**
      * @var string type code
@@ -89,14 +89,14 @@ class Paiement extends CommonObject
     /**
      * @var string Numero du CHQ, VIR, etc...
      * @deprecated
-     * @see num_payment
+     * @see $num_payment
      */
     public $numero;
 
     /**
      * @var string Numero du CHQ, VIR, etc...
      * @deprecated
-     * @see num_payment
+     * @see $num_payment
      */
     public $num_paiement;
 
@@ -118,6 +118,7 @@ class Paiement extends CommonObject
     /**
      * @var int bank account id of payment
      * @deprecated
+     * @see $fk_account
      */
     public $bank_account;
 
@@ -159,8 +160,8 @@ class Paiement extends CommonObject
 	 */
 	public function fetch($id, $ref = '', $fk_bank = '')
 	{
-		$sql = 'SELECT p.rowid, p.ref, p.datep as dp, p.amount, p.statut, p.ext_payment_id, p.ext_payment_site, p.fk_bank,';
-		$sql.= ' c.code as type_code, c.libelle as type_libelle,';
+		$sql = 'SELECT p.rowid, p.ref, p.datep as dp, p.amount, p.statut, p.ext_payment_id, p.ext_payment_site, p.fk_bank, p.multicurrency_amount,';
+		$sql.= ' c.code as type_code, c.libelle as type_label,';
 		$sql.= ' p.num_paiement as num_payment, p.note,';
 		$sql.= ' b.fk_account';
 		$sql.= ' FROM '.MAIN_DB_PREFIX.'paiement as p LEFT JOIN '.MAIN_DB_PREFIX.'c_paiement as c ON p.fk_paiement = c.id';
@@ -179,21 +180,21 @@ class Paiement extends CommonObject
 			if ($this->db->num_rows($resql))
 			{
 				$obj = $this->db->fetch_object($resql);
-				$this->id             = $obj->rowid;
-				$this->ref            = $obj->ref?$obj->ref:$obj->rowid;
-				$this->date           = $this->db->jdate($obj->dp);
-				$this->datepaye       = $this->db->jdate($obj->dp);
-				$this->numero         = $obj->num_payment;	// deprecated
-				$this->num_paiement   = $obj->num_payment;	// deprecated
-				$this->num_payment    = $obj->num_payment;
-				$this->montant        = $obj->amount;   // deprecated
-				$this->amount         = $obj->amount;
-				$this->note           = $obj->note;
-				$this->type_libelle   = $obj->type_libelle;
-				$this->type_code      = $obj->type_code;
-				$this->statut         = $obj->statut;
-                $this->ext_payment_id = $obj->ext_payment_id;
-                $this->ext_payment_site = $obj->ext_payment_site;
+				$this->id                   = $obj->rowid;
+				$this->ref                  = $obj->ref?$obj->ref:$obj->rowid;
+				$this->date                 = $this->db->jdate($obj->dp);
+				$this->datepaye             = $this->db->jdate($obj->dp);
+				$this->num_paiement         = $obj->num_payment;	// deprecated
+				$this->num_payment          = $obj->num_payment;
+				$this->montant              = $obj->amount;   // deprecated
+				$this->amount               = $obj->amount;
+				$this->multicurrency_amount = $obj->multicurrency_amount;
+				$this->note                 = $obj->note;
+				$this->type_label           = $obj->type_label;
+				$this->type_code            = $obj->type_code;
+				$this->statut               = $obj->statut;
+                $this->ext_payment_id       = $obj->ext_payment_id;
+                $this->ext_payment_site     = $obj->ext_payment_site;
 
 				$this->bank_account   = $obj->fk_account; // deprecated
 				$this->fk_account     = $obj->fk_account;
@@ -287,10 +288,12 @@ class Paiement extends CommonObject
 			$total = $totalamount_converted; // Maybe use price2num with MT for the converted value
 			$mtotal = $totalamount;
 		}
+
+		$num_payment = ($this->num_payment?$this->num_payment:$this->num_paiement);
 		$note = ($this->note_public?$this->note_public:$this->note);
 
 		$sql = "INSERT INTO ".MAIN_DB_PREFIX."paiement (entity, ref, datec, datep, amount, multicurrency_amount, fk_paiement, num_paiement, note, ext_payment_id, ext_payment_site, fk_user_creat)";
-		$sql.= " VALUES (".$conf->entity.", '".$this->db->escape($this->ref)."', '". $this->db->idate($now)."', '".$this->db->idate($this->datepaye)."', ".$total.", ".$mtotal.", ".$this->paiementid.", '".$this->db->escape($this->num_paiement)."', '".$this->db->escape($note)."', ".($this->ext_payment_id?"'".$this->db->escape($this->ext_payment_id)."'":"null").", ".($this->ext_payment_site?"'".$this->db->escape($this->ext_payment_site)."'":"null").", ".$user->id.")";
+		$sql.= " VALUES (".$conf->entity.", '".$this->db->escape($this->ref)."', '". $this->db->idate($now)."', '".$this->db->idate($this->datepaye)."', ".$total.", ".$mtotal.", ".$this->paiementid.", '".$this->db->escape($num_payment)."', '".$this->db->escape($note)."', ".($this->ext_payment_id?"'".$this->db->escape($this->ext_payment_id)."'":"null").", ".($this->ext_payment_site?"'".$this->db->escape($this->ext_payment_site)."'":"null").", ".$user->id.")";
 
 		dol_syslog(get_class($this)."::Create insert paiement", LOG_DEBUG);
 		$resql = $this->db->query($sql);
@@ -372,8 +375,6 @@ class Paiement extends CommonObject
 									$discount = new DiscountAbsolute($this->db);
 									$discount->fetch('', $invoice->id);
 									if (empty($discount->id)) {	// If the invoice was not yet converted into a discount (this may have been done manually before we come here)
-
-
 										$discount->description = '(DEPOSIT)';
 										$discount->fk_soc = $invoice->socid;
 										$discount->fk_facture_source = $invoice->id;
@@ -531,7 +532,9 @@ class Paiement extends CommonObject
 			$accline = new AccountLine($this->db);
 
 			$result=$accline->fetch($bank_line_id);
-			if ($result == 0) $accline->rowid=$bank_line_id;    // If not found, we set artificially rowid to allow delete of llx_bank_url
+			if ($result == 0) {
+				$accline->id = $accline->rowid = $bank_line_id;    // If not found, we set artificially rowid to allow delete of llx_bank_url
+			}
 
             // Delete bank account url lines linked to payment
 			$result=$accline->delete_urls($user);
@@ -609,7 +612,7 @@ class Paiement extends CommonObject
      */
     public function addPaymentToBank($user, $mode, $label, $accountid, $emetteur_nom, $emetteur_banque, $notrigger = 0)
     {
-        global $conf,$langs,$user;
+        global $conf, $langs, $user;
 
         $error=0;
         $bank_line_id=0;
@@ -629,7 +632,7 @@ class Paiement extends CommonObject
 
         	include_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
 
-            dol_syslog("$user->id,$mode,$label,$this->fk_account,$emetteur_nom,$emetteur_banque");
+            dol_syslog("$user->id, $mode, $label, $this->fk_account, $emetteur_nom, $emetteur_banque");
 
             $acc = new Account($this->db);
             $result=$acc->fetch($this->fk_account);
@@ -648,7 +651,7 @@ class Paiement extends CommonObject
                 $this->paiementid,  // Payment mode id or code ("CHQ or VIR for example")
                 $label,
                 $totalamount,		// Sign must be positive when we receive money (customer payment), negative when you give money (supplier invoice or credit note)
-                $this->num_paiement,
+                $this->num_payment,
                 '',
                 $user,
                 $emetteur_nom,
@@ -847,7 +850,6 @@ class Paiement extends CommonObject
 
             if (! $error)
             {
-
             }
 
             if (! $error)
@@ -886,7 +888,7 @@ class Paiement extends CommonObject
             $result = $this->db->query($sql);
             if ($result)
             {
-            	$this->numero = $this->db->escape($num);
+            	$this->num_payment = $this->db->escape($num);
                 return 0;
             }
             else
@@ -1089,7 +1091,6 @@ class Paiement extends CommonObject
 			$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
 
 			foreach ($dirmodels as $reldir) {
-
 				$dir = dol_buildpath($reldir."core/modules/payment/");
 
 				// Load file with numbering class (if found)
