@@ -23,6 +23,9 @@ ModuleSepaMandatManagerName = Sepa Mandat Manager
 ModuleSepaMandatManagerDesc = Gestionnaire avancé de mandat sepa
 SepaMandatManagerDescription = Gestionnaire avancé de mandat sepa
 SepaMandatLinkedObjectName = Mandat Sepa
+Permission468423 = Consulter les mandats SEPA
+Permission468424 = Créer/modifier les mandats SEPA
+Permission468425 = Supprimer les mandats SEPA
 
 #
 # Page d'administration
