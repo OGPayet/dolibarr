@@ -114,6 +114,7 @@ $result = restrictedArea($user, 'requestmanager', '', '');
 if ($planning && !$user->rights->requestmanager->planning->lire) {
     accessforbidden();
 }
+$object = new RequestManager($db);	// To be passed as parameter of executeHooks that need
 
 // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
 $contextpage='requestmanagerlist';
@@ -181,13 +182,8 @@ $arrayfields = array(
     'rm.tms' => array('label' => $langs->trans("DateModificationShort"), 'checked' => 0, 'position' => 500),
     'rm.fk_status' => array('label' => $langs->trans("Status"), 'checked' => 1, 'position' => 1000),
 );
-// Add fields from extrafields
-if (!empty($extrafields->attributes[$object->table_element]['label'])) {
-	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? "ef.".$key.' as options_'.$key.', ' : '');
-}
-
-$object = new RequestManager($db);	// To be passed as parameter of executeHooks that need
-
+// Extra fields
+include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_array_fields.tpl.php';
 
 /*
  * Actions
@@ -535,10 +531,10 @@ SCRIPT;
     $sql .= ' rm.fk_user_author, ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail,';
     $sql .= ' rm.fk_user_modif, um.firstname as usermodiffirstname, um.lastname as usermodiflastname, um.email as usermodifemail,';
     $sql .= ' crmrr.label AS reason_resolution, rm.reason_resolution_details, ';
-// Add fields from extrafields
-if (!empty($extrafields->attributes[$object->table_element]['label'])) {
-	foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? "ef.".$key.' as options_'.$key.', ' : '');
-}
+ // Add fields from extrafields
+ if (!empty($extrafields->attributes[$object->table_element]['label']))
+ foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? ", ef.".$key.' as options_'.$key : '');
+
 // Add fields from hooks
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters, $object); // Note that $action and $object may have been modified by hook
@@ -657,18 +653,8 @@ $sql = preg_replace('/,\s*$/', '', $sql);
     if ($sall) {
         $sql .= natural_search(array_keys($fieldstosearchall), $sall);
     }
-    // Add where from extra fields
-    foreach ($search_array_options as $key => $val) {
-        $crit = $val;
-        $tmpkey = preg_replace('/search_options_/', '', $key);
-        $typ = $extrafields->attribute_type[$tmpkey];
-        $mode = 0;
-        if (in_array($typ, array('int', 'double', 'real'))) $mode = 1;                                // Search on a numeric
-        if (in_array($typ, array('sellist')) && $crit != '0' && $crit != '-1') $mode = 2;            // Search on a foreign key int
-        if ($crit != '' && (!in_array($typ, array('select', 'sellist')) || $crit != '0')) {
-            $sql .= natural_search('ef.' . $tmpkey, $crit, $mode);
-        }
-    }
+	// Add where from extra fields
+	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_sql.tpl.php';
     // Add where from hooks
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook
