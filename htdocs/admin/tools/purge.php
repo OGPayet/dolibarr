@@ -1,6 +1,6 @@
 <?php
 /* Copyright (C) 2006-2017	Laurent Destailleur	<eldy@users.sourceforge.net>
- * Copyright (C) 2006-2012	Regis Houssin		<regis.houssin@capnetworks.com>
+ * Copyright (C) 2006-2012	Regis Houssin		<regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,17 @@ if (! empty($conf->syslog->enabled))
  */
 if ($action=='purge' && ! preg_match('/^confirm/i',$choice) && ($choice != 'allfiles' || $confirm == 'yes') )
 {
+    // Increase limit of time. Works only if we are not in safe mode
+    $ExecTimeLimit=600;
+    if (!empty($ExecTimeLimit))
+    {
+        $err=error_reporting();
+        error_reporting(0);     // Disable all errors
+        //error_reporting(E_ALL);
+        @set_time_limit($ExecTimeLimit);   // Need more than 240 on Windows 7/64
+        error_reporting($err);
+    }
+
 	require_once DOL_DOCUMENT_ROOT.'/core/class/utils.class.php';
 	$utils = new Utils($db);
 	$result = $utils->purgeFiles($choice);
@@ -119,7 +130,6 @@ if (preg_match('/^confirm/i',$choice))
 	print $form->formconfirm($_SERVER["PHP_SELF"].'?choice=allfiles', $langs->trans('Purge'), $langs->trans('ConfirmPurge').img_warning().' ', 'purge', $formquestion, 'no', 2);
 }
 
-
+// End of page
 llxFooter();
-
 $db->close();

@@ -104,7 +104,7 @@ class PriceParser
 		{
 			return $langs->trans("ErrorPriceExpression".$code);
 		}
-		else if (in_array($code, array(1, 2, 3, 4, 5, 8, 10, 11, 17, 21, 22))) //Errors which have 1 arg
+		else if (in_array($code, array(1, 2, 3, 4, 5, 8, 10, 11, 17, 21, 22, 24))) //Errors which have 1 arg
 		{
 			return $langs->trans("ErrorPriceExpression".$code, $info);
 		}
@@ -259,9 +259,14 @@ class PriceParser
 			return -1;
 		}
 
-		//Get the supplier min
+		//Get the supplier min price
 		$productFournisseur = new ProductFournisseur($this->db);
-		$supplier_min_price = $productFournisseur->find_min_price_product_fournisseur($product->id, 0, 0);
+		$res = $productFournisseur->find_min_price_product_fournisseur($product->id, 0, 0);
+		if ($res<1) {
+			$this->error_parser = array(25, null);
+			return -1;
+		}
+		$supplier_min_price = $productFournisseur->fourn_unitprice;
 
 		//Accessible values by expressions
 		$extra_values = array_merge($extra_values, array(

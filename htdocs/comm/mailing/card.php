@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2004		Rodolphe Quiedeville	<rodolphe@quiedeville.org>
  * Copyright (C) 2005-2016	Laurent Destailleur		<eldy@uers.sourceforge.net>
- * Copyright (C) 2005-2016	Regis Houssin			<regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2016	Regis Houssin			<regis.houssin@inodbox.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -747,7 +747,7 @@ if ($action == 'create')
 	dol_fiche_head();
 
 	print '<table class="border" width="100%">';
-	print '<tr><td class="fieldrequired titlefieldcreate">'.$langs->trans("MailTitle").'</td><td><input class="flat minwidth300" name="titre" value="'.dol_escape_htmltag(GETPOST('titre')).'"></td></tr>';
+	print '<tr><td class="fieldrequired titlefieldcreate">'.$langs->trans("MailTitle").'</td><td><input class="flat minwidth300" name="titre" value="'.dol_escape_htmltag(GETPOST('titre')).'" autofocus="autofocus"></td></tr>';
 	print '<tr><td class="fieldrequired">'.$langs->trans("MailFrom").'</td><td><input class="flat minwidth200" name="from" value="'.$conf->global->MAILING_EMAIL_FROM.'"></td></tr>';
 	print '<tr><td>'.$langs->trans("MailErrorsTo").'</td><td><input class="flat minwidth200" name="errorsto" value="'.(!empty($conf->global->MAILING_EMAIL_ERRORSTO)?$conf->global->MAILING_EMAIL_ERRORSTO:$conf->global->MAIN_MAIL_ERRORS_TO).'"></td></tr>';
 
@@ -835,7 +835,7 @@ else
 				{
 					// EMailing feature may be a spam problem, so when you host several users/instance, having this option may force each user to use their own SMTP agent.
 					// You ensure that every user is using its own SMTP server when using the mass emailing module.
-					$linktoadminemailbefore='<a href="'.DOL_URL_ROOT.'/admin/mails.php">';
+					$linktoadminemailbefore='<a href="'.DOL_URL_ROOT.'/admin/mails_emailing.php">';
 					$linktoadminemailend='</a>';
 					setEventMessages($langs->trans("MailSendSetupIs", $listofmethods[$sendingmode]), null, 'warnings');
 					setEventMessages($langs->trans("MailSendSetupIs2", $linktoadminemailbefore, $linktoadminemailend, $langs->transnoentitiesnoconv("MAIN_MAIL_SENDMODE"), $listofmethods['smtps']), null, 'warnings');
@@ -874,7 +874,7 @@ else
 				}
 			}
 
-			$linkback = '<a href="'.DOL_URL_ROOT.'/comm/mailing/list.php">'.$langs->trans("BackToList").'</a>';
+			$linkback = '<a href="'.DOL_URL_ROOT.'/comm/mailing/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
 
 			$morehtmlright='';
 			$nbtry = $nbok = 0;
@@ -1165,7 +1165,6 @@ else
 			print '</div>';
 
 			dol_fiche_end();
-
 		}
 		else
 		{
@@ -1358,5 +1357,6 @@ else
 	}
 }
 
+// End of page
 llxFooter();
 $db->close();

@@ -1,7 +1,8 @@
 <?php
-/* Copyright (C) 2004-2005 Rodolphe Quiedeville <rodolphe@quiedeville.org>
- * Copyright (C) 2013      Olivier Geffroy      <jeff@jeffinfo.com>
- * Copyright (C) 2013      Alexandre Spangaro   <alexandre.spangaro@gmail.com>
+/* Copyright (C) 2004-2005  Rodolphe Quiedeville    <rodolphe@quiedeville.org>
+ * Copyright (C) 2013       Olivier Geffroy         <jeff@jeffinfo.com>
+ * Copyright (C) 2013-2019  Alexandre Spangaro      <aspangaro@open-dsi.fr>
+ * Copyright (C) 2018       Frédéric France         <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,26 +19,27 @@
  */
 
 /**
- * \file accountancy/class/bookkeeping.class.php
- * \ingroup Advanced accountancy
- * \brief 	File of class for lettering
+ * \file      	htdocs/accountancy/class/lettering.class.php
+ * \ingroup 	Advanced accountancy
+ * \brief 		File of class for lettering
  */
+
 include_once DOL_DOCUMENT_ROOT . "/accountancy/class/bookkeeping.class.php";
 include_once DOL_DOCUMENT_ROOT . "/societe/class/societe.class.php";
 include_once DOL_DOCUMENT_ROOT . "/core/lib/date.lib.php";
 
 /**
- * Class lettering
+ * Class Lettering
  */
-class lettering extends BookKeeping
+class Lettering extends BookKeeping
 {
 	/**
-	 * lettrageTiers
+	 * letteringThirdparty
 	 *
 	 * @param int $socid Thirdparty id
-	 * @return void
+	 * @return int 1 OK, <0 error
 	 */
-	public function lettrageTiers($socid)
+	public function letteringThirdparty($socid)
 	{
 		global $conf;
 
@@ -46,6 +48,7 @@ class lettering extends BookKeeping
 		$object = new Societe($this->db);
 		$object->id = $socid;
 		$object->fetch($socid);
+
 
 		if ($object->code_compta == '411CUSTCODE') {
 			$object->code_compta = '';
@@ -63,13 +66,13 @@ class lettering extends BookKeeping
 		$sql .= " , bk.sens , bk.code_journal , bk.piece_num, bk.date_lettering, bu.url_id , bu.type ";
 		$sql .= " FROM " . MAIN_DB_PREFIX . "accounting_bookkeeping as bk";
 		$sql .= " LEFT JOIN  " . MAIN_DB_PREFIX . "bank_url as bu ON(bk.fk_doc = bu.fk_bank AND bu.type IN ('payment', 'payment_supplier') ) ";
-		$sql .= " WHERE   ( ";
+		$sql .= " WHERE ( ";
 		if (! empty($object->code_compta))
-			$sql .= "  bk.subledger_account = '" . $object->code_compta . "'  ";
+			$sql .= " bk.subledger_account = '" . $object->code_compta . "'  ";
 		if (! empty($object->code_compta) && ! empty($object->code_compta_fournisseur))
-			$sql .= "  OR  ";
+			$sql .= " OR ";
 		if (! empty($object->code_compta_fournisseur))
-			$sql .= "   bk.subledger_account = '" . $object->code_compta_fournisseur . "' ";
+			$sql .= " bk.subledger_account = '" . $object->code_compta_fournisseur . "' ";
 
 		$sql .= " ) AND (bk.date_lettering ='' OR bk.date_lettering IS NULL) ";
 		$sql .= "  AND (bk.lettering_code != '' OR bk.lettering_code IS NULL) ";
@@ -125,15 +128,15 @@ class lettering extends BookKeeping
 						$sql .= " AND facf.entity = ".$conf->entity;
 						$sql .= " AND ( ";
 						if (! empty($object->code_compta)) {
-							$sql .= "  bk.subledger_account = '" . $object->code_compta . "'  ";
+							$sql .= " bk.subledger_account = '" . $object->code_compta . "'  ";
 						}
 						if (! empty($object->code_compta) && ! empty($object->code_compta_fournisseur)) {
-							$sql .= "  OR  ";
+							$sql .= " OR ";
 						}
 						if (! empty($object->code_compta_fournisseur)) {
-							$sql .= "   bk.subledger_account = '" . $object->code_compta_fournisseur . "' ";
+							$sql .= " bk.subledger_account = '" . $object->code_compta_fournisseur . "' ";
 						}
-						$sql .= " )  ";
+						$sql .= ") ";
 
 						$resql2 = $this->db->query($sql);
 						if ($resql2) {
@@ -208,7 +211,7 @@ class lettering extends BookKeeping
 				}
 
 				if (count($ids) > 1) {
-					$result = $this->updatelettrage($ids);
+					$result = $this->updateLettering($ids);
 				}
 			}
 		}
@@ -229,7 +232,7 @@ class lettering extends BookKeeping
 	 * @param boolean $notrigger no trigger
  	 * @return number
 	 */
-	public function updateLettrage($ids = array(), $notrigger = false)
+	public function updateLettering($ids = array(), $notrigger = false)
 	{
 		$error = 0;
 		$lettre = 'AAA';
@@ -250,7 +253,7 @@ class lettering extends BookKeeping
 			$error++;
 		}
 
-		$sql = "SELECT SUM(ABS(debit)) as deb, SUM(ABS(credit)) as cred   FROM " . MAIN_DB_PREFIX . "accounting_bookkeeping WHERE ";
+		$sql = "SELECT SUM(ABS(debit)) as deb, SUM(ABS(credit)) as cred FROM " . MAIN_DB_PREFIX . "accounting_bookkeeping WHERE ";
 		$sql .= " rowid IN (" . implode(',', $ids) . ") ";
 		$result = $this->db->query($sql);
 		if ($result) {

@@ -4,7 +4,7 @@
  * Copyright (C) 2004-2015  Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2004       Sebastien Di Cintio     <sdicintio@ressource-toi.org>
  * Copyright (C) 2004       Benoit Mortier          <benoit.mortier@opensides.be>
- * Copyright (C) 2005-2015  Regis Houssin           <regis.houssin@capnetworks.com>
+ * Copyright (C) 2005-2015  Regis Houssin           <regis.houssin@inodbox.com>
  * Copyright (C) 2011-2014  Philippe Grand          <philippe.grand@atoo-net.com>
  * Copyright (C) 2008       Matteli
  * Copyright (C) 2011-2016  Juanjo Menent           <jmenent@2byte.es>
@@ -68,6 +68,22 @@ if (function_exists('get_magic_quotes_gpc'))	// magic_quotes_* deprecated in PHP
 	}
 }
 
+// phpcs:disable PEAR.NamingConventions.ValidFunctionName.NotCamelCaps
+/**
+ * Security: SQL Injection and XSS Injection (scripts) protection (Filters on GET, POST, PHP_SELF).
+ *
+ * @param       string      $val        Value
+ * @param       string      $type       1=GET, 0=POST, 2=PHP_SELF, 3=GET without sql reserved keywords (the less tolerant test)
+ * @return      int                     >0 if there is an injection, 0 if none
+ * @deprecated                          use testSqlAndScriptInject
+ * @see testSqlAndScriptInject($val, $type)
+ */
+function test_sql_and_script_inject($val, $type)
+{
+    // phpcs:enable
+    return testSqlAndScriptInject($val, $type);
+}
+
 /**
  * Security: SQL Injection and XSS Injection (scripts) protection (Filters on GET, POST, PHP_SELF).
  *
@@ -75,7 +91,7 @@ if (function_exists('get_magic_quotes_gpc'))	// magic_quotes_* deprecated in PHP
  * @param		string		$type		1=GET, 0=POST, 2=PHP_SELF, 3=GET without sql reserved keywords (the less tolerant test)
  * @return		int						>0 if there is an injection, 0 if none
  */
-function test_sql_and_script_inject($val, $type)
+function testSqlAndScriptInject($val, $type)
 {
 	$inj = 0;
 	// For SQL Injection (only GET are used to be included into bad escaped SQL requests)
@@ -100,6 +116,8 @@ function test_sql_and_script_inject($val, $type)
 		$inj += preg_match('/union.+select/i', 	 $val);
 		$inj += preg_match('/(\.\.%2f)+/i',		 $val);
 	}
+	// For XSS Injection done by closing textarea to exucute content into a textarea field
+	$inj += preg_match('/<\/textarea/i', $val);
 	// For XSS Injection done by adding javascript with script
 	// This is all cases a browser consider text is javascript:
 	// When it found '<script', 'javascript:', '<style', 'onload\s=' on body tag, '="&' on a tag size with old browsers
@@ -111,13 +129,15 @@ function test_sql_and_script_inject($val, $type)
 	$inj += preg_match('/Set\.constructor/i', $val);	// ECMA script 6
 	if (! defined('NOSTYLECHECK')) $inj += preg_match('/<style/i', $val);
 	$inj += preg_match('/base[\s]+href/si', $val);
-	$inj += preg_match('/<.*onmouse/si', $val);       // onmousexxx can be set on img or any html tag like <img title='...' onmouseover=alert(1)>
-	$inj += preg_match('/onerror\s*=/i', $val);       // onerror can be set on img or any html tag like <img title='...' onerror = alert(1)>
-	$inj += preg_match('/onfocus\s*=/i', $val);       // onfocus can be set on input text html tag like <input type='text' value='...' onfocus = alert(1)>
-	$inj += preg_match('/onload\s*=/i', $val);        // onload can be set on svg tag <svg/onload=alert(1)> or other tag like body <body onload=alert(1)>
-	$inj += preg_match('/onloadstart\s*=/i', $val);   // onload can be set on audio tag <audio onloadstart=alert(1)>
-	$inj += preg_match('/onclick\s*=/i', $val);       // onclick can be set on img text html tag like <img onclick = alert(1)>
-	$inj += preg_match('/onscroll\s*=/i', $val);      // onscroll can be on textarea
+	// List of dom events is on https://www.w3schools.com/jsref/dom_obj_event.asp
+	$inj += preg_match('/onmouse([a-z]*)\s*=/i', $val);       // onmousexxx can be set on img or any html tag like <img title='...' onmouseover=alert(1)>
+	$inj += preg_match('/ondrag([a-z]*)\s*=/i', $val);        //
+	$inj += preg_match('/ontouch([a-z]*)\s*=/i', $val);        //
+	$inj += preg_match('/on(abort|afterprint|beforeprint|beforeunload|blur|canplay|canplaythrough|change|click|contextmenu|copy|cut)\s*=/i', $val);
+	$inj += preg_match('/on(dblclick|drop|durationchange|ended|error|focus|focusin|focusout|hashchange|input|invalid)\s*=/i', $val);
+	$inj += preg_match('/on(keydown|keypress|keyup|load|loadeddata|loadedmetadata|loadstart|offline|online|pagehide|pageshow)\s*=/i', $val);
+	$inj += preg_match('/on(paste|pause|play|playing|progress|ratechange|resize|reset|scroll|search|seeking|select|show|stalled|submit|suspend)\s*=/i', $val);
+	$inj += preg_match('/on(timeupdate|toggle|unload|volumechange|waiting)\s*=/i', $val);
 	//$inj += preg_match('/on[A-Z][a-z]+\*=/', $val);   // To lock event handlers onAbort(), ...
 	$inj += preg_match('/&#58;|&#0000058|&#x3A/i', $val);		// refused string ':' encoded (no reason to have it encoded) to lock 'javascript:...'
 	//if ($type == 1)
@@ -158,7 +178,7 @@ function analyseVarsForSqlAndScriptsInjection(&$var, $type)
 	}
 	else
 	{
-		return (test_sql_and_script_inject($var, $type) <= 0);
+		return (testSqlAndScriptInject($var, $type) <= 0);
 	}
 }
 
@@ -256,8 +276,6 @@ if (isset($_SERVER["HTTP_USER_AGENT"]))
 	$conf->browser->os=$tmp['browseros'];
 	$conf->browser->version=$tmp['browserversion'];
 	$conf->browser->layout=$tmp['layout'];     // 'classic', 'phone', 'tablet'
-	$conf->browser->phone=$tmp['phone'];	   // TODO deprecated, use ->layout
-	$conf->browser->tablet=$tmp['tablet'];	   // TODO deprecated, use ->layout
 	//var_dump($conf->browser);
 
 	if ($conf->browser->layout == 'phone') $conf->dol_no_mouse_hover=1;
@@ -492,7 +510,7 @@ if (! defined('NOLOGIN'))
 				$_SESSION["dol_loginmesg"]=$langs->trans("ErrorBadValueForCode");
 				$test=false;
 
-				// TODO @deprecated Remove this. Hook must be used, not this trigger.
+				// Call trigger for the "security events" log
 				$user->trigger_mesg='ErrorBadValueForCode - login='.GETPOST("username","alpha",2);
 				// Call of triggers
 				include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
@@ -571,7 +589,7 @@ if (! defined('NOLOGIN'))
 				// We set a generic message if not defined inside function checkLoginPassEntity or subfunctions
 				if (empty($_SESSION["dol_loginmesg"])) $_SESSION["dol_loginmesg"]=$langs->trans("ErrorBadLoginPassword");
 
-				// TODO @deprecated Remove this. Hook must be used, not this trigger.
+				// Call trigger for the "security events" log
 				$user->trigger_mesg=$langs->trans("ErrorBadLoginPassword").' - login='.GETPOST("username","alpha",2);
 				// Call of triggers
 				include_once DOL_DOCUMENT_ROOT.'/core/class/interfaces.class.php';
@@ -619,18 +637,16 @@ if (! defined('NOLOGIN'))
 
 				$_SESSION["dol_loginmesg"]=$langs->trans("ErrorCantLoadUserFromDolibarrDatabase",$login);
 
-				// TODO @deprecated Remove this. Hook must be used, not this trigger.
 				$user->trigger_mesg='ErrorCantLoadUserFromDolibarrDatabase - login='.$login;
 			}
 			if ($resultFetchUser < 0)
 			{
 				$_SESSION["dol_loginmesg"]=$user->error;
 
-				// TODO @deprecated Remove this. Hook must be used, not this trigger.
 				$user->trigger_mesg=$user->error;
 			}
 
-			// Call triggers
+			// Call triggers for the "security events" log
 			include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
 			$interface=new Interfaces($db);
 			$result=$interface->run_triggers('USER_LOGIN_FAILED',$user,$user,$langs,$conf);
@@ -678,19 +694,16 @@ if (! defined('NOLOGIN'))
 
 				$_SESSION["dol_loginmesg"]=$langs->trans("ErrorCantLoadUserFromDolibarrDatabase",$login);
 
-				// TODO @deprecated Remove this. Hook must be used, not this trigger.
 				$user->trigger_mesg='ErrorCantLoadUserFromDolibarrDatabase - login='.$login;
 			}
 			if ($resultFetchUser < 0)
 			{
 				$_SESSION["dol_loginmesg"]=$user->error;
 
-				// TODO @deprecated Remove this. Hook must be used, not this trigger.
 				$user->trigger_mesg=$user->error;
 			}
 
-			// TODO @deprecated Remove this. Hook must be used, not this trigger.
-			// Call triggers
+			// Call triggers for the "security events" log
 			include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
 			$interface=new Interfaces($db);
 			$result=$interface->run_triggers('USER_LOGIN_FAILED',$user,$user,$langs,$conf);
@@ -795,7 +808,7 @@ if (! defined('NOLOGIN'))
 
 		$loginfo = 'TZ='.$_SESSION["dol_tz"].';TZString='.$_SESSION["dol_tz_string"].';Screen='.$_SESSION["dol_screenwidth"].'x'.$_SESSION["dol_screenheight"];
 
-		// TODO @deprecated Remove this. Hook must be used, not this trigger.
+		// Call triggers for the "security events" log
 		$user->trigger_mesg = $loginfo;
 		// Call triggers
 		include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
@@ -817,7 +830,7 @@ if (! defined('NOLOGIN'))
 		{
 			$db->rollback();
 			session_destroy();
-			dol_print_error($db,'Error in some hooks afterLogin (or old trigger USER_LOGIN)');
+			dol_print_error($db,'Error in some triggers USER_LOGIN or in some hooks afterLogin');
 			exit;
 		}
 		else
@@ -910,12 +923,11 @@ if ((! empty($conf->browser->layout) && $conf->browser->layout == 'phone')
 // If we force to use jmobile, then we reenable javascript
 if (! empty($conf->dol_use_jmobile)) $conf->use_javascript_ajax=1;
 // Replace themes bugged with jmobile with eldy
-if (! empty($conf->dol_use_jmobile) && in_array($conf->theme,array('bureau2crea','cameleo','amarok')))
+if (! empty($conf->dol_use_jmobile) && in_array($conf->theme, array('bureau2crea','cameleo','amarok')))
 {
 	$conf->theme='eldy';
 	$conf->css  =  "/theme/".$conf->theme."/style.css.php";
 }
-//var_dump($conf->browser->phone);
 
 if (! defined('NOREQUIRETRAN'))
 {
@@ -1003,7 +1015,7 @@ else
 	define('ROWS_9',8);
 }
 
-$heightforframes=48;
+$heightforframes=50;
 
 // Init menu manager
 if (! defined('NOREQUIREMENU'))
@@ -1081,7 +1093,7 @@ if (! function_exists("llxHeader"))
 
 		if (empty($conf->dol_hide_leftmenu))
 		{
-			left_menu('', $help_url, '', '', 1, $title, 1);
+			left_menu('', $help_url, '', '', 1, $title, 1);		// $menumanager is retreived with a global $menumanager inside this function
 		}
 
 		// main area
@@ -1185,12 +1197,15 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 		$ext='layout='.$conf->browser->layout.'&version='.urlencode(DOL_VERSION);
 
 		print "<head>\n";
+
 		if (GETPOST('dol_basehref','alpha')) print '<base href="'.dol_escape_htmltag(GETPOST('dol_basehref','alpha')).'">'."\n";
+
 		// Displays meta
 		print '<meta charset="UTF-8">'."\n";
 		print '<meta name="robots" content="noindex'.($disablenofollow?'':',nofollow').'">'."\n";	// Do not index
 		print '<meta name="viewport" content="width=device-width, initial-scale=1.0">'."\n";		// Scale for mobile device
 		print '<meta name="author" content="Dolibarr Development Team">'."\n";
+
 		// Favicon
 		$favicon=dol_buildpath('/theme/'.$conf->theme.'/img/favicon.ico',1);
 		if (! empty($conf->global->MAIN_FAVICON_URL)) $favicon=$conf->global->MAIN_FAVICON_URL;
@@ -1198,6 +1213,9 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 		//if (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) print '<link rel="top" title="'.$langs->trans("Home").'" href="'.(DOL_URL_ROOT?DOL_URL_ROOT:'/').'">'."\n";
 		//if (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) print '<link rel="copyright" title="GNU General Public License" href="http://www.gnu.org/copyleft/gpl.html#SEC1">'."\n";
 		//if (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) print '<link rel="author" title="Dolibarr Development Team" href="https://www.dolibarr.org">'."\n";
+
+		// Auto refresh page
+		if (GETPOST('autorefresh','int') > 0) print '<meta http-equiv="refresh" content="'.GETPOST('autorefresh','int').'">';
 
 		// Displays title
 		$appli=constant('DOL_APPLICATION_TITLE');
@@ -1298,7 +1316,15 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 		{
 			foreach($arrayofcss as $cssfile)
 			{
-				print '<!-- Includes CSS added by page -->'."\n".'<link rel="stylesheet" type="text/css" title="default" href="'.dol_buildpath($cssfile,1);
+			    if (preg_match('/^http/i', $cssfile))
+			    {
+			        $urltofile=$cssfile;
+			    }
+			    else
+			    {
+			        $urltofile=dol_buildpath($cssfile, 1);
+			    }
+				print '<!-- Includes CSS added by page -->'."\n".'<link rel="stylesheet" type="text/css" title="default" href="'.$urltofile;
 				// We add params only if page is not static, because some web server setup does not return content type text/css if url has parameters and browser cache is not used.
 				if (!preg_match('/\.css$/i',$cssfile)) print $themeparam;
 				print '">'."\n";
@@ -1372,7 +1398,11 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             	$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
             	print '<script type="text/javascript" src="'.DOL_URL_ROOT.'/includes/jquery/plugins/'.$tmpplugin.'/dist/js/'.$tmpplugin.'.full.min.js'.($ext?'?'.$ext:'').'"></script>'."\n";	// We include full because we need the support of containerCssClass
             }
-        }
+            if (! defined('DISABLE_MULTISELECT'))     // jQuery plugin "mutiselect" to select with checkboxes
+            {
+            	print '<script type="text/javascript" src="'.DOL_URL_ROOT.'/includes/jquery/plugins/multiselect/jquery.multi-select.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+            }
+		}
 
         if (! $disablejs && ! empty($conf->use_javascript_ajax))
         {
@@ -1438,7 +1468,6 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
                     }
                     else
                     {
-                        if (! preg_match('/^\//',$jsfile)) $jsfile='/'.$jsfile;	// For backward compatibility
                         print '<script type="text/javascript" src="'.dol_buildpath($jsfile,1).'"></script>'."\n";
                     }
                 }
@@ -1468,7 +1497,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
  *  @param		string	$morequerystring	Query string to add to the link "print" to get same parameters (use only if autodetect fails)
  *  @param      string	$helppagename    	Name of wiki page for help ('' by default).
  * 				     		                Syntax is: For a wiki page: EN:EnglishPage|FR:FrenchPage|ES:SpanishPage
- * 									                   For other external page: http://server/url
+ * 						                    For other external page: http://server/url
  *  @return		void
  */
 function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $arrayofjs='', $arrayofcss='', $morequerystring='', $helppagename='')
@@ -1583,7 +1612,7 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
 		}
 
 		// Link to print main content area
-		if (empty($conf->global->MAIN_PRINT_DISABLELINK) && empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER) && empty($conf->browser->phone))
+		if (empty($conf->global->MAIN_PRINT_DISABLELINK) && empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER) && $conf->browser->layout != 'phone')
 		{
 			$qs=dol_escape_htmltag($_SERVER["QUERY_STRING"]);
 
@@ -1668,7 +1697,7 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
  *  @param  array	$menu_array_before 	       	Table of menu entries to show before entries of menu handler. This param is deprectaed and must be provided to ''.
  *  @param  string	$helppagename    	       	Name of wiki page for help ('' by default).
  * 				     		                   	Syntax is: For a wiki page: EN:EnglishPage|FR:FrenchPage|ES:SpanishPage
- * 									         		       For other external page: http://server/url
+ * 									         	For other external page: http://server/url
  *  @param  string	$notused             		Deprecated. Used in past to add content into left menu. Hooks can be used now.
  *  @param  array	$menu_array_after           Table of menu entries to show after entries of menu handler
  *  @param  int		$leftmenuwithoutmainarea    Must be set to 1. 0 by default for backward compatibility with old modules.
@@ -1729,7 +1758,7 @@ function left_menu($menu_array_before, $helppagename='', $notused='', $menu_arra
 		if (! empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER) || empty($conf->use_javascript_ajax))
 		{
 			$urltosearch=DOL_URL_ROOT.'/core/search_page.php?showtitlebefore=1';
-			$searchform='<div class="blockvmenuimpair blockvmenusearchphone"><div id="divsearchforms1"><a href="'.$urltosearch.'" alt="'.dol_escape_htmltag($langs->trans("ShowSearchFields")).'">'.$langs->trans("Search").'...</a></div></div>';
+			$searchform='<div class="blockvmenuimpair blockvmenusearchphone"><div id="divsearchforms1"><a href="'.$urltosearch.'" accesskey="s" alt="'.dol_escape_htmltag($langs->trans("ShowSearchFields")).'">'.$langs->trans("Search").'...</a></div></div>';
 		}
 		elseif ($conf->use_javascript_ajax && ! empty($conf->global->MAIN_USE_OLD_SEARCH_FORM))
 		{
@@ -1747,7 +1776,7 @@ function left_menu($menu_array_before, $helppagename='', $notused='', $menu_arra
 		// Define $bookmarks
 		if (! empty($conf->bookmark->enabled) && $user->rights->bookmark->lire)
 		{
-			include_once (DOL_DOCUMENT_ROOT.'/bookmarks/bookmarks.lib.php');
+			include_once DOL_DOCUMENT_ROOT.'/bookmarks/bookmarks.lib.php';
 			$langs->load("bookmarks");
 
 			$bookmarks=printBookmarksList($db, $langs);
@@ -1808,9 +1837,8 @@ function left_menu($menu_array_before, $helppagename='', $notused='', $menu_arra
 			$bugbaseurl.= '?title=';
 			$bugbaseurl.= urlencode("Bug: ");
 			$bugbaseurl.= '&body=';
-			// TODO use .github/ISSUE_TEMPLATE.md to generate?
-			$bugbaseurl .= urlencode("# Bug\n");
-			$bugbaseurl .= urlencode("\n");
+			$bugbaseurl.= urlencode("# Bug\n");
+			$bugbaseurl.= urlencode("\n");
 			$bugbaseurl.= urlencode("## Environment\n");
 			$bugbaseurl.= urlencode("- **Version**: " . DOL_VERSION . "\n");
 			$bugbaseurl.= urlencode("- **OS**: " . php_uname('s') . "\n");
@@ -1925,9 +1953,10 @@ function getHelpParamFor($helppagename,$langs)
  *  @param  string  $prefhtmlinputname  Complement for id to avoid multiple same id in the page
  *  @param	string	$img				Image to use
  *  @param	string	$showtitlebefore	Show title before input text instead of into placeholder. This can be set when output is dedicated for text browsers.
+ *  @param	string	$autofocus			Set autofocus on field
  *  @return	string
  */
-function printSearchForm($urlaction, $urlobject, $title, $htmlmorecss, $htmlinputname, $accesskey='', $prefhtmlinputname='',$img='', $showtitlebefore=0)
+function printSearchForm($urlaction, $urlobject, $title, $htmlmorecss, $htmlinputname, $accesskey='', $prefhtmlinputname='',$img='', $showtitlebefore=0, $autofocus=0)
 {
 	global $conf,$langs,$user;
 
@@ -1941,6 +1970,7 @@ function printSearchForm($urlaction, $urlobject, $title, $htmlmorecss, $htmlinpu
 	$ret.=' style="text-indent: 22px; background-image: url(\''.$img.'\'); background-repeat: no-repeat; background-position: 3px;"';
 	$ret.=($accesskey?' accesskey="'.$accesskey.'"':'');
 	$ret.=' placeholder="'.strip_tags($title).'"';
+	$ret.=($autofocus?' autofocus':'');
 	$ret.=' name="'.$htmlinputname.'" id="'.$prefhtmlinputname.$htmlinputname.'" />';
 	//$ret.='<input type="submit" class="button" style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px" value="'.$langs->trans("Go").'">';
 	$ret.='<button type="submit" class="button" style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px">';
@@ -2095,4 +2125,3 @@ if (! function_exists("llxFooter"))
 		print "</html>\n";
 	}
 }
-

@@ -1,7 +1,8 @@
 <?php
-/* Copyright (C) 2005      Rodolphe Quiedeville <rodolphe@quiedeville.org>
- * Copyright (C) 2005-2010 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2010-2016 Juanjo Menent 		<jmenent@2byte.es>
+/* Copyright (C) 2005       Rodolphe Quiedeville    <rodolphe@quiedeville.org>
+ * Copyright (C) 2005-2010  Laurent Destailleur     <eldy@users.sourceforge.net>
+ * Copyright (C) 2010-2016  Juanjo Menent           <jmenent@2byte.es>
+ * Copyright (C) 2018       Frédéric France         <frederic.france@netlogic.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,21 +24,17 @@
  *	\brief      Card of a direct debit
  */
 
-require('../../main.inc.php');
+require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/prelevement.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/prelevement/class/ligneprelevement.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/prelevement/class/bonprelevement.class.php';
 require_once DOL_DOCUMENT_ROOT.'/compta/bank/class/account.class.php';
 
 // Load translation files required by the page
-$langs->loadLangs(array('banks', 'categories'));
+$langs->loadLangs(array('banks', 'categories','bills','withdrawals'));
 
 if (!$user->rights->prelevement->bons->lire)
 accessforbidden();
-
-$langs->load("bills");
-$langs->load("withdrawals");
-
 
 // Security check
 if ($user->societe_id > 0) accessforbidden();
@@ -66,78 +63,86 @@ $object = new BonPrelevement($db,"");
 // Load object
 include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php';  // Must be include, not include_once  // Must be include, not include_once. Include fetch and fetch_thirdparty but not fetch_optionals
 
+$hookmanager->initHooks(array('directdebitprevcard','globalcard'));
 
 /*
  * Actions
  */
 
-if ( $action == 'confirm_delete' )
+$parameters = array('socid' => $socid);
+$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
+if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+
+if (empty($reshook))
 {
-	$res=$object->delete($user);
-	if ($res > 0)
-	{
-		header("Location: index.php");
-		exit;
-	}
-}
+    if ( $action == 'confirm_delete' )
+    {
+        $res=$object->delete($user);
+        if ($res > 0)
+        {
+            header("Location: index.php");
+            exit;
+        }
+    }
 
-// Seems to no be used and replaced with $action == 'infocredit
-if ( $action == 'confirm_credite' && GETPOST('confirm','alpha') == 'yes')
-{
-	$res=$object->set_credite();
-	if ($res >= 0)
-	{
-    	header("Location: card.php?id=".$id);
-	    exit;
-	}
-}
+    // Seems to no be used and replaced with $action == 'infocredit
+    if ( $action == 'confirm_credite' && GETPOST('confirm','alpha') == 'yes')
+    {
+        $res=$object->set_credite();
+        if ($res >= 0)
+        {
+            header("Location: card.php?id=".$id);
+            exit;
+        }
+    }
 
-if ($action == 'infotrans' && $user->rights->prelevement->bons->send)
-{
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+    if ($action == 'infotrans' && $user->rights->prelevement->bons->send)
+    {
+        require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
-	$dt = dol_mktime(12,0,0,GETPOST('remonth','int'),GETPOST('reday','int'),GETPOST('reyear','int'));
+        $dt = dol_mktime(12,0,0,GETPOST('remonth','int'),GETPOST('reday','int'),GETPOST('reyear','int'));
 
-	/*
-	if ($_FILES['userfile']['name'] && basename($_FILES['userfile']['name'],".ps") == $object->ref)
-	{
-		$dir = $conf->prelevement->dir_output.'/receipts';
+        /*
+        if ($_FILES['userfile']['name'] && basename($_FILES['userfile']['name'],".ps") == $object->ref)
+        {
+            $dir = $conf->prelevement->dir_output.'/receipts';
 
-		if (dol_move_uploaded_file($_FILES['userfile']['tmp_name'], $dir . "/" . dol_unescapefile($_FILES['userfile']['name']),1) > 0)
-		{
-			$object->set_infotrans($user, $dt, GETPOST('methode','alpha'));
-		}
+            if (dol_move_uploaded_file($_FILES['userfile']['tmp_name'], $dir . "/" . dol_unescapefile($_FILES['userfile']['name']),1) > 0)
+            {
+                $object->set_infotrans($user, $dt, GETPOST('methode','alpha'));
+            }
 
-		header("Location: card.php?id=".$id);
-        exit;
-	}
-	else
-	{
-		dol_syslog("Fichier invalide",LOG_WARNING);
-		$mesg='BadFile';
-	}*/
+            header("Location: card.php?id=".$id);
+            exit;
+        }
+        else
+        {
+            dol_syslog("Fichier invalide",LOG_WARNING);
+            $mesg='BadFile';
+        }*/
 
-	$error = $object->set_infotrans($user, $dt, GETPOST('methode','alpha'));
+        $error = $object->set_infotrans($user, $dt, GETPOST('methode','alpha'));
 
-	if ($error)
-	{
-		header("Location: card.php?id=".$id."&error=$error");
-		exit;
-	}
-}
+        if ($error)
+        {
+            header("Location: card.php?id=".$id."&error=$error");
+            exit;
+        }
+    }
 
-// Set direct debit order to credited, create payment and close invoices
-if ($action == 'infocredit' && $user->rights->prelevement->bons->credit)
-{
-	$dt = dol_mktime(12,0,0,GETPOST('remonth','int'),GETPOST('reday','int'),GETPOST('reyear','int'));
+    // Set direct debit order to credited, create payment and close invoices
+    if ($action == 'infocredit' && $user->rights->prelevement->bons->credit)
+    {
+        $dt = dol_mktime(12,0,0,GETPOST('remonth','int'),GETPOST('reday','int'),GETPOST('reyear','int'));
 
-	$error = $object->set_infocredit($user, $dt);
+        $error = $object->set_infocredit($user, $dt);
 
-	if ($error)
-	{
-		header("Location: card.php?id=".$id."&error=$error");
-		exit;
-	}
+        if ($error)
+        {
+            header("Location: card.php?id=".$id."&error=$error");
+            exit;
+        }
+    }
 }
 
 
@@ -244,7 +249,7 @@ if ($id > 0 || $ref)
 		print '<tr class="liste_titre">';
 		print '<td colspan="3">'.$langs->trans("NotifyTransmision").'</td></tr>';
 		print '<tr class="oddeven"><td>'.$langs->trans("TransData").'</td><td>';
-		print $form->select_date('','','','','',"userfile",1,1);
+		print $form->selectDate('', '', '', '', '', "userfile", 1, 1);
 		print '</td></tr>';
 		print '<tr class="oddeven"><td>'.$langs->trans("TransMetod").'</td><td>';
 		print $form->selectarray("methode",$object->methodes_trans);
@@ -268,7 +273,7 @@ if ($id > 0 || $ref)
 		print '<tr class="liste_titre">';
 		print '<td colspan="3">'.$langs->trans("NotifyCredit").'</td></tr>';
 		print '<tr class="oddeven"><td>'.$langs->trans('CreditDate').'</td><td>';
-		print $form->select_date('','','','','',"infocredit",1,1);
+		print $form->selectDate('', '', '', '', '', "infocredit", 1, 1);
 		print '</td></tr>';
 		print '</table>';
 		print '<br>'.$langs->trans("ThisWillAlsoAddPaymentOnInvoice");
@@ -419,6 +424,6 @@ if ($id > 0 || $ref)
 	}
 }
 
+// End of page
 llxFooter();
-
 $db->close();

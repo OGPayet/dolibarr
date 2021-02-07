@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2013		Cédric Salvador		<csalvador@gpcsolutions.fr>
  * Copyright (C) 2013-2018	Laurent Destaileur	<ely@users.sourceforge.net>
- * Copyright (C) 2014		Regis Houssin		<regis.houssin@capnetworks.com>
+ * Copyright (C) 2014		Regis Houssin		<regis.houssin@inodbox.com>
  * Copyright (C) 2016		Juanjo Menent		<jmenent@2byte.es>
  * Copyright (C) 2016		ATM Consulting		<support@atm-consulting.fr>
  *
@@ -147,7 +147,13 @@ if ($action == 'order' && isset($_POST['valid']))
 	                    {
 	                        $productsupplier->getMultiLangs();
 	                    }
-	                    $line->desc = $productsupplier->description;
+
+						// if we use supplier description of the products
+						if(!empty($productsupplier->desc_supplier) && !empty($conf->global->PRODUIT_FOURN_TEXTS)) {
+							$desc = $productsupplier->desc_supplier;
+						} else $desc = $productsupplier->description;
+
+	                    $line->desc = $desc;
                         if (! empty($conf->global->MAIN_MULTILANGS))
                         {
                             // TODO Get desc in language of thirdparty
