@@ -1,0 +1,141 @@
+# Dolibarr language file - fr_FR - sirene
+CHARSET=UTF-8
+Module163027Name = Sirene
+Module163027Desc = Module de récupération des données d'un tiers grace a l'API de Sirene
+
+#######################################################################
+# Configuration admin
+#######################################################################
+SireneSetup                         = Configuration du module "Sirene"
+
+SireneCodeNafOptions                = Paramètres pour Code Naf
+SireneCodeNafCSVSeparatorToUseName  = Séparateur CSV
+SireneCodeNafCSVSeparatorToUseDesc  = Séparateur de champs utilisé dans le fichier CSV 'build/codenaf.csv'
+SireneCodeNafCSVEnclosureToUseName  = Caractères d'encadrement CSV
+SireneCodeNafCSVEnclosureToUseDesc  = Caractères d'encadrement de texte utilisés dans le fichier CSV 'build/codenaf.csv'
+SireneCodeNafCSVEscapeToUseName     = Caractère d'échappement CSV
+SireneCodeNafCSVEscapeToUseDesc     = Caractère d'échappement utilisé dans le fichier CSV 'build/codenaf.csv'
+SireneCodeNafReloadCSV              = Recharger le fichier Code Naf
+
+SireneSireneOptions                 = Paramètres pour Sirene
+SireneDebugName                     = Mode debug
+SireneDebugDesc                     = Affiche les messages d'erreurs détaillés
+SireneApiBearerKeyName              = Token d'accès à l'API
+SireneApiBearerKeyDesc              = Token d'accès à l'API généré depuis le compte de Sirene (Authorization : Bearer)
+SireneApiUrlName                    = URL vers l'API
+SireneApiUrlDesc                    = Url d'accès à l'API généré depuis le compte de Sirene
+SireneApiTimeOutName                = TimeOut de l'API
+SireneApiTimeOutDesc                = Délai d'attente maximum d'une requête vers l'API (en secondes, par defaut 2)
+SireneVerificationSiretUrlName      = Lien de vérification du numéro SIREN dans la fiche tiers
+SireneVerificationSiretUrlDesc      = Préciser l'URL complet avant le numéro SIREN (par défaut, si vide, lien vers Societe.com)
+SireneMailReceiverToSendName        = Envoie d'un mail lors de la détéction d'un tiers fermé
+SireneMailReceiverToSendDesc        = Préciser le l'adresse mail du destinataire de l'alerte lors de la fermeture d'un tiers
+SireneMailCompaniesClosed           = Information à propos de la fermeture de tiers
+SireneMailCompaniesClosedBody       = Bonjour, ce mail vous informe la fermeture d'un tiers :
+SireneClosedCompanies               = Tiers fermé
+SireneMessageClosed             = Lien
+MailLinkClosedCompany           = Lien vers le tiers fermé
+SiretSireneMail = Siret
+CompanySireneMail = Nom du tiers
+AdressSireneMail = Adresse
+DateCreationSireneMail = Date de création
+StatusSireneMail    = Status
+CodenafSireneMail = Code Naf
+SirenSireneMail = Siren
+SiretSireneMail = Siret
+SireneWaitingMessage = Veuillez patienter
+SireneApiProcessingName  = Jeton Sirene
+SireneApiProcessingDesc = Jeton unique (limitation requête)
+
+#######################################################################
+# General
+#######################################################################
+SireneSirene                    = Recherche répertoire SIRENE
+SireneCompanyName               = Raison sociale
+SireneEstablishmentClosed       = Fermé
+SireneEstablishmentOpened       = En activité
+SireneSiret                     = SIRET
+SireneSiren                     = SIREN
+SireneNaf                       = NAF
+SireneSearchCodeNafHelp         = Le code NAF doit être sous le format xx.xxY (exemple: 08.12Z ou 90.03A ou 08.* ou 08.1*, ...)
+SireneSearchHelp                = « * » permet de remplacer une chaîne de caractères de taille quelconque. Il signifie donc une chaîne de 0 ou plus caractères, sauf quand il est seul. Dans ce dernier cas il signifie une chaîne d'au moins un caractère | exemple : CodePostal=69*<br>« ? » permet de remplacer exactement un caractère.<br>« ~ » permet de faire une recherche approximative Sur 1 ou 2 caractères.
+SireneNumber                    = Nombre de résultats affichés (20-100)
+SireneOnlyOpen                  = Afficher uniquement les établissements ouverts
+SireneTown                      = Ville
+SireneRequestData               = Données de la requête
+SireneRequestProtocolVersion    = Version du protocole
+SireneRequestUri                = Url
+SireneRequestMethod             = Méthode
+SireneRequestTarget             = Cible
+SireneRequestHeaders            = En-têtes
+SireneRequestBody               = Corps
+SireneCountry                   = Pays
+SireneTvaIntra                  = Numéro de TVA
+SireneCompanyStatus             = Etat maj Sirene
+SireneCompanyUpdateDate         = Date Sirene
+SireneAdressAll                 = Adresse complète
+Sirenedatecreation              = Date de création
+Sirenecodenafall                = Code Naf complet
+SireneCodeIso2                  = Pays Code Iso
+SireneCodeNumber                = Pays Codification
+SireneCountryISO                = PaysISO
+SireneCountryNotFound           = Pays non trouvé
+SireneEnabled                   = A jour
+SireneDisabled                  = Pas à jour
+SireneSateID                    = Identité de l'État
+CompanyZip                      = Code postal
+
+SireneButton                    = Vérification informations tiers
+ImportTiers                     =   Importation d'un tiers
+SireneResponseData              = Données de la réponse
+SireneResponseProtocolVersion   = Version du protocole
+SireneResponseCode              = Code
+SireneResponseReasonPhrase      = Raison
+SireneResponseHeaders           = En-têtes
+SireneResponseBody              = Corps
+SireneCreateDate                = Date de création
+SireneCloseDate                 = État
+
+PopUpSelectionTier              = Sélection du tiers
+PopUpSelectionTierMsg           = Sélectionner le tiers à créer
+PopUpChangeBoxSirene            = Vérification des informations du tiers auprès de la base Sirene
+PopUpChangeBoxSireneInfo        =Modification tier (via API Sirene)
+SireneCodeNafNotFound           = Vous ne pouvez pas activer le module Siren sans celui du CodeNaf
+SIRENIntraCheckDesc             = Le lien <b>%s</b> permet d'interroger le Registre national du commerce et des sociétés (RNCS). Un accès à Internet depuis le serveur est requis pour que ce service fonctionne.
+SireneTokenAlreadyUsed          = Le module Sirene est déjà utilisé par un autre utilisateur. Veuillez patienter.
+
+
+#######################################################################
+# Cron
+#######################################################################
+SireneCheckInfosSuccess             = Mise a jour des "Etat maj Sirene" effectué avec succes
+SireneAlreadyProcessingCheckInfos   = La mise a jour des "Etat maj Sirene" est déjà en cours de traitement
+SireneSince                         = Depuis
+
+#######################################################################
+# Code Naf
+#######################################################################
+SireneCodeNafDictionaryTable    = Codes NAF
+SireneCodeNafNbInsert           = %s code(s) NAF ajouté(s).
+
+#######################################################################
+# Errors
+#######################################################################
+SireneErrorCodeNafNotFound          = Code NAF non trouvé dans le dictionnaire '<a href="%s">Codes NAF</a>'
+SireneErrorCodeNafOpenFile          = Impossible d'ouvrir le fichier '%s'
+SireneErrorCodeNafFetchLine         = Erreur à la ligne %s dans le fichier '%s'
+SireneErrorWhileConnect             = Erreur lors de la connexion a l'API Sirene
+SireneErrorWhileGetCompaniesBySiret = Erreur lors de la récuperation des informations grace au sirets : %s
+SireneErrorWhileUpdateSireneStatus  = Erreur lors de la mise a jour de "Etat maj Sirene" du tiers %s (ID: %s)
+SireneErrorModuleNotFound                = Le module "%s" n'est pas installé.
+SireneErrorModuleNotFoundDownloadHere    = Veuillez le télécharger <a href="%s" target="_blank">ici</a>.
+SireneErrorWhileGetCompanies        = .
+SireneCompaniesNotFound             = Aucun résultat
+SireneListOfCompaniesFound      = Aucun résultat
+
+
+
+
+
+
+

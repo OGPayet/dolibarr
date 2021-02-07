@@ -72,9 +72,9 @@ class modMassUpdateRights extends DolibarrModules
 		$this->descriptionlong = "";
 		$this->editor_name = 'Open-DSI';
 		$this->editor_url = 'http://www.open-dsi.fr';
-
+		
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '4.0.1';
+		$this->version = '4.0.3';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Name of image file used for this module.
@@ -96,7 +96,7 @@ class modMassUpdateRights extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/mymodule/css/mymodule.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/mymodule/js/mymodule.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/mymodule/js/mymodule.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2',...) // Set here all hooks context managed by module. You can also set hook context 'all'
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@mymodule')) // Set here all workflow context managed by module
@@ -158,10 +158,10 @@ class modMassUpdateRights extends DolibarrModules
 
 		if (! isset($conf->massupdaterights) || ! isset($conf->massupdaterights->enabled))
         {
-		$conf->massupdaterights=new stdClass();
-		$conf->massupdaterights->enabled=0;
+        	$conf->massupdaterights=new stdClass();
+        	$conf->massupdaterights->enabled=0;
         }
-
+        
         // Dictionaries
 		$this->dictionaries=array();
         /* Example:
@@ -208,6 +208,12 @@ class modMassUpdateRights extends DolibarrModules
 		// $this->rights[$r][5] = 'level2';				// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		// $r++;
 
+        $this->rights[$r][0] = 163062;
+        $this->rights[$r][1] = 'Gerer les mises à jours';
+        $this->rights[$r][3] = 1;
+        $this->rights[$r][4] = 'manage';
+        $r++;
+
 		// Main menu entries
 		$this->menu = array();			// List of menus to add
 		$r=0;
@@ -252,7 +258,7 @@ class modMassUpdateRights extends DolibarrModules
             'langs'=>'massupdaterights@massupdaterights',
             'position'=>100,
             'enabled'=>'$conf->massupdaterights->enabled',
-            'perms'=>'$user->admin || $user->rights->user->user->creer',
+            'perms'=>'$user->admin || ($user->rights->massupdaterights->manage && (empty($conf->global->MAIN_USE_ADVANCED_PERMS)?$user->rights->user->user->creer:$user->rights->user->group_advance->write))',
             'target'=>'',
             'user'=>2
         );
@@ -290,7 +296,7 @@ class modMassUpdateRights extends DolibarrModules
 	public function init($options='')
 	{
 	    global $langs;
-
+        
         $sql = array();
 
         //$this->_load_tables('/mymodule/sql/');
@@ -314,3 +320,4 @@ class modMassUpdateRights extends DolibarrModules
 	}
 
 }
+

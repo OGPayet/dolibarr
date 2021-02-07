@@ -15,7 +15,7 @@ MassUpdateRightsErrNoFile=File not provided
 MassUpdateRightsExportCSV=CSV Export
 MassUpdateRightsImportCSV=CSV Import
 MassUpdateRightsImported=Groups rights imported
-MassUpdateRightsBadColumnGroup=Bad name group for column %s (expected group: %s)
+MassUpdateRightsBadColumnGroup=Bad name group for column %s - "%s" (expected group: "%s")
 MassUpdateRightsRightNotDefined=Group '%s' - module '%s': Right 'ID:%s' is not defined (right removed by default)
 
 MassUpdateRightsRightId=ID

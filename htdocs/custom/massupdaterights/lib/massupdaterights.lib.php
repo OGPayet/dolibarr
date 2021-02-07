@@ -77,8 +77,8 @@ function massupdaterights_export()
     $dol_v6 = versioncompare(explode('.',DOL_VERSION), explode('.','6.0.0')) >= 0;
 
     $separator  = !empty($conf->global->MASSUPDATERIGHTS_CSV_SEPARATOR_TO_USE)?$conf->global->MASSUPDATERIGHTS_CSV_SEPARATOR_TO_USE:';';
-    $enclosure  = !empty($conf->global->MASSUPDATERIGHTS_CSV_ENCLOSURE)?$conf->global->MASSUPDATERIGHTS_CSV_ENCLOSURE:'"';
-    $escape     = !empty($conf->global->MASSUPDATERIGHTS_CSV_ESCAPE)?$conf->global->MASSUPDATERIGHTS_CSV_ESCAPE:'\\';
+    $enclosure  = !empty($conf->global->MASSUPDATERIGHTS_CSV_ENCLOSURE_TO_USE)?$conf->global->MASSUPDATERIGHTS_CSV_ENCLOSURE_TO_USE:'"';
+    $escape     = !empty($conf->global->MASSUPDATERIGHTS_CSV_ESCAPE_TO_USE)?$conf->global->MASSUPDATERIGHTS_CSV_ESCAPE_TO_USE:'\\';
 
     $nom_fic = 'massupdaterights-groups-'.dol_print_date(dol_now(),'%Y%m%d%H%M%S').'.csv';
     $newfic = DOL_DATA_ROOT.'/'.$nom_fic; // dans le rep de travail
@@ -176,9 +176,9 @@ function massupdaterights_import($file)
 
     $dol_v6 = versioncompare(explode('.',DOL_VERSION), explode('.','6.0.0')) >= 0;
 
-    $separator  = !empty($conf->global->MASSUPDATERIGHTS_CSV_SEPARATOR)?$conf->global->MASSUPDATERIGHTS_CSV_SEPARATOR:';';
-    $enclosure  = !empty($conf->global->MASSUPDATERIGHTS_CSV_ENCLOSURE)?$conf->global->MASSUPDATERIGHTS_CSV_ENCLOSURE:'"';
-    $escape     = !empty($conf->global->MASSUPDATERIGHTS_CSV_ESCAPE)?$conf->global->MASSUPDATERIGHTS_CSV_ESCAPE:'\\';
+    $separator  = !empty($conf->global->MASSUPDATERIGHTS_CSV_SEPARATOR_TO_USE)?$conf->global->MASSUPDATERIGHTS_CSV_SEPARATOR_TO_USE:';';
+    $enclosure  = !empty($conf->global->MASSUPDATERIGHTS_CSV_ENCLOSURE_TO_USE)?$conf->global->MASSUPDATERIGHTS_CSV_ENCLOSURE_TO_USE:'"';
+    $escape     = !empty($conf->global->MASSUPDATERIGHTS_CSV_ESCAPE_TO_USE)?$conf->global->MASSUPDATERIGHTS_CSV_ESCAPE_TO_USE:'\\';
 
     $fp = @fopen($file,"r");
     if ($fp) {
@@ -206,7 +206,7 @@ function massupdaterights_import($file)
         foreach ($groups as $group) {
             $idxGroup++;
             if ($groupsCsv[$idxGroup]['name'] != $group->nom) {
-                setEventMessage($langs->trans("MassUpdateRightsBadColumnGroup", $idxGroup, $group->nom), "warnings");
+                setEventMessage($langs->trans("MassUpdateRightsBadColumnGroup", $idxGroup, $groupsCsv[$idxGroup]['name'], $group->nom), "warnings");
                 continue;
             }
 

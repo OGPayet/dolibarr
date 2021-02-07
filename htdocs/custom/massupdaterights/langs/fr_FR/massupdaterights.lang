@@ -15,7 +15,7 @@ MassUpdateRightsErrNoFile=Fichier non fournit
 MassUpdateRightsExportCSV=Export en CSV
 MassUpdateRightsImportCSV=Import en CSV
 MassUpdateRightsImported=Droits des groupes importés
-MassUpdateRightsBadColumnGroup=Mauvais nom de groupe pour la colonne %s (groupe attendu: %s)
+MassUpdateRightsBadColumnGroup=Mauvais nom de groupe pour la colonne %s - "%s" (groupe attendu: "%s")
 MassUpdateRightsRightNotDefined=Groupe '%s' - module '%s': Le droit 'ID:%s' n'est pas définie (droit supprimé par défaut)
 
 MassUpdateRightsRightId=ID

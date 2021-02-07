@@ -41,7 +41,7 @@ $langs->load("other");
 // Get parameters
 $action		= GETPOST('action','alpha');
 
-$caneditgroup = $user->admin || (empty($conf->global->MAIN_USE_ADVANCED_PERMS)?$user->rights->user->user->creer:$user->rights->user->group_advance->write);
+$caneditgroup = $user->admin || ($user->rights->massupdaterights->manage && (empty($conf->global->MAIN_USE_ADVANCED_PERMS)?$user->rights->user->user->creer:$user->rights->user->group_advance->write));
 // Protection if not right
 if (!$caneditgroup) {
 	accessforbidden();
