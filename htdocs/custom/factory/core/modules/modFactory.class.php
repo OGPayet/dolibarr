@@ -155,7 +155,7 @@ class modfactory extends DolibarrModules
 		$this->rights[$r][3] = 0; // La permission est-elle une permission par defaut
 		$this->rights[$r][4] = 'export';
 
-		// Réappro Feature
+		// Rï¿½appro Feature
 		$r=0;
 		$this->menu[$r]=array(	'fk_menu'=>'fk_mainmenu=products',
 					'type'=>'left',
@@ -440,7 +440,7 @@ class modfactory extends DolibarrModules
 			$currentversion = $tblversionslast[count($tblversionslast)-1]->attributes()->Number;
 			$tblDolibarr=$sxelast->Dolibarr;
 			$minversionDolibarr=$tblDolibarr->attributes()->minVersion;
-			if (DOL_VERSION < $minversionDolibarr) {
+			if (version_compare(DOL_VERSION, $minversionDolibarr) < 0) {
 				$this->dolibarrminversion=$minversionDolibarr;
 				$this->disabled = true;
 			}

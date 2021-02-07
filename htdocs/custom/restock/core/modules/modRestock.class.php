@@ -60,7 +60,7 @@ class modRestock extends DolibarrModules
 		$this->special = 0;
 		$this->picto='restock@restock';
 
-		// hook pour la recherche et modèles additionnels
+		// hook pour la recherche et modï¿½les additionnels
 		$this->module_parts = array(
 			'hooks' => array('ordersuppliercard'),
 			'models' => 1
@@ -151,7 +151,7 @@ class modRestock extends DolibarrModules
 					'user'=>2);
 		$r++;
 
-		// pas encore développé
+		// pas encore dï¿½veloppï¿½
 		if ($conf->global->MAIN_MODULE_FACTORY && false) {
 			$this->menu[$r]=array( 'fk_menu'=>'fk_mainmenu=products,fk_leftmenu=factory',
 						'type'=>'left',
@@ -288,7 +288,7 @@ class modRestock extends DolibarrModules
 			$currentversion = $tblversionslast[count($tblversionslast)-1]->attributes()->Number;
 			$tblDolibarr=$sxelast->Dolibarr;
 			$minversionDolibarr=$tblDolibarr->attributes()->minVersion;
-			if (DOL_VERSION < $minversionDolibarr) {
+			if (version_compare(DOL_VERSION, $minversionDolibarr) < 0) {
 				$this->dolibarrminversion=$minversionDolibarr;
 				$this->disabled = true;
 			}
