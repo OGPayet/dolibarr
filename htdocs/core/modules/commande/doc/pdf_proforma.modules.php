@@ -46,7 +46,7 @@ class pdf_proforma extends pdf_einstein
 	 *
 	 *  @param		DoliDB		$db      Database handler
 	 */
-	function __construct($db)
+	public function __construct($db)
 	{
 		global $conf,$langs,$mysoc;
 
@@ -57,6 +57,8 @@ class pdf_proforma extends pdf_einstein
 	}
 
 
+	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
+	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	/**
 	 *  Show top header of page.
 	 *
@@ -67,8 +69,9 @@ class pdf_proforma extends pdf_einstein
 	 *  @param	string		$titlekey		Translation key to show as title of document
 	 *  @return	int                         Return topshift value
 	 */
-	function _pagehead(&$pdf, $object, $showaddress, $outputlangs, $titlekey="InvoiceProForma")
+	protected function _pagehead(&$pdf, $object, $showaddress, $outputlangs, $titlekey = "InvoiceProForma")
 	{
+		// phpcs:enable
 		global $conf,$langs,$hookmanager;
 
 		return parent::_pagehead($pdf, $object, $showaddress, $outputlangs, $titlekey);

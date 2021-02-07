@@ -38,7 +38,7 @@ $object->fields = dol_sort_array($object->fields, 'position');
 foreach($object->fields as $key => $val)
 {
 	// Discard if extrafield is a hidden field on form
-	if (abs($val['visible']) != 1) continue;
+	if (abs($val['visible']) != 1 && abs($val['visible']) != 3) continue;
 
 	if (array_key_exists('enabled', $val) && isset($val['enabled']) && ! verifCond($val['enabled'])) continue;	// We don't want this field
 
@@ -49,10 +49,8 @@ foreach($object->fields as $key => $val)
 	if ($val['type'] == 'text' || $val['type'] == 'html') print ' tdtop';
 	print '"';
 	print '>';
-	print $langs->trans($val['label']);
-    if(!empty($val['help'])){
-        print $form->textwithpicto('',$langs->trans($val['help']));
-    }
+	if (! empty($val['help'])) print $form->textwithpicto($langs->trans($val['label']), $langs->trans($val['help']));
+	else print $langs->trans($val['label']);
 	print '</td>';
 	print '<td>';
 	if (in_array($val['type'], array('int', 'integer'))) $value = GETPOST($key, 'int');
