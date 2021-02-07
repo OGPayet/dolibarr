@@ -20,6 +20,7 @@
 # Module label 'ModuleSepaMandatManagerName'
 ModuleSepaMandatManagerName = Sepa Mandat Manager
 # Module description 'ModuleSepaMandatManagerDesc'
+ModuleSepaMandatManagerDesc = Gestionnaire avancé de mandat sepa
 SepaMandatManagerDescription = Gestionnaire avancé de mandat sepa
 SepaMandatLinkedObjectName = Mandat Sepa
 
