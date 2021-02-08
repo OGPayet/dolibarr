@@ -109,6 +109,7 @@ class modSynergiesTech extends DolibarrModules
 			'triggers' => 1,
 			'hooks' => array('globalapi', 'requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
 			'moduleforexternal' => 1,
+			'js' => array('/synergiestech/js/large_model_select.js'),
 		);
 
 		// Data directories to create when module is enabled.
