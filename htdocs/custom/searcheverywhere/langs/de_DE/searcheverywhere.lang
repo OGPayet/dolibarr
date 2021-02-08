@@ -1,0 +1,17 @@
+Modul104790Name = Search Everywhere
+Module104790Desc = Erlaubt eine globale Suche nach Objekten wie Angebot, Rechnung, Drittparteien, Kontakt, etc.
+
+ATMAbout = Dieses Modul wurde entwickelt von <a href="http://www.atm-consulting.fr" target="_blank">ATM Consulting</a><br> Die Dokumentation finden Sie auf unserem <a href="http://wiki.atm-consulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br><br> Für Fragen oder Feedback kontaktieren Sie uns unter <a href="mailto:support@atm-consulting.fr">support@atm-consulting. fr</a><<br><br> Für jede kommerzielle Frage kontaktieren Sie uns unter <a href="mailto:contact@atm-consulting.fr">contact@atm-consulting.fr</a> oder unter +33 9 77 19 50 70<br><br><br>Unsere anderen Module finden Sie unter <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
+
+Searcheverywhere = Globale Suche
+ActionComm = Agenda
+Propal = Angebot
+Task = Aufgabe
+Societe = Geschäftspartner
+Product = Produkt
+Contact = Kontakt/Adresse
+SearchInfo = (Standardmäßig strenge Suche, fügen Sie % für eine generische Suche nach ex : 09%77%19%50%69 hinzu, wenn Sie das Anzeigeformat der Telefonnummer ignorieren möchten)
+SearcheverywhereAbout = Über
+searcheverywhereSetup = Setup
+searcheverywhereNoSetupRequired = keine Einrichtung erforderlich
+searcheverywhereSearchOnlyInEntity = Nur Daten in aktueller Entität durchsuchen

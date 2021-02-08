@@ -42,6 +42,9 @@ class modsearcheverywhere extends DolibarrModules
 
         $this->db = $db;
 
+	    $this->editor_name = 'ATM-Consulting';
+	    $this->editor_url = 'https://www.atm-consulting.fr';
+
         // Id for module (must be unique).
         // Use a free id here
         // (See in Home -> System information -> Dolibarr for list of used modules id).
@@ -51,7 +54,7 @@ class modsearcheverywhere extends DolibarrModules
 
         // Family can be 'crm','financial','hr','projects','products','ecm','technic','other'
         // It is used to group modules in module setup page
-        $this->family = "other";
+        $this->family = "ATM";
         // Module label (no space allowed)
         // used if translation string 'ModuleXXXName' not found
         // (where XXX is value of numeric property 'numero' of module)
@@ -61,7 +64,7 @@ class modsearcheverywhere extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Description of module searcheverywhere";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '1.2';
+        $this->version = '1.3.2';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -201,7 +204,7 @@ class modsearcheverywhere extends DolibarrModules
         $r = 0;
         // Example:
 
-        $this->boxes[$r][1] = "searcheverywhere_box@searcheverywhere";
+//        $this->boxes[$r][1] = "searcheverywhere_box@searcheverywhere";
         $r ++;
         /*
           $this->boxes[$r][1] = "myboxb.php";
@@ -419,9 +422,6 @@ class modsearcheverywhere extends DolibarrModules
         $sql = array();
 
         $result = $this->loadTables();
-
-        $url = dol_buildpath('/searcheverywhere/script/create-maj-base.php', 2);
-        file_get_contents($url);
 
         return $this->_init($sql, $options);
     }
