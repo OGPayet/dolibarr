@@ -18,6 +18,9 @@ class InterventionMail {
         $this->user = $user;
 		$this->error = 0;
 		$this->errors = array();
+
+        // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
+        $this->hookmanager->initHooks(array('interventionmail'));
     }
     
     /**
@@ -51,16 +54,14 @@ class InterventionMail {
             }
         }
 
-        include_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-        $societe = new Societe($this->db);
-
-        $thirdPartiesIds = array_map('intval', explode(', ', $this->object->array_options['options_third_parties_to_send_fichinter_to']));
-        foreach ($thirdPartiesIds as $thirdPartyId) {
-            $result = $societe->fetch($thirdPartyId);
-                                        
-            if ($result > 0 && !empty($societe->email)) {
-                array_push($emailList, $societe->email);
-            }
+        $parameters = array('emailList' => $emailList);
+        $reshook = $hookmanager->executeHooks('addMoreToEmail', $parameters, $this->object, $action); // Note that $action and $object may have been modified by some hooks
+        if (empty($reshook)) {
+            $emailList .= $reshook->resArray;
+        } else if ($reshook > 0) {
+            $emailList = $reshook->resArray;
+        } else {
+            setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
         }
 
         return $emailList;

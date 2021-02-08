@@ -379,4 +379,63 @@ class ActionsInterventionSurvey
             return 1;
         }
     }
+
+    /**
+     * Overloading the addMoreToEmail function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function addMoreToEmail($parameters = array(), &$object, &$action = '', $hookmanager) {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        $error = 0;
+        $emailList = $parameters['emailList'];
+        $this->results = array();
+        
+        if(in_array("interventionmail", $contexts)) {
+            include_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+            $societe = new Societe($this->db);
+            $isCustomerAbsent = false;
+            $isAvailabilityPrincipal = false;
+
+            if (!empty($object->array_options['options_customer_signature'])) {
+                $customer_signature = json_decode($object->array_options['options_customer_signature'], true);
+                $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
+            }
+
+            if (!empty($object->array_options['options_companyrelationships_availability_principal'])) {
+                if ($object->array_options['options_companyrelationships_availability_principal'] == '1') {
+                    $isAvailabilityPrincipal = true;
+                }
+            }
+
+            if ($isCustomerAbsent || $isAvailabilityPrincipal) {
+                $thirdPartyId = $object->socid;
+
+                $result = $societe->fetch($thirdPartyId);
+                                                
+                if ($result > 0 && !empty($societe->email)) {
+                    array_push($emailList, $societe->email);
+                } else {
+                    $error = 1;
+                }
+
+                $this->results = $emailList;
+            }
+
+            if ($error) {
+                return -1;
+            } else if (!empty($this->results)) {
+                return 0;
+            }
+
+            return 1;
+        }
+    }
 }
