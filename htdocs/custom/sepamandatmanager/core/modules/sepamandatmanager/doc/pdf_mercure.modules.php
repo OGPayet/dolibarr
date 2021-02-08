@@ -125,7 +125,8 @@ class pdf_mercure extends ModelePDFSepamandat
         $outputlangs->load("companies");
         $outputlangs->load("projects");
         $outputlangs->load("withdrawals");
-        $outputlangs->load("bills");
+		$outputlangs->load("bills");
+		$outputlangs->load("sepamandatmanager@sepamandatmanager");
 
         $directoryPath = !empty($moreparams['force_dir_output']) ? $moreparams['force_dir_output'] : $object->getAbsolutePath();
         $fileName = $object->specimen ? 'SPECIMEN.pdf' : $object->ref . '.pdf';
