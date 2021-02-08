@@ -512,8 +512,8 @@ if (!class_exists("ExtendedEcm")) {
      * @param User $user user requesting action
      * @return ExtendedEcm|null
      */
-        public function writeEcmFileFromStreamContent($relativePathToDolDataRoot, $fileName, $streamContent, $user)
-        {
+    public function writeEcmFileFromStreamContent($relativePathToDolDataRoot, $fileName, $streamContent, $user)
+    {
             //File have successfully been copied
             $result = null;
             $destinationFilePath = DOL_DATA_ROOT . '/' . $relativePathToDolDataRoot . '/' . $fileName;
@@ -534,7 +534,7 @@ if (!class_exists("ExtendedEcm")) {
             return $result > 0 ? $newEcm : null;
         }
 
-        /**
+    /**
      * Function to get Extended Ecm of a file based on its absolute path
      * @param string $absolutePath absolute path of the file to find
      * @return ExtendedEcm|null
@@ -552,15 +552,18 @@ if (!class_exists("ExtendedEcm")) {
             }
         }
 
-        /**
+    /**
      * Function to get relative path to module of this file
      * @param string $modulePart name of the module of this file
      * @return string
      */
         public function getRelativePathToModule($modulePart)
         {
-            $relativePathToDolDataRoot = $this->getFullRelativePath();
-            $result = preg_replace('/^[\\/]/', '', $relativePathToDolDataRoot);
+			$relativePathToDolDataRoot = $this->getFullRelativePath();
+			if($this->entity > 1) {
+				$result = preg_replace('/^' . preg_quote($this->entity, '/') . '/', '', $relativePathToDolDataRoot);
+			}
+            $result = preg_replace('/^[\\/]/', '', $result);
             $result = preg_replace('/^' . preg_quote($modulePart, '/') . '/', '', $result);
             $result = preg_replace('/^[\\/]/', '', $result);
             return $result;
