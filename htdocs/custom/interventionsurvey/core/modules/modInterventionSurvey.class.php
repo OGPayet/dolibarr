@@ -443,6 +443,8 @@ class modInterventionSurvey extends DolibarrModules
         $extrafields->addExtraField('involved_users', $langs->trans('InterventionSurveyInvolvedUserLabel'), 'chkbxlst', 1000,  NULL, 'fichinterdet',   0, 1, NULL, array('options'=>array('user:firstname|lastname:rowid::statut = 1 AND fk_soc IS NULL'=>null)), 0, '', 1, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
         $extrafields->addExtraField('stakeholder_signature', $langs->trans('InterventionSurveyStakeholderSignatureLabel'), 'text', 1000,  NULL, 'fichinter',   0, 0, NULL, NULL, 0, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
         $extrafields->addExtraField('customer_signature', $langs->trans('InterventionSurveyCustomerSignatureLabel'), 'text', 1000,  NULL, 'fichinter',   0, 0, NULL, NULL, 0, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
+        $extrafields->addExtraField('contacts_to_send_fichinter_to', $langs->trans('InterventionSurveyContactsToSendFichinterToLabel'), 'chkbxlst', 305, NULL, 'fichinter', 0, 0, NULL, array('options'=>array('socpeople:firstname|lastname:rowid'=>null)), 1, '', 1, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
+        $extrafields->addExtraField('users_to_send_fichinter_to', $langs->trans('InterventionSurveyUsersToSendFichinterToLabel'), 'chkbxlst', 305, NULL, 'fichinter', 0, 0, NULL, array('options'=>array('user:firstname|lastname:rowid::statut = 1'=>null)), 1, '', 1, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
         // Permissions
         $this->remove($options);
 

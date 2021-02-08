@@ -64,3 +64,5 @@ InterLineDuration=Durée ligne intervention
 InterLineDesc=Description ligne intervention
 RepeatableIntervention=Modèle d'intervention
 ToCreateAPredefinedIntervention=Pour créer une intervention prédéfinie ou récurrente, créez une intervention standard et convertissez-la en modèle d'intervention
+InterventionDoneMailSubject=L'intervention %s est terminée
+InterventionDoneMailMessage=Bonjour,<br/><br/>L'intervention %s effectué pour %s est terminée.<br/><br/>Veuillez trouver ci-joint la fiche d'intervention au format PDF.<br/><br/>Cordialement,<br/><br/>%s

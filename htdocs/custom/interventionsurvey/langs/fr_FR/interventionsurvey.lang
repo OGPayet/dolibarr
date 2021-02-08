@@ -231,6 +231,9 @@ InterventionSurveyCustomerSignatureLabel = Objet contenant la signature du Clien
 InterventionSurveyStakeholderSignatureLabel = Objet contenant la signature du Technicien
 InterventionSurveyInvolvedUserLabel = Utilisateur(s) intervenu(s)
 InterventionSurveyScheduledUserLabel = Utilisateur(s) prévu(s)
+InterventionSurveyContactsToSendFichinterToLabel = Contact(s) impliqué(s) auxquels envoyer le PDF d'intervention par mail
+InterventionSurveyUsersToSendFichinterToLabel = Utilisateur(s) auxquels envoyer le PDF d'intervention par mail
+
 
 #PDF Jupiter
 InterventionSurveyJupiterPDFName                                  = Modèle PDF pour les interventions avec questionnaires
@@ -261,3 +264,4 @@ InterventionSurveyClassifyDoneOpsyMessage                         = Intervention
 InterventionSurveyClassifyDoneOpsyOnSiteLabel                     = Intervention %s clôturée depuis Opsy On Site
 InterventionSurveyClassifyDoneOpsyOnSiteMessage                   = Intervention %s clôturée depuis Opsy On Site
 InterventionSurveyAuthor                                          = Auteur : %s
+InterventionSurveySentByMail                                      = Intervention %s envoyé par mail

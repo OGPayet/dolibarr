@@ -304,6 +304,16 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                     setEventMessages('', $object->errors, 'errors');
                     return -1;
                 } else {
+                    // Notify involved people by mail
+                    if (!empty($object->array_options['options_contacts_to_send_fichinter_to']) || 
+                        !empty($object->array_options['options_users_to_send_fichinter_to']) || 
+                        !empty($object->array_options['options_third_parties_to_send_fichinter_to'])
+                    ) {
+                        require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_interventionmail.lib.php';
+                        $interventionMail = new InterventionMail($this->db, $object, $user);
+                        $interventionMail->sendInterventionByMail($sendfrom);
+                    }
+
                     // Insertion action
                     if($object->context['closedFromApi']) {
                         $actionLabel = $langs->trans('InterventionSurveyClassifyDoneOpsyOnSiteLabel', $object->ref);
