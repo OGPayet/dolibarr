@@ -464,7 +464,6 @@ class pdf_mercure extends ModelePDFSepamandat
      */
     function _signature_area(&$pdf, $object, $posy, $outputlangs)
     {
-        global $langs;
         $default_font_size = pdf_getPDFFontSize($outputlangs);
         $tab_top = $posy + 4;
         $tab_hl = 4;
@@ -486,7 +485,7 @@ class pdf_mercure extends ModelePDFSepamandat
                 $thirdparty->fetch($object->fk_soc);
             }
 		}
-		$textPlace = $langs->transnoentities("SepaMandateAt") . ' ';
+		$textPlace = $outputlangs->transnoentities("SepaMandateAt") . ' ';
 		if (!empty($thirdparty->town)) {
             $textPlace .= $thirdparty->town;
         } else {

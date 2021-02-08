@@ -886,40 +886,16 @@ class FormDigitalSignatureManager
 			//$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
 			$tmpplugin = "select2Sortable";
 			$out .= '<!-- JS CODE TO ENABLE ' . $tmpplugin . ' for id ' . $htmlname . ' -->
-			<script type="text/javascript">
-				function formatResult(record) {' . "\n";
-			if ($elemtype == 'category') {
-				$out .= '	//return \'<span><img src="' . DOL_URL_ROOT . '/theme/eldy/img/object_category.png' . '"> <a href="' . DOL_URL_ROOT . '/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
-									return \'<span><img src="' . DOL_URL_ROOT . '/theme/eldy/img/object_category.png' . '"> \'+record.text+\'</span>\';';
-			} else {
-				$out .= 'return record.text;';
-			}
-			$out .= '	};
-				function formatSelection(record) {' . "\n";
-			if ($elemtype == 'category') {
-				$out .= '	//return \'<span><img src="' . DOL_URL_ROOT . '/theme/eldy/img/object_category.png' . '"> <a href="' . DOL_URL_ROOT . '/categories/viewcat.php?type=0&id=\'+record.id+\'">\'+record.text+\'</a></span>\';
-									return \'<span><img src="' . DOL_URL_ROOT . '/theme/eldy/img/object_category.png' . '"> \'+record.text+\'</span>\';';
-			} else {
-				$out .= 'return record.text;';
-			}
-			$out .= '	};
-				$(document).ready(function () {
-					$(\'#' . $htmlname . '\').' . $tmpplugin . '({
-						dir: \'ltr\',
-							// Specify format function for dropdown item
-							formatResult: formatResult,
-						templateResult: formatResult,		/* For 4.0 */
-							// Specify format function for selected item
-							formatSelection: formatSelection,
-						templateResult: formatSelection		/* For 4.0 */
-					});
+			<script type="text/javascript">';
+			$out .= '$(document).ready(function () {
+					$(\'#' . $htmlname . '\').' . $tmpplugin . '({ width: "resolve" });
 				});
 			</script>';
 		}
 
 		// Try also magic suggest
 
-		$out .= '<select id="' . $htmlname . '" class="multiselect' . ($morecss ? ' ' . $morecss : '') . '" multiple name="' . $htmlname . '[]"' . ($moreattrib ? ' ' . $moreattrib : '') . ($width ? ' style="width: ' . (preg_match('/%/', $width) ? $width : $width . 'px') . '"' : '') . '>' . "\n";
+		$out .= '<select id="' . $htmlname . '" class="' . ($morecss ? ' ' . $morecss : '') . '" multiple name="' . $htmlname . '[]"' . ' style="min-width:200px!important">' . "\n";
 		if (is_array($array) && !empty($array)) {
 			if ($value_as_key) $array = array_combine($array, $array);
 

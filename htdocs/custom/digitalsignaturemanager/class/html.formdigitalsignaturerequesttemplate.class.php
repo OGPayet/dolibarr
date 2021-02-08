@@ -463,7 +463,7 @@ class FormDigitalSignatureRequestTemplate
 		foreach ($selectableEcmFiles as $id => $ecmFile) {
 			$displayedName[$id] = $ecmFile->filename;
 		}
-		return $this->formDigitalSignatureManager->multiSelectArrayWithOrder(self::SELECTED_FILES_HTML_NAME, $displayedName, $selectedEcmFileIds, 0, 0, 'fullwidth minwidth200');
+		return $this->formDigitalSignatureManager->multiSelectArrayWithOrder(self::SELECTED_FILES_HTML_NAME, $displayedName, $selectedEcmFileIds, 0, 0, 'flat minwidth200 maxwidth200');
 	}
 
 	/**

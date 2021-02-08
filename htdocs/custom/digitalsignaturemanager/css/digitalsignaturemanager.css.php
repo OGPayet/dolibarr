@@ -80,3 +80,7 @@ else header('Cache-Control: no-cache');
 .width95 {
 	width:95%;
 }
+
+.select2-container {
+	min-width:200px!important;
+}
