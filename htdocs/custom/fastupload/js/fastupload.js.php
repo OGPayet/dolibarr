@@ -1,9 +1,5 @@
 <?php
-session_cache_limiter('public');
-header('Content-type: text/javascript; charset=UTF-8');
-// false or '' = keep cache instruction added by server
-// 'public'  = remove cache instruction added by server
-// and if no cache-control added later, a default cache delay (10800) will be added by PHP.
+if (!defined('NOTOKENRENEWAL'))  define('NOTOKENRENEWAL', 1);
 
 require '../config.php';
 
@@ -25,18 +21,19 @@ if ($max > 0)
 	$max_file_size = $max/1024; // Conversion Kb en Mb
 }
 
+// Define javascript type
+top_httphead('text/javascript; charset=UTF-8');
 ?>
-//<script type="text/javascript">
 $(document).ready( function() {
 	Dropzone.autoDiscover = false;
-
+	
 	enableDropzone = function(form, paramName) {
 		var classPrefix = "dropzone";
 		var zone_class = "." + classPrefix;
 		var zone = $(zone_class);
-
+		
 		try {
-
+			
 			var zone_object = new Dropzone(form[0], {
 				paramName: paramName,
 				autoProcessQueue: <?php echo !empty($conf->global->FASTUPLOAD_ENABLE_AUTOUPLOAD) ? 'true' : 'false'; ?>,
@@ -101,11 +98,10 @@ $(document).ready( function() {
 					<?php } ?>
 				}
 			});
-
+			
 		} catch (e) {
 			alert("<?php echo addslashes($langs->transnoentities('FastUpload_DropzoneNotSupported')); ?>");
 		}
 	};
-
+	
 });
-//</scrip>

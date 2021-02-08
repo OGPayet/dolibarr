@@ -69,12 +69,12 @@ function fastupload_prepare_head(TFastUpload $object)
     $head[$h][1] = $langs->trans("FastUploadCard");
     $head[$h][2] = 'card';
     $h++;
-
+	
 	// Show more tabs from modules
     // Entries must be declared in modules descriptor with line
     // $this->tabs = array('entity:+tabname:Title:@fastupload:/fastupload/mypage.php?id=__ID__');   to add new tab
     // $this->tabs = array('entity:-tabname:Title:@fastupload:/fastupload/mypage.php?id=__ID__');   to remove a tab
     complete_head_from_modules($conf,$langs,$object,$head,$h,'fastupload');
-
+	
 	return $head;
 }

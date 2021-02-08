@@ -60,7 +60,7 @@ if (preg_match('/set_(.*)/',$action,$reg))
 		dol_print_error($db);
 	}
 }
-
+	
 if (preg_match('/del_(.*)/',$action,$reg))
 {
 	$code=$reg[1];

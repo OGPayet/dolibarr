@@ -46,7 +46,7 @@ class modFastUpload extends DolibarrModules
 
 		$this->editor_name = 'ATM-Consulting';
 		$this->editor_url = 'https://www.atm-consulting.fr';
-
+		
 		// Id for module (must be unique).
 		// Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
 		$this->numero = 104742; // 104000 to 104999 for ATM CONSULTING
@@ -61,7 +61,7 @@ class modFastUpload extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module FastUpload";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.0.2';
+		$this->version = '1.1.0';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -70,7 +70,7 @@ class modFastUpload extends DolibarrModules
 		// If file is in theme/yourtheme/img directory under name object_pictovalue.png, use this->picto='pictovalue'
 		// If file is in module/img directory under name object_pictovalue.png, use this->picto='pictovalue@module'
 		$this->picto='fastupload@fastupload';
-
+		
 		// Defined all module parts (triggers, login, substitutions, menus, css, etc...)
 		// for default path (eg: /fastupload/core/xxxxx) (0=disable, 1=enable)
 		// for specific path of parts (eg: /fastupload/core/modules/barcode)
@@ -85,7 +85,7 @@ class modFastUpload extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/fastupload/css/fastupload.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/fastupload/js/fastupload.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/fastupload/js/fastupload.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2')  	// Set here all hooks context managed by module
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@fastupload')) // Set here all workflow context managed by module
@@ -148,8 +148,8 @@ class modFastUpload extends DolibarrModules
         // Dictionaries
 	    if (! isset($conf->fastupload->enabled))
         {
-		$conf->fastupload=new stdClass();
-		$conf->fastupload->enabled=0;
+        	$conf->fastupload=new stdClass();
+        	$conf->fastupload->enabled=0;
         }
 		$this->dictionaries=array();
         /* Example:
@@ -222,8 +222,8 @@ class modFastUpload extends DolibarrModules
 		//							'target'=>'',
 		//							'user'=>2);				                // 0=Menu for internal users, 1=external users, 2=both
 		// $r++;
-
-
+		
+		
 		// Exports
 		$r=1;
 
