@@ -143,7 +143,7 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(401);
         }
         global $user;
-        dol_include_once("/advancedictionaries/class/api_advancedictionariesapi.class.php");
+        dol_include_once("/advancedictionaries/class/api_advancedictionaries.class.php");
         $dictionaryApi = new AdvanceDictionariesApi();
         $oldRight = $user->rights->advancedictionaries->read;
         $user->rights->advancedictionaries->read = 1;
