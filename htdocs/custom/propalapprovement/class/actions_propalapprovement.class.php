@@ -255,8 +255,10 @@ class ActionsPropalapprovement
     public function showLinkedObjectBlock($parameters, &$object, &$action, $hookmanager)
     {
         $this->addStatusLabelToPayload($object);
-        foreach ($object->linkedObjects['propal'] as &$payload) {
-            $this->addStatusLabelToPayload($payload);
+        if ($object && $object->linkedObjects && $object->linkedObjects['propal']) {
+            foreach ($object->linkedObjects['propal'] as &$payload) {
+                $this->addStatusLabelToPayload($payload);
+            }
         }
         return 0;
     }
@@ -271,7 +273,9 @@ class ActionsPropalapprovement
         global $objectstatic;
         $objectToCheck = array(&$object, $objectstatic);
         foreach ($objectToCheck as &$payload) {
-            $this->addStatusLabelToPayload($payload);
+            if ($payload) {
+                $this->addStatusLabelToPayload($payload);
+            }
         }
         return 0;
     }

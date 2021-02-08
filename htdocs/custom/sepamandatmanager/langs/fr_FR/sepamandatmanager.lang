@@ -181,3 +181,16 @@ SepaMandateBicNumber = Numéro BIC d'un nouveau compte
 About = À propos
 SepaMandatManagerAbout = À propos de Sepa Mandat Manager
 SepaMandatManagerAboutPage = Page à propos de Sepa Mandat Manager
+
+#
+# Modèle PDF
+#
+SepaMandatePdfTitle = Mandat de prélèvement SEPA
+SepaMandateIdentityCreditorName = Identifiant créancier SEPA
+SepaMandateCreditorName = Nom du créancier
+SEPAMandateLegalText=En signant ce formulaire de mandat, vous autorisez (A) %s à envoyer des instructions à votre banque pour débiter votre compte et (B) votre banque à débiter votre compte conformément aux instructions de %s. Vous bénéficiez du droit d'être remboursé par votre banque suivant les conditions décrites dans la convention que vous avez passée avec elle. Une demande de remboursement doit être présentée dans les 8 semaines suivant la date de débit de votre compte pour un prélèvement autorisé. Vos droits concernant le présent mandat sont expliqués dans un document que vous pouvez obtenir auprès de votre banque. \n
+SEPADebitorSection = Débiteur
+SEPAMandateModeRECUR = Paiement récurrent (répétitif)
+SEPAMandateModeFRST = Paiement pontuel
+SEPAMandateFillForm = Remplir tous les champs marqués *
+SepaMandateAt = À
