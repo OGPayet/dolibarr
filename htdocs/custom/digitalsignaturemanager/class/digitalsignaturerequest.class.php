@@ -984,7 +984,7 @@ class DigitalSignatureRequest extends CommonObject
 
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
-		$requestsToUpdate = $this->fetchAll('DESC', 'rowid', 0, 0, array('status' => self::STATUS_IN_PROGRESS));
+		$requestsToUpdate = $this->fetchAll('DESC', 'rowid', 0, 0, array('customsql'=> ' status = ' . self::STATUS_IN_PROGRESS));
 		$outputTexts = array();
 		foreach ($requestsToUpdate as $digitalSignatureRequest) {
 			if ($digitalSignatureRequest->updateDataFromExternalService($user)) {
