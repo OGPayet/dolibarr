@@ -1,6 +1,6 @@
 <?php
 /* Copyright (C) 2017  Laurent Destailleur <eldy@users.sourceforge.net>
- * Copyright (C) 2020-2021 Alexis LAURIER <contact@alexislaurier.fr>
+ * Copyright (C) 2020 Alexis LAURIER <contact@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ if (!class_exists("ExtendedEcm")) {
             $sql .= " t.gen_or_uploaded as gen_or_uploaded,";
             $sql .= " t.extraparams as extraparams,";
             $sql .= " t.date_c as date_c,";
-            $sql .= " t.date_m as date_m,";
+            $sql .= " t.tms as date_m,";
             $sql .= " t.fk_user_c as fk_user_c,";
             $sql .= " t.fk_user_m as fk_user_m,";
             $sql .= " t.acl as acl,";
