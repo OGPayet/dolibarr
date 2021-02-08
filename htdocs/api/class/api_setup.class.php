@@ -1042,7 +1042,7 @@ class Setup extends DolibarrApi
 
 		$sql = "SELECT t.rowid, t.name, t.label, t.type, t.size, t.elementtype, t.fieldunique, t.fieldrequired, t.param, t.pos, t.alwayseditable, t.perms, t.list, t.fielddefault, t.fieldcomputed";
 		$sql .= " FROM ".MAIN_DB_PREFIX."extrafields as t";
-		$sql .= " WHERE t.entity IN (".getEntity('extrafields').")";
+		$sql .= " WHERE t.entity IN (0,".getEntity('extrafields').")";
 		if (!empty($type)) {
 			$sql .= " AND t.elementtype = '".$this->db->escape($type)."'";
 		}
