@@ -109,24 +109,16 @@ class pdf_mercure extends ModelePDFSepamandat
      *  @return     int                             1 if OK, <=0 if KO
      */
     function write_file($object, $outputlangs, $srctemplatepath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = null)
-    {
-        global $conf, $hookmanager, $langs, $user, $mysoc;
+	{
+		// phpcs:enable
+		global $user, $langs, $conf, $mysoc, $db, $hookmanager, $nblines;
 
-        if (!is_object($outputlangs)) {
-            $outputlangs = $langs;
-        }
-        // For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-        if (!empty($conf->global->MAIN_USE_FPDF)) {
-            $outputlangs->charset_output = 'ISO-8859-1';
-        }
+		if (!is_object($outputlangs)) $outputlangs = $langs;
+		// For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
+		if (!empty($conf->global->MAIN_USE_FPDF)) $outputlangs->charset_output = 'ISO-8859-1';
 
-        $outputlangs->load("main");
-        $outputlangs->load("dict");
-        $outputlangs->load("companies");
-        $outputlangs->load("projects");
-        $outputlangs->load("withdrawals");
-		$outputlangs->load("bills");
-		$outputlangs->load("sepamandatmanager@sepamandatmanager");
+		// Load translation files required by the page
+		$outputlangs->loadLangs(array("main", "dict", "companies", "bills", "products", "orders", "deliveries", "withdrawals", "sepamandatmanager@sepamandatmanager"));
 
         $directoryPath = !empty($moreparams['force_dir_output']) ? $moreparams['force_dir_output'] : $object->getAbsolutePath();
         $fileName = $object->specimen ? 'SPECIMEN.pdf' : $object->ref . '.pdf';
