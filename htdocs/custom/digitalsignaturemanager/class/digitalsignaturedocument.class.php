@@ -25,7 +25,7 @@
 // Put here all includes required by your class file
 require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
-dol_include_once('/digitalsignaturemanager/class/extendedEcm.class.php');
+dol_include_once('/atlantis/class/extendedEcm.class.php');
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
 dol_include_once('/digitalsignaturemanager/vendor/autoload.php');
 dol_include_once('/digitalsignaturemanager/core/dictionaries/digitalsignaturedocumenttypemanager.class.php');
@@ -138,8 +138,8 @@ class DigitalSignatureDocument extends CommonObject
 	public $fields = array(
 		'rowid' => array('type' => 'integer', 'label' => 'TechnicalID', 'enabled' => '1', 'position' => 1, 'notnull' => 1, 'visible' => 0, 'noteditable' => '1', 'index' => 1, 'comment' => "Id"),
 		'fk_digitalsignaturerequest' => array('type' => 'integer:DigitalSignatureRequest:digitalsignaturemanager/class/digitalsignaturerequest.class.php', 'label' => 'Linked Digital Signature request', 'enabled' => '1', 'position' => 10, 'notnull' => 1, 'visible' => 1, 'index' => 1,),
-		'fk_ecm' => array('type' => 'integer:ExtendedEcm:digitalsignaturemanager/class/extendedEcm.class.php', 'label' => 'Linked To ECM File', 'enabled' => '1', 'position' => 11, 'notnull' => 1, 'visible' => 1, 'index' => 1),
-		'fk_ecm_signed' => array('type' => 'integer:ExtendedEcm:digitalsignaturemanager/class/extendedEcm.class.php', 'label' => 'Linked To ECM signed file', 'enabled' => '1', 'position' => 11, 'notnull' => 0, 'visible' => 1, 'index' => 1),
+		'fk_ecm' => array('type' => 'integer:ExtendedEcm:atlantis/class/extendedEcm.class.php', 'label' => 'Linked To ECM File', 'enabled' => '1', 'position' => 11, 'notnull' => 1, 'visible' => 1, 'index' => 1),
+		'fk_ecm_signed' => array('type' => 'integer:ExtendedEcm:atlantis/class/extendedEcm.class.php', 'label' => 'Linked To ECM signed file', 'enabled' => '1', 'position' => 11, 'notnull' => 0, 'visible' => 1, 'index' => 1),
 		'position' => array('type' => 'integer', 'label' => 'Position of files in digital signature request', 'enabled' => '1', 'position' => 12, 'notnull' => 0, 'visible' => 1,),
 		'date_creation' => array('type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 500, 'notnull' => 1, 'visible' => -2,),
 		'tms' => array('type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 501, 'notnull' => 0, 'visible' => -2,),

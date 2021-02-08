@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2020 Alexis LAURIER <contact@alexislaurier.fr>
+/* Copyright (C) 2021 Alexis LAURIER <contact@alexislaurier.fr>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
  */
 
 /**
- * \file    digitalsignaturemanager/css/digitalsignaturemanager.css.php
- * \ingroup digitalsignaturemanager
- * \brief   CSS file for module DigitalSignatureManager.
+ * \file    atlantis/css/atlantis_select2sortable.css.php
+ * \ingroup atlantis
+ * \brief   CSS file for module Atlantis.
  */
 
 //if (! defined('NOREQUIREUSER')) define('NOREQUIREUSER','1');	// Not disabled because need to load personalized language
@@ -69,14 +69,7 @@ if (empty($dolibarr_nocache)) header('Cache-Control: max-age=10800, public, must
 else header('Cache-Control: no-cache');
 
 ?>
-.icon-digitalsignaturemanager.mainvmenu:before {
-    content: "\e61a";
-}
 
-.fullwidth {
-	width:100%;
-}
-
-.width95 {
-	width:95%;
+.select2-container {
+	min-width:200px!important;
 }

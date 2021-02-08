@@ -22,7 +22,7 @@
  */
 
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
-dol_include_once('/digitalsignaturemanager/class/extendedEcm.class.php');
+dol_include_once('/atlantis/class/extendedEcm.class.php');
 /**
  *	Class to manage generation of HTML components
  *	Only common components must be here.

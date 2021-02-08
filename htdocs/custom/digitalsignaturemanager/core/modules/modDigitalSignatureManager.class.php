@@ -98,7 +98,6 @@ class modDigitalSignatureManager extends DolibarrModules
 				),
 			// Set this to relative path of js file if module must load a js on all pages
 			'js' => array(
-				'/digitalsignaturemanager/js/select2-sortable.min.js',
 			),
 			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
 			'hooks' => array(
@@ -116,7 +115,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		// A condition to hide module
 		$this->hidden = false;
 		// List of module class names as string that must be enabled if this module is enabled. Example: array('always1'=>'modModuleToEnable1','always2'=>'modModuleToEnable2', 'FR1'=>'modModuleToEnableFR'...)
-		$this->depends = array('modAdvanceDictionaries');
+		$this->depends = array('modAdvanceDictionaries','modAtlantis');
 		$this->requiredby = array(); // List of module class names as string to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
 		$this->conflictwith = array(); // List of module class names as string this module is in conflict with. Example: array('modModuleToDisable1', ...)
 		$this->langfiles = array("digitalsignaturemanager@digitalsignaturemanager");

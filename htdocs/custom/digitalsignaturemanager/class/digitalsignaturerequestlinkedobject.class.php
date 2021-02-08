@@ -15,7 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-dol_include_once('/digitalsignaturemanager/class/extendedEcm.class.php');
+dol_include_once('/atlantis/class/extendedEcm.class.php');
 dol_include_once('/digitalsignaturemanager/class/digitalsignaturerequest.class.php');
 
 /**
