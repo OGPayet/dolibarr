@@ -1,1 +1,1 @@
-RedirectMatch 301 "(.*)/dictionaryextrafields$" "$1/setup/extrafields"
+RedirectMatch 301 "(.*)/dictionaryextrafields$" "https://opsy.synergies-tech.fr/api/index.php/setup/extrafields"
