@@ -145,6 +145,9 @@ class InterventionSurveyApi extends DolibarrApi
         global $user;
         dol_include_once("/advancedictionaries/class/api_advancedictionaries.class.php");
         $dictionaryApi = new AdvanceDictionariesApi();
+        if(empty($user->rights->advancedictionaries)) {
+            $user->rights->advancedictionaries = new stdClass();
+        }
         $oldRight = $user->rights->advancedictionaries->read;
         $user->rights->advancedictionaries->read = 1;
         $result = $dictionaryApi->index('extendedintervention', 'extendedinterventiontype', '', $sort_field, $sort_order, $limit, $page);
