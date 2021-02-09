@@ -341,12 +341,9 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(404, 'Intervention not found');
         }
 
-
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
             throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
-
-
 
         if ($this->interventionSurvey->is_survey_read_only()) {
             throw new RestException(401, 'Intervention survey with id = ' . $this->interventionSurvey->id . ' is in readonly mode');
