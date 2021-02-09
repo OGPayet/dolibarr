@@ -187,21 +187,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                     return 0;
                 }
             }
-
-            $temp_dir_signature = DOL_DATA_ROOT . '/interventionsurvey/temp/' . $object->element . '_' . $object->id;
-            if (file_exists($temp_dir_signature)) {
-                if (is_dir($temp_dir_signature)) {
-                    dol_delete_dir_recursive($temp_dir_signature);
-                } else {
-                    dol_delete_file($temp_dir_signature);
-                }
-            }
-            if (dol_mkdir($temp_dir_signature) < 0) {
-                $this->error = $langs->transnoentities("ErrorCanNotCreateDir", $temp_dir_signature);
-                return 0;
-            }
-
-            if (file_exists($dir) && file_exists($temp_dir_signature)) {
+            if (file_exists($dir)) {
                 $new_object = new InterventionSurvey($this->db);
                 $new_object->fetch($object->id, '', true, true);
                 $object = $new_object;
@@ -344,15 +330,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 if (!empty($conf->global->MAIN_UMASK)) {
                     @chmod($file, octdec($conf->global->MAIN_UMASK));
                 }
-                dol_delete_dir_recursive($temp_dir_signature);
-
                 return 1;
-            } elseif (!file_exists($dir)) {
-                $this->error = $langs->trans("ErrorCanNotCreateDir", $dir);
-                return 0;
-            } else {
-                $this->error = $langs->trans("ErrorCanNotCreateDir", $temp_dir_signature);
-                return 0;
             }
         } else {
             $this->error = $langs->trans("ErrorConstantNotDefined", "FICHEINTER_OUTPUTDIR");
@@ -369,7 +347,7 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param  int          $curY           Positition where we may be able to start drawing such items
      * @param  Translate    $outputlangs    Object lang for output
      */
-    private function displayWorkingTimeAndSignatoryArea($pdf, $object, $effective_working_time, $curY, $outputlangs)
+    private function displayWorkingTimeAndSignatoryArea($pdf, $object, $effective_working_time, $curY, $outputlangs, $temp_dir_signature)
     {
         $margin = $pdf->getMargins();
 
@@ -1374,7 +1352,6 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         $border = 0;
         $w = ($this->page_largeur - $this->marge_gauche - $this->marge_droite - 4) / 2;
-        $temp_dir_signature = DOL_DATA_ROOT . '/interventionsurvey/temp/' . $object->element . '_' . $object->id;
 
         $start_y = $end_y = $posy;
         $signature_left_posx = $this->marge_droite + $w + 4;
@@ -1408,11 +1385,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Print image
         if (!empty($signature_info_image)) {
-            $img_src1 = $temp_dir_signature . '/signature1';
-            $imageContent = @file_get_contents($signature_info_image);
-            @file_put_contents($img_src1, $imageContent);
-
-            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $img_src1 . '"/>', $border, 1);
+            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $signature_info_image . '"/>', $border, 1);
             $posy = $pdf->GetY();
         }
 
@@ -1463,11 +1436,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         if (!$signature_info['isCustomerAbsent']) {
             // Print image
             if (!empty($signature_info_image)) {
-                $img_src2 = $temp_dir_signature . '/signature2';
-                $imageContent = @file_get_contents($signature_info_image);
-                @file_put_contents($img_src2, $imageContent);
-
-                $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $img_src2 . '"/>', $border, 1);
+                $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $signature_info_image . '"/>', $border, 1);
                 $posy = $pdf->GetY();
             }
 
@@ -1480,14 +1449,6 @@ class pdf_jupiter extends ModelePDFFicheinter
             $signature_text = '<font size="' . $signature_font_size . '">' . $signature_title . '<br />' . implode(', ', $signature_people) . '</font>';
             $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
             $end_y = max($end_y, $pdf->GetY());
-
-            if (!empty($img_src1) && file_exists($img_src1)) {
-                @unlink($img_src1);
-            }
-            if (!empty($img_src2) && file_exists($img_src2)) {
-                @unlink($img_src2);
-            }
-            @unlink($temp_dir_signature);
         } else {
             dol_include_once('interventionsurvey/lib/interventionSurveyReverseGeocoding.php');
 
