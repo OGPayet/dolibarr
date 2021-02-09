@@ -59,7 +59,7 @@ class modListInCSV extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module ListInCSV";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.0.2';
+		$this->version = '1.0.8';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -83,7 +83,7 @@ class modListInCSV extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/listincsv/css/listincsv.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/listincsv/js/listincsv.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/listincsv/js/listincsv.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2')  	// Set here all hooks context managed by module
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@listincsv')) // Set here all workflow context managed by module
@@ -142,8 +142,8 @@ class modListInCSV extends DolibarrModules
         // Dictionaries
 	    if (! isset($conf->listincsv->enabled))
         {
-		$conf->listincsv=new stdClass();
-		$conf->listincsv->enabled=0;
+        	$conf->listincsv=new stdClass();
+        	$conf->listincsv->enabled=0;
         }
 		$this->dictionaries=array();
         /* Example:

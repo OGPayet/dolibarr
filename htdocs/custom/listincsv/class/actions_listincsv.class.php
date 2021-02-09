@@ -63,7 +63,7 @@ class ActionsListInCSV
 	{
 		if (strpos($parameters['context'], 'list') !== false)
 		{
-			global $langs, $user;
+			global $langs, $user, $conf;
 			$langs->load('listincsv@listincsv');
 
 			if(!empty($user->rights->listincsv->export)) {
@@ -77,7 +77,6 @@ class ActionsListInCSV
 				$img = ' <img src="'.$pathtoimg.'" style="vertical-align: middle;" width="20" />';
 
 				$download = $link . $img . $endlink;
-
 				$socid = GETPOST('socid');
 				if(empty($socid)) $socid = 0;
 
@@ -87,7 +86,22 @@ class ActionsListInCSV
 				<script type="text/javascript" language="javascript">
 
 				$(document).ready(function() {
-					$('div.fiche div.titre').first().append('<?php echo $download; ?>'); // Il peut y avoir plusieurs titre dans la page
+					<?php
+					// Case fo tesk list into project
+					if (strpos($parameters['context'], 'projecttasklist') !== false) {
+					?>
+						$('#id-right > form#searchFormList div.titre').first().append('<?php echo $download; ?>'); // Il peut y avoir plusieurs titre dans la page
+					<?php
+					} else {
+					?>
+						if(typeof $('div.fiche div.titre').first().val() !== 'undefined') {
+							$('div.fiche div.titre').first().append('<?php echo $download; ?>'); // Il peut y avoir plusieurs titre dans la page
+						} else {
+							$('[name="button_search"]').after('<?php echo $download; ?>'); // S'il n'y a pas de titre, on l'ajoute à côté de la loupe c'est mieux que rien...
+						}
+					<?php
+					}
+					?>
 					$(".export").on('click', function(event) {
 						// Récupération des données du formulaire de filtre et transformation en objet
 						var $form = $('div.fiche form').first(); // Les formulaire de liste n'ont pas tous les même name
@@ -111,7 +125,7 @@ class ActionsListInCSV
 								}).done(function(html) {
 									// Récupération de la table html qui nous intéresse
 									var $table = $(html).find('table.liste');
-
+                                    let search = $table.find('tr.liste_titre_filter');
 									// Nettoyage de la table avant conversion en CSV
 
 									// Suppression des filtres de la liste
@@ -119,10 +133,24 @@ class ActionsListInCSV
 									$table.find('tr:has(td.liste_titre)').remove(); // < 6.0
 
 									// Suppression de la dernière colonne qui contient seulement les loupes des filtres
-									$table.find('th:last-child, td:last-child').remove();
+                                    $table.find('th:last-child, td:last-child').each(function(index){
+                                        $(this).find('dl').remove();
+                                       if($(search).length > 0 && $(this).closest('table').hasClass('liste')) $(this).remove(); //Dans les listes ne contenant pas de recherche, il ne faut pas supprimer la derniere colonne
+                                    });
+
 
 									// Suppression de la ligne TOTAL en pied de tableau
-									$table.find('tr.liste_total').remove();
+                                    <?php if(empty($conf->global->LISTINCSV_DONT_REMOVE_TOTAL)) { ?> $table.find('tr.liste_total').remove(); <?php } ?>
+
+									//Suppression des espaces pour les nombres
+									<?php if(!empty($conf->global->LISTINCSV_DELETESPACEFROMNUMBER)) { ?>
+
+									$table.find('td').each(function(e) {
+                                        let nbWthtSpace = $(this).text().replace(/ /g,'').replace(/\xa0/g,'');
+                                        let commaToPoint = nbWthtSpace.replace(',', '.');
+                                        if($.isNumeric(commaToPoint)) $(this).html(nbWthtSpace);
+									});
+									<?php } ?>
 
 									// Remplacement des sous-table par leur valeur text(), notamment pour la ref dans les listes de propales, factures...
 									$table.find('td > table').map(function(i, cell) {
