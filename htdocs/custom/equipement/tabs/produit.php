@@ -226,7 +226,7 @@ print '&nbsp;<input type="submit" class="button" value="'.$langs->trans("Reassig
 print '</form><br>';
 
 $sql = "SELECT";
-$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.ref,";
+$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ";
 $sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn, e.fk_commande_fourn, cf.ref as refCommFourn, e.fk_facture_fourn, ff.ref as refFactureFourn,";
 $sql.= " e.fk_soc_client, scli.nom as CompanyClient, e.fk_facture, f.ref as refFacture,";
 $sql.= " e.datee, e.dateo, ee.libelle as etatequiplibelle, e.numversion";
