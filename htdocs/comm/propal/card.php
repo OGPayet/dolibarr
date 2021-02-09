@@ -2538,6 +2538,8 @@ if ($action == 'create')
 		//-------------------------------------------------------------------------------
         // Modification - Open-DSI - Begin
         if (!$conf->synergiestech->enabled || $user->rights->synergiestech->documents->customerpropal) {
+		$saveValue = $conf->global->MAIN_DISABLE_TRUNC;
+		$conf->global->MAIN_DISABLE_TRUNC = 1;
 		// Modification - Open-DSI - End
 		//-------------------------------------------------------------------------------
 			print '<a name="builddoc"></a>'; // ancre
@@ -2553,6 +2555,7 @@ if ($action == 'create')
 		print $formfile->showdocuments('propal', $objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', 0, '', $soc->default_lang, '', $object);
 		//-------------------------------------------------------------------------------
         // Modification - Open-DSI - Begin
+		$conf->global->MAIN_DISABLE_TRUNC = $saveValue;
 	}
 	// Modification - Open-DSI - End
 	//-------------------------------------------------------------------------------
