@@ -497,7 +497,7 @@ class InterventionSurveyApi extends DolibarrApi
             $result = $this->interventionLine->insert(DolibarrApiAccess::$user);
         }
 
-        if ($result >= 0 && $this->interventionLine->fetch_optionals() > 0) {
+        if ($result >= 0 && $this->interventionLine->fetch_optionals() >= 0) {
             $this->updatePdfFileIfNeeded();
             return $this->_cleanObjectData($this->interventionLine);
         } else {
