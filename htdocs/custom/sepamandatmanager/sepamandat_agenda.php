@@ -87,6 +87,7 @@ $extrafields->fetch_name_optionals_label($object->table_element);
 // Load object
 include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be include, not include_once  // Must be include, not include_once. Include fetch and fetch_thirdparty but not fetch_optionals
 if ($id > 0 || !empty($ref)) $upload_dir = $conf->sepamandatmanager->multidir_output[$object->entity]."/".$object->id;
+if (!$user->rights->sepamandatmanager->sepamandat->read || !in_array($object->entity, explode(',', getEntity('sepamandat')))) accessforbidden();
 
 // Security check - Protection if external user
 //if ($user->socid > 0) accessforbidden();

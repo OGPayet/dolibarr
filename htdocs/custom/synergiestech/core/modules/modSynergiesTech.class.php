@@ -588,7 +588,6 @@ class modSynergiesTech extends DolibarrModules
                 'type' => 'object',
                 'icon' => 'file-pdf-o',
                 'enable' => '! empty($conf->contrat->enabled)',
-                'display' => '! empty($conf->global->MULTICOMPANY_CONTRACT_SHARING_ENABLED)',
                 'active' => true
             ),));
         dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);

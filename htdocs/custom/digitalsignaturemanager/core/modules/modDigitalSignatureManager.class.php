@@ -486,39 +486,23 @@ class modDigitalSignatureManager extends DolibarrModules
 
 		$sql = array();
 
-		// Document templates
-		$moduledir = 'digitalsignaturemanager';
-		$myTmpObjects = array();
-		$myTmpObjects['DigitalSignatureRequest']=array('includerefgeneration'=>0, 'includedocgeneration'=>0);
-
-		foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
-			if ($myTmpObjectKey == 'DigitalSignatureRequest') continue;
-			if ($myTmpObjectArray['includerefgeneration']) {
-				$src=DOL_DOCUMENT_ROOT.'/install/doctemplates/digitalsignaturemanager/template_digitalsignaturerequests.odt';
-				$dirodt=DOL_DATA_ROOT.'/doctemplates/digitalsignaturemanager';
-				$dest=$dirodt.'/template_digitalsignaturerequests.odt';
-
-				if (file_exists($src) && ! file_exists($dest))
-				{
-					require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-					dol_mkdir($dirodt);
-					$result=dol_copy($src, $dest, 0, 0);
-					if ($result < 0)
-					{
-						$langs->load("errors");
-						$this->error=$langs->trans('ErrorFailToCopyFile', $src, $dest);
-						return 0;
-					}
-				}
-
-				$sql = array_merge($sql, array(
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'standard_".strtolower($myTmpObjectKey)."' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('standard_".strtolower($myTmpObjectKey)."','".strtolower($myTmpObjectKey)."',".$conf->entity.")",
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'generic_".strtolower($myTmpObjectKey)."_odt' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('generic_".strtolower($myTmpObjectKey)."_odt', '".strtolower($myTmpObjectKey)."', ".$conf->entity.")"
-				));
+		//We add shared element for multicompany
+		$arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+		foreach ($arrayOfElement as $index => $param) {
+			if (is_array($param["sharingelements"]) && array_key_exists("digitalsignaturerequest", $param["sharingelements"])) {
+				unset($arrayOfElement[$index]);
+				break;
 			}
 		}
+		$arrayOfElement[] =
+			array("sharingelements" =>
+			array('digitalsignaturerequest' => array(
+				'type' => 'object',
+				'icon' => 'file-pdf-o',
+				'enable' => '! empty($conf->digitalsignaturemanager->enabled)',
+				'active' => true
+			),));
+		dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
 
 		return $this->_init($sql, $options);
 	}
@@ -534,6 +518,14 @@ class modDigitalSignatureManager extends DolibarrModules
 	public function remove($options = '')
 	{
 		$sql = array();
+		$arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+        foreach ($arrayOfElement as $index => $param) {
+            if (is_array($param["sharingelements"]) && array_key_exists("sepamandat", $param["sharingelements"])) {
+                unset($arrayOfElement[$index]);
+                break;
+            }
+		}
+        dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
 		return $this->_remove($sql, $options);
 	}
 }

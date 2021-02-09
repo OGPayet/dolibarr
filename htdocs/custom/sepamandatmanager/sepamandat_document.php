@@ -85,9 +85,7 @@ if ($id > 0 || !empty($ref)) {
 //if ($user->socid > 0) accessforbidden();
 //if ($user->socid > 0) $socid = $user->socid;
 //$result = restrictedArea($user, 'sepamandatmanager', $object->id);
-
-$permissiontoadd = $user->rights->sepamandatmanager->sepamandat->write; // Used by the include of actions_addupdatedelete.inc.php
-
+if (!$user->rights->sepamandatmanager->sepamandat->read || !in_array($object->entity, explode(',', getEntity('sepamandat')))) accessforbidden();
 
 
 /*
@@ -159,7 +157,7 @@ if ($object->id)
 	$param = '&id='.$object->id;
 
 	//$relativepathwithnofile='sepamandat/' . dol_sanitizeFileName($object->id).'/';
-	$relativepathwithnofile = $object->getRelativePathToDolDataRoot() . '/';
+	$relativepathwithnofile = $object->getRelativePathOfFileToModuleDataRoot() . '/';
 
 	include_once DOL_DOCUMENT_ROOT.'/core/tpl/document_actions_post_headers.tpl.php';
 }

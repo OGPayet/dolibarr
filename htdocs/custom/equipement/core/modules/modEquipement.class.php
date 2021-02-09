@@ -522,7 +522,6 @@ class modequipement extends DolibarrModules
                 'type' => 'object',
                 'icon' => 'file-pdf-o',
                 'enable' => '! empty($conf->equipement->enabled)',
-                'display' => '! empty($conf->global->MULTICOMPANY_EQUIPEMENT_SHARING_ENABLED)',
                 'active' => true
             ),));
         dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);

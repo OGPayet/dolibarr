@@ -78,7 +78,7 @@ $permissiontoadd = $user->rights->digitalsignaturemanager->request->edit; // Use
 $permissiontoread = $user->rights->digitalsignaturemanager->request->read;
 
 // Security check - Protection if external user
-if (!$permissiontoread) accessforbidden();
+if (!$permissiontoread || !in_array($object->entity, explode(',', getEntity('digitalsignaturerequest')))) accessforbidden();
 
 //$upload_dir = $object->getUploadDirOfFilesToSign();
 
