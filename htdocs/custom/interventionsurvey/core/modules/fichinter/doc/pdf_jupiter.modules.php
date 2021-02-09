@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2003		Rodolphe Quiedeville		<rodolphe@quiedeville.org>
+/* Copyright (C) 2003       Rodolphe Quiedeville        <rodolphe@quiedeville.org>
  * Copyright (C) 2004-2010	Laurent Destailleur			<eldy@users.sourceforge.net>
  * Copyright (C) 2005-2012	Regis Houssin				<regis.houssin@capnetworks.com>
  * Copyright (C) 2008		Raphael Bertrand (Resultic)	<raphael.bertrand@resultic.fr>
@@ -23,9 +23,9 @@
  */
 
 /**
- *	\file       htdocs/core/modules/fichinter/doc/pdf_soleil.modules.php
- *	\ingroup    ficheinter
- *	\brief      Fichier de la classe permettant de generer les fiches d'intervention au modele Soleil
+ *  \file       htdocs/core/modules/fichinter/doc/pdf_soleil.modules.php
+ *  \ingroup    ficheinter
+ *  \brief      Fichier de la classe permettant de generer les fiches d'intervention au modele Soleil
  */
 require_once DOL_DOCUMENT_ROOT . '/core/modules/fichinter/modules_fichinter.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
@@ -62,7 +62,9 @@ function sortImageByHeight($a, $b)
 // Sort times of each involved users
 function effective_working_time_cmp($a, $b)
 {
-    if ($a['begin'] == $b['begin']) return 0;
+    if ($a['begin'] == $b['begin']) {
+        return 0;
+    }
     return ($a['begin'] < $b['begin']) ? -1 : 1;
 }
 
@@ -71,7 +73,7 @@ require_once __DIR__ . '/../../../../vendor/autoload.php';
 use Tcpdf\Extension\Table\Table;
 
 /**
- *	Class to build interventions documents with model Soleil with company relationships
+ *  Class to build interventions documents with model Soleil with company relationships
  */
 class pdf_jupiter extends ModelePDFFicheinter
 {
@@ -131,7 +133,9 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Get source company
         $this->emetteur = $mysoc;
-        if (empty($this->emetteur->country_code)) $this->emetteur->country_code = substr($langs->defaultlang, -2);    // By default, if was not defined
+        if (empty($this->emetteur->country_code)) {
+            $this->emetteur->country_code = substr($langs->defaultlang, -2);    // By default, if was not defined
+        }
 
         // Define position of columns
         $this->posxdesc = $this->marge_gauche + 1;
@@ -152,9 +156,13 @@ class pdf_jupiter extends ModelePDFFicheinter
     {
         global $user, $langs, $conf, $mysoc, $db, $hookmanager;
 
-        if (!is_object($outputlangs)) $outputlangs = $langs;
+        if (!is_object($outputlangs)) {
+            $outputlangs = $langs;
+        }
         // For backward compatibility with FPDF, force output charset to ISO, because FPDF expect text to be encoded in ISO
-        if (!empty($conf->global->MAIN_USE_FPDF)) $outputlangs->charset_output = 'ISO-8859-1';
+        if (!empty($conf->global->MAIN_USE_FPDF)) {
+            $outputlangs->charset_output = 'ISO-8859-1';
+        }
 
         $outputlangs->load("main");
         $outputlangs->load("dict");
@@ -182,7 +190,11 @@ class pdf_jupiter extends ModelePDFFicheinter
 
             $temp_dir_signature = DOL_DATA_ROOT . '/interventionsurvey/temp/' . $object->element . '_' . $object->id;
             if (file_exists($temp_dir_signature)) {
-                unlink($temp_dir_signature);
+                if (is_dir($temp_dir_signature)) {
+                    rmdir($temp_dir_signature);
+                } else {
+                    unlink($temp_dir_signature);
+                }
             }
             if (dol_mkdir($temp_dir_signature) < 0) {
                 $this->error = $langs->transnoentities("ErrorCanNotCreateDir", $temp_dir_signature);
@@ -236,13 +248,17 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $pdf->SetCreator("Dolibarr " . DOL_VERSION);
                 $pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
                 $pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref) . " " . $outputlangs->transnoentities("InterventionCard"));
-                if (!empty($conf->global->MAIN_DISABLE_PDF_COMPRESSION)) $pdf->SetCompression(false);
+                if (!empty($conf->global->MAIN_DISABLE_PDF_COMPRESSION)) {
+                    $pdf->SetCompression(false);
+                }
 
                 $pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);   // Left, Top, Right
 
                 // New page
                 $pdf->AddPage();
-                if (!empty($tplidx)) $pdf->useTemplate($tplidx);
+                if (!empty($tplidx)) {
+                    $pdf->useTemplate($tplidx);
+                }
                 $tab_top = $this->_pagehead($pdf, $object, 1, $outputlangs);
                 $pdf->SetFont('', '', $default_font_size - 1);
                 $pdf->SetTextColor(0, 0, 0);
@@ -325,8 +341,10 @@ class pdf_jupiter extends ModelePDFFicheinter
                 global $action;
                 $reshook = $hookmanager->executeHooks('afterPDFCreation', $parameters, $this, $action);    // Note that $action and $object may have been modified by some hooks
 
-                if (!empty($conf->global->MAIN_UMASK))
+                if (!empty($conf->global->MAIN_UMASK)) {
                     @chmod($file, octdec($conf->global->MAIN_UMASK));
+                }
+                rmdir($temp_dir_signature);
 
                 return 1;
             } elseif (!file_exists($dir)) {
@@ -417,7 +435,7 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param  int          $showaddress    0=no, 1=yes
      * @param  Translate    $outputlangs    Object lang for output
      *
-     * @return  int							    Position pour suite
+     * @return  int                             Position pour suite
      */
     function _pagehead(&$pdf, $object, $showaddress, $outputlangs)
     {
@@ -474,7 +492,9 @@ class pdf_jupiter extends ModelePDFFicheinter
         // Show sender
         $posy = 0;
         $posx = $this->marge_gauche + 92;
-        if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->page_largeur - $this->marge_droite - 80;
+        if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) {
+            $posx = $this->page_largeur - $this->marge_droite - 80;
+        }
 
         $hautcadre = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 38 : 40;
         $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 82;
@@ -631,7 +651,9 @@ class pdf_jupiter extends ModelePDFFicheinter
             // Show recipient
             if ($showBenefactor === false) {
                 $widthrecbox = !empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 92 : 100;
-                if ($this->page_largeur < 210) $widthrecbox = 84; // To work with US executive format
+                if ($this->page_largeur < 210) {
+                    $widthrecbox = 84; // To work with US executive format
+                }
                 $widthrecbox -= 20;
             } else {
                 $widthrecbox = $w;
@@ -643,7 +665,9 @@ class pdf_jupiter extends ModelePDFFicheinter
 
             $posy = $this->marge_haute;
             $posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
-            if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx = $this->marge_gauche;
+            if (!empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) {
+                $posx = $this->marge_gauche;
+            }
             $carac_principal_name = pdfBuildThirdpartyName($principal_company, $outputlangs, 1);
             $carac_principal = pdf_build_address($outputlangs, $this->emetteur, $principal_company, ($use_principal_contact ? $principal_company->contact : ''), $use_principal_contact, 'target', $object);
 
@@ -703,20 +727,20 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-     *	Show area for the survey part
+     *  Show area for the survey part
      *
-     * @param   PDF			    $pdf                Object PDF
+     * @param   PDF             $pdf                Object PDF
      * @param   Fichinter       $object             Object intervention
      * @param   SurveyPart    $survey_part         Object survey part
-     * @param   int			    $posx			    Position X of the bloc
-     * @param   int			    $posy			    Position Y of the bloc
-     * @param   int			    $w			        Width of the bloc
-     * @param   Translate	    $outputlangs	    Objet langs
-     * @param   int			    $heightforfooter	Height for footer
-     * @param   array			$listOfAttachedFiles	Informations on attached files on linked fichinter
+     * @param   int             $posx               Position X of the bloc
+     * @param   int             $posy               Position Y of the bloc
+     * @param   int             $w                  Width of the bloc
+     * @param   Translate       $outputlangs        Objet langs
+     * @param   int             $heightforfooter    Height for footer
+     * @param   array           $listOfAttachedFiles    Informations on attached files on linked fichinter
 
      *
-     * @return  int							        Position pour suite
+     * @return  int                                 Position pour suite
      */
     function _survey_bloc_part(&$pdf, $object, $survey_part, $posx, $posy, $w, $outputlangs, $heightforfooter, $listOfAttachedFiles = array())
     {
@@ -839,18 +863,18 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-     *	Show area for the question bloc
+     *  Show area for the question bloc
      *
-     * @param   PDF			    $pdf            Object PDF
+     * @param   PDF             $pdf            Object PDF
      * @param   SurveyBlocQuestion  $question_bloc  Object question block
-     * @param   int			    $posx			Position X of the bloc
-     * @param   int			    $posy			Position Y of the bloc
-     * @param   int			    $width			Width of the bloc
-     * @param   Translate	    $outputlangs	Objet langs
-     * @param   int	            $addline    	1=Add dash line after the bloc
-     * @param   array			$listOfAttachedFiles	Informations on attached files on linked fichinter
+     * @param   int             $posx           Position X of the bloc
+     * @param   int             $posy           Position Y of the bloc
+     * @param   int             $width          Width of the bloc
+     * @param   Translate       $outputlangs    Objet langs
+     * @param   int             $addline        1=Add dash line after the bloc
+     * @param   array           $listOfAttachedFiles    Informations on attached files on linked fichinter
      *
-     * @return  int							    Position pour suite
+     * @return  int                             Position pour suite
      */
 
     function _question_bloc_area(&$pdf, $question_bloc, $posx, $posy, $width, $outputlangs, $addline = 0, $listOfAttachedFiles = array())
@@ -1110,14 +1134,14 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-     *	Show area for the effective working time
+     *  Show area for the effective working time
      *
-     * @param   TCPDF			$pdf            Object PDF
+     * @param   TCPDF           $pdf            Object PDF
      * @param   Array   $effective_working_time         Object Containing effective working time
-     * @param   int			$posy			Position depart
-     * @param   Translate	$outputlangs	Objet langs
+     * @param   int         $posy           Position depart
+     * @param   Translate   $outputlangs    Objet langs
      *
-     * @return  int							Height of the area
+     * @return  int                         Height of the area
      */
     function _effective_working_time_area(&$pdf, $effective_working_time, $posy, $outputlangs)
     {
@@ -1178,7 +1202,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                     $row = $row->newRow();
                 }
             }
-            if(count($user['times']) == 0) {
+            if (count($user['times']) == 0) {
                 $row = $row->end();
             }
         }
@@ -1197,18 +1221,18 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-     *	Show a description lines content
+     *  Show a description lines content
      *
      * @param   PDF         $pdf            Object PDF
      * @param   Fichinter   $Object        Object intervention
      * @param   int         $posx           Position depart
-     * @param   int         $posy			Position depart
+     * @param   int         $posy           Position depart
      * @param   int         $w              Largeur
-     * @param   Translate   $outputlangs	Objet langs
+     * @param   Translate   $outputlangs    Objet langs
      * @param   int         $heightforfooter    hauteur footer
      * @param   int         $default_font_size  Hauteur de base police
      *
-     * @return  int							Position at the end
+     * @return  int                         Position at the end
      */
     private function displayDescriptionContents(&$pdf, $object, $posx, $posy, $w, $outputlangs, $heightforfooter, $default_font_size)
     {
@@ -1227,20 +1251,20 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-     *	Show a description line content
+     *  Show a description line content
      *
      * @param   PDF         $pdf            Object PDF
      * @param   Fichinter   $object        Object intervention
      * @param   FichinterDet   $line        Object intervention Line
      * @param   int         $posx           Position depart
-     * @param   int         $posy			Position depart
+     * @param   int         $posy           Position depart
      * @param   int         $w              Largeur
      * @param   int         $lineNumber     Numéro de la lingne
-     * @param   Translate   $outputlangs	Objet langs
+     * @param   Translate   $outputlangs    Objet langs
      * @param   int         $heightforfooter    hauteur footer
      * @param   int         $default_font_size  Hauteur de base police
      *
-     * @return  int							Position at the end
+     * @return  int                         Position at the end
      */
     private function displayDescriptionContent(&$pdf, $object, $line, $posx, $posy, $w, $lineNumber, $outputlangs, $heightforfooter, $default_font_size)
     {
@@ -1334,14 +1358,14 @@ class pdf_jupiter extends ModelePDFFicheinter
     }
 
     /**
-     *	Show area for the technician and customer to sign
+     *  Show area for the technician and customer to sign
      *
      * @param   PDF         $pdf            Object PDF
      * @param   Fichinter   $object         Object intervention
-     * @param   int         $posy			Position depart
-     * @param   Translate   $outputlangs	Objet langs
+     * @param   int         $posy           Position depart
+     * @param   Translate   $outputlangs    Objet langs
      *
-     * @return  int							Height of the area
+     * @return  int                         Height of the area
      */
     function _signature_area(&$pdf, $object, $posy, $outputlangs)
     {
@@ -1457,8 +1481,12 @@ class pdf_jupiter extends ModelePDFFicheinter
             $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, trim($signature_text), $border, 1, false, true, 'C', true);
             $end_y = max($end_y, $pdf->GetY());
 
-            if (!empty($img_src1) && file_exists($img_src1)) @unlink($img_src1);
-            if (!empty($img_src2) && file_exists($img_src2)) @unlink($img_src2);
+            if (!empty($img_src1) && file_exists($img_src1)) {
+                @unlink($img_src1);
+            }
+            if (!empty($img_src2) && file_exists($img_src2)) {
+                @unlink($img_src2);
+            }
             @unlink($temp_dir_signature);
         } else {
             dol_include_once('interventionsurvey/lib/interventionSurveyReverseGeocoding.php');
@@ -1631,10 +1659,10 @@ class pdf_jupiter extends ModelePDFFicheinter
 
     /**
      * Function to know, according to current pdf page and given posy, height and number of page needed to display Wording Time Area
-     * @param   PDF			$pdf            Object PDF
+     * @param   PDF         $pdf            Object PDF
      * @param   Fichinter   $object         Object intervention
-     * @param   int			$posy			Position depart
-     * @param   Translate	$outputlangs	Objet langs
+     * @param   int         $posy           Position depart
+     * @param   Translate   $outputlangs    Objet langs
      * @return array return an array as result - array("numberOfPageCreated"=>0,"finalPosition"=>0)
      */
     private function getHeightForWorkingTimeArea(&$pdf, $effective_working_time, $posy, $outputlangs)
@@ -1654,10 +1682,10 @@ class pdf_jupiter extends ModelePDFFicheinter
 
     /**
      * Function to know, according to current pdf page and given posy, height and number of page needed to display Signature Area
-     * @param   PDF			$pdf            Object PDF
+     * @param   PDF         $pdf            Object PDF
      * @param   Fichinter   $object         Object intervention
-     * @param   int			$posy			Position depart
-     * @param   Translate	$outputlangs	Objet langs
+     * @param   int         $posy           Position depart
+     * @param   Translate   $outputlangs    Objet langs
      * @return array return an array as result - array("numberOfPageCreated"=>0,"finalPosition"=>0)
      */
     private function getHeightForSignatureArea(&$pdf, $object, $posy, $outputlangs)
@@ -1676,10 +1704,10 @@ class pdf_jupiter extends ModelePDFFicheinter
 
     /**
      * Function to know height of page head to be displayed
-     * @param   PDF			$pdf            Object PDF
+     * @param   PDF         $pdf            Object PDF
      * @param   Fichinter   $object         Object intervention
-     * @param   int			$showAdress		Display address ?
-     * @param   Translate	$outputlangs	Objet langs
+     * @param   int         $showAdress     Display address ?
+     * @param   Translate   $outputlangs    Objet langs
      * @return array return an array as result - array("numberOfPageCreated"=>0,"finalPosition"=>0)
      */
     private function getHeightForPageHead(&$pdf, $object, $displayAddress, $outputlangs)
@@ -1772,12 +1800,12 @@ class pdf_jupiter extends ModelePDFFicheinter
     /**
      * Return the duration information array('days', 'hours', 'minutes', 'seconds')
      *
-     * @param	int	    $timestamp		Duration in second
-     * @param	bool	    $day			Get days
+     * @param   int     $timestamp      Duration in second
+     * @param   bool        $day            Get days
      * @param   bool     $hour_minute    Get hours / minutes
      * @param   bool     $second         Get seconds
      *
-     * @return	array                  array informations
+     * @return  array                  array informations
      */
     function _get_duration($timestamp, $day = true, $hour_minute = true, $second = false)
     {
@@ -1808,12 +1836,12 @@ class pdf_jupiter extends ModelePDFFicheinter
     /**
      * Return a formatted duration (x days x hours x minutes x seconds)
      *
-     * @param	int	    $timestamp		Duration in second
-     * @param	bool	    $day			Show days
+     * @param   int     $timestamp      Duration in second
+     * @param   bool        $day            Show days
      * @param   bool     $hour_minute    Show hours / minutes
      * @param   bool     $second         Show seconds
      *
-     * @return	string                  Formated duration
+     * @return  string                  Formated duration
      */
     function _print_duration($timestamp, $day = true, $hour_minute = true, $second = false)
     {
