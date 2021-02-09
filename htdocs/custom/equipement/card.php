@@ -1397,7 +1397,7 @@ if ($action == 'create') {
         print $formfile->showdocuments('equipement',$object->id,$filedir,$urlsource,$genallowed,$delallowed,'',0,0,0,0,0,'','','',$object->default_lang);
 
 
-        if (strcmp(DOL_VERSION, "6.0.0") >= 0) {
+        if (version_compare(DOL_VERSION, "6.0.0") >= 0) {
             // Show links to link elements
             $linktoelem = $form->showLinkToObjectBlock($object, null, array('equipement'));
             $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
