@@ -1428,6 +1428,9 @@ if (!empty($conf->projet->enabled)) {
 $product_static = new Product($db);
 $shipment_static = new Expedition($db);
 $warehousestatic = new Entrepot($db);
+if (!empty($conf->equipement->enabled)) {
+    $equipementStatic = new Equipement($db);
+}
 
 if ($action == 'create2') {
     print load_fiche_titre($langs->trans("CreateShipment"), '', 'dolly');
