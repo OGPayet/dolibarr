@@ -191,9 +191,9 @@ class pdf_jupiter extends ModelePDFFicheinter
             $temp_dir_signature = DOL_DATA_ROOT . '/interventionsurvey/temp/' . $object->element . '_' . $object->id;
             if (file_exists($temp_dir_signature)) {
                 if (is_dir($temp_dir_signature)) {
-                    rmdir($temp_dir_signature);
+                    dol_delete_dir_recursive($temp_dir_signature);
                 } else {
-                    unlink($temp_dir_signature);
+                    dol_delete_file($temp_dir_signature);
                 }
             }
             if (dol_mkdir($temp_dir_signature) < 0) {
@@ -344,7 +344,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 if (!empty($conf->global->MAIN_UMASK)) {
                     @chmod($file, octdec($conf->global->MAIN_UMASK));
                 }
-                rmdir($temp_dir_signature);
+                dol_delete_dir_recursive($temp_dir_signature);
 
                 return 1;
             } elseif (!file_exists($dir)) {
