@@ -98,6 +98,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
     var $emetteur;    // Objet societe qui emet
 
+    private $tempdir;
     /**
      *    Constructor
      *
@@ -187,7 +188,14 @@ class pdf_jupiter extends ModelePDFFicheinter
                     return 0;
                 }
             }
-            if (file_exists($dir)) {
+
+            $this->tempdir = $conf->interventionsurvey->dir_output . '/temp/' . $object->id;
+            if (!file_exists($this->tempdir)) {
+                if (dol_mkdir($this->tempdir) < 0) {
+                    $this->error = $langs->transnoentities("ErrorCanNotCreateDir", $dir);
+                    return 0;
+                }
+            }
                 $new_object = new InterventionSurvey($this->db);
                 $new_object->fetch($object->id, '', true, true);
                 $object = $new_object;
@@ -195,9 +203,9 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $effective_working_time = $this->_fetch_effective_working_time($object, $outputlangs);
 
                 // Add pdfgeneration hook
-                if (!is_object($hookmanager)) {
-                    $hookmanager = new HookManager($this->db);
-                }
+            if (!is_object($hookmanager)) {
+                $hookmanager = new HookManager($this->db);
+            }
 
                 $hookmanager->initHooks(array('pdfgeneration'));
                 $parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs, 'pdfInstance' => &$this);
@@ -212,19 +220,19 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $default_font_size = pdf_getPDFFontSize($outputlangs);    // Must be after pdf_getInstance
                 $pdf->SetAutoPageBreak(1, 0);
 
-                if (class_exists('TCPDF')) {
-                    $pdf->setPrintHeader(false);
-                    $pdf->setPrintFooter(false);
-                }
-                if (!empty($pdf->backgroundImagePath) && (class_exists('TCPDI') || class_exists('TCPDF'))) {
-                    $pdf->setPrintHeader(true);
-                }
+            if (class_exists('TCPDF')) {
+                $pdf->setPrintHeader(false);
+                $pdf->setPrintFooter(false);
+            }
+            if (!empty($pdf->backgroundImagePath) && (class_exists('TCPDI') || class_exists('TCPDF'))) {
+                $pdf->setPrintHeader(true);
+            }
                 $pdf->SetFont(pdf_getPDFFont($outputlangs));
                 // Set path to the background PDF File
-                if (empty($conf->global->MAIN_DISABLE_FPDI) && !empty($conf->global->MAIN_ADD_PDF_BACKGROUND)) {
-                    $pagecount = $pdf->setSourceFile($conf->mycompany->dir_output . '/' . $conf->global->MAIN_ADD_PDF_BACKGROUND);
-                    $tplidx = $pdf->importPage(1);
-                }
+            if (empty($conf->global->MAIN_DISABLE_FPDI) && !empty($conf->global->MAIN_ADD_PDF_BACKGROUND)) {
+                $pagecount = $pdf->setSourceFile($conf->mycompany->dir_output . '/' . $conf->global->MAIN_ADD_PDF_BACKGROUND);
+                $tplidx = $pdf->importPage(1);
+            }
 
                 $pdf->Open();
                 $pdf->SetDrawColor(128, 128, 128);
@@ -234,17 +242,17 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $pdf->SetCreator("Dolibarr " . DOL_VERSION);
                 $pdf->SetAuthor($outputlangs->convToOutputCharset($user->getFullName($outputlangs)));
                 $pdf->SetKeyWords($outputlangs->convToOutputCharset($object->ref) . " " . $outputlangs->transnoentities("InterventionCard"));
-                if (!empty($conf->global->MAIN_DISABLE_PDF_COMPRESSION)) {
-                    $pdf->SetCompression(false);
-                }
+            if (!empty($conf->global->MAIN_DISABLE_PDF_COMPRESSION)) {
+                $pdf->SetCompression(false);
+            }
 
                 $pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);   // Left, Top, Right
 
                 // New page
                 $pdf->AddPage();
-                if (!empty($tplidx)) {
-                    $pdf->useTemplate($tplidx);
-                }
+            if (!empty($tplidx)) {
+                $pdf->useTemplate($tplidx);
+            }
                 $tab_top = $this->_pagehead($pdf, $object, 1, $outputlangs);
                 $pdf->SetFont('', '', $default_font_size - 1);
                 $pdf->SetTextColor(0, 0, 0);
@@ -257,10 +265,10 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $heightforinfotot = 0;    // Height reserved to output the info and total part
                 $heightforfreetext = (isset($conf->global->MAIN_PDF_FREETEXT_HEIGHT) ? $conf->global->MAIN_PDF_FREETEXT_HEIGHT : 5);    // Height reserved to output the free text on last page
                 $heightforfooter = $this->marge_basse + 8;    // Height reserved to output the footer (value include bottom margin)
-                if ($neededSpaceForPageHead['numberOfPageCreated'] > 0) {
-                    $conf->global->MAIN_PDF_DONOTREPEAT_HEAD = 1;
-                    $tab_top_without_address = 10;
-                }
+            if ($neededSpaceForPageHead['numberOfPageCreated'] > 0) {
+                $conf->global->MAIN_PDF_DONOTREPEAT_HEAD = 1;
+                $tab_top_without_address = 10;
+            }
                 $tab_top_newpage = (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD) ? $tab_top_without_address : 10);
                 $this->top_margin = $tab_top_newpage + 5;
                 $pdf->setTopMargin($this->top_margin);
@@ -269,20 +277,20 @@ class pdf_jupiter extends ModelePDFFicheinter
 
                 // Affiche notes
                 $notetoshow = empty($object->note_public) ? '' : $object->note_public;
-                if ($notetoshow) {
-                    $tab_top = $tab_top + 5;
+            if ($notetoshow) {
+                $tab_top = $tab_top + 5;
 
-                    $pdf->SetFont('', '', $default_font_size - 1);
-                    $pdf->writeHTMLCell(190, 3, $this->posxdesc - 1, $tab_top, dol_htmlentitiesbr($notetoshow), 0, 1);
-                    $nexY = $pdf->GetY();
-                    $height_note = $nexY - $tab_top;
+                $pdf->SetFont('', '', $default_font_size - 1);
+                $pdf->writeHTMLCell(190, 3, $this->posxdesc - 1, $tab_top, dol_htmlentitiesbr($notetoshow), 0, 1);
+                $nexY = $pdf->GetY();
+                $height_note = $nexY - $tab_top;
 
-                    // Rect prend une longueur en 3eme param
-                    $pdf->SetDrawColor(192, 192, 192);
-                    $pdf->Rect($this->marge_gauche, $tab_top - 1, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $height_note + 1);
+                // Rect prend une longueur en 3eme param
+                $pdf->SetDrawColor(192, 192, 192);
+                $pdf->Rect($this->marge_gauche, $tab_top - 1, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $height_note + 1);
 
-                    $tab_top = $nexY + 5;
-                }
+                $tab_top = $nexY + 5;
+            }
                 $curY = $tab_top + 7;
                 $listOfAttachedFiles = getListOfAttachedFiles($object->ref);
 
@@ -290,11 +298,11 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $w = $this->page_largeur - $this->marge_gauche - $this->marge_droite;
 
                 // Print survey
-                foreach ($object->survey as $survey_part) {
-                    if ($survey_part->doesThisSurveyPartContainsAtLeastOnePublicBloc()) {
-                        $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $posx, $curY, $w, $outputlangs, $heightforfooter, $listOfAttachedFiles) + 2;
-                    }
+            foreach ($object->survey as $survey_part) {
+                if ($survey_part->doesThisSurveyPartContainsAtLeastOnePublicBloc()) {
+                    $curY = $this->_survey_bloc_part($pdf, $object, $survey_part, $posx, $curY, $w, $outputlangs, $heightforfooter, $listOfAttachedFiles) + 2;
                 }
+            }
 
                 //We display intervention lines informations
                 $curY = $this->displayDescriptionContents($pdf, $object, $posx, $curY, $w, $outputlangs, $heightforfooter, $default_font_size);
@@ -309,15 +317,15 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
 
                 //We add footer on all created page
-                for ($page = 2; $page <= $endPage; $page++) {
-                    $pdf->setPage($page);
-                    $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
-                    $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
-                }
+            for ($page = 2; $page <= $endPage; $page++) {
+                $pdf->setPage($page);
+                $this->_pageHeadForCreatedPage($pdf, $object, $outputlangs);
+                $this->printFooterOnCurrentPage($pdf, $object, $outputlangs, $heightforfooter);
+            }
 
-                if (method_exists($pdf, 'AliasNbPages')) {
-                    $pdf->AliasNbPages();
-                }
+            if (method_exists($pdf, 'AliasNbPages')) {
+                $pdf->AliasNbPages();
+            }
                 $pdf->Close();
                 $pdf->Output($file, 'F');
 
@@ -327,11 +335,10 @@ class pdf_jupiter extends ModelePDFFicheinter
                 global $action;
                 $reshook = $hookmanager->executeHooks('afterPDFCreation', $parameters, $this, $action);    // Note that $action and $object may have been modified by some hooks
 
-                if (!empty($conf->global->MAIN_UMASK)) {
-                    @chmod($file, octdec($conf->global->MAIN_UMASK));
-                }
-                return 1;
+            if (!empty($conf->global->MAIN_UMASK)) {
+                @chmod($file, octdec($conf->global->MAIN_UMASK));
             }
+                return 1;
         } else {
             $this->error = $langs->trans("ErrorConstantNotDefined", "FICHEINTER_OUTPUTDIR");
             return 0;
@@ -1385,7 +1392,10 @@ class pdf_jupiter extends ModelePDFFicheinter
 
         // Print image
         if (!empty($signature_info_image)) {
-            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $signature_info_image . '"/>', $border, 1);
+            $img_src1 = $this->tempdir . '/stakeholder.png';
+            $imageContent = @file_get_contents($signature_info_image);
+            @file_put_contents($img_src1, $imageContent);
+            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $img_src1 . '"/>', $border, 1);
             $posy = $pdf->GetY();
         }
 
@@ -1436,7 +1446,10 @@ class pdf_jupiter extends ModelePDFFicheinter
         if (!$signature_info['isCustomerAbsent']) {
             // Print image
             if (!empty($signature_info_image)) {
-                $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $signature_info_image . '"/>', $border, 1);
+                $img_src2 = $this->tempdir . '/customer.png';
+                $imageContent = @file_get_contents($signature_info_image);
+                @file_put_contents($img_src2, $imageContent);
+                $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $img_src2 . '"/>', $border, 1);
                 $posy = $pdf->GetY();
             }
 
