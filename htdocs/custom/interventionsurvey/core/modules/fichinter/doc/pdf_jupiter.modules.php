@@ -1395,7 +1395,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             $img_src1 = $this->tempdir . '/stakeholder.png';
             $imageContent = @file_get_contents($signature_info_image);
             @file_put_contents($img_src1, $imageContent);
-            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $img_src1 . '"/>', $border, 1);
+            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $signature_info_image . '"/>', $border, 1);
             $posy = $pdf->GetY();
         }
 
@@ -1449,7 +1449,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $img_src2 = $this->tempdir . '/customer.png';
                 $imageContent = @file_get_contents($signature_info_image);
                 @file_put_contents($img_src2, $imageContent);
-                $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $img_src2 . '"/>', $border, 1);
+                $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $signature_info_image . '"/>', $border, 1);
                 $posy = $pdf->GetY();
             }
 
