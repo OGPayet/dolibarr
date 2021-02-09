@@ -65,7 +65,8 @@ class ActionsEquipement // extends CommonObject
 		$resArray=array();
 		$resArray['searchintoequipement']=array(
 						'text'=>img_picto('', 'object_equipement@equipement').' '.$langs->trans("Equipement", GETPOST('q')),
-						'url'=>dol_buildpath('/equipement/list.php?sall='.urlencode(GETPOST('q')), 1)
+						'url'=>dol_buildpath('/equipement/list.php?sall='.urlencode(GETPOST('q')), 1),
+						'position' => 51
 		);
 		$this->results = $resArray;
 		return 0;

@@ -70,7 +70,8 @@ class ActionsFactory
 		$resArray=array();
 		$resArray['searchintofactory']=array(
 						'text'=>img_picto('','object_factory@factory').' '.$langs->trans("Factory", GETPOST('q')),
-						'url'=>dol_buildpath('/factory/list.php?sall='.urlencode(GETPOST('q')), 1)
+						'url'=>dol_buildpath('/factory/list.php?sall='.urlencode(GETPOST('q')), 1),
+						'position' => 50
 		);
 		$this->results = $resArray;
 		return 0;
