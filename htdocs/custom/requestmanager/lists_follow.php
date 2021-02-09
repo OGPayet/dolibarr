@@ -290,7 +290,7 @@ if ($search_date_modification) $param .= '&search_date_modification=' . urlencod
 if ($search_user_author) $param .= '&search_user_author=' . urlencode($search_user_author);
 if ($search_user_modification) $param .= '&search_user_modification=' . urlencode($search_user_modification);
 if ($search_dont_show_children_request) $param .= '&search_dont_show_children_request=' . urlencode($search_dont_show_children_request);
-if (count($search_status_det)) $param .= '&search_status_det=' . urlencode($search_status_det);
+//if (count($search_status_det)) $param .= '&search_status_det=' . urlencode($search_status_det);
 if ($status_type !== '' && $status_type != -1) $param .= '&status_type=' . urlencode($status_type);
 if ($optioncss != '') $param .= '&optioncss=' . urlencode($optioncss);
 

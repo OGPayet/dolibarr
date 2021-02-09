@@ -30,9 +30,10 @@ class ActionsTransporteur // extends CommonObject
 	function addMoreActionsButtons($parameters, $object, $action)
 	{
 		global $langs, $conf, $db;
+		$lines = empty($object->lines) ? array() : $object->lines;
 
-		// si on a des lignes de saisies et que l'on est à l'état brouillon
-		if (count($object->lines) > 0 && (int) $object->statut == 0) {
+		// si on a des lignes de saisies et que l'on est ï¿½ l'ï¿½tat brouillon
+		if (count($lines) > 0 && (int) $object->statut == 0) {
 
 			$langs->load("transporteur@transporteur");
 			$objectelement = array("propal", "commande", "facture");
@@ -41,7 +42,7 @@ class ActionsTransporteur // extends CommonObject
 			if (in_array($object->element, $objectelement) && in_array($action, $arrayaction)) {
 				$tranporteurStatic =  New Transporteur($db);
 				$totalweight=$tranporteurStatic->getWeight($object->lines);
-				// si on a des choses à transporter...
+				// si on a des choses ï¿½ transporter...
 				if ($totalweight > 0) {
 
 					// on affiche le poid et le montant
@@ -53,7 +54,7 @@ class ActionsTransporteur // extends CommonObject
 					print '<tr><td align=center>'.price($totalweight)." Kg".'</td>';
 
 					$totalprice=$tranporteurStatic->getPrice($totalweight, $object);
-					// si on a trouvé un prix
+					// si on a trouvï¿½ un prix
 					if ($totalprice > 0) {
 						$transportfranco=$conf->global->TRANSPORTEUR_FRANCO;
 						// on ne prend pas en compte le prix du transport pour le Franco
