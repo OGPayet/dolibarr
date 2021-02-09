@@ -1419,9 +1419,10 @@ class DigitalSignatureRequest extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 
 				$record = new self($this->db);
-				$record->fetch($obj->rowid);
-				$records[$record->rowid] = $record;
-
+				if($record->fetch($obj->rowid) > 0)
+				{
+					$records[$record->id] = $record;
+				}
 				$i++;
 			}
 			$this->db->free($resql);
