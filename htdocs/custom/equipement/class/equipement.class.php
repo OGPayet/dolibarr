@@ -386,7 +386,7 @@ class Equipement extends CommonObject
 				$sql.= ", ".($this->fk_product_batch?$this->db->escape($this->fk_product_batch):"null");
 				$sql.= ", ".($this->description?"'".$this->db->escape($this->description)."'":"null");
 				$sql.= ", ".($this->fk_etatequipement?$this->db->escape($this->fk_etatequipement):"null");
-				$sql.= ", ".($this->fk_entrepot>0?"1":"0"); // si il y a un entrepot de s�lectionn� on active ou non l'�quipement
+				$sql.= ", ".(($this->fk_entrepot>0 || $this->statut == 1 || $this->fk_statut == 1) ?"1":"0"); // si il y a un entrepot de s�lectionn� on active ou non l'�quipement
 				$sql.= ", ".($this->note_private?"'".$this->db->escape($this->note_private)."'":"null");
 				$sql.= ", ".($this->note_public?"'".$this->db->escape($this->note_public)."'":"null");
 				$sql.= ", ".($this->model_pdf?"'".$this->db->escape($this->model_pdf)."'":"null");

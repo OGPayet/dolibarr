@@ -273,7 +273,9 @@ class EquipementApi extends DolibarrApi {
         }
 
         $save_user = $user;
-        $user = DolibarrApiAccess::$user;
+		$user = DolibarrApiAccess::$user;
+		$equipment->SerialMethod = 2;
+		$equipment->nbAddEquipement = 1;
         if ($equipment->create() < 0) {
             $user = $save_user;
             throw new RestException(500, "Error while creating the equipment", [ 'details' => $this->_getErrors($equipment) ]);
