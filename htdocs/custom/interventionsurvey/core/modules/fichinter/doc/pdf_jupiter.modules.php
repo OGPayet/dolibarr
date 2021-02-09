@@ -347,7 +347,7 @@ class pdf_jupiter extends ModelePDFFicheinter
      * @param  int          $curY           Positition where we may be able to start drawing such items
      * @param  Translate    $outputlangs    Object lang for output
      */
-    private function displayWorkingTimeAndSignatoryArea($pdf, $object, $effective_working_time, $curY, $outputlangs, $temp_dir_signature)
+    private function displayWorkingTimeAndSignatoryArea($pdf, $object, $effective_working_time, $curY, $outputlangs)
     {
         $margin = $pdf->getMargins();
 
