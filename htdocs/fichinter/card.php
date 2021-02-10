@@ -947,11 +947,10 @@ if ($action == 'create')
 			dol_include_once('/synergiestech/lib/synergiestech.lib.php');
 			$langs->load('synergiestech@synergiestech');
 			$company_benefactor_id = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
-			$contract_id = GETPOST('contratid', 'int');
 			$contractList = synergiestech_fetch_contract($soc->id, $company_benefactor_id, $msg_error);
 			$contract_ids_match = array_intersect($contract_ids, array_keys($contractList));
-			if (!in_array($contract_id, $contract_ids_match)) {
-				$contract_id = count($contract_ids_match) ? $contract_ids_match[0] : '';
+			if (!in_array($$contratid, $contract_ids_match)) {
+				$contratid = count($contract_ids_match) ? $contract_ids_match[0] : '';
 			}
 			//            if (!isset($contractList[$contract_id]) && !empty($contractList)) {
 			//                $contract_id = array_keys($contractList)[0];
@@ -960,7 +959,7 @@ if ($action == 'create')
 			foreach ($contractList as $c) {
 				$contractListArray[$c->id] = $c->ref;
 			}
-			print $form->selectarray('contratid', $contractListArray, $contract_id, 1);
+			print $form->selectarray('contratid', $contractListArray, $contratid, 1);
 			print '<span id="contratid_other">';
 			if (count($contractListArray) == 0) {
 				print ' &nbsp; <a href="' . DOL_URL_ROOT . '/contrat/card.php?socid=' . $soc->id . '&options_companyrelationships_fk_soc_benefactor=' . $company_benefactor_id . '&action=create">' . $langs->trans("AddContract") . '</a>';
@@ -970,7 +969,7 @@ if ($action == 'create')
 			$contract_list_ajax_url = dol_buildpath('/synergiestech/ajax/contract_list_td.php', 1);
 			$soc_id = json_encode($soc->id);
 			$contract_ids = json_encode($contract_ids);
-			$contratid =  json_encode($contract_id);
+			$contratid =  json_encode($contratid);
 			print <<<SCRIPT
             <script type="text/javascript" language="javascript">
                 $(document).ready(function () {
