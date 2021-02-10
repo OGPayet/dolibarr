@@ -35,7 +35,7 @@ if (!$res) die("Include of main fails");
 
 $soc_id = GETPOST('soc_id', 'int');
 $company_benefactor_id = GETPOST('soc_benefactor_id', 'int');
-$contract_id = GETPOST('contract_id', 'int');
+$contract_id = (int) GETPOST('contract_id', 'int');
 $contract_ids = GETPOST('contract_ids', 'array');
 
 /*
@@ -53,10 +53,10 @@ if ($soc_id > 0) {
     $contractList = $synergiesTechForm->getListOfContractLabel($soc_id, $company_benefactor_id, $customListOfEntity);
 
     $contract_ids_match = array_intersect($contract_ids, array_keys($contractList));
-    if (!in_array($contract_id, $contract_ids_match)) {
+    if (!in_array($contract_id, $contract_ids_match) && $contract_id != -1) {
         $contract_id = count($contract_ids_match) ? $contract_ids_match[0] : '';
     }
-    $values .= '<option class="optiongrey" value="-1">&nbsp;</option>';
+    $values .= '<option class="optiongrey" value="-1"' . ($contract_id == -1 ? ' selected="selected"' : '') . '>&nbsp;</option>';
     foreach ($contractList as $id => $label) {
         $values .= '<option value="' . $id . '"' . ($contract_id == $id ? ' selected="selected"' : '') . '>' . $label . '</option>';
     }
