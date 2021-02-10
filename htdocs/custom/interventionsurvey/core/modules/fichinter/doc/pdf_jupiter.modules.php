@@ -292,7 +292,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $tab_top = $nexY + 5;
             }
                 $curY = $tab_top + 7;
-                $listOfAttachedFiles = getListOfAttachedFiles($object->ref);
+                $listOfAttachedFiles = getListOfAttachedFiles($object);
 
                 $posx = $this->marge_gauche;
                 $w = $this->page_largeur - $this->marge_gauche - $this->marge_droite;
@@ -1542,7 +1542,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         $end_Y = 0;
         $max_page = $pdf->getPage();
         foreach ($row as $index => $imageToDisplay) {
-            $end_pos_y = $this->_display_image($pdf, $max_image_width, 0, $imageToDisplay["posx"], $cur_Y, $imageToDisplay["fullname"]);
+            $end_pos_y = $this->_display_image($pdf, $max_image_width, 0, $imageToDisplay["posx"], $cur_Y, $imageToDisplay["computedFullPath"]);
             $current_page = $pdf->getPage();
             if ($current_page > $max_page) {
                 $end_Y = $end_pos_y;
@@ -1584,7 +1584,7 @@ class pdf_jupiter extends ModelePDFFicheinter
     function addEffectiveInformationToImage(&$pdf, &$row, $cur_Y, $max_image_width)
     {
         foreach ($row as &$image) {
-            $informationOfThisImage = $this->getEffectiveInformationsForThisImage($pdf, $max_image_width, 0, $image['posx'], $cur_Y, $image['fullname']);
+            $informationOfThisImage = $this->getEffectiveInformationsForThisImage($pdf, $max_image_width, 0, $image['posx'], $cur_Y, $image['computedFullPath']);
             $image["startPage"] = $informationOfThisImage["startPage"];
             $image["imageHeight"] = $informationOfThisImage["imageHeight"];
         }
