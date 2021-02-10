@@ -435,6 +435,8 @@ function __construct($db) {
 		if (file_exists(dol_buildpath('/core/menus/standard/oblyon.lib.php'))) unlink(dol_buildpath('/core/menus/standard/oblyon.lib.php'));
 
 		dolibarr_set_const($this->db,'MAIN_THEME','oblyon', 'chaine', 0, '', $conf->entity);
+		dolibarr_set_const($this->db,'MAIN_MENU_INVERT', $conf->global->MAIN_MENU_INVERT_OBLYON_SAVE, 'chaine', 0, '', $conf->entity);
+		dolibarr_del_const($this->db,'MAIN_MENU_INVERT_OBLYON_SAVE', $conf->entity);
 
 		return $this->_init($sql, $options);
 	}
@@ -452,6 +454,7 @@ function __construct($db) {
 		$sql = array();
 
 		dolibarr_set_const($this->db,'MAIN_THEME','eldy', 'chaine', 0, '', $conf->entity);
+		dolibarr_set_const($this->db,'MAIN_MENU_INVERT_OBLYON_SAVE', $conf->global->MAIN_MENU_INVERT, 'chaine', 0, '', $conf->entity);
 		dolibarr_set_const($this->db,'MAIN_MENU_INVERT', 0, 'chaine', 0, '', $conf->entity);
 
 		dolibarr_del_const($this->db,'MAIN_MENU_STANDARD_FORCED', $conf->entity);
