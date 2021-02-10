@@ -243,7 +243,7 @@ if (empty($reshook)) {
             $object->fetch_thirdparty();
 
             $langs->load("other");
-            $upload_dir = $conf->equipement->dir_output;
+            $upload_dir = $conf->equipement->multidir_output[$object->entity];
             $file = $upload_dir . '/' . GETPOST('file');
             $ret = dol_delete_file($file, 0, 0, 0, $object);
             if ($ret) {
@@ -1386,7 +1386,7 @@ if ($action == 'create') {
          * Built documents
          */
         $filename=dol_sanitizeFileName($object->ref);
-        $filedir=$conf->equipement->dir_output . "/".$object->id;
+        $filedir=$conf->equipement->multidir_output[$object->entity] . "/".$object->id;
         $urlsource=$_SERVER["PHP_SELF"]."?id=".$object->id;
         $genallowed=$user->rights->equipement->creer;
         $delallowed=$user->rights->equipement->supprimer;

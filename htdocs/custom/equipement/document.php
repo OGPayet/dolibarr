@@ -71,8 +71,7 @@ if (! $sortfield) $sortfield="name";
 
 $object = new Equipement($db);
 $object->fetch($id, $ref);
-
-$upload_dir = $conf->equipement->dir_output.'/'.dol_sanitizeFileName($object->id);
+$upload_dir = $conf->equipement->multidir_output[$object->entity].'/'.dol_sanitizeFileName($object->id);
 $modulepart='equipement';
 
 
@@ -107,7 +106,7 @@ if ($object->id) {
 		dol_include_once("/ultimateqrcode/lib/ultimateqrcode.lib.php");
 		dol_include_once("/ultimateqrcode/includes/phpqrcode/qrlib.php");
 
-		$tempDir=$conf->equipement->dir_output.DIRECTORY_SEPARATOR.$object->id.DIRECTORY_SEPARATOR;
+		$tempDir=$conf->equipement->multidir_output[$object->entity].DIRECTORY_SEPARATOR.$object->id.DIRECTORY_SEPARATOR;
 
 		if (!file_exists($tempDir))
 			mkdir($tempDir);
