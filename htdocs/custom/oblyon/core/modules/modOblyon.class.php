@@ -452,7 +452,7 @@ function __construct($db) {
 		$sql = array();
 
 		dolibarr_set_const($this->db,'MAIN_THEME','eldy', 'chaine', 0, '', $conf->entity);
-		dolibarr_set_const($this->db,'MAIN_MENU_INVERT', 'chaine', 0, '', $conf->entity);
+		dolibarr_set_const($this->db,'MAIN_MENU_INVERT', 0, 'chaine', 0, '', $conf->entity);
 
 		dolibarr_del_const($this->db,'MAIN_MENU_STANDARD_FORCED', $conf->entity);
 		dolibarr_del_const($this->db,'MAIN_MENUFRONT_STANDARD_FORCED', $conf->entity);
