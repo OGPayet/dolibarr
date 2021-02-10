@@ -1,7 +1,10 @@
 <?php
 
 header('Content-Type: application/javascript');
-session_cache_limiter('public');
+
+if (!defined('NOTOKENRENEWAL')) {
+	define('NOTOKENRENEWAL', 1);
+}
 
 require '../config.php';
 

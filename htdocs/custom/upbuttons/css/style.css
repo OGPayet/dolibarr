@@ -1,9 +1,9 @@
 div.upbuttonsdiv {
-
+	
 }
 div.upbuttonsdiv .divButAction {
 	opacity:1;
-
+	
 }
 
 div.upbuttonsdiv .divButAction a {
@@ -16,7 +16,7 @@ div.upbuttonsdiv .divButAction a {
     margin-top: 8px;
     margin-bottom: 10px;
     clear: both;
-
+	
 }
 #upbuttons-nav {
 	position:relative;
@@ -24,7 +24,7 @@ div.upbuttonsdiv .divButAction a {
 #upbuttons-nav ul {
 	position:absolute;
 	right:0px;
-	top:-50px;
+	top:-50px;	
 }
 
 #upbuttons-nav ul li {
