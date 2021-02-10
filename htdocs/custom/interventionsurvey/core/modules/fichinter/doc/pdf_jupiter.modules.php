@@ -1542,7 +1542,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         $end_Y = 0;
         $max_page = $pdf->getPage();
         foreach ($row as $index => $imageToDisplay) {
-            $end_pos_y = $this->_display_image($pdf, $max_image_width, 0, $imageToDisplay["posx"], $cur_Y, $imageToDisplay["fullname"]);
+            $end_pos_y = $this->_display_image($pdf, $max_image_width, 0, $imageToDisplay["posx"], $cur_Y, $imageToDisplay["content"]);
             $current_page = $pdf->getPage();
             if ($current_page > $max_page) {
                 $end_Y = $end_pos_y;
@@ -1560,23 +1560,19 @@ class pdf_jupiter extends ModelePDFFicheinter
         return $end_Y;
     }
 
-    function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath)
+    function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imageContentInBase64)
     {
-        if(is_file($imagePath))
-        {
-            $content = @file_get_contents($imagePath);
-            $content = 'data:image/' . $type . ';base64,' . base64_encode($content);
-            $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $content . '"/>', 0, 1);
-        }
-        return $pdf->GetY();
+
+            $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $imageContentInBase64 . '"/>', 0, 1);
+            return $pdf->GetY();
     }
 
-    function getEffectiveInformationsForThisImage(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath)
+    function getEffectiveInformationsForThisImage(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imageContentInBase64)
     {
         $result = array('startPage' => null, 'imageHeight' => null);
         $start_page = $pdf->getPage();
         $pdf->startTransaction();
-        $this->_display_image($pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath);
+        $this->_display_image($pdf, $image_width, $image_heigth, $posx, $pos_y, $imageContentInBase64);
         $new_y = $pdf->getY();
         $end_page = $pdf->getPage();
         $pdf->rollbackTransaction(true);
@@ -1589,7 +1585,7 @@ class pdf_jupiter extends ModelePDFFicheinter
     function addEffectiveInformationToImage(&$pdf, &$row, $cur_Y, $max_image_width)
     {
         foreach ($row as &$image) {
-            $informationOfThisImage = $this->getEffectiveInformationsForThisImage($pdf, $max_image_width, 0, $image['posx'], $cur_Y, $image['fullname']);
+            $informationOfThisImage = $this->getEffectiveInformationsForThisImage($pdf, $max_image_width, 0, $image['posx'], $cur_Y, $image['content']);
             $image["startPage"] = $informationOfThisImage["startPage"];
             $image["imageHeight"] = $informationOfThisImage["imageHeight"];
         }
