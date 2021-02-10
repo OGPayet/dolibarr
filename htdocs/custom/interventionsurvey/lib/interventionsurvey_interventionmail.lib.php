@@ -95,6 +95,8 @@ class InterventionMail {
         $reshook = $hookmanager->executeHooks('addMoreToEmail', $parameters, $this->object, $action); // Note that $action and $object may have been modified by some hooks
         if (empty($reshook)) {
             $emailList = array_merge($emailList, $hookmanager->resArray);
+        } else if ($reshook > 0) {
+            $emailList = $hookmanager->resArray;
         } else {
             setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
         }
