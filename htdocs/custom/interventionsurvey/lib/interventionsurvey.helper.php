@@ -25,7 +25,7 @@
  * Function to compare two values accoring to JS ==
  */
 
-if (!function_exists('compareValues')) {
+if(!function_exists('compareValues')) {
 
     function compareValues($a, $b)
     {
@@ -42,16 +42,18 @@ if (!function_exists('compareValues')) {
 /**
  * * Get element from an array according to an array of parameters set with "fieldName"=>valueToMatch
  */
-if (!function_exists("getItemFromThisArray")) {
+if(!function_exists("getItemFromThisArray")) {
     function getItemFromThisArray(array &$array, array $arrayOfParameters = array(), bool $returnPosition = false)
     {
         $result = null;
         foreach ($array as $index => &$item) {
             $test = false;
             foreach ($arrayOfParameters as $fieldName => $searchValue) {
-                if (is_array($item)) {
+                if(is_array($item)){
                     $itemValue = $item[$fieldName];
-                } else {
+                }
+                else
+                {
                     $itemValue = $item->$fieldName;
                 }
                 if (compareValues($itemValue, $searchValue)) {
@@ -71,7 +73,7 @@ if (!function_exists("getItemFromThisArray")) {
 }
 
 //Function to get object from an array having the same id field than the given parameter
-if (!function_exists('getItemWithSameFieldsValue')) {
+if(!function_exists('getItemWithSameFieldsValue')) {
     function getItemWithSameFieldsValue(array &$array, &$object, array &$fieldName = array('id'), $returnPosition = false)
     {
         $parameters = array();
@@ -83,7 +85,7 @@ if (!function_exists('getItemWithSameFieldsValue')) {
 }
 
 //Function to get missing item into the second array according to the first array identified by an array of field
-if (!function_exists('getMissingItem')) {
+if(!function_exists('getMissingItem')) {
     function getMissingItem(array &$oldData, array &$newData, array &$arrayOfIdentifierField = array('id'))
     {
         $missingItems = array();
@@ -216,19 +218,14 @@ function fetchParentCommon($classname, $id, &$field, &$db)
 
 /**
  * Get list of files information for a given intervention
- * @param FicheInter $object Reference of the intervention
+ * @param string $interventionRef Reference of the intervention
  * @return array List Of attached files informations
  */
-function getListOfAttachedFiles($object)
+function getListOfAttachedFiles($interventionRef)
 {
     global $conf;
-    $upload_dir = $conf->ficheinter->multidir_output[$object->entity] . '/' . dol_sanitizeFileName($object->ref);
-    $rowResult = dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$');
-    foreach ($rowResult as $index => $row) {
-        $row['computedFullPath'] = $upload_dir . '/' . $row['name'];
-        $rowResult[$index] = $row;
-    }
-    return $rowResult;
+    $upload_dir = $conf->ficheinter->dir_output . '/' . dol_sanitizeFileName($interventionRef);
+    return dol_dir_list($upload_dir, "files", 0, '', '(\.meta|_preview.*\.png)$');
 }
 
 /**
@@ -249,15 +246,12 @@ function getListOfWantedFilesInformation($arrayOfFilename, $arrayOfFileInformati
         if ($fileObject) {
             if (!$isMimeTypeFilterEmpty) {
                 $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $mimetype = finfo_file($finfo, $fileObject["computedFullPath"]);
+                $mimetype = finfo_file($finfo, $fileObject["fullname"]);
                 if (!in_array($mimetype, $mimeTypeFilter)) {
                     continue;
                 }
             }
-            if(is_file($fileObject["computedFullPath"]))
-            {
-                $result[] = $fileObject;
-            }
+            $result[] = $fileObject;
         }
     }
     return $result;
