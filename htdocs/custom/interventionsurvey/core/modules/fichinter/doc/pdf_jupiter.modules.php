@@ -1564,7 +1564,9 @@ class pdf_jupiter extends ModelePDFFicheinter
     {
         if(is_file($imagePath))
         {
-            $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $imagePath . '"/>', 0, 1);
+            $content = @file_get_contents($imagePath);
+            $content = 'data:image/' . $type . ';base64,' . base64_encode($content);
+            $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $content . '"/>', 0, 1);
         }
         return $pdf->GetY();
     }
