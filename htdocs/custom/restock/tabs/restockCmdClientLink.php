@@ -92,7 +92,7 @@ if ($action!="createrestock") {
 	$linkback = '<a href="'.DOL_URL_ROOT.'/commande/list.php'.(! empty($socid)?'?socid='.$socid:'').'">';
 	$linkback.= $langs->trans("BackToList").'</a>';
 
-	if (DOL_VERSION >= "5.0.0") {
+	if (version_compare(DOL_VERSION, "5.0.0") >= 0) {
 		$morehtmlref='<div class="refidno">';
 		// Ref customer
 		$morehtmlref.=$form->editfieldkey("RefCustomer", 'ref_client', $object->ref_client, $object, 0, 'string', '', 0, 1);

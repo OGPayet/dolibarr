@@ -80,7 +80,7 @@ $modulepart='equipement';
  * Actions
  */
 
-if (DOL_VERSION < "4.0.0")
+if (version_compare(DOL_VERSION, "4.0.0") < 0)
 	include_once DOL_DOCUMENT_ROOT . '/core/tpl/document_actions_pre_headers.tpl.php';
 else
 	include_once DOL_DOCUMENT_ROOT . '/core/actions_linkedfiles.inc.php';

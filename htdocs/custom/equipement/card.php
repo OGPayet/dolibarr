@@ -1147,7 +1147,7 @@ if ($action == 'create') {
 	print '</td></tr>';
 
 	// Extrafields
-	if (DOL_VERSION < "3.7.0") {
+	if (version_compare(DOL_VERSION, "3.7.0") < 0) {
 		$parameters = array( 'colspan' => ' colspan="3"');
 		// Note that $action and $object may have been modified by
 		$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action);
@@ -1401,7 +1401,7 @@ if ($action == 'create') {
             // Show links to link elements
             $linktoelem = $form->showLinkToObjectBlock($object, null, array('equipement'));
             $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
-        } elseif (DOL_VERSION >= "5.0.0")
+        } elseif (version_compare(DOL_VERSION, "5.0.0") >= 0)
             $somethingshown = $form->showLinkedObjectBlock($object, "");
         else
             $somethingshown=$object->showLinkedObjectBlock();

@@ -323,7 +323,7 @@ class modequipement extends DolibarrModules
             'ee.total_ht' => "equipement@equipement:Equipement",
             'ee.fk_fichinter' => 'intervention', 'ee.fk_contrat' => "contract", 'ee.fk_expedition' => "sending"
         );
-        if (DOL_VERSION >= "3.9.0") {
+        if (version_compare(DOL_VERSION, "3.9.0") >= 0) {
             $keyforselect = 'equipement';
             $keyforelement = 'equipement@equipement:Equipement';
             $keyforaliasextra = 'eex';

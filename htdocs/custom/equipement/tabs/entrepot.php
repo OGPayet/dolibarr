@@ -105,7 +105,7 @@ $head = stock_prepare_head($object);
 dol_fiche_head($head, 'equipement', $langs->trans("Warehouse"), 0, 'stock');
 $linkback = '<a href="'.DOL_URL_ROOT.'/product/stock/list.php">'.$langs->trans("BackToList").'</a>';
 
-if (DOL_VERSION < '5.0.0') {
+if (version_compare(DOL_VERSION, "5.0.0") < 0) {
 	print '<table class="border" width="100%">';
 	// Ref
 	print '<tr><td width="25%">'.$langs->trans("Ref").'</td><td colspan="3">';

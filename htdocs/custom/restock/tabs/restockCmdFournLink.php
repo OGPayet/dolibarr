@@ -98,7 +98,7 @@ if ($action == 'delete')
 if ($action == 'confirm_delete' && $confirm == 'yes' && $user->rights->fournisseur->commande->supprimer) {
 	$result=$restockcmde_static->deletelink($id, $user);
 	if ($result > 0) {
-		// on supprime les liens et la commande donc retour à la liste
+		// on supprime les liens et la commande donc retour ï¿½ la liste
 		header("Location: ".DOL_URL_ROOT.'/fourn/commande/list.php');
 		exit;
 	} else {
@@ -127,7 +127,7 @@ if ($id > 0 || ! empty($ref)) {
 	$linkback = '<a href="'.DOL_URL_ROOT.'/fourn/commande/list.php'.(! empty($socid)?'?socid='.$socid:'').'">';
 	$linkback.= $langs->trans("BackToList").'</a>';
 
-	if (DOL_VERSION >= "5.0.0") {
+	if (version_compare(DOL_VERSION, "5.0.0") >= 0) {
 		$morehtmlref='<div class="refidno">';
 		// Ref supplier
 		$morehtmlref.=$form->editfieldkey(
@@ -304,7 +304,7 @@ if ($result) {
 
 	$db->free($result);
 }
-// on ajoute un bouton pour délier les lignes de commandes avant suppression
+// on ajoute un bouton pour dï¿½lier les lignes de commandes avant suppression
 print '<div class="tabsAction">';
 if ($user->rights->fournisseur->commande->supprimer) {
 	print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=delete">';
