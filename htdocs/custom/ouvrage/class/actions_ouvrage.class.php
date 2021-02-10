@@ -97,11 +97,10 @@ class ActionsOuvrage
         echo '<script>';
         $btnSend = $langs->trans("Add");
         $url = dol_buildpath('/ouvrage/ajax/ajaxOuvrageForm.php', 1);
-        $select2selctingMethod = DOL_VERSION >= '7' ? 'select2:selecting' : 'select2-selecting';
-        $choiceIdParam = DOL_VERSION >= '7' ? 'e.params.args.data.id' : 'e.choice.id';
         echo <<<HEREDOC
-        $(document).on("$select2selctingMethod", '#ouvrageid', function (e) {
-        var ouvrageid = $choiceIdParam;
+        $('#ouvrageid').on('change', function (e) {
+			console.log(e);
+        var ouvrageid = this.value;
         $.ajax({
             url: "$url",
             data: {id: ouvrageid},
