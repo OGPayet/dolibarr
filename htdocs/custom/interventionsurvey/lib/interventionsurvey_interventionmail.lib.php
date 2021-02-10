@@ -18,9 +18,6 @@ class InterventionMail {
         $this->user = $user;
 		$this->error = 0;
 		$this->errors = array();
-
-        // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
-        $this->hookmanager->initHooks(array('interventionmail'));
     }
     
     /**
@@ -29,6 +26,11 @@ class InterventionMail {
      * @return array
     */
     public function getRecipientEmailList() {
+        global $action, $hookmanager;
+
+        // Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
+        $hookmanager->initHooks(array('interventionmail'));
+
         $emailList = [];
 
         include_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
@@ -57,12 +59,12 @@ class InterventionMail {
         $parameters = array('emailList' => $emailList);
         $reshook = $hookmanager->executeHooks('addMoreToEmail', $parameters, $this->object, $action); // Note that $action and $object may have been modified by some hooks
         if (empty($reshook)) {
-            $emailList .= $reshook->resArray;
-        } else if ($reshook > 0) {
-            $emailList = $reshook->resArray;
+            $emailList = array_merge($emailList, $hookmanager->resArray);
         } else {
             setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
         }
+
+        $emailList = array_unique($emailList);
 
         return $emailList;
     }
