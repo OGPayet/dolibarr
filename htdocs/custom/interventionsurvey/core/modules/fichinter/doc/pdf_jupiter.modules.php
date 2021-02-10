@@ -1562,7 +1562,10 @@ class pdf_jupiter extends ModelePDFFicheinter
 
     function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath)
     {
-        $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $imagePath . '"/>', 0, 1);
+        if(is_file($imagePath))
+        {
+            $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $imagePath . '"/>', 0, 1);
+        }
         return $pdf->GetY();
     }
 
