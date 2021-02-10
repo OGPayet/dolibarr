@@ -19,41 +19,6 @@ class InterventionMail {
 		$this->error = 0;
 		$this->errors = array();
     }
-
-    /**
-     * Check intervention fields
-     *
-     * @return boolean
-    */
-    public function checkInterventionFields() {
-        // Check array options
-        if (empty($this->object->array_options)) {
-            return false;
-        }
-
-        // Check stakeholder signature
-        if (empty($this->object->array_options['options_stakeholder_signature'])) {
-            return false;
-        } else if (empty(json_decode($this->object->array_options['options_stakeholder_signature'])->value)) {
-            return false;
-        }
-
-        // Check customer signature
-        if (empty($this->object->array_options['options_customer_signature'])) {
-            return false;
-        } else if (empty(json_decode($this->object->array_options['options_customer_signature'])->value)) {
-            if (!json_decode($this->object->array_options['options_customer_signature'])->isCustomerAbsent) {
-                return false;
-            }
-        }
-
-        // Check intervention lines
-        if (empty($this->object->lines)) {
-            return false;
-        }
-
-        return true;
-    }
     
     /**
      * Get recipient email list
