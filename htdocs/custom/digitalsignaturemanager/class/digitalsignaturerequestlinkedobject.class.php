@@ -184,7 +184,7 @@ class DigitalSignatureRequestLinkedObject
 	 */
 	public function isUserAbleToCreateRequest($user)
 	{
-		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->request->create);
+		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->digitalsignaturerequest->create);
 	}
 
 	/**
@@ -194,7 +194,7 @@ class DigitalSignatureRequestLinkedObject
 	 */
 	public function isUserAbleToCancelRequest($user)
 	{
-		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->request->edit);
+		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->digitalsignaturerequest->edit);
 	}
 
 	/**
@@ -204,7 +204,7 @@ class DigitalSignatureRequestLinkedObject
 	 */
 	public function isUserAbleToRefreshRequest($user)
 	{
-		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->request->read);
+		return !empty($this->object) && !empty($user->rights->digitalsignaturemanager->digitalsignaturerequest->read);
 	}
 
 	/**
@@ -215,8 +215,8 @@ class DigitalSignatureRequestLinkedObject
 	public function isUserAbleToResetRequest($user)
 	{
 		return !empty($this->object)
-		&& !empty($user->rights->digitalsignaturemanager->request->create)
-		&& !empty($user->rights->digitalsignaturemanager->request->delete);
+		&& !empty($user->rights->digitalsignaturemanager->digitalsignaturerequest->create)
+		&& !empty($user->rights->digitalsignaturemanager->digitalsignaturerequest->delete);
 	}
 
 	/**

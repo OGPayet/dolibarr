@@ -147,9 +147,9 @@ if (is_array($extrafields->attributes[$object->table_element]['label']) && count
 $object->fields = dol_sort_array($object->fields, 'position');
 $arrayfields = dol_sort_array($arrayfields, 'position');
 
-$permissiontoread = $user->rights->digitalsignaturemanager->request->read;
-$permissiontoadd = $user->rights->digitalsignaturemanager->request->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
-$permissiontodelete = $user->rights->digitalsignaturemanager->request->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
+$permissiontoread = $user->rights->digitalsignaturemanager->digitalsignaturerequest->read;
+$permissiontoadd = $user->rights->digitalsignaturemanager->digitalsignaturerequest->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+$permissiontodelete = $user->rights->digitalsignaturemanager->digitalsignaturerequest->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
 $permtodelete = $permissiontodelete;
 // Security check
 if (empty($conf->digitalsignaturemanager->enabled)) accessforbidden('Module not enabled');

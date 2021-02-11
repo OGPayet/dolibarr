@@ -67,9 +67,9 @@ $extrafields->fetch_name_optionals_label($object->table_element);
 include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be include, not include_once  // Must be include, not include_once. Include fetch and fetch_thirdparty but not fetch_optionals
 if ($id > 0 || !empty($ref)) $upload_dir = $conf->digitalsignaturemanager->multidir_output[$object->entity]."/".$object->id;
 
-$permissiontoadd = $user->rights->digitalsignaturemanager->request->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
-$permissionnote = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_setnotes.inc.php
-$permissiontoread = $user->rights->digitalsignaturemanager->request->read;
+$permissiontoadd = $user->rights->digitalsignaturemanager->digitalsignaturerequest->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+$permissionnote = $user->rights->digitalsignaturemanager->digitalsignaturerequest->edit; // Used by the include of actions_setnotes.inc.php
+$permissiontoread = $user->rights->digitalsignaturemanager->digitalsignaturerequest->read;
 if (!$permissiontoread || !in_array($object->entity, explode(',', getEntity('digitalsignaturerequest')))) accessforbidden();
 
 /*

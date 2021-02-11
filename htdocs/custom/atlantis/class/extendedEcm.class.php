@@ -560,9 +560,9 @@ class ExtendedEcm extends EcmFiles
     {
         $relativePathToDolDataRoot = $this->getFullRelativePath();
         if ($this->entity > 1) {
-            $result = preg_replace('/^' . preg_quote($this->entity, '/') . '/', '', $relativePathToDolDataRoot);
+            $relativePathToDolDataRoot = preg_replace('/^' . preg_quote($this->entity, '/') . '/', '', $relativePathToDolDataRoot);
         }
-        $result = preg_replace('/^[\\/]/', '', $result);
+        $result = preg_replace('/^[\\/]/', '', $relativePathToDolDataRoot);
         $result = preg_replace('/^' . preg_quote($modulePart, '/') . '/', '', $result);
         $result = preg_replace('/^[\\/]/', '', $result);
         return $result;

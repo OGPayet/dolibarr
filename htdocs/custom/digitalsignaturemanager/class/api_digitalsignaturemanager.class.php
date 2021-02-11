@@ -68,7 +68,7 @@ class DigitalSignatureManagerApi extends DolibarrApi
 	 */
 	public function get($id)
 	{
-		if (!DolibarrApiAccess::$user->rights->digitalsignaturemanager->read) {
+		if (!DolibarrApiAccess::$user->rights->digitalsignaturemanager->digitalsignaturerequest->read) {
 			throw new RestException(401);
 		}
 
@@ -193,7 +193,7 @@ class DigitalSignatureManagerApi extends DolibarrApi
 	 */
 	public function post($request_data = null)
 	{
-		if (!DolibarrApiAccess::$user->rights->digitalsignaturemanager->write) {
+		if (!DolibarrApiAccess::$user->rights->digitalsignaturemanager->digitalsignaturerequest->write) {
 			throw new RestException(401);
 		}
 		// Check mandatory fields
@@ -221,7 +221,7 @@ class DigitalSignatureManagerApi extends DolibarrApi
 	 */
 	public function put($id, $request_data = null)
 	{
-		if (!DolibarrApiAccess::$user->rights->digitalsignaturemanager->write) {
+		if (!DolibarrApiAccess::$user->rights->digitalsignaturemanager->digitalsignaturerequest->write) {
 			throw new RestException(401);
 		}
 
@@ -261,7 +261,7 @@ class DigitalSignatureManagerApi extends DolibarrApi
 	 */
 	public function delete($id)
 	{
-		if (!DolibarrApiAccess::$user->rights->digitalsignaturemanager->delete) {
+		if (!DolibarrApiAccess::$user->rights->digitalsignaturemanager->digitalsignaturerequest->delete) {
 			throw new RestException(401);
 		}
 		$result = $this->digitalsignaturerequest->fetch($id);

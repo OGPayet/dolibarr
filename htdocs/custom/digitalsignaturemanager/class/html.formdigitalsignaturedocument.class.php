@@ -353,11 +353,11 @@ class FormDigitalSignatureDocument
 		$relativePathInThisModule = $digitalSignatureDocument->getLinkedFileRelativePath();
 		$fileName = $digitalSignatureDocument->getDocumentName();
 		$entityOfThisDocument = $digitalSignatureDocument->getEntity() ? $digitalSignatureDocument->getEntity() : $conf->entity;
-		$entityParam = '&entity=' . $entityOfThisDocument;
+		$entityParam = 'entity=' . $entityOfThisDocument;
 		$arrayWithFileInformation = array('name' => $fileName);
 
 
-		$out = '<a class="documentdownload paddingright" href="' . $documentUrl . '?modulepart=' . $modulePart . '&amp;file=' . urlencode($relativePathInThisModule) . $entityParam . '&perm=request&subperm=read';
+		$out = '<a class="documentdownload paddingright" href="' . $documentUrl . '?modulepart=' . $modulePart . '&amp;file=' . urlencode($relativePathInThisModule) . '&' . $entityParam . '"';
 
 		$mime = dol_mimetype($relativePathInThisModule, '', 0);
 		if (preg_match('/text/', $mime)) {
@@ -367,7 +367,7 @@ class FormDigitalSignatureDocument
 		$out .= img_mime($fileName, $langs->trans("File") . ': ' . $fileName);
 		$out .= dol_trunc($fileName, 150);
 		$out .= '</a>' . "\n";
-		$out .= $this->formFile->showPreview($arrayWithFileInformation, $modulePart, $relativePathInThisModule, 0, $entityParam . '&perm=request&subperm=read');
+		$out .= $this->formFile->showPreview($arrayWithFileInformation, $modulePart, $relativePathInThisModule, 0, $entityParam);
 		$out .= '</td>';
 		return $out;
 	}

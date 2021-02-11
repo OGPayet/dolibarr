@@ -242,22 +242,22 @@ class modDigitalSignatureManager extends DolibarrModules
 		/* BEGIN MODULEBUILDER PERMISSIONS */
 		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Read digital signature request'; // Permission label
-		$this->rights[$r][4] = 'request'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
+		$this->rights[$r][4] = 'digitalsignaturerequest'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$this->rights[$r][5] = 'read'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$r++;
 		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Create digital signature request'; // Permission label
-		$this->rights[$r][4] = 'request'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
+		$this->rights[$r][4] = 'digitalsignaturerequest'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$this->rights[$r][5] = 'create'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$r++;
 		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Edit digital signature request people'; // Permission label
-		$this->rights[$r][4] = 'request'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
+		$this->rights[$r][4] = 'digitalsignaturerequest'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$this->rights[$r][5] = 'edit'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$r++;
 		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Delete digital signature request'; // Permission label
-		$this->rights[$r][4] = 'request'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
+		$this->rights[$r][4] = 'digitalsignaturerequest'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$this->rights[$r][5] = 'delete'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$r++;
 		/* END MODULEBUILDER PERMISSIONS */
@@ -277,7 +277,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		// 	'langs'=>'digitalsignaturemanager@digitalsignaturemanager', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 		// 	'position'=>1000 + $r,
 		// 	'enabled'=>'$conf->digitalsignaturemanager->enabled', // Define condition to show or hide menu entry. Use '$conf->digitalsignaturemanager->enabled' if entry must be visible if module is enabled.
-		// 	'perms'=>'$user->rights->digitalsignaturemanager->request->read', // Use 'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read' if you want your menu with a permission rules
+		// 	'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read', // Use 'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read' if you want your menu with a permission rules
 		// 	'target'=>'',
 		// 	'user'=> 0, // 0=Menu for internal users, 1=external users, 2=both
 		// );
@@ -342,7 +342,7 @@ class modDigitalSignatureManager extends DolibarrModules
             // Define condition to show or hide menu entry. Use '$conf->digitalsignaturemanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
             'enabled'=>'$conf->digitalsignaturemanager->enabled',
             // Use 'perms'=>'$user->rights->digitalsignaturemanager->level1->level2' if you want your menu with a permission rules
-            'perms'=>'$user->rights->digitalsignaturemanager->request->read',
+            'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read',
             'target'=>'',
             // 0=Menu for internal users, 1=external users, 2=both
             'user'=>0,
@@ -362,7 +362,7 @@ class modDigitalSignatureManager extends DolibarrModules
             // Define condition to show or hide menu entry. Use '$conf->digitalsignaturemanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
             'enabled'=>'$conf->digitalsignaturemanager->enabled',
             // Use 'perms'=>'$user->rights->digitalsignaturemanager->level1->level2' if you want your menu with a permission rules
-            'perms'=>'$user->rights->digitalsignaturemanager->request->create',
+            'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->create',
             'target'=>'',
             // 0=Menu for internal users, 1=external users, 2=both
             'user'=>0
@@ -383,7 +383,7 @@ class modDigitalSignatureManager extends DolibarrModules
             // Define condition to show or hide menu entry. Use '$conf->digitalsignaturemanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
             'enabled'=>'$conf->digitalsignaturemanager->enabled',
             // Use 'perms'=>'$user->rights->digitalsignaturemanager->level1->level2' if you want your menu with a permission rules
-            'perms'=>'$user->rights->digitalsignaturemanager->request->read',
+            'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read',
             'target'=>'',
             // 0=Menu for internal users, 1=external users, 2=both
             'user'=>0,
