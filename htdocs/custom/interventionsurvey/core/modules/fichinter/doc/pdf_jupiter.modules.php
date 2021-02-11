@@ -1395,7 +1395,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             $img_src1 = $this->tempdir . '/stakeholder.png';
             $imageContent = @file_get_contents($signature_info_image);
             @file_put_contents($img_src1, $imageContent);
-            $posy = $this->_display_image($pdf, $signature_left_w, 0, $signature_left_posx, $posy, $img_src1);
+            $posy = $this->_display_image($pdf, $signature_left_w, 0, $signature_left_posx, $posy, $img_src1) + 2;
         }
 
         // Print texte
@@ -1448,7 +1448,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $img_src2 = $this->tempdir . '/customer.png';
                 $imageContent = @file_get_contents($signature_info_image);
                 @file_put_contents($img_src2, $imageContent);
-                $posy = $this->_display_image($pdf, $signature_right_w, 0, $signature_right_posx, $posy, $img_src2);
+                $posy = $this->_display_image($pdf, $signature_right_w, 0, $signature_right_posx, $posy, $img_src2) + 2;
             }
 
             // Print texte
