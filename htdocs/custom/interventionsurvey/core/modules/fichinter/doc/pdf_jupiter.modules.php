@@ -1395,8 +1395,7 @@ class pdf_jupiter extends ModelePDFFicheinter
             $img_src1 = $this->tempdir . '/stakeholder.png';
             $imageContent = @file_get_contents($signature_info_image);
             @file_put_contents($img_src1, $imageContent);
-            $pdf->writeHTMLCell($signature_left_w, 1, $signature_left_posx, $posy, '<img src="' . $signature_info_image . '"/>', $border, 1);
-            $posy = $pdf->GetY();
+            $posy = $this->_display_image($pdf, $signature_left_w, 0, $signature_left_posx, $posy, $img_src1);
         }
 
         // Print texte
@@ -1449,8 +1448,7 @@ class pdf_jupiter extends ModelePDFFicheinter
                 $img_src2 = $this->tempdir . '/customer.png';
                 $imageContent = @file_get_contents($signature_info_image);
                 @file_put_contents($img_src2, $imageContent);
-                $pdf->writeHTMLCell($signature_right_w, 1, $signature_right_posx, $posy, '<img src="' . $signature_info_image . '"/>', $border, 1);
-                $posy = $pdf->GetY();
+                $posy = $this->_display_image($pdf, $signature_right_w, 0, $signature_right_posx, $posy, $img_src2);
             }
 
             // Print texte
@@ -1542,7 +1540,7 @@ class pdf_jupiter extends ModelePDFFicheinter
         $end_Y = 0;
         $max_page = $pdf->getPage();
         foreach ($row as $index => $imageToDisplay) {
-            $end_pos_y = $this->_display_image($pdf, $max_image_width, 0, $imageToDisplay["posx"], $cur_Y, $imageToDisplay["content"]);
+            $end_pos_y = $this->_display_image($pdf, $max_image_width, 0, $imageToDisplay["posx"], $cur_Y, $imageToDisplay["fullname"]);
             $current_page = $pdf->getPage();
             if ($current_page > $max_page) {
                 $end_Y = $end_pos_y;
@@ -1560,19 +1558,18 @@ class pdf_jupiter extends ModelePDFFicheinter
         return $end_Y;
     }
 
-    function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imageContentInBase64)
+    function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath)
     {
-
-            $pdf->writeHTMLCell($image_width, $image_heigth, $posx, $pos_y, '<img src="' . $imageContentInBase64 . '"/>', 0, 1);
-            return $pdf->GetY();
+            $pdf->Image($imagePath, $posx, $pos_y, $image_width, $image_heigth, null, null, null, null, 600);
+            return $pdf->getImageRBY();
     }
 
-    function getEffectiveInformationsForThisImage(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imageContentInBase64)
+    function getEffectiveInformationsForThisImage(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath)
     {
         $result = array('startPage' => null, 'imageHeight' => null);
         $start_page = $pdf->getPage();
         $pdf->startTransaction();
-        $this->_display_image($pdf, $image_width, $image_heigth, $posx, $pos_y, $imageContentInBase64);
+        $this->_display_image($pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath);
         $new_y = $pdf->getY();
         $end_page = $pdf->getPage();
         $pdf->rollbackTransaction(true);
@@ -1585,7 +1582,7 @@ class pdf_jupiter extends ModelePDFFicheinter
     function addEffectiveInformationToImage(&$pdf, &$row, $cur_Y, $max_image_width)
     {
         foreach ($row as &$image) {
-            $informationOfThisImage = $this->getEffectiveInformationsForThisImage($pdf, $max_image_width, 0, $image['posx'], $cur_Y, $image['content']);
+            $informationOfThisImage = $this->getEffectiveInformationsForThisImage($pdf, $max_image_width, 0, $image['posx'], $cur_Y, $image['fullname']);
             $image["startPage"] = $informationOfThisImage["startPage"];
             $image["imageHeight"] = $informationOfThisImage["imageHeight"];
         }

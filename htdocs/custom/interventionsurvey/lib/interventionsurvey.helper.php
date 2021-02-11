@@ -251,7 +251,7 @@ function getListOfWantedFilesInformation($arrayOfFilename, $arrayOfFileInformati
                     continue;
                 }
             }
-            $fileObject['content'] = 'data:image/' . ';base64,' . base64_encode(@file_get_contents($fileObject["fullname"]));
+            //$fileObject['content'] = 'data:image/' . ';base64,' . base64_encode(@file_get_contents($fileObject["fullname"]));
             $result[] = $fileObject;
         }
     }
