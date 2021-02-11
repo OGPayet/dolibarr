@@ -115,7 +115,7 @@ $permissiondellink = $user->rights->digitalsignaturemanager->request->edit; // U
 $permissioncreate = $permissiontoadd && $object->status == $object::STATUS_DRAFT; //Used by actions_builddoc.inc.php to remove files
 $permissionToAddAndDelFiles = $permissioncreate;
 
-if (!$permissiontoread || !in_array($object->entity, explode(',', getEntity('digitalsignaturerequest')))) accessforbidden();
+if (!$permissiontoread || ($object->id > 0 && !in_array($object->entity, explode(',', getEntity('digitalsignaturerequest'))))) accessforbidden();
 
 
 /*

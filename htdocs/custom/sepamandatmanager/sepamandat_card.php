@@ -121,7 +121,8 @@ if ($object->status != $object::STATUS_DRAFT) {
 	$permissiontodelete = false;
 	$permissioncreate = false;
 }
-if (!$permissiontoread || !in_array($object->entity, explode(',', getEntity('sepamandat')))) accessforbidden();
+
+if (!$permissiontoread || ($object->id > 0 && !in_array($object->entity, explode(',', getEntity('sepamandat'))))) accessforbidden();
 
 dol_include_once('/sepamandatmanager/class/html.formsepamandate.class.php');
 $formSepaMandate = new FormSepaMandate($db);
