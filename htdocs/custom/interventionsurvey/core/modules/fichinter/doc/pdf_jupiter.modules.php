@@ -1560,7 +1560,7 @@ class pdf_jupiter extends ModelePDFFicheinter
 
     function _display_image(&$pdf, $image_width, $image_heigth, $posx, $pos_y, $imagePath)
     {
-            $pdf->Image($imagePath, $posx, $pos_y, $image_width, $image_heigth, null, null, null, null, 600);
+            $pdf->Image($imagePath, $posx, $pos_y, $image_width, $image_heigth);
             return $pdf->getImageRBY();
     }
 
