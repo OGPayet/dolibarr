@@ -3568,7 +3568,9 @@ SCRIPT;
         if ($modulePart == 'propal') {
             $isUserAllowedToSeePrice = $user->rights->synergiestech->amount->customerpropal;
 			$isUserAllowedToDowloadFile = $user->rights->synergiestech->documents->customerpropal;
-			$object->fetch_optionals();
+			if(is_object($object) && empty($object->array_options)){
+				$object->fetch_optionals();
+			}
 			$userCanSeePropal = (empty($propal->array_options['options_sitevalue']) && empty($propal->array_options['options_effectivedate'])) || !empty($user->rights->synergiestech->propal->installation_value);
             $userCanDownloadFile = $isUserAllowedToSeePrice && $isUserAllowedToDowloadFile && $userCanSeePropal;
         } elseif ($modulePart == 'commande') {
