@@ -3534,7 +3534,7 @@ SCRIPT;
         if ($feature == 'propal' && $objectId) {
             dol_include_once('/comm/propal/class/propal.class.php');
             $propal = new Propal($this->db);
-            if ($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && !empty($propal->array_options['options_sitevalue']) && empty($user->rights->synergiestech->propal->installation_value)) {
+            if ($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && (!empty($propal->array_options['options_sitevalue']) || !empty($propal->array_options['options_effectivedate'])) && empty($user->rights->synergiestech->propal->installation_value)) {
                 return 0;
             }
         } elseif ($feature == "propalstats") {
@@ -3567,8 +3567,10 @@ SCRIPT;
         $modulePart = $parameters['modulepart'];
         if ($modulePart == 'propal') {
             $isUserAllowedToSeePrice = $user->rights->synergiestech->amount->customerpropal;
-            $isUserAllowedToDowloadFile = $user->rights->synergiestech->documents->customerpropal;
-            $userCanDownloadFile = $isUserAllowedToSeePrice && $isUserAllowedToDowloadFile;
+			$isUserAllowedToDowloadFile = $user->rights->synergiestech->documents->customerpropal;
+			$propal->fetch_optionals();
+			$userCanSeePropal = (empty($propal->array_options['options_sitevalue']) && empty($propal->array_options['options_effectivedate'])) || !empty($user->rights->synergiestech->propal->installation_value);
+            $userCanDownloadFile = $isUserAllowedToSeePrice && $isUserAllowedToDowloadFile && $userCanSeePropal;
         } elseif ($modulePart == 'commande') {
             $userCanDownloadFile = $user->rights->synergiestech->documents->customerorder;
         } elseif ($modulePart == 'societe') {
