@@ -1016,7 +1016,13 @@ class DigitalSignatureRequest extends CommonObject
 	public function getAbsoluteModuleDirectory()
 	{
 		global $conf;
-		return $conf->digitalsignaturemanager->multidir_output[$this->entity ? $this->entity : $conf->entity];
+		$result = DOL_DATA_ROOT;
+		$finalEntity = !empty($this->entity) ? $this->entity : $conf->entity;
+		if($finalEntity > 1)
+		{
+			$result = $result . '/' . $finalEntity;
+		}
+		return $result . '/digitalsignaturemanager' ;
 	}
 
 	/**
