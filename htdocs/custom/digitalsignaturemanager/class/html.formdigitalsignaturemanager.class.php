@@ -530,6 +530,7 @@ class FormDigitalSignatureManager
 						if (!is_bool($input['value']) && $input['value'] != 'false') $more .= ' checked';
 						if (is_bool($input['value']) && $input['value']) $more .= ' checked';
 						if (isset($input['disabled'])) $more .= ' disabled';
+						if (isset($input['readOnly'])) $more .= ' onclick="return false;"';
 						$more .= ' /></td>';
 						$more .= '<td align="left">&nbsp;</td>';
 						$more .= '</tr>' . "\n";

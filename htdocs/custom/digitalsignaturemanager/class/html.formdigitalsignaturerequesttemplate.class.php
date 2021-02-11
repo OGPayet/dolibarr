@@ -253,6 +253,7 @@ class FormDigitalSignatureRequestTemplate
 	 * @param User $user user requesting create from files
 	 * @param ExtendedEcm[] $selectedFiles Create request from these file
 	 * @param String $invitationMessage Message to use to invite users
+	 * @param bool $onlyDraft Only do actions to create a proper draft
 	 * @return DigitalSignatureRequest|null
 	 */
 	private function createRequestWithPostInformation(&$object, $user, $selectedFiles, $invitationMessage)
@@ -265,7 +266,7 @@ class FormDigitalSignatureRequestTemplate
 
 		$requestedSignatoryInformation = $this->getAllSignaturePeopleInformationFromPost($object, $selectedFiles);
 
-		$formValidationErrors = $digitalSignatureRequestLinkedObject->checkContentFromSelectedFiles($selectedFiles, $requestedSignatoryInformation);
+			$formValidationErrors = $digitalSignatureRequestLinkedObject->checkContentFromSelectedFiles($selectedFiles, $requestedSignatoryInformation);
 		$errors += $formValidationErrors;
 		if (empty($errors)) {
 			$digitalSignatureRequest = $digitalSignatureRequestLinkedObject->createDigitalSignatureRequestFromLinkedObject($user, $selectedFiles, $requestedSignatoryInformation, $invitationMessage);
@@ -413,7 +414,7 @@ class FormDigitalSignatureRequestTemplate
 			'value' => $displayedCheckboxState,
 		);
 		if ($isThereMissingParameters) {
-			$createOnlyADraftQuestion['disabled'] = true;
+			$createOnlyADraftQuestion['readOnly'] = true;
 		}
 		$formquestion[] = $createOnlyADraftQuestion;
 

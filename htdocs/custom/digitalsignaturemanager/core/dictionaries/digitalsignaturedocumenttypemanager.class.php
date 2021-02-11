@@ -26,7 +26,7 @@ class DigitalSignatureDocumentTypeManager
 	/**
 	 * @var string[] Core Module part managed by this dictionary
 	 */
-	const MANAGED_MODULE_PART = array('propal', 'sepamandatmanager_sepamandat');
+	const MANAGED_MODULE_PART = array('propal', 'sepamandatmanager_sepamandat', 'ficheinter');
 
 	/**
 	 * @var string[] Core Module part managed by this dictionary

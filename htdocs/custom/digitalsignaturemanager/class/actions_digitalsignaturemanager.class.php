@@ -210,7 +210,7 @@ class ActionsDigitalSignatureManager
 			//refresh button
 			print $this->formDigitalSignatureRequest->getRefreshButton($object->id, $digitalSignatureRequestLinkedObject->isUserAbleToRefreshRequest($user, $object));
 			//reset request button
-			if (defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut == $object::STATUS_VALIDATED) {
+			if ($this->canWeCreateDigitalSignatureRequestOnThisObject($contexts, $object)) {
 				print $this->formDigitalSignatureRequest->getResetButton($object->id, $digitalSignatureRequestLinkedObject->isUserAbleToResetRequest($user, $object));
 			}
 			//cancel request button
@@ -248,8 +248,8 @@ class ActionsDigitalSignatureManager
 
 
 				if ($doesUserAskToCreateFromObject || $doesUserAskToCreateFromSelectedFiles) {
-					if (defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut != $object::STATUS_VALIDATED) {
-						setEventMessages($langs->trans("DigitalSignatureManagerObjectMustBeValidated"), array(), 'errors');
+					if (!$this->canWeCreateDigitalSignatureRequestOnThisObject($contexts, $object)) {
+						setEventMessages($langs->trans("DigitalSignatureManagerObjectMustBeAtProperState"), array(), 'errors');
 					} elseif ($isThereADigitalSignatureRequestInProgress || $isThereADigitalSignatureRequestInDraft) {
 						setEventMessages($langs->trans("DigitalSignatureManagerAlreadyOneRequestInProgress"), array(), 'errors');
 					} elseif (!$digitalSignatureRequestLinkedObject->isUserAbleToCreateRequest($user, $object)) {
@@ -276,7 +276,7 @@ class ActionsDigitalSignatureManager
 
 				//Reset request from linked object
 				if ($doesUserAskToResetRequest) {
-					if (defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut != $object::STATUS_VALIDATED) {
+					if (!$this->canWeCreateDigitalSignatureRequestOnThisObject($contexts, $object)) {
 						setEventMessages($langs->trans("DigitalSignatureManagerObjectMustBeValidated"), array(), 'errors');
 					} elseif (!$isThereADigitalSignatureRequestInProgress) {
 						setEventMessages($langs->trans("DigitalSignatureManagerNoRequestInProgress"), array(), 'errors');
@@ -498,6 +498,8 @@ class ActionsDigitalSignatureManager
 		if (in_array('propalcard', $contexts) && defined(get_class($object) . '::STATUS_VALIDATED') && $object->statut == $object::STATUS_VALIDATED) {
 			$result = true;
 		} elseif (in_array('sepamandatcard', $contexts) && defined(get_class($object) . '::STATUS_TOSIGN') && $object->status == $object::STATUS_TOSIGN) {
+			$result = true;
+		} elseif (in_array('interventioncard', $contexts) && defined(get_class($object) . '::STATUS_CLOSED') && $object->statut == $object::STATUS_CLOSED) {
 			$result = true;
 		}
 		return $result;
