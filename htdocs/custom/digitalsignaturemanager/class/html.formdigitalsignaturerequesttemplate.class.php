@@ -22,7 +22,7 @@
  */
 
 dol_include_once('/digitalsignaturemanager/lib/digitalsignaturedocument.helper.php');
-dol_include_once('/digitalsignaturemanager/class/extendedEcm.class.php');
+dol_include_once('/atlantis/class/extendedEcm.class.php');
 /**
  *	Class to manage generation of HTML components
  *	Only common components must be here.
@@ -253,6 +253,7 @@ class FormDigitalSignatureRequestTemplate
 	 * @param User $user user requesting create from files
 	 * @param ExtendedEcm[] $selectedFiles Create request from these file
 	 * @param String $invitationMessage Message to use to invite users
+	 * @param bool $onlyDraft Only do actions to create a proper draft
 	 * @return DigitalSignatureRequest|null
 	 */
 	private function createRequestWithPostInformation(&$object, $user, $selectedFiles, $invitationMessage)
@@ -265,7 +266,7 @@ class FormDigitalSignatureRequestTemplate
 
 		$requestedSignatoryInformation = $this->getAllSignaturePeopleInformationFromPost($object, $selectedFiles);
 
-		$formValidationErrors = $digitalSignatureRequestLinkedObject->checkContentFromSelectedFiles($selectedFiles, $requestedSignatoryInformation);
+			$formValidationErrors = $digitalSignatureRequestLinkedObject->checkContentFromSelectedFiles($selectedFiles, $requestedSignatoryInformation);
 		$errors += $formValidationErrors;
 		if (empty($errors)) {
 			$digitalSignatureRequest = $digitalSignatureRequestLinkedObject->createDigitalSignatureRequestFromLinkedObject($user, $selectedFiles, $requestedSignatoryInformation, $invitationMessage);
@@ -413,7 +414,7 @@ class FormDigitalSignatureRequestTemplate
 			'value' => $displayedCheckboxState,
 		);
 		if ($isThereMissingParameters) {
-			$createOnlyADraftQuestion['disabled'] = true;
+			$createOnlyADraftQuestion['readOnly'] = true;
 		}
 		$formquestion[] = $createOnlyADraftQuestion;
 
@@ -463,7 +464,7 @@ class FormDigitalSignatureRequestTemplate
 		foreach ($selectableEcmFiles as $id => $ecmFile) {
 			$displayedName[$id] = $ecmFile->filename;
 		}
-		return $this->formDigitalSignatureManager->multiSelectArrayWithOrder(self::SELECTED_FILES_HTML_NAME, $displayedName, $selectedEcmFileIds, 0, 0, 'fullwidth minwidth200');
+		return $this->formDigitalSignatureManager->multiSelectArrayWithOrder(self::SELECTED_FILES_HTML_NAME, $displayedName, $selectedEcmFileIds, 0, 0, 'flat minwidth200 maxwidth200');
 	}
 
 	/**

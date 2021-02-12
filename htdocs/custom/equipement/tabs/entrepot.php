@@ -105,7 +105,7 @@ $head = stock_prepare_head($object);
 dol_fiche_head($head, 'equipement', $langs->trans("Warehouse"), 0, 'stock');
 $linkback = '<a href="'.DOL_URL_ROOT.'/product/stock/list.php">'.$langs->trans("BackToList").'</a>';
 
-if (DOL_VERSION < '5.0.0') {
+if (version_compare(DOL_VERSION, "5.0.0") < 0) {
 	print '<table class="border" width="100%">';
 	// Ref
 	print '<tr><td width="25%">'.$langs->trans("Ref").'</td><td colspan="3">';
@@ -154,7 +154,7 @@ $head = dol_fiche_head($head, 'card', $langs->trans("Equipement"), 0, 'equipemen
 
 
 $sql = "SELECT";
-$sql.= " e.ref, e.rowid, e.fk_statut, e.numversion, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.ref,";
+$sql.= " e.ref, e.rowid, e.fk_statut, e.numversion, e.fk_product, p.ref as refproduit, e.fk_entrepot,";
 $sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn, e.fk_facture_fourn, ff.ref as refFactureFourn,";
 $sql.= " e.quantity, scli.nom as CompanyClient, e.fk_facture, f.ref as refFacture,";
 $sql.= " e.datee, e.dateo, ee.libelle as etatequiplibelle";

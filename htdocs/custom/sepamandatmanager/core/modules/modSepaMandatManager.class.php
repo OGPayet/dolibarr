@@ -431,6 +431,24 @@ class modSepaMandatManager extends DolibarrModules
 
 		$sql = array();
 
+		 //We add shared element for multicompany
+		 $arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+		 foreach ($arrayOfElement as $index => $param) {
+			 if (is_array($param["sharingelements"]) && array_key_exists("sepamandat", $param["sharingelements"])) {
+				 unset($arrayOfElement[$index]);
+				 break;
+			 }
+		 }
+		 $arrayOfElement[] =
+			 array("sharingelements" =>
+			 array('sepamandat' => array(
+				 'type' => 'object',
+				 'icon' => 'file-pdf-o',
+				 'enable' => '! empty($conf->sepamandatmanager->enabled)',
+				 'active' => true
+			 ),));
+		 dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
+
 		return $this->_init($sql, $options);
 	}
 
@@ -445,6 +463,16 @@ class modSepaMandatManager extends DolibarrModules
 	public function remove($options = '')
 	{
 		$sql = array();
+		global $conf;
+        $arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+        foreach ($arrayOfElement as $index => $param) {
+            if (is_array($param["sharingelements"]) && array_key_exists("sepamandat", $param["sharingelements"])) {
+                unset($arrayOfElement[$index]);
+                break;
+            }
+		}
+        dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
+
 		return $this->_remove($sql, $options);
 	}
 }

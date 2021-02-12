@@ -70,7 +70,7 @@ class SynergiesTechApi extends DolibarrApi
 
 	    $obj_ret = array();
 
-		if(! DolibarrApiAccess::$user->rights->synergiestech->user>lirerestreint) {
+		if(! DolibarrApiAccess::$user->rights->synergiestech->user->lirerestreint) {
 	       throw new RestException(401, "You are not allowed to read restricted list of users");
 	    }
 

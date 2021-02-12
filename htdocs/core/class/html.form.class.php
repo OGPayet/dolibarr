@@ -3068,7 +3068,7 @@ class Form
 				// "key" value of json key array is used by jQuery automatically as selected value
 				// "label" value of json key array is used by jQuery automatically as text for combo box
 				$out .= $opt;
-				array_push($outarray, array('key'=>$outkey, 'value'=>$outref, 'label'=>$outval, 'qty'=>$outqty, 'up'=>$objp->unitprice, 'discount'=>$outdiscount, 'type'=>$outtype, 'duration_value'=>$outdurationvalue, 'duration_unit'=>$outdurationunit, 'disabled'=>(empty($objp->idprodfournprice) ?true:false)));
+				array_push($outarray, array('key'=>$outkey, 'value'=>$outref, 'label'=>$outval, 'qty'=>$outqty, 'up'=>price2num($objp->unitprice, 'MT'), 'discount'=>$outdiscount, 'type'=>$outtype, 'duration_value'=>$outdurationvalue, 'duration_unit'=>$outdurationunit, 'disabled'=>(empty($objp->idprodfournprice) ?true:false)));
 				// Exemple of var_dump $outarray
 				// array(1) {[0]=>array(6) {[key"]=>string(1) "2" ["value"]=>string(3) "ppp"
 				//           ["label"]=>string(76) "ppp (<strong>f</strong>ff2) - ppp - 20,00 Euros/1unité (20,00 Euros/unité)"
@@ -5532,9 +5532,11 @@ class Form
 	 */
 	public function selectDateToDate($set_time = '', $set_time_end = '', $prefix = 're', $empty = 0)
 	{
-		$ret = $this->selectDate($set_time, $prefix.'_start', 0, 0, $empty);
-		$ret .= '<br/>';
-		$ret .= $this->selectDate($set_time_end, $prefix.'_end', 0, 0, $empty);
+		global $langs;
+
+		$ret = $this->selectDate($set_time, $prefix.'_start', 0, 0, $empty, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans("from"), 'tzuserrel');
+		$ret .= '<br>';
+		$ret .= $this->selectDate($set_time_end, $prefix.'_end', 0, 0, $empty, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans("to"), 'tzuserrel');
 		return $ret;
 	}
 
@@ -5649,7 +5651,7 @@ class Form
 				if (strval($set_time) != '' && $set_time != -1)
 				{
 					//$formated_date=dol_print_date($set_time,$conf->format_date_short);
-					$formated_date = dol_print_date($set_time, $langs->trans("FormatDateShortInput")); // FormatDateShortInput for dol_print_date / FormatDateShortJavaInput that is same for javascript
+					$formated_date = dol_print_date($set_time, $langs->trans("FormatDateShortInput"), $gm); // FormatDateShortInput for dol_print_date / FormatDateShortJavaInput that is same for javascript
 				}
 
 				// Calendrier popup version eldy

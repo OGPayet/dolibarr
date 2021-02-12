@@ -3534,7 +3534,7 @@ SCRIPT;
         if ($feature == 'propal' && $objectId) {
             dol_include_once('/comm/propal/class/propal.class.php');
             $propal = new Propal($this->db);
-            if ($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && !empty($propal->array_options['options_sitevalue']) && empty($user->rights->synergiestech->propal->installation_value)) {
+            if ($propal->fetch($objectId) > 0 && $propal->fetch_optionals() >=0 && (!empty($propal->array_options['options_sitevalue']) || !empty($propal->array_options['options_effectivedate'])) && empty($user->rights->synergiestech->propal->installation_value)) {
                 return 0;
             }
         } elseif ($feature == "propalstats") {
@@ -3567,8 +3567,12 @@ SCRIPT;
         $modulePart = $parameters['modulepart'];
         if ($modulePart == 'propal') {
             $isUserAllowedToSeePrice = $user->rights->synergiestech->amount->customerpropal;
-            $isUserAllowedToDowloadFile = $user->rights->synergiestech->documents->customerpropal;
-            $userCanDownloadFile = $isUserAllowedToSeePrice && $isUserAllowedToDowloadFile;
+			$isUserAllowedToDowloadFile = $user->rights->synergiestech->documents->customerpropal;
+			if(is_object($object) && empty($object->array_options)){
+				$object->fetch_optionals();
+			}
+			$userCanSeePropal = (empty($propal->array_options['options_sitevalue']) && empty($propal->array_options['options_effectivedate'])) || !empty($user->rights->synergiestech->propal->installation_value);
+            $userCanDownloadFile = $isUserAllowedToSeePrice && $isUserAllowedToDowloadFile && $userCanSeePropal;
         } elseif ($modulePart == 'commande') {
             $userCanDownloadFile = $user->rights->synergiestech->documents->customerorder;
         } elseif ($modulePart == 'societe') {
@@ -3582,6 +3586,25 @@ SCRIPT;
     }
 
     /**
+     * Overloading the addSearchEntry function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+    */
+    public function addSearchEntry($parameters, &$object, &$action, $hookmanager)
+    {
+        $result= $parameters['arrayresult'];
+        $result['searchintothirdparty']['position'] = -1000;
+        $result['searchintoproduct']['position'] = -999;
+        $result['searchintointervention']['position'] = -998;
+        $this->results = $result;
+        return 0;
+    }
+
+    /**
      * Overloading the addMoreToEmail function : replacing the parent's function with the one below
      *
      * @param   array           $parameters     Hook metadatas (context, etc...)
@@ -3589,7 +3612,7 @@ SCRIPT;
      * @param   string          $action         Current action (if set). Generally create or edit or null
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-     */
+    */
     public function addMoreToEmail($parameters = array(), &$object, &$action = '', $hookmanager) {
         global $conf, $user, $langs;
 

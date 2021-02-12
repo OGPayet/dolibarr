@@ -1,0 +1,106 @@
+# < Oblyon Control Panel - English translation >
+# Copyright (C) 2015       Nicolas Rivera   <nrivera.pro@gmail.com>
+# Copyright (C) 2015-2019  Open-DSI         <support@open-dsi.fr>
+#
+Module113900Name = Oblyon
+Module113900Desc = Options panel allows you to personalize the Oblyon theme 
+
+#
+# Menus
+#
+OblyonMenusTitle = Oblyon Configurator - Menus Editor
+OblyonSuccessMessage = Oblyon theme detected, you can now personalize it.
+OblyonErrorMessage = You must use the Oblyon theme in order to personalize it.
+OblyonMenusErrorMessage = You must use the Oblyon menus in order to personalize it. Please check your current menu manager.
+LeftMenu = Left Menu
+TopMenu = Top Menu
+InvertMenus = Invert Menus
+FullsizeTopBar = Fullsize Top Bar
+FullsizeTopBarWarning = Use a limited number of menu entries.
+ShowCompanyName = Show Company Name
+StickyTopBar = Sticky Top Bar 
+StickyTopBarWarning = Experimental. Use a limited number of menu entries.
+StickyTopBarInvertedWarning = Certain modules are not supported with this feature.
+StickyLeftBar = Sticky left bar
+StickyLeftBarWarning = Experimental. Use a limited number of menu entries.
+StickyLeftBarInvertedWarning = Certain modules are not supported with this feature.
+HideLeftMenu = Hide Left Menu
+OpenEffect = Opening Effect
+EffectLeftMenuSlide = Slide
+EffectLeftMenuPush = Push
+HideTopIcons = Hide Top Icons
+HideLeftIcons = Hide Left Icons
+LogoSize = Logo Size (Small/Big)
+LogoPadding = Logo Paddings
+NoPaddingLogo = No
+PaddingLogo = Yes
+ShowLeftMenu = Show/Hide Left Menu
+ReduceLeftMenu=Reduce left menu (Icons only)
+
+HideLeftMenu = Masquer le menu gauche
+OpenEffect = Effet d'ouverture menu gauche caché
+OpenEffectReduce = Effet d'ouverture menu gauche réduit
+EffectLeftMenuSlide = Slide
+EffectLeftMenuPush = Push
+HideTopIcons = Masquer les icônes
+HideLeftIcons = Masquer les icônes
+ShowLeftMenu = Afficher/Cacher Menu Gauche
+MicroMenuLeftBarHideLeftIconsWarning = Attention. Incompatible avec l'option "Masquer les icônes" du menu gauche.
+MicroMenuLeftBarCompanyNameWarning = Attention. Incompatible avec l'option "Afficher le nom de l'entreprise".
+EffectMicroMenuHover = Déployé au passage de souris
+EffectMicroMenuOnly = Ne pas déployer
+
+#
+# Colors page
+#
+OblyonColorsTitle = Oblyon Configurator - Colors
+Colors=Colors
+OBLYON_COLOR_MAIN=Maincolor
+OBLYON_COLOR_BCKGRD=Background color
+OBLYON_COLOR_LOGO_BCKGRD=Logo background color
+OBLYON_COLOR_LOGIN_BCKGRD=Login background color
+OBLYON_COLOR_BLINE=Lines background color
+OBLYON_COLOR_FLINE=Lines text color
+OBLYON_COLOR_FLINE_HOVER=Lines text hover color
+OBLYON_COLOR_TOPMENU_BCKGRD=Topmenu background color
+OBLYON_COLOR_TOPMENU_BCKGRD_HOVER=Topmenu background hover color
+OBLYON_COLOR_TOPMENU_TXT=Topmenu color text
+OBLYON_COLOR_LEFTMENU_BCKGRD=Leftmenu background color
+OBLYON_COLOR_LEFTMENU_BCKGRD_HOVER=Leftmenu background hover color
+OBLYON_COLOR_LEFTMENU_TXT=leftmenu color text
+RestoreDefaultColors=Restore default colors
+DefaultsColorsMsg=Default colors restored
+OblyonGreen=Oblyon Green
+ThemeOblyonGreenApplied=Oblyon green template applied
+OblyonDark=Oblyon Dark
+ThemeOblyonDarkApplied=Oblyon dark template applied
+OblyonBlue=Oblyon Blue
+ThemeOblyonBlueApplied=Oblyon blue template applied
+OblyonNight=Oblyon Night
+ThemeOblyonNightApplied=Oblyon night template applied
+
+#
+# Icons page
+#
+OblyonIconsTitle = Oblyon Configurator - Icons
+Icons = Icons
+IconsStyle = Icons style
+IconApplied = Icons style applied
+Icon1 = Solid
+Icon2 = Regular
+Icon3 = Light
+Icon4 = Thin
+Icon5 = Duotone
+
+#
+# About page
+#
+ThemeOblyonAboutTitle = Oblyon Configurator - About
+OblyonAbout = About
+Authors=Authors
+LicenseMessage = Theme Oblyon is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.<br><a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a>
+
+#
+# Others
+#
+MenuCatalog=Catalog

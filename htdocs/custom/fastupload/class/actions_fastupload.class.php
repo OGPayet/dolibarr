@@ -77,57 +77,57 @@ class ActionsFastUpload
 		global $conf,$langs;
 
 		$langs->load('fastupload@fastupload');
-
+		
 		if ((float) DOL_VERSION < 6.0)
 		{
 			$this->resprints = '<link rel="stylesheet" href="'.dol_buildpath('/fastupload/css/font-awesome.min.css', 1).'">';
 		}
-
+		
 		$this->resprints .= '
-
+			
 			<script type="text/javascript">
-
+				
 				$(document).ready( function() {
 					var fu_action = $("#formuserfile").attr("action")
 						,fu_method = $("#formuserfile").attr("method")
 						,fu_paramName = $("#formuserfile input[type=file]").attr("name");
-
-
+					
+					
 					var dropzone_submit = $("#formuserfile input[type=submit]").parent().clone();
 					$(dropzone_submit).find("input[type=file]").remove();
 					dropzone_submit = $(dropzone_submit).html();
-
+					
 					var dropzone_savingdocmask = "";
 					if ($("#formuserfile input[name=savingdocmask]").length > 0)
 					{
 						dropzone_savingdocmask = $("#formuserfile input[name=savingdocmask]").parent().clone();
 						dropzone_savingdocmask = $("<div class=\'dropzone_savingdocmask\'>"+dropzone_savingdocmask.html()+"</div>");
-
+						
 					}
-
+					
 					var dropzone_div = $("<div class=\"dropzone center dz-clickable\"></div>");
 					dropzone_div.append($("<i class=\"upload-icon ace-icon fa fa-cloud-upload blue fa-3x\"></i><br>"));
 					dropzone_div.append($("<span class=\"bigger-150 grey\">'.(addslashes($langs->transnoentities('FastUpload_DefaultMessage'))).'</span>"));
 					dropzone_div.append($("<div id=\"dropzone-previews-box\" class=\"dz dropzone-previews dz-max-files-reached\"></div>"));
-
-					var dropzone_form = $("<form id=\'dropzone_form\' action=\'"+fu_action+"\' method=\'"+fu_method+"\' enctype=\'multipart/form-data\' ></form>");
+					
+					var dropzone_form = $("<form id=\'dropzone_form\' action=\'"+fu_action+"\' method=\'"+fu_method+"\' enctype=\'multipart/form-data\'></form>");
 					dropzone_form.append(dropzone_div);
 					dropzone_form.append("<br /><div '.(!empty($conf->global->FASTUPLOAD_ENABLE_AUTOUPLOAD) ? 'style=\'display:none;\'' : '').'>"+dropzone_submit+"</div>");
 					if (dropzone_savingdocmask) dropzone_form.append(dropzone_savingdocmask);
-
+					
 
 					$("#formuserfile").hide();
 					$("#formuserfile").after(dropzone_form);
-
+					
 					fu_paramName = fu_paramName.replace("[", "");
 					fu_paramName = fu_paramName.replace("]", "");
-
+					
 					enableDropzone($(dropzone_form), fu_paramName);
-
+					
 				});
 			</script>
 		';
-
+		
 		return 0;
 	}
 }

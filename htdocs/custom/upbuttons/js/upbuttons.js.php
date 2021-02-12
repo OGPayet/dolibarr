@@ -1,10 +1,14 @@
 <?php
 
 header('Content-Type: application/javascript');
-session_cache_limiter('public');
+
+if (!defined('NOTOKENRENEWAL')) {
+	define('NOTOKENRENEWAL', 1);
+}
 
 require '../config.php';
-
+$user->rights->upbuttons->UseSingleButton = 1;
+$user->rights->upbuttons->UseAllButton = 0;
 if (empty($user->rights->upbuttons->UseAllButton) && empty($user->rights->upbuttons->UseSingleButton))
 	exit;
 
@@ -16,7 +20,7 @@ $langs->load('upbuttons@upbuttons')
 	window.setTimeout(getButtonInBanner, 300); //delai for js button
 	<?php
 	if (!empty($user->rights->upbuttons->UseSingleButton)) {
-		echo '$("body").append("' . addslashes('<a href="javascript:;" id="justOneButton" style="display:none;">' . img_picto('', 'all@upbuttons') . '</a>') . '");';
+		//echo '$("body").append("' . addslashes('<a href="javascript:;" id="justOneButton" style="display:none;">' . img_picto('', 'all@upbuttons') . '</a>') . '");';
 	}
 	?>
 

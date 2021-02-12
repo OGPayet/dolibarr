@@ -110,15 +110,25 @@ class ActionsPropalapprovement
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
 
-    public function addMoreActionsButtons($parameters = array(), &$object, &$action = '', $hookmanager)
+    public function addMoreActionsButtons($parameters = array(), &$object, &$action, $hookmanager)
     {
         global $conf, $user, $langs;
         $contexts = explode(':', $parameters['context']);
         if (in_array('propalcard', $contexts)) {
-            if ($object->statut == 0 && !empty($user->rights->propalapprovement->approve->automatically) &&
-            ($object->statut == Propal::STATUS_DRAFT && $object->total_ttc >= 0 && count($object->lines) > 0)
-                    || ($object->statut == Propal::STATUS_DRAFT && !empty($conf->global->PROPAL_ENABLE_NEGATIVE) && count($object->lines) > 0)) {
+            if ((($object->statut == Propal::STATUS_DRAFT && $object->total_ttc >= 0 && count($object->lines) > 0)
+            || ($object->statut == Propal::STATUS_DRAFT && !empty($conf->global->PROPAL_ENABLE_NEGATIVE) && count($object->lines) > 0))&& empty($user->rights->propalapprovement->approve->automatically)) {
+                //Ask for approvement
                 print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=' . self::ASK_FOR_APPROVE_ACTION_NAME . '">' . $langs->trans('PropalApprovementAwaitButton') . '</a></div>';
+                // Clone
+                global $usercancreate, $usercandelete;
+                if ($usercancreate) {
+                    print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&amp;socid='.$object->socid.'&amp;action=clone&amp;token='.newToken().'&amp;object='.$object->element.'">'.$langs->trans("ToClone").'</a>';
+                }
+                // Delete
+                if ($usercandelete) {
+                    print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=delete&amp;token='.newToken().'"';
+                    print '>'.$langs->trans('Delete').'</a>';
+                }
                 return 1;
             } elseif ($object->statut == 5) {
                 if (!empty($user->rights->propal->creer)) {
@@ -177,6 +187,7 @@ class ActionsPropalapprovement
                     if ($result >= 0) {
                         $object->db->commit();
                         if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
+							global $langs, $hidedetails, $hidedesc, $hideref;
                             $outputlangs = $langs;
                             $newlang = '';
                             if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) {
@@ -190,7 +201,7 @@ class ActionsPropalapprovement
                                 $outputlangs->setDefaultLang($newlang);
                             }
                             $model = $object->model_pdf;
-                            $ret = $object->fetch($id); // Reload to get new records
+                            $ret = $object->fetch($object->id); // Reload to get new records
                             if ($ret > 0) {
                                 $object->fetch_thirdparty();
                             }
@@ -255,8 +266,10 @@ class ActionsPropalapprovement
     public function showLinkedObjectBlock($parameters, &$object, &$action, $hookmanager)
     {
         $this->addStatusLabelToPayload($object);
-        foreach ($object->linkedObjects['propal'] as &$payload) {
-            $this->addStatusLabelToPayload($payload);
+        if ($object && $object->linkedObjects && $object->linkedObjects['propal']) {
+            foreach ($object->linkedObjects['propal'] as &$payload) {
+                $this->addStatusLabelToPayload($payload);
+            }
         }
         return 0;
     }
@@ -271,7 +284,9 @@ class ActionsPropalapprovement
         global $objectstatic;
         $objectToCheck = array(&$object, $objectstatic);
         foreach ($objectToCheck as &$payload) {
-            $this->addStatusLabelToPayload($payload);
+            if ($payload) {
+                $this->addStatusLabelToPayload($payload);
+            }
         }
         return 0;
     }

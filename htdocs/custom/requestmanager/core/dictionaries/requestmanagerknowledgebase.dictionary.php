@@ -379,7 +379,7 @@ class RequestManagerKnowledgeBaseDictionaryLine extends DictionaryLine
 	 * @param  int     $objectid       Current object id
 	 * @return string
 	 */
-	function showInputFieldAD($fieldName, $value=null, $keyprefix='', $keysuffix='', $objectid=0)
+	function showInputFieldAD($fieldName, $value = NULL, $keyprefix = '', $keysuffix = '', $objectid = 0, $options_only = 0)
     {
         if ($fieldName == 'categorie') {
             if (isset($this->dictionary->fields[$fieldName])) {

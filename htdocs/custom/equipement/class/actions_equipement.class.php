@@ -65,7 +65,8 @@ class ActionsEquipement // extends CommonObject
 		$resArray=array();
 		$resArray['searchintoequipement']=array(
 						'text'=>img_picto('', 'object_equipement@equipement').' '.$langs->trans("Equipement", GETPOST('q')),
-						'url'=>dol_buildpath('/equipement/list.php?sall='.urlencode(GETPOST('q')), 1)
+						'url'=>dol_buildpath('/equipement/list.php?sall='.urlencode(GETPOST('q')), 1),
+						'position' => 51
 		);
 		$this->results = $resArray;
 		return 0;
@@ -85,7 +86,7 @@ class ActionsEquipement // extends CommonObject
         global $conf, $langs;
 
         // pour les anciennes version ou si on a activ� l'ancienne recherche
-        if (DOL_VERSION >= "6.0" && empty($conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK)) {
+        if (version_compare(DOL_VERSION, "6.0.0") >= 0 && empty($conf->global->EQUIPEMENT_DISABLE_SHOW_LINK_TO_OBJECT_BLOCK)) {
             if (!is_object($object->thirdparty)) $object->fetch_thirdparty();
 
             if (is_object($object->thirdparty) && !empty($object->thirdparty->id) && $object->thirdparty->id > 0) {

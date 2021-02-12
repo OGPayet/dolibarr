@@ -487,7 +487,7 @@ class Equipement extends CommonObject
 		$sql.= " e.numversion, e.numimmocompta, e.fk_etatequipement, ee.libelle as etatequiplibelle, e.quantity,";
 		$sql.= " e.datec, e.datev, e.datee, e.dateo, e.dated, e.tms as datem, e.unitweight, e.fk_product_batch,";
 		$sql.= " e.fk_product, e.fk_soc_client, e.fk_facture,";
-		$sql.= " e.note_public, e.note_private ";
+		$sql.= " e.note_public, e.note_private, e.entity ";
 		$sql.= " FROM ".MAIN_DB_PREFIX."equipement as e";
 		$sql.= " LEFT JOIN ".MAIN_DB_PREFIX."c_equipement_etat as ee on e.fk_etatequipement = ee.rowid";
 		if ($ref) $sql.= " WHERE e.ref='".$this->db->escape($ref)."'";
@@ -529,6 +529,7 @@ class Equipement extends CommonObject
 				$this->note_private		= $obj->note_private;
 				$this->model_pdf		= $obj->model_pdf;
 				$this->fulldayevent 	= $obj->fulldayevent;
+				$this->entity			= $obj->entity == 0 ? 1 : $obj->entity;
 
 				$this->extraparams	= (array) json_decode($obj->extraparams, true);
 

@@ -95,11 +95,9 @@ class modDigitalSignatureManager extends DolibarrModules
 			// Set this to relative path of css file if module has its own css file
 			'css' => array(
 				'/digitalsignaturemanager/css/digitalsignaturemanager.css.php',
-				'/digitalsignaturemanager/includes/tonekk-select2.sortable-dcebb1e/select2.sortable.css'
 				),
 			// Set this to relative path of js file if module must load a js on all pages
 			'js' => array(
-				'/digitalsignaturemanager/includes/tonekk-select2.sortable-dcebb1e/select2.sortable.min.js',
 			),
 			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
 			'hooks' => array(
@@ -117,7 +115,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		// A condition to hide module
 		$this->hidden = false;
 		// List of module class names as string that must be enabled if this module is enabled. Example: array('always1'=>'modModuleToEnable1','always2'=>'modModuleToEnable2', 'FR1'=>'modModuleToEnableFR'...)
-		$this->depends = array('modAdvanceDictionaries');
+		$this->depends = array('modAdvanceDictionaries','modAtlantis');
 		$this->requiredby = array(); // List of module class names as string to disable if this one is disabled. Example: array('modModuleToDisable1', ...)
 		$this->conflictwith = array(); // List of module class names as string this module is in conflict with. Example: array('modModuleToDisable1', ...)
 		$this->langfiles = array("digitalsignaturemanager@digitalsignaturemanager");
@@ -244,22 +242,22 @@ class modDigitalSignatureManager extends DolibarrModules
 		/* BEGIN MODULEBUILDER PERMISSIONS */
 		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Read digital signature request'; // Permission label
-		$this->rights[$r][4] = 'request'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
+		$this->rights[$r][4] = 'digitalsignaturerequest'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$this->rights[$r][5] = 'read'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$r++;
 		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Create digital signature request'; // Permission label
-		$this->rights[$r][4] = 'request'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
+		$this->rights[$r][4] = 'digitalsignaturerequest'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$this->rights[$r][5] = 'create'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$r++;
 		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Edit digital signature request people'; // Permission label
-		$this->rights[$r][4] = 'request'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
+		$this->rights[$r][4] = 'digitalsignaturerequest'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$this->rights[$r][5] = 'edit'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$r++;
 		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
 		$this->rights[$r][1] = 'Delete digital signature request'; // Permission label
-		$this->rights[$r][4] = 'request'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
+		$this->rights[$r][4] = 'digitalsignaturerequest'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$this->rights[$r][5] = 'delete'; // In php code, permission will be checked by test if ($user->rights->digitalsignaturemanager->level1->level2)
 		$r++;
 		/* END MODULEBUILDER PERMISSIONS */
@@ -279,7 +277,7 @@ class modDigitalSignatureManager extends DolibarrModules
 		// 	'langs'=>'digitalsignaturemanager@digitalsignaturemanager', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
 		// 	'position'=>1000 + $r,
 		// 	'enabled'=>'$conf->digitalsignaturemanager->enabled', // Define condition to show or hide menu entry. Use '$conf->digitalsignaturemanager->enabled' if entry must be visible if module is enabled.
-		// 	'perms'=>'$user->rights->digitalsignaturemanager->request->read', // Use 'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read' if you want your menu with a permission rules
+		// 	'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read', // Use 'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read' if you want your menu with a permission rules
 		// 	'target'=>'',
 		// 	'user'=> 0, // 0=Menu for internal users, 1=external users, 2=both
 		// );
@@ -344,7 +342,7 @@ class modDigitalSignatureManager extends DolibarrModules
             // Define condition to show or hide menu entry. Use '$conf->digitalsignaturemanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
             'enabled'=>'$conf->digitalsignaturemanager->enabled',
             // Use 'perms'=>'$user->rights->digitalsignaturemanager->level1->level2' if you want your menu with a permission rules
-            'perms'=>'$user->rights->digitalsignaturemanager->request->read',
+            'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read',
             'target'=>'',
             // 0=Menu for internal users, 1=external users, 2=both
             'user'=>0,
@@ -364,7 +362,7 @@ class modDigitalSignatureManager extends DolibarrModules
             // Define condition to show or hide menu entry. Use '$conf->digitalsignaturemanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
             'enabled'=>'$conf->digitalsignaturemanager->enabled',
             // Use 'perms'=>'$user->rights->digitalsignaturemanager->level1->level2' if you want your menu with a permission rules
-            'perms'=>'$user->rights->digitalsignaturemanager->request->create',
+            'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->create',
             'target'=>'',
             // 0=Menu for internal users, 1=external users, 2=both
             'user'=>0
@@ -385,7 +383,7 @@ class modDigitalSignatureManager extends DolibarrModules
             // Define condition to show or hide menu entry. Use '$conf->digitalsignaturemanager->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
             'enabled'=>'$conf->digitalsignaturemanager->enabled',
             // Use 'perms'=>'$user->rights->digitalsignaturemanager->level1->level2' if you want your menu with a permission rules
-            'perms'=>'$user->rights->digitalsignaturemanager->request->read',
+            'perms'=>'$user->rights->digitalsignaturemanager->digitalsignaturerequest->read',
             'target'=>'',
             // 0=Menu for internal users, 1=external users, 2=both
             'user'=>0,
@@ -488,39 +486,23 @@ class modDigitalSignatureManager extends DolibarrModules
 
 		$sql = array();
 
-		// Document templates
-		$moduledir = 'digitalsignaturemanager';
-		$myTmpObjects = array();
-		$myTmpObjects['DigitalSignatureRequest']=array('includerefgeneration'=>0, 'includedocgeneration'=>0);
-
-		foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
-			if ($myTmpObjectKey == 'DigitalSignatureRequest') continue;
-			if ($myTmpObjectArray['includerefgeneration']) {
-				$src=DOL_DOCUMENT_ROOT.'/install/doctemplates/digitalsignaturemanager/template_digitalsignaturerequests.odt';
-				$dirodt=DOL_DATA_ROOT.'/doctemplates/digitalsignaturemanager';
-				$dest=$dirodt.'/template_digitalsignaturerequests.odt';
-
-				if (file_exists($src) && ! file_exists($dest))
-				{
-					require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-					dol_mkdir($dirodt);
-					$result=dol_copy($src, $dest, 0, 0);
-					if ($result < 0)
-					{
-						$langs->load("errors");
-						$this->error=$langs->trans('ErrorFailToCopyFile', $src, $dest);
-						return 0;
-					}
-				}
-
-				$sql = array_merge($sql, array(
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'standard_".strtolower($myTmpObjectKey)."' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('standard_".strtolower($myTmpObjectKey)."','".strtolower($myTmpObjectKey)."',".$conf->entity.")",
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'generic_".strtolower($myTmpObjectKey)."_odt' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('generic_".strtolower($myTmpObjectKey)."_odt', '".strtolower($myTmpObjectKey)."', ".$conf->entity.")"
-				));
+		//We add shared element for multicompany
+		$arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+		foreach ($arrayOfElement as $index => $param) {
+			if (is_array($param["sharingelements"]) && array_key_exists("digitalsignaturerequest", $param["sharingelements"])) {
+				unset($arrayOfElement[$index]);
+				break;
 			}
 		}
+		$arrayOfElement[] =
+			array("sharingelements" =>
+			array('digitalsignaturerequest' => array(
+				'type' => 'object',
+				'icon' => 'file-pdf-o',
+				'enable' => '! empty($conf->digitalsignaturemanager->enabled)',
+				'active' => true
+			),));
+		dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
 
 		return $this->_init($sql, $options);
 	}
@@ -536,6 +518,14 @@ class modDigitalSignatureManager extends DolibarrModules
 	public function remove($options = '')
 	{
 		$sql = array();
+		$arrayOfElement = json_decode($conf->global->MULTICOMPANY_EXTERNAL_MODULES_SHARING, true);
+        foreach ($arrayOfElement as $index => $param) {
+            if (is_array($param["sharingelements"]) && array_key_exists("sepamandat", $param["sharingelements"])) {
+                unset($arrayOfElement[$index]);
+                break;
+            }
+		}
+        dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);
 		return $this->_remove($sql, $options);
 	}
 }

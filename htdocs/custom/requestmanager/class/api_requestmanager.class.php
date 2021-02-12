@@ -1291,8 +1291,9 @@ class RequestManagerApi extends DolibarrApi {
             }
         }
         $extrafields = new ExtraFields( $this->db);
-        $extralabels = $extrafields->fetch_name_optionals_label('socpeople');
-        foreach ($extrafields->attributes['socpeople']['type'] as $key => $type) {
+		$extralabels = $extrafields->fetch_name_optionals_label('socpeople');
+		$socPeopleExtrafields = empty($extrafields->attributes['socpeople']['type']) ? array() : $extrafields->attributes['socpeople']['type'];
+        foreach ($socPeopleExtrafields as $key => $type) {
             if ($type == '') {
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(spef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(spef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";

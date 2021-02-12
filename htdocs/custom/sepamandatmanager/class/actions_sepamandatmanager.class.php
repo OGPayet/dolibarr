@@ -23,6 +23,7 @@
  * Put detailed description here.
  */
 dol_include_once('/sepamandatmanager/class/sepamandatcompanybankaccountlink.class.php');
+dol_include_once("/atlantis/class/extendedEcm.class.php");
 
 /**
  * Class ActionsSepaMandatManager
@@ -185,9 +186,6 @@ class ActionsSepaMandatManager
         $commonObject = &$parameters['object'];
         //We update sepa mandat manager
         if ($commonObject && $commonObject->element == SepaMandat::$staticElement) {
-            if (!class_exists("ExtendedEcm")) {
-                dol_include_once("/sepamandatmanager/class/extendedEcm.class.php");
-            }
             $fileFullPath = $parameters['file'];
             $extendedEcm = new ExtendedEcm($this->db);
             $ecmFile = $extendedEcm->getInstanceFileFromItsAbsolutePath($fileFullPath);

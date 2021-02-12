@@ -165,9 +165,10 @@ class Products extends DolibarrApi
 	 * @param  int    $mode       Use this param to filter list (0 for all, 1 for only product, 2 for only service)
 	 * @param  int    $category   Use this param to filter list by category
 	 * @param  string $sqlfilters Other criteria to filter answers separated by a comma. Syntax example "(t.tobuy:=:0) and (t.tosell:=:1)"
+     * @param  bool   $quicklist Other criteria to filter answers separated by a comma. Syntax example "(t.tobuy:=:0) and (t.tosell:=:1)"
 	 * @return array                Array of product objects
 	 */
-	public function index($sortfield = "t.ref", $sortorder = 'ASC', $limit = 100, $page = 0, $mode = 0, $category = 0, $sqlfilters = '')
+	public function index($sortfield = "t.ref", $sortorder = 'ASC', $limit = 100, $page = 0, $mode = 0, $category = 0, $sqlfilters = '', $quicklist=false)
 	{
 		global $db, $conf;
 
@@ -177,6 +178,7 @@ class Products extends DolibarrApi
 
 		$sql = "SELECT t.rowid, t.ref, t.ref_ext";
 		$sql .= " FROM ".MAIN_DB_PREFIX."product as t";
+		$sql.=" LEFT JOIN ".MAIN_DB_PREFIX."product_extrafields as tef ON t.rowid = tef.fk_object ";
 		if ($category > 0) {
 			$sql .= ", ".MAIN_DB_PREFIX."categorie_product as c";
 		}
@@ -222,6 +224,14 @@ class Products extends DolibarrApi
 				$obj = $this->db->fetch_object($result);
 				$product_static = new Product($this->db);
 				if ($product_static->fetch($obj->rowid)) {
+					if($quicklist)
+					{
+						$temp=array("label","description","type","price","price_ttc","tva_tx","status","status_buy","status_batch","ref","id");
+						foreach ($product_static as $key=>$value){
+							if(!in_array($key,$temp))
+							unset($product_static->$key);
+						}
+					}
 					$obj_ret[] = $this->_cleanObjectDatas($product_static);
 				}
 				$i++;

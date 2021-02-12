@@ -57,6 +57,7 @@ $diroutputmassaction = $conf->sepamandatmanager->dir_output.'/temp/massgeneratio
 $hookmanager->initHooks(array('sepamandatnote', 'globalcard')); // Note that conf->hooks_modules contains array
 // Fetch optionals attributes and labels
 $extrafields->fetch_name_optionals_label($object->table_element);
+global $user;
 
 // Security check - Protection if external user
 //if ($user->socid > 0) accessforbidden();
@@ -71,6 +72,7 @@ $permissionnote = $user->rights->sepamandatmanager->sepamandat->write; // Used b
 $permissiontoadd = $user->rights->sepamandatmanager->sepamandat->write; // Used by the include of actions_addupdatedelete.inc.php
 
 $permission = $permissionnote > 0 || $permissiontoadd > 0;
+if (!$permission|| !in_array($object->entity, explode(',', getEntity('sepamandat')))) accessforbidden();
 
 /*
  * Actions

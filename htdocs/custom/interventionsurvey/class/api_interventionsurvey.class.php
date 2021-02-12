@@ -143,8 +143,11 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(401);
         }
         global $user;
-        dol_include_once("/advancedictionaries/class/api_advancedictionariesapi.class.php");
+        dol_include_once("/advancedictionaries/class/api_advancedictionaries.class.php");
         $dictionaryApi = new AdvanceDictionariesApi();
+        if(empty($user->rights->advancedictionaries)) {
+            $user->rights->advancedictionaries = new stdClass();
+        }
         $oldRight = $user->rights->advancedictionaries->read;
         $user->rights->advancedictionaries->read = 1;
         $result = $dictionaryApi->index('extendedintervention', 'extendedinterventiontype', '', $sort_field, $sort_order, $limit, $page);
@@ -338,12 +341,9 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(404, 'Intervention not found');
         }
 
-
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
             throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
-
-
 
         if ($this->interventionSurvey->is_survey_read_only()) {
             throw new RestException(401, 'Intervention survey with id = ' . $this->interventionSurvey->id . ' is in readonly mode');
@@ -497,7 +497,7 @@ class InterventionSurveyApi extends DolibarrApi
             $result = $this->interventionLine->insert(DolibarrApiAccess::$user);
         }
 
-        if ($result >= 0 && $this->interventionLine->fetch_optionals() > 0) {
+        if ($result >= 0 && $this->interventionLine->fetch_optionals() >= 0) {
             $this->updatePdfFileIfNeeded();
             return $this->_cleanObjectData($this->interventionLine);
         } else {

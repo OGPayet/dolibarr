@@ -102,7 +102,7 @@ print "</table><br>";
 
 $sql = "SELECT";
 $sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ";
-$sql.= " ent.ref, e.fk_soc_fourn, sfou.nom as CompanyFourn,";
+$sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn,";
 $sql.= " e.fk_etatequipement, et.libelle as etatequiplibelle";
 
 $sql.= " FROM ".MAIN_DB_PREFIX."equipement as e";

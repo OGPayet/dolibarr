@@ -9,7 +9,7 @@ FastUploadAbout = About Fast upload
 FastUpload=Fast upload
 
 FASTUPLOAD_LIMIT_FILE_NUMBER=Limit the maximum number of files that will be handled by the Dropzone
-FASTUPLOAD_ENABLE_AUTOUPLOAD=Enable the automatically upload on drag and drop or after the files selected
+FASTUPLOAD_ENABLE_AUTOUPLOAD=Enable automatic upload on drag and drop and after file selection
 
 FastUpload_DefaultMessage=Drop files here to upload (or click)
 FastUpload_FallbackMessage=Your browser does not support drag'n'drop file uploads.

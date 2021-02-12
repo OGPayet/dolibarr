@@ -984,7 +984,7 @@ class DigitalSignatureRequest extends CommonObject
 
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
-		$requestsToUpdate = $this->fetchAll('DESC', 'rowid', 0, 0, array('status' => self::STATUS_IN_PROGRESS));
+		$requestsToUpdate = $this->fetchAll('DESC', 'rowid', 0, 0, array('customsql'=> ' status = ' . self::STATUS_IN_PROGRESS));
 		$outputTexts = array();
 		foreach ($requestsToUpdate as $digitalSignatureRequest) {
 			if ($digitalSignatureRequest->updateDataFromExternalService($user)) {
@@ -1016,7 +1016,13 @@ class DigitalSignatureRequest extends CommonObject
 	public function getAbsoluteModuleDirectory()
 	{
 		global $conf;
-		return $conf->digitalsignaturemanager->multidir_output[$this->entity ? $this->entity : $conf->entity];
+		$result = DOL_DATA_ROOT;
+		$finalEntity = !empty($this->entity) ? $this->entity : $conf->entity;
+		if($finalEntity > 1)
+		{
+			$result = $result . '/' . $finalEntity;
+		}
+		return $result . '/digitalsignaturemanager' ;
 	}
 
 	/**
@@ -1419,9 +1425,10 @@ class DigitalSignatureRequest extends CommonObject
 				$obj = $this->db->fetch_object($resql);
 
 				$record = new self($this->db);
-				$record->fetch($obj->rowid);
-				$records[$record->rowid] = $record;
-
+				if($record->fetch($obj->rowid) > 0)
+				{
+					$records[$record->id] = $record;
+				}
 				$i++;
 			}
 			$this->db->free($resql);

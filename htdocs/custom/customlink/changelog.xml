@@ -1,0 +1,82 @@
+<changelog>
+<Version Number="3.5.+1.0.0">
+	<change type='inf'>Initial version </change>
+</Version>
+<Version Number="3.5.+1.0.1">
+	<change type='fix'>Bug on ventilation on customer bills</change>
+</Version>
+<Version Number="3.5.+1.0.2">
+	<change type='fix'>Bad link on taglink</change>
+</Version>
+<Version Number="3.5.+1.0.3">
+	<change type='add'>add adherent list on contact thirdparties tabs</change>
+</Version>
+<Version Number="3.6.+1.1.0"  MonthVersion="2015-01">
+	<change type='add'>new commun top menu with other patas-tools modules</change>
+</Version>
+<Version Number="3.6.+1.1.1"  MonthVersion="2015-01">
+	<change type='add'>list of linked societe on societecontact tabs</change>
+</Version>
+<Version Number="3.6.+1.1.2"  MonthVersion="2015-02">
+	<change type='add'>paiement on multiple linked societe </change>
+</Version>
+<Version Number="3.7.+1.2.0"  MonthVersion="2015-06">
+	<change type='fix'>getUrlofLink EBVFPNAS fucking message</change>
+</Version>
+<Version Number="3.8.+1.3.0" MonthVersion="2015-10">
+	<change type='fix'>3.8 compatibility (hook call change)</change>
+	<change type='chg'>minor presentation change on tag</change>
+</Version>
+<Version Number="3.9.+1.4.0" MonthVersion="2016-03">
+	<change type='fix'>3.9 compatibility </change>
+	<change type='chg'>custom folder compatibility</change>
+</Version>
+<Version Number="3.9.+1.4.1" MonthVersion="2016-04">
+	<change type='add'>contact element list</change>
+	<change type='add'>user element list</change>
+</Version>
+<Version Number="3.9.+1.4.2" MonthVersion="2016-06">
+	<change type='add'>allow link with ticketsup module</change>
+	<change type='add'>xml version changelog feature</change>
+	<change type='fix'>search button size</change>
+</Version>
+<Version Number="3.9.+1.4.3" MonthVersion="2016-07">
+	<change type='add'>customLink module menu move to patas-tools</change>
+	<change type='add'>Dolibarr xml minversion changelog feature</change>
+</Version>
+<Version Number="4.0.+1.5.0" MonthVersion="2016-10">
+	<change type='fix'>4.0 compatibility </change>
+	<change type='fix'>load tva include soc of the bill</change>
+	<change type='add'>fournish bill ventilation on factory OF</change>
+</Version>
+<Version Number="4.0.+1.5.1" MonthVersion="2016-11">
+	<change type='fix'>Task link of management error</change>
+	<change type='add'>work if object class of element not found</change>
+</Version>
+<Version Number="5.0.+1.6.0" MonthVersion="2017-02">
+	<change type='chg'>5.0 compatibility</change>
+	<change type='add'>new look on admin about page</change>
+	<change type='add'>information version on admin setup page</change>
+</Version>
+<Version Number="5.0.+1.6.1" MonthVersion="2017-05">
+	<change type='chg'>customlink.php rename on setup on admin path</change>
+	<change type='add'>detect if method are present before call it</change>
+</Version>
+<Version Number="5.0.+1.6.2" MonthVersion="2017-07">
+	<change type='add'>paiement on supplier bills</change>
+</Version>
+<Version Number="6.0.+1.7.0" MonthVersion="2017-08">
+	<change type='chg'>6.0.0 compatibility</change>
+	<change type='fix'>paiement tabs have restricted access</change>
+	<change type='add'>V5 tabs style</change>
+</Version>
+<Version Number="6.0.+1.7.1" MonthVersion="2017-09">
+	<change type='add'>New subscription Link</change>
+</Version>
+<Version Number="7.0.+1.8.0" MonthVersion="2018-03">
+	<change type='chg'>7.0.0 compatibility</change>
+	<change type='fix'>element_tag table not present on V7, now in package</change>
+</Version>
+
+<Dolibarr minVersion="3.8.0"/>
+</changelog>

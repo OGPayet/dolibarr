@@ -106,16 +106,16 @@ if (empty($action) && empty($id) && empty($ref)) $action = 'view';
 include DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php'; // Must be include, not include_once.
 
 
-$permissiontoread = $user->rights->digitalsignaturemanager->request->read;
-$permissiontoadd = $user->rights->digitalsignaturemanager->request->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
-$permissiontoedit = $user->rights->digitalsignaturemanager->request->edit;
-$permissiontodelete = $object->isEditable() && ($user->rights->digitalsignaturemanager->request->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT));
-$permissionnote = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_setnotes.inc.php
-$permissiondellink = $user->rights->digitalsignaturemanager->request->edit; // Used by the include of actions_dellink.inc.php
+$permissiontoread = $user->rights->digitalsignaturemanager->digitalsignaturerequest->read;
+$permissiontoadd = $user->rights->digitalsignaturemanager->digitalsignaturerequest->create; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+$permissiontoedit = $user->rights->digitalsignaturemanager->digitalsignaturerequest->edit;
+$permissiontodelete = $object->isEditable() && ($user->rights->digitalsignaturemanager->digitalsignaturerequest->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT));
+$permissionnote = $user->rights->digitalsignaturemanager->digitalsignaturerequest->edit; // Used by the include of actions_setnotes.inc.php
+$permissiondellink = $user->rights->digitalsignaturemanager->digitalsignaturerequest->edit; // Used by the include of actions_dellink.inc.php
 $permissioncreate = $permissiontoadd && $object->status == $object::STATUS_DRAFT; //Used by actions_builddoc.inc.php to remove files
 $permissionToAddAndDelFiles = $permissioncreate;
 
-if (!$permissiontoread) accessforbidden();
+if (!$permissiontoread || ($object->id > 0 && !in_array($object->entity, explode(',', getEntity('digitalsignaturerequest'))))) accessforbidden();
 
 
 /*

@@ -1585,7 +1585,7 @@ class ActionsMulticompany
 					}
 					else
 					{
-						unset($object->linkedObjects[$objecttype][$key]);
+						//unset($object->linkedObjects[$objecttype][$key]);
 					}
 				}
 			}
@@ -1599,58 +1599,58 @@ class ActionsMulticompany
 	 */
 	public function showLinkToObjectBlock($parameters=false, &$object, &$action='')
 	{
-		global $conf, $user, $langs;
+		// global $conf, $user, $langs;
 
-		if (empty($conf->multicompany->enabled)) return 0;
+		// if (empty($conf->multicompany->enabled)) return 0;
 
-		if (is_array($parameters) && ! empty($parameters))
-		{
-			foreach($parameters as $key=>$value)
-			{
-				$$key=$value;
-			}
-		}
+		// if (is_array($parameters) && ! empty($parameters))
+		// {
+		// 	foreach($parameters as $key=>$value)
+		// 	{
+		// 		$$key=$value;
+		// 	}
+		// }
 
-		$currentcontext = explode(':', $parameters['context']);
+		// $currentcontext = explode(':', $parameters['context']);
 
-		$perms = 1;
-		$propalperms = 1;
-		$orderperms = 1 ;
-		$invoiceperms = 1 ;
+		// $perms = 1;
+		// $propalperms = 1;
+		// $orderperms = 1 ;
+		// $invoiceperms = 1 ;
 
-		if (in_array('propalcard', $currentcontext) && $object->element == 'propal')
-		{
-			if ($object->entity != $conf->entity)
-			{
-				$propalperms = ! empty($user->rights->multicompany->propal->write);
-			}
-		}
-		elseif (in_array('ordercard', $currentcontext) && $object->element == 'commande')
-		{
-			if ($object->entity != $conf->entity)
-			{
-				$orderperms = ! empty($user->rights->multicompany->order->write);
-			}
-		}
-		elseif (in_array('invoicecard', $currentcontext) && $object->element == 'facture')
-		{
-			if ($object->entity != $conf->entity)
-			{
-				$invoiceperms = ! empty($user->rights->multicompany->invoice->write);
-			}
-		}
+		// if (in_array('propalcard', $currentcontext) && $object->element == 'propal')
+		// {
+		// 	if ($object->entity != $conf->entity)
+		// 	{
+		// 		$propalperms = ! empty($user->rights->multicompany->propal->write);
+		// 	}
+		// }
+		// elseif (in_array('ordercard', $currentcontext) && $object->element == 'commande')
+		// {
+		// 	if ($object->entity != $conf->entity)
+		// 	{
+		// 		$orderperms = ! empty($user->rights->multicompany->order->write);
+		// 	}
+		// }
+		// elseif (in_array('invoicecard', $currentcontext) && $object->element == 'facture')
+		// {
+		// 	if ($object->entity != $conf->entity)
+		// 	{
+		// 		$invoiceperms = ! empty($user->rights->multicompany->invoice->write);
+		// 	}
+		// }
 
-		$this->results = array('propal' => array('enabled'=>$conf->propal->enabled, 'perms'=>$propalperms, 'label'=>'LinkToProposal',	'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."propal as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('propal').')'),
-			'order'=>array('enabled'=>$conf->commande->enabled, 'perms'=>$orderperms, 'label'=>'LinkToOrder', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."commande as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('commande').')'),
-			'invoice'=>array('enabled'=>$conf->facture->enabled, 'perms'=>$invoiceperms, 'label'=>'LinkToInvoice', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total as total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."facture as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('invoice').')'),
-			'contrat'=>array('enabled'=>$conf->contrat->enabled , 'perms'=>$perms, 'label'=>'LinkToContract', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, '' as total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."contrat as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('contract').')'),
-			'fichinter'=>array('enabled'=>$conf->ficheinter->enabled, 'perms'=>$perms, 'label'=>'LinkToIntervention', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."fichinter as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('intervention').')'),
-			'supplier_proposal'=>array('enabled'=>$conf->supplier_proposal->enabled , 'perms'=>$perms, 'label'=>'LinkToSupplierProposal', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, '' as ref_supplier, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."supplier_proposal as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('supplier_proposal').')'),
-			'order_supplier'=>array('enabled'=>$conf->supplier_order->enabled , 'perms'=>$perms, 'label'=>'LinkToSupplierOrder', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."commande_fournisseur as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('commande_fournisseur').')'),
-			'invoice_supplier'=>array('enabled'=>$conf->supplier_invoice->enabled , 'perms'=>$perms, 'label'=>'LinkToSupplierInvoice', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."facture_fourn as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('facture_fourn').')')
-		);
+		// $this->results = array('propal' => array('enabled'=>$conf->propal->enabled, 'perms'=>$propalperms, 'label'=>'LinkToProposal',	'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."propal as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('propal').')'),
+		// 	'order'=>array('enabled'=>$conf->commande->enabled, 'perms'=>$orderperms, 'label'=>'LinkToOrder', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."commande as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('commande').')'),
+		// 	'invoice'=>array('enabled'=>$conf->facture->enabled, 'perms'=>$invoiceperms, 'label'=>'LinkToInvoice', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total as total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."facture as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('invoice').')'),
+		// 	'contrat'=>array('enabled'=>$conf->contrat->enabled , 'perms'=>$perms, 'label'=>'LinkToContract', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, '' as total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."contrat as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('contract').')'),
+		// 	'fichinter'=>array('enabled'=>$conf->ficheinter->enabled, 'perms'=>$perms, 'label'=>'LinkToIntervention', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."fichinter as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('intervention').')'),
+		// 	'supplier_proposal'=>array('enabled'=>$conf->supplier_proposal->enabled , 'perms'=>$perms, 'label'=>'LinkToSupplierProposal', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, '' as ref_supplier, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."supplier_proposal as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('supplier_proposal').')'),
+		// 	'order_supplier'=>array('enabled'=>$conf->supplier_order->enabled , 'perms'=>$perms, 'label'=>'LinkToSupplierOrder', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."commande_fournisseur as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('commande_fournisseur').')'),
+		// 	'invoice_supplier'=>array('enabled'=>$conf->supplier_invoice->enabled , 'perms'=>$perms, 'label'=>'LinkToSupplierInvoice', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."facture_fourn as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('facture_fourn').')')
+		// );
 
-		return 1;
+		// return 1;
 	}
 
 	/**

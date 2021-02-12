@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2018	Open-DSI	        <support@open-dsi.fr>
+/* Copyright (C) 2018   Open-DSI            <support@open-dsi.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,8 @@ dol_include_once('/equipement/class/equipement.class.php');
  * @access protected
  * @class  DolibarrApiAccess {@requires user,external}
  */
-class EquipementApi extends DolibarrApi {
+class EquipementApi extends DolibarrApi
+{
 
     /**
      * @var array       $FIELDS     Mandatory fields, checked when create and update object
@@ -166,10 +167,10 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Get the list of equipments
      *
-     * @param   string	    $sort_field         Sort field
-     * @param   string	    $sort_order         Sort order
-     * @param   int		    $limit		        Limit for list
-     * @param   int		    $page		        Page number
+     * @param   string      $sort_field         Sort field
+     * @param   string      $sort_order         Sort order
+     * @param   int         $limit              Limit for list
+     * @param   int         $page               Page number
      * @param   string      $sql_filters        Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
      *
      * @return  array                           Array of equipment objects
@@ -178,7 +179,7 @@ class EquipementApi extends DolibarrApi {
      * @throws  401         RestException       Insufficient rights
      * @throws  500         RestException       Error when retrieve equipment list
      */
-    function index($sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $sql_filters='')
+    function index($sort_field = "t.rowid", $sort_order = 'ASC', $limit = 100, $page = 0, $sql_filters = '')
     {
         $obj_ret = array();
 
@@ -188,7 +189,9 @@ class EquipementApi extends DolibarrApi {
 
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
-        if (DolibarrApiAccess::$user->socid > 0 && !DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+        if (DolibarrApiAccess::$user->socid > 0 && !DolibarrApiAccess::$user->rights->societe->client->voir) {
+            $search_sale = DolibarrApiAccess::$user->id;
+        }
 
         $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "equipement as t";
@@ -259,6 +262,13 @@ class EquipementApi extends DolibarrApi {
         if (!DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
         }
+        if (is_object($equipment_data)) {
+            $equipment_data->SerialMethod = 2;
+            $equipment_data->nbAddEquipement = 1;
+        } elseif (is_array($equipment_data)) {
+            $equipment_data['SerialMethod'] = 2;
+            $equipment_data['nbAddEquipement'] = 1;
+        }
 
         // Check mandatory fields
         $this->_validate($equipment_data);
@@ -295,9 +305,9 @@ class EquipementApi extends DolibarrApi {
      * @throws  401         RestException   Insufficient rights
      * @throws  500         RestException   Error while updating the equipment
      */
-    function put($id, $request_data = NULL)
+    function put($id, $request_data = null)
     {
-        if(! DolibarrApiAccess::$user->rights->equipement->creer) {
+        if (! DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
         }
 
@@ -305,7 +315,9 @@ class EquipementApi extends DolibarrApi {
         $equipment = $this->_getEquipmentObject($id);
 
         foreach ($request_data as $field => $value) {
-            if ($field == 'id') continue;
+            if ($field == 'id') {
+                continue;
+            }
             $equipment->$field = $value;
         }
 
@@ -319,7 +331,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the reference of a equipment
      *
-     * @url	PUT {id}/update_reference
+     * @url PUT {id}/update_reference
      *
      * @param   int         $id             ID of the equipment
      * @param   string      $ref            Reference
@@ -350,7 +362,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the version number of a equipment
      *
-     * @url	PUT {id}/update_version_number
+     * @url PUT {id}/update_version_number
      *
      * @param   int         $id                 ID of the equipment
      * @param   string      $numversion         Version number
@@ -381,7 +393,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the quantity of a equipment
      *
-     * @url	PUT {id}/update_quantity
+     * @url PUT {id}/update_quantity
      *
      * @param   int         $id             ID of the equipment
      * @param   int         $quantity       Quantity
@@ -412,7 +424,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the unit weight of a equipment
      *
-     * @url	PUT {id}/update_unit_weight
+     * @url PUT {id}/update_unit_weight
      *
      * @param   int         $id             ID of the equipment
      * @param   double      $unitweight     Unit weight
@@ -443,7 +455,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the accounting asset number of a equipment
      *
-     * @url	PUT {id}/update_accounting_asset_number
+     * @url PUT {id}/update_accounting_asset_number
      *
      * @param   int         $id                         ID of the equipment
      * @param   string      $numimmocompta              Accounting asset number
@@ -474,7 +486,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the warehouse of a equipment
      *
-     * @url	PUT {id}/update_warehouse
+     * @url PUT {id}/update_warehouse
      *
      * @param   int         $id                 ID of the equipment
      * @param   int         $fk_entrepot        Warehouse ID
@@ -487,7 +499,7 @@ class EquipementApi extends DolibarrApi {
      * @throws  500         RestException       Error when retrieve equipment
      * @throws  500         RestException       Error while updating the equipment
      */
-    function updateWarehouse($id, $fk_entrepot, $isentrepotmove=false)
+    function updateWarehouse($id, $fk_entrepot, $isentrepotmove = false)
     {
         if (!DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -506,7 +518,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the description of a equipment
      *
-     * @url	PUT {id}/update_description
+     * @url PUT {id}/update_description
      *
      * @param   int         $id             ID of the equipment
      * @param   string      $description    Description
@@ -537,7 +549,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the public note of a equipment
      *
-     * @url	PUT {id}/update_public_note
+     * @url PUT {id}/update_public_note
      *
      * @param   int         $id             ID of the equipment
      * @param   string      $note_public    Public note
@@ -568,7 +580,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update private note of a equipment
      *
-     * @url	PUT {id}/update_private_note
+     * @url PUT {id}/update_private_note
      *
      * @param   int         $id             ID of the equipment
      * @param   string      $note_private   Private note
@@ -599,7 +611,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the condition of a equipment
      *
-     * @url	PUT {id}/update_condition
+     * @url PUT {id}/update_condition
      *
      * @param   int         $id                     ID of the equipment
      * @param   int         $fk_etatequipement      Condition ID
@@ -630,7 +642,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the customer company of a equipment
      *
-     * @url	PUT {id}/update_customer_company
+     * @url PUT {id}/update_customer_company
      *
      * @param   int         $id                 ID of the equipment
      * @param   int         $fk_soc_client      Customer company ID
@@ -661,7 +673,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the customer invoice of a equipment
      *
-     * @url	PUT {id}/update_customer_invoice
+     * @url PUT {id}/update_customer_invoice
      *
      * @param   int         $id                 ID of the equipment
      * @param   int         $fk_fact_client     Customer invoice ID
@@ -692,7 +704,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the supplier invoice of a equipment
      *
-     * @url	PUT {id}/update_supplier_invoice
+     * @url PUT {id}/update_supplier_invoice
      *
      * @param   int         $id                 ID of the equipment
      * @param   int         $fk_fact_fourn      Supplier invoice ID
@@ -723,7 +735,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the supplier order of a equipment
      *
-     * @url	PUT {id}/update_supplier_order
+     * @url PUT {id}/update_supplier_order
      *
      * @param   int         $id                     ID of the equipment
      * @param   int         $fk_commande_fourn      Supplier order ID
@@ -754,7 +766,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the end date of a equipment
      *
-     * @url	PUT {id}/update_end_date
+     * @url PUT {id}/update_end_date
      *
      * @param   int         $id             ID of the equipment
      * @param   int         $datee          End date (timestamp)
@@ -785,7 +797,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the begin date of a equipment
      *
-     * @url	PUT {id}/update_begin_date
+     * @url PUT {id}/update_begin_date
      *
      * @param   int         $id             ID of the equipment
      * @param   int         $dateo          Begin date (timestamp)
@@ -816,7 +828,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the DLUO date of a equipment
      *
-     * @url	PUT {id}/update_dluo_date
+     * @url PUT {id}/update_dluo_date
      *
      * @param   int         $id             ID of the equipment
      * @param   int         $dated          DLUO date (timestamp)
@@ -847,7 +859,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update the extra fields of a equipment
      *
-     * @url	PUT {id}/update_extra_fields
+     * @url PUT {id}/update_extra_fields
      *
      * @param   int         $id             ID of the equipment
      * @param   array       $array_options  Extra fields (key without 'options_' => value, ...)
@@ -882,7 +894,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Valid a equipment
      *
-     * @url	PUT {id}/validate
+     * @url PUT {id}/validate
      *
      * @param   int         $id             ID of the equipment
      * @param   int         $notrigger      1=Does not execute triggers, 0= execute triggers
@@ -894,7 +906,7 @@ class EquipementApi extends DolibarrApi {
      * @throws  500         RestException   Error when retrieve equipment
      * @throws  500         RestException   Error while updating the equipment
      */
-    function validate($id, $notrigger=0)
+    function validate($id, $notrigger = 0)
     {
         if (!DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -913,7 +925,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Set to draft a equipment
      *
-     * @url	PUT {id}/set_to_draft
+     * @url PUT {id}/set_to_draft
      *
      * @param   int         $id             ID of the equipment
      * @param   int         $notrigger      1=Does not execute triggers, 0= execute triggers
@@ -925,7 +937,7 @@ class EquipementApi extends DolibarrApi {
      * @throws  500         RestException   Error when retrieve equipment
      * @throws  500         RestException   Error while updating the equipment
      */
-    function setToDraft($id, $notrigger=0)
+    function setToDraft($id, $notrigger = 0)
     {
         if (!DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -977,7 +989,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Get lines (events) of a equipment
      *
-     * @url	GET {id}/events
+     * @url GET {id}/events
      *
      * @param   int     $id             ID of the equipment
      *
@@ -988,7 +1000,7 @@ class EquipementApi extends DolibarrApi {
      * @throws  500     RestException   Error when retrieve equipment
      * @throws  500     RestException   Error when retrieve the equipment lines (events)
      */
-	function getLines($id)
+    function getLines($id)
     {
         if (!DolibarrApiAccess::$user->rights->equipement->lire) {
             throw new RestException(401, "Insufficient rights");
@@ -1012,7 +1024,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Add a line (event) to given equipment
      *
-     * @url	POST {id}/events
+     * @url POST {id}/events
      *
      * @param   int     $id             ID of the equipment
      * @param   array   $request_data   Equipment line (event) data
@@ -1024,7 +1036,7 @@ class EquipementApi extends DolibarrApi {
      * @throws  500     RestException   Error when retrieve equipment
      * @throws  500     RestException   Error while creating the equipment line (event)
      */
-	function postLine($id, $request_data = null)
+    function postLine($id, $request_data = null)
     {
         if (!DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -1063,7 +1075,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Update a given a equipment line (event)
      *
-     * @url	POST {id}/events/{line_id}
+     * @url POST {id}/events/{line_id}
      *
      * @param   int     $id             ID of the equipment
      * @param   int     $line_id        ID of line to update
@@ -1078,11 +1090,11 @@ class EquipementApi extends DolibarrApi {
      * @throws  500     RestException   Error when retrieve equipment line (event)
      * @throws  500     RestException   Error while updating the equipment line (event)
      */
-	function putLine($id, $line_id, $request_data = null)
-	{
-		if(! DolibarrApiAccess::$user->rights->equipement->creer) {
+    function putLine($id, $line_id, $request_data = null)
+    {
+        if (! DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
-		}
+        }
 
         // Get equipment object
         $equipment = $this->_getEquipmentObject($id);
@@ -1111,19 +1123,19 @@ class EquipementApi extends DolibarrApi {
         $equipmentline->array_options           = isset($request_data->array_options) ? $request_data->array_options : $equipmentline->array_options;
         $equipmentline->fk_expeditiondet        = isset($request_data->fk_expeditiondet) ? $request_data->fk_expeditiondet : $equipmentline->fk_expeditiondet;
 
-		$updateRes = $equipmentline->update();
+        $updateRes = $equipmentline->update();
 
         if ($updateRes > 0) {
             return $this->get($id);
         } else {
             throw new RestException(500, "Error while updating the equipment line (event)", [ 'details' => $this->_getErrors($equipmentline) ]);
         }
-	}
+    }
 
     /**
      *  Delete a given equipment line (event)
      *
-     * @url	DELETE {id}/lines/{line_id}
+     * @url DELETE {id}/lines/{line_id}
      *
      * @param   int     $id                 Id of equipment to delete
      * @param   int     $line_id            Id of line (event) to delete
@@ -1137,7 +1149,7 @@ class EquipementApi extends DolibarrApi {
      * @throws  500     RestException       Error when retrieve equipment line (event)
      * @throws  500     RestException       Error while deleting the equipment line (event)
      */
-	function deleteLine($id, $line_id)
+    function deleteLine($id, $line_id)
     {
         if (!DolibarrApiAccess::$user->rights->equipement->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -1164,7 +1176,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Get the list of event type equipments into the dictionary
      *
-     * @url	GET dictionary_event_types
+     * @url GET dictionary_event_types
      *
      * @return  array                           Array of event type equipments
      *
@@ -1210,7 +1222,7 @@ class EquipementApi extends DolibarrApi {
     /**
      *  Get the list of status equipments into the dictionary
      *
-     * @url	GET dictionary_status
+     * @url GET dictionary_status
      *
      * @return  array                           Array of status equipments
      *
@@ -1274,7 +1286,7 @@ class EquipementApi extends DolibarrApi {
             throw new RestException(500, "Error when retrieve equipment", [ 'details' => $this->_getErrors($equipment) ]);
         }
 
-        if(!DolibarrApi::_checkAccessToResource('equipement', $equipment->id, 'equipement', '', 'fk_soc_client')) {
+        if (!DolibarrApi::_checkAccessToResource('equipement', $equipment->id, 'equipement', '', 'fk_soc_client')) {
             throw new RestException(403, "Access unauthorized");
         }
 
@@ -1297,8 +1309,9 @@ class EquipementApi extends DolibarrApi {
     function _validate($data)
     {
         foreach (self::$FIELDS as $field) {
-            if (!isset($data[$field]))
+            if (!isset($data[$field])) {
                 throw new RestException(400, "Field missing: $field");
+            }
         }
     }
 
@@ -1317,28 +1330,34 @@ class EquipementApi extends DolibarrApi {
      *
      * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
      */
-	function _cleanObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    function _cleanObjectData(&$object, $whitelist_of_properties = array(), $blacklist_of_properties = array())
     {
         if (!empty($object->element)) {
             $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties);
         }
 
-        if (!is_array($whitelist_of_properties)) $whitelist_of_properties = array();
+        if (!is_array($whitelist_of_properties)) {
+            $whitelist_of_properties = array();
+        }
         $has_whitelist = count($whitelist_of_properties) > 0 && !isset($whitelist_of_properties['']);
-        if (!is_array($blacklist_of_properties)) $blacklist_of_properties = array();
+        if (!is_array($blacklist_of_properties)) {
+            $blacklist_of_properties = array();
+        }
         $has_blacklist = count($blacklist_of_properties) > 0 && !isset($blacklist_of_properties['']);
         foreach ($object as $k => $v) {
             if (($has_whitelist && !isset($whitelist_of_properties[$k])) || ($has_blacklist && isset($blacklist_of_properties[$k]) && !is_array($blacklist_of_properties[$k]))) {
-                if (is_array($object))
+                if (is_array($object)) {
                     unset($object[$k]);
-                else
+                } else {
                     unset($object->$k);
+                }
             } else {
                 if (is_object($v) || is_array($v)) {
-                    if (is_array($object))
+                    if (is_array($object)) {
                         $this->_cleanSubObjectData($object[$k], $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
-                    else
+                    } else {
                         $this->_cleanSubObjectData($object->$k, $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                    }
                 }
             }
         }
@@ -1357,28 +1376,34 @@ class EquipementApi extends DolibarrApi {
      *
      * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
      */
-	function _cleanSubObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    function _cleanSubObjectData(&$object, $whitelist_of_properties = array(), $blacklist_of_properties = array())
     {
         if (!empty($object->element)) {
             $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties, true);
         }
 
-        if (!is_array($whitelist_of_properties)) $whitelist_of_properties = array();
+        if (!is_array($whitelist_of_properties)) {
+            $whitelist_of_properties = array();
+        }
         $has_whitelist = count($whitelist_of_properties) > 0 && !isset($whitelist_of_properties['']);
-        if (!is_array($blacklist_of_properties)) $blacklist_of_properties = array();
+        if (!is_array($blacklist_of_properties)) {
+            $blacklist_of_properties = array();
+        }
         $has_blacklist = count($blacklist_of_properties) > 0 && !isset($blacklist_of_properties['']);
         foreach ($object as $k => $v) {
             if (($has_whitelist && !isset($whitelist_of_properties[$k])) || ($has_blacklist && isset($blacklist_of_properties[$k]) && !is_array($blacklist_of_properties[$k]))) {
-                if (is_array($object))
+                if (is_array($object)) {
                     unset($object[$k]);
-                else
+                } else {
                     unset($object->$k);
+                }
             } else {
                 if (is_object($v) || is_array($v)) {
-                    if (is_array($object))
+                    if (is_array($object)) {
                         $this->_cleanSubObjectData($object[$k], $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
-                    else
+                    } else {
                         $this->_cleanSubObjectData($object->$k, $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                    }
                 }
             }
         }
@@ -1408,7 +1433,7 @@ class EquipementApi extends DolibarrApi {
      *
      * @throws  500         RestException       Error while retrieve the custom whitelist of properties for the object type
      */
-	function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object=false)
+    function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object = false)
     {
         global $hookmanager;
 
@@ -1423,26 +1448,30 @@ class EquipementApi extends DolibarrApi {
                 $object_class = get_class($object);
 
                 // Whitelist
-                if (!empty(self::$WHITELIST_OF_PROPERTIES[$object->element]))
+                if (!empty(self::$WHITELIST_OF_PROPERTIES[$object->element])) {
                     $whitelist_of_properties = self::$WHITELIST_OF_PROPERTIES[$object->element];
-                elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES))
+                } elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES)) {
                     $whitelist_of_properties = $object_class::$API_WHITELIST_OF_PROPERTIES;
+                }
 
-                if (!empty(self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element]))
+                if (!empty(self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element])) {
                     $whitelist_of_properties_linked_object = self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
-                elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT))
+                } elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT)) {
                     $whitelist_of_properties_linked_object = $object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT;
+                }
 
                 // Blacklist
-                if (!empty(self::$BLACKLIST_OF_PROPERTIES[$object->element]))
+                if (!empty(self::$BLACKLIST_OF_PROPERTIES[$object->element])) {
                     $blacklist_of_properties = self::$BLACKLIST_OF_PROPERTIES[$object->element];
-                elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES))
+                } elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES)) {
                     $blacklist_of_properties = $object_class::$API_BLACKLIST_OF_PROPERTIES;
+                }
 
-                if (!empty(self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element]))
+                if (!empty(self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element])) {
                     $blacklist_of_properties_linked_object = self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
-                elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT))
+                } elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT)) {
                     $blacklist_of_properties_linked_object = $object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT;
+                }
 
                 // Modification by hook
                 $hookmanager->initHooks(array('companyrelationshipsapi', 'globalapi'));
@@ -1453,8 +1482,12 @@ class EquipementApi extends DolibarrApi {
                     throw new RestException(500, "Error while retrieve the custom blacklist and whitelist of properties for the object type: " . $object->element, ['details' => $this->_getErrors($hookmanager)]);
                 }
 
-                if (empty($whitelist_of_properties_linked_object)) $whitelist_of_properties_linked_object = $whitelist_of_properties;
-                if (empty($blacklist_of_properties_linked_object)) $blacklist_of_properties_linked_object = $blacklist_of_properties;
+                if (empty($whitelist_of_properties_linked_object)) {
+                    $whitelist_of_properties_linked_object = $whitelist_of_properties;
+                }
+                if (empty($blacklist_of_properties_linked_object)) {
+                    $blacklist_of_properties_linked_object = $blacklist_of_properties;
+                }
 
                 self::$WHITELIST_OF_PROPERTIES[$object->element] = $whitelist_of_properties;
                 self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element] = $whitelist_of_properties_linked_object;
@@ -1462,16 +1495,19 @@ class EquipementApi extends DolibarrApi {
                 self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element] = $blacklist_of_properties_linked_object;
 
                 self::$BLACKWHITELIST_OF_PROPERTIES_LOADED[$object->element] = true;
-            }
-            // Get white list
+            } // Get white list
             elseif (isset(self::$WHITELIST_OF_PROPERTIES[$object->element])) {
                 $whitelist_of_properties = self::$WHITELIST_OF_PROPERTIES[$object->element];
                 $whitelist_of_properties_linked_object = self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
-                if (empty($whitelist_of_properties_linked_object)) $whitelist_of_properties_linked_object = $whitelist_of_properties;
+                if (empty($whitelist_of_properties_linked_object)) {
+                    $whitelist_of_properties_linked_object = $whitelist_of_properties;
+                }
 
                 $blacklist_of_properties = self::$BLACKLIST_OF_PROPERTIES[$object->element];
                 $blacklist_of_properties_linked_object = self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
-                if (empty($blacklist_of_properties_linked_object)) $blacklist_of_properties_linked_object = $blacklist_of_properties;
+                if (empty($blacklist_of_properties_linked_object)) {
+                    $blacklist_of_properties_linked_object = $blacklist_of_properties;
+                }
             }
         }
 
@@ -1486,7 +1522,7 @@ class EquipementApi extends DolibarrApi {
      *
      * @return array                Array of errors
      */
-	function _getErrors(&$object)
+    function _getErrors(&$object)
     {
         $errors = is_array($object->errors) ? $object->errors : array();
         $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));

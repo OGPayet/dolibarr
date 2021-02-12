@@ -93,7 +93,7 @@ print "</table><br>";
 
 
 $sql = "SELECT";
-$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot, ent.ref,";
+$sql.= " e.ref, e.rowid, e.fk_statut, e.fk_product, p.ref as refproduit, e.fk_entrepot,";
 $sql.= " e.fk_soc_fourn, sfou.nom as CompanyFourn,";
 $sql.= " e.fk_etatequipement, et.libelle as etatequiplibelle";
 

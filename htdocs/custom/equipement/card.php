@@ -243,7 +243,7 @@ if (empty($reshook)) {
             $object->fetch_thirdparty();
 
             $langs->load("other");
-            $upload_dir = $conf->equipement->dir_output;
+            $upload_dir = $conf->equipement->multidir_output[$object->entity];
             $file = $upload_dir . '/' . GETPOST('file');
             $ret = dol_delete_file($file, 0, 0, 0, $object);
             if ($ret) {
@@ -1147,7 +1147,7 @@ if ($action == 'create') {
 	print '</td></tr>';
 
 	// Extrafields
-	if (DOL_VERSION < "3.7.0") {
+	if (version_compare(DOL_VERSION, "3.7.0") < 0) {
 		$parameters = array( 'colspan' => ' colspan="3"');
 		// Note that $action and $object may have been modified by
 		$reshook = $hookmanager->executeHooks('formObjectOptions', $parameters, $object, $action);
@@ -1386,7 +1386,7 @@ if ($action == 'create') {
          * Built documents
          */
         $filename=dol_sanitizeFileName($object->ref);
-        $filedir=$conf->equipement->dir_output . "/".$object->id;
+        $filedir=$conf->equipement->multidir_output[$object->entity] . "/".$object->id;
         $urlsource=$_SERVER["PHP_SELF"]."?id=".$object->id;
         $genallowed=$user->rights->equipement->creer;
         $delallowed=$user->rights->equipement->supprimer;
@@ -1397,11 +1397,11 @@ if ($action == 'create') {
         print $formfile->showdocuments('equipement',$object->id,$filedir,$urlsource,$genallowed,$delallowed,'',0,0,0,0,0,'','','',$object->default_lang);
 
 
-        if (strcmp(DOL_VERSION, "6.0.0") >= 0) {
+        if (version_compare(DOL_VERSION, "6.0.0") >= 0) {
             // Show links to link elements
             $linktoelem = $form->showLinkToObjectBlock($object, null, array('equipement'));
             $somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
-        } elseif (DOL_VERSION >= "5.0.0")
+        } elseif (version_compare(DOL_VERSION, "5.0.0") >= 0)
             $somethingshown = $form->showLinkedObjectBlock($object, "");
         else
             $somethingshown=$object->showLinkedObjectBlock();

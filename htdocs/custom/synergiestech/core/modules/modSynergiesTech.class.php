@@ -109,6 +109,7 @@ class modSynergiesTech extends DolibarrModules
 			'triggers' => 1,
 			'hooks' => array('globalapi', 'requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
 			'moduleforexternal' => 1,
+			'js' => array('/synergiestech/js/large_model_select.js'),
 		);
 
 		// Data directories to create when module is enabled.
@@ -587,7 +588,6 @@ class modSynergiesTech extends DolibarrModules
                 'type' => 'object',
                 'icon' => 'file-pdf-o',
                 'enable' => '! empty($conf->contrat->enabled)',
-                'display' => '! empty($conf->global->MULTICOMPANY_CONTRACT_SHARING_ENABLED)',
                 'active' => true
             ),));
         dolibarr_set_const($this->db, "MULTICOMPANY_EXTERNAL_MODULES_SHARING", json_encode($arrayOfElement), 'chaine', 0, '', 0);

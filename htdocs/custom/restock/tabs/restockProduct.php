@@ -105,7 +105,7 @@ if ($action!="createrestock") {
 	$linkback = '<a href="'.DOL_URL_ROOT.'/product/list.php'.(! empty($socid)?'?socid='.$socid:'').'">';
 	$linkback.= $langs->trans("BackToList").'</a>';
 
-	if (DOL_VERSION >= "5.0.0") {
+	if (version_compare(DOL_VERSION, "5.0.0") >= 0) {
 		$morehtmlref='<div class="refidno">';
 		$morehtmlref.='<br>'.$langs->trans('PhysicalStock') . ' : ';
 		$morehtmlref.= $object->stock_reel.'</div>';
@@ -548,7 +548,7 @@ if ($action=="") {
 	}
 	// une fois que c'est termin�, on affiche les commandes fournisseurs cr�e
 	// on cr�e les commandes et on les listes sur l'�cran
-	if (DOL_VERSION < "3.7.0")
+	if (version_compare(DOL_VERSION, "3.7.0") < 0)
 		header("Location: ".DOL_URL_ROOT."/fourn/commande/liste.php?search_ref_supplier=".GETPOST("reforderfourn"));
 	else
 		header("Location: ".DOL_URL_ROOT."/fourn/commande/list.php?search_refsupp=".GETPOST("reforderfourn"));

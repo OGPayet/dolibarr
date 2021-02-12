@@ -48,6 +48,11 @@ class SepaMandatCompanyBankAccountLink
 	public $errors = array();
 
 	/**
+	 * @var string[] array to convert mandat type to companybankaccount frstrecur type
+	*/
+	private static $mandatSepaTypeToFrstrecurValue = array();
+
+	/**
 	 * Constructor
 	 *
 	 * @param   SepaMandat $object from dolibarr to be handle
@@ -56,6 +61,8 @@ class SepaMandatCompanyBankAccountLink
 	{
 		$this->db = $object->db;
 		$this->object = $object;
+		self::$mandatSepaTypeToFrstrecurValue[SepaMandat::TYPE_PUNCTUAL] = "FRST";
+		self::$mandatSepaTypeToFrstrecurValue[SepaMandat::TYPE_RECURRENT] = "RECUR";
 	}
 
 	/**
@@ -77,6 +84,7 @@ class SepaMandatCompanyBankAccountLink
 		$companyAccount->label = $this->object->getNomUrl(1, null, 1);
 		$companyAccount->bank = $langs->trans("SepaMandateCompanyAccountName", $this->object->ref);
 		$companyAccount->rum = $this->object->rum;
+		$companyAccount->frstrecur = self::$mandatSepaTypeToFrstrecurValue[$this->object->type];
 		if ($companyAccount->create($user) > 0 && $companyAccount->update($user) > 0) {
 			$this->object->fk_companybankaccount = $companyAccount->id;
 			$this->object->update($user, true);

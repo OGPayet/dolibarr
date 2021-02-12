@@ -123,7 +123,7 @@ class SepaMandat extends CommonObject
 		'type' => array('type' => 'integer', 'label' => 'Type de mandat', 'enabled' => '1', 'position' => 115, 'notnull' => 1, 'visible' => 1, 'default' => self::TYPE_RECURRENT),
 		'date_rum' => array('type' => 'date', 'label' => 'Date du mandat', 'enabled' => '1', 'position' => 500, 'notnull' => 0, 'visible' => 1,),
 		'fk_companybankaccount' => array('type' => 'integer:CompanyBankAccount:societe/class/companybankaccount.class.php', 'label' => 'Linked company bank account', 'enabled' => 1, 'visible' => 0, 'index' => 1),
-		'fk_generated_ecm' => array('type' => 'integer:ExtendedEcm:sepamandatmanager/class/extendedecm.class.php', 'label' => 'Last generated pdf file', 'enabled' => 1, 'visible' => 0)
+		'fk_generated_ecm' => array('type' => 'integer:ExtendedEcm:atlantis/class/extendedecm.class.php', 'label' => 'Last generated pdf file', 'enabled' => 1, 'visible' => 0)
 	);
 	public $rowid;
 	public $ref;
