@@ -897,7 +897,7 @@ class DigitalSignaturePeople extends CommonObject
 			return -1;
 		}
 
-		$contactPhoneNumber = array_shift(array_filter(array($contact->phone_mobile, $contact->phone_pro, $contact->phone_perso)));
+		$contactPhoneNumber = array_shift(array_filter(array($contact->phone_mobile)));
 		$dataToUpdate = array('firstName' => $contact->firstname, 'lastName' => $contact->lastname, 'mail' => $contact->email, 'phoneNumber' => $contactPhoneNumber);
 		foreach ($dataToUpdate as $fieldName => $value) {
 			if ($overrideData || !empty($value)) {
