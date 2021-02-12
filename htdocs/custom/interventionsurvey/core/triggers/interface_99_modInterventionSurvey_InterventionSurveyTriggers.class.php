@@ -310,10 +310,12 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                         !empty($object->array_options['options_third_parties_to_send_fichinter_to'])
                     ) {
                         require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_interventionmail.lib.php';
+                        require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_checkinterventionfields.lib.php';
 
                         $interventionMail = new InterventionMail($this->db, $object, $user);
+                        $checkInterventionFields = new InterventionCheckFields($object);
                         
-                        if ($interventionMail->checkInterventionFields()) {
+                        if (empty($checkInterventionFields->checkInterventionFields())) {
                             $interventionMail->sendInterventionByMail($sendfrom);
                         }
                     }

@@ -173,6 +173,10 @@ InterventionSurveyMissingAnswer = La réponse obligatoire pour la question %s (I
 InterventionSurveyMissingJustificationAnswer = La justification obligatoire pour la question %s (ID : %s) est manquante
 InterventionSurveyQuestionMissingExtrafield = La valeur pour l'extrafield obligatoire %s dans la question %s (ID : %s) est manquante
 InterventionSurveyFileNotFound = Fichier introuvable
+InterventionSurveyMissingArrayOptions = L'élément array options de l'intervention (ID = %s) est manquant
+InterventionSurveyMissingStakeholderSignature = La signature des parties prenantes de l'intervention (ID = %s) est manquante
+InterventionSurveyMissingCustomerSignature = La signature des clients de l'intervention (ID = %s) est manquante
+InterventionSurveyMissingInterventionLines = L'intervention (ID = %s) ne contient aucune ligne d'intervention
 
 # Ecran de visualisation et saisie des questionnaires
 InterventionSurveyMustBeValidated = L'intervention doit être au statut Validé afin de pouvoir modifier le questionnaire

@@ -2,6 +2,7 @@
 
 class InterventionCheckFields {
     var $object;
+    var $errors;
 
     /**
 	 * Constructor
@@ -15,44 +16,60 @@ class InterventionCheckFields {
 
     // Check array options
     public function isArrayOptionsEmpty() {
+        global $langs;
+
+        $error = array();
+
         if (empty($this->object->array_options)) {
-            return true;
+            $error[] = $langs->trans('InterventionSurveyMissingArrayOptions', $this->object->id); 
         }
 
-        return false;
+        return $error;
     }
 
     // Check stakeholder signature
     public function isStakeholderSignatureEmpty() {
+        global $langs;
+
+        $error = array();
+
         if (empty($this->object->array_options['options_stakeholder_signature'])) {
-            return true;
+            $error[] = $langs->trans('InterventionSurveyMissingStakeholderSignature', $this->object->id); 
         } else if (empty(json_decode($this->object->array_options['options_stakeholder_signature'])->value)) {
-            return true;
+            $error[] = $langs->trans('InterventionSurveyMissingStakeholderSignature', $this->object->id); 
         }
 
-        return false;
+        return $error;
     }
 
     // Check customer signature
     public function isCustomerSignatureEmpty() {
+        global $langs;
+
+        $error = array();
+
         if (empty($this->object->array_options['options_customer_signature'])) {
-            return true;
+            $error[] = $langs->trans('InterventionSurveyMissingCustomerSignature', $this->object->id); 
         } else if (empty(json_decode($this->object->array_options['options_customer_signature'])->value)) {
             if (!json_decode($this->object->array_options['options_customer_signature'])->isCustomerAbsent) {
-                return true;
+                $error[] = $langs->trans('InterventionSurveyMissingCustomerSignature', $this->object->id); 
             }
         }
 
-        return false;
+        return $error;
     }
 
     // Check intervention lines
     public function isInterventionLinesEmpty() {
+        global $langs;
+
+        $error = array();
+
         if (empty($this->object->lines)) {
-            return true;
+            $error[] = $langs->trans('InterventionSurveyMissingInterventionLines', $this->object->label, $this->object->id); 
         }
 
-        return false;
+        return $error;
     }
 
     public function checkInterventionFields() {
