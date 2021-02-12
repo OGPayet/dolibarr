@@ -498,7 +498,7 @@ class FormDigitalSignatureRequestTemplate
 				'type' => 'other',
 				'label' => $langs->trans('DigitalSignatureManagerAddPeopleFromContact'),
 				'name' => $contactHtmlName,
-				'value' => $this->formDigitalSignatureManager->selectContact($object, $this->getSelectedContactIdForDictionaryLineId($dictionaryItem->c_rowid, $ecmFileId) ?? -1, $contactHtmlName, $object->socid, null, null, true)
+				'value' => $this->formDigitalSignatureManager->selectContact($object, $this->getSelectedContactIdForDictionaryLineId($dictionaryItem->c_rowid, $ecmFileId) ?? -1, $contactHtmlName, DigitalSignatureRequestLinkedObject::getSocId($object), null, null, true)
 			);
 		}
 		if (in_array(DigitalSignaturePeople::LINKED_OBJECT_FREE_TYPE, $dictionaryItem->linkedContactType)) {

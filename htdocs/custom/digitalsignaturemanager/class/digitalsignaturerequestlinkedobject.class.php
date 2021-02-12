@@ -379,21 +379,21 @@ class DigitalSignatureRequestLinkedObject
             return $conf->propal->dir_output . "/" . dol_sanitizeFileName($this->object->ref);
         }
         return null;
-	}
+    }
 
     /**
      * Function to get directory where search files for ficheinter
      * @param Propal $object object on which search where are stored files
      * @return string|null
      */
-	private function getFichInterDirectory()
-	{
-		if ($this->object->ref) {
+    private function getFichInterDirectory()
+    {
+        if ($this->object->ref) {
             global $conf;
             return $conf->ficheinter->dir_output . "/" . dol_sanitizeFileName($this->object->ref);
         }
         return null;
-	}
+    }
 
     /**
      * Function to get selectable files for an object
@@ -406,9 +406,9 @@ class DigitalSignatureRequestLinkedObject
             $result = $this->getEcmListForDirectory($this->getPropalDirectory($this->object));
         } elseif ($this->object->element == 'sepamandatmanager_sepamandat') {
             $result = $this->getEcmListForDirectory($this->object->getAbsolutePath());
-		} else if($this->object->element == 'fichinter') {
-			$result = $this->getEcmListForDirectory($this->getFichInterDirectory($this->object));
-		}
+        } elseif ($this->object->element == 'fichinter') {
+            $result = $this->getEcmListForDirectory($this->getFichInterDirectory($this->object));
+        }
         return $result;
     }
 
@@ -486,5 +486,21 @@ class DigitalSignatureRequestLinkedObject
             $result = array_merge($result, array_values($linkIdsAndLinkedObjects));
         }
         return $result;
+    }
+
+    /**
+     * Static function to get soc id of a common object
+     * @param CommonObject $object
+     * @return int|null
+     */
+    public static function getSocId($object)
+    {
+        $fields = array('socid', 'fk_soc');
+        foreach ($fields as $field) {
+            if ($object->{$field}) {
+                return $object->{$field};
+            }
+        }
+        return null;
     }
 }
