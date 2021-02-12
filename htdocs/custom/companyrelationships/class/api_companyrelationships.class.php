@@ -4903,8 +4903,10 @@ class CompanyRelationshipsApi extends DolibarrApi
 			'fichinter', 'ficheinter', 'intervention', 'interventions', 'contract', 'contrat'
 		));
 
+		$companyRelationShipsCoreModulepartCheck = array_flip(array('contact'));
 
-		if (isset($companyrelationships_modulepart_check[$module_part])) {
+
+		if (isset($companyrelationships_modulepart_check[$module_part]) || isset($companyRelationShipsCoreModulepartCheck[$module_part])) {
 			$object = null;
 			if ($module_part == 'propal' || $module_part == 'proposal') {
 				require_once DOL_DOCUMENT_ROOT . '/comm/propal/class/propal.class.php';
@@ -4950,11 +4952,19 @@ class CompanyRelationshipsApi extends DolibarrApi
 				if (!$result) {
 					return [];
 				}
+			} elseif ($module_part == 'contact') {
+				require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+				$object = new Contact($this->db);
+				$result = $object->fetch($refname);
+				if (!$result) {
+					return [];
+				}
 			}
 
 			if (isset($object)) {
 				$hasPerm = $this->_checkUserPublicSpaceAvailabilityPermOnObject($object);
-                if (!$hasPerm) {
+				$hasPermForCoreModule = $object->element == 'contact' && $object->socid == DolibarrApiAccess::$user->socid && DolibarrApiAccess::$user->contact_id == $object->id;
+                if (!$hasPerm && !$hasPermForCoreModule) {
                     throw new RestException(401, 'Data not public - Access not allowed for login ' . DolibarrApiAccess::$user->login);
                 }
                 else {
@@ -4964,11 +4974,10 @@ class CompanyRelationshipsApi extends DolibarrApi
 		} else {
 			$accessallowed = $check_access['accessallowed'];
 			$sqlprotectagainstexternals = $check_access['sqlprotectagainstexternals'];
-			$sqlprotectagainstexternalsapi = $check_access['sqlprotectagainstexternalsapi'];
 
 			if (DolibarrApiAccess::$user->socid > 0) {
-				if ($sqlprotectagainstexternalsapi) {
-					$resql = $db->query($sqlprotectagainstexternalsapi);
+				if ($sqlprotectagainstexternals) {
+					$resql = $db->query($sqlprotectagainstexternals);
 					if ($resql) {
 						if ($db->num_rows($resql) == 0) throw new RestException(401);
 					} else {
