@@ -472,6 +472,11 @@ while ($i < ($limit ? min($num, $limit) : $num))
 	// Store properties in $object
 	$object->setVarsFromFetchObj($obj);
 
+	//Fetch people if needed according to status to get full status
+	if($object->status == DigitalSignatureRequest::STATUS_IN_PROGRESS || $object->status == DigitalSignatureRequest::STATUS_CANCELED_BY_SIGNERS){
+		$object->fetchPeople();
+	}
+
 	// Show here line of result
 	print '<tr class="oddeven">';
 	foreach ($object->fields as $key => $val)
