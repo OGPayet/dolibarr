@@ -410,7 +410,7 @@ if($action == 'confirm_direct') {
 					if ($stockLine[$i]['qty']>0)
 					{
 						$ret=$objectexp->addline($stockLine[$i]['warehouse_id'], $stockLine[$i]['ix_l'], $stockLine[$i]['qty'], $array_options[$i]);
-						$objectexp->fetch_lines();
+						//$objectexp->fetch_lines();
 						$db->commit();
 						if ($ret < 0)
 						{
