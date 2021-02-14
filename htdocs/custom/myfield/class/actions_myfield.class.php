@@ -360,7 +360,7 @@ function printCommonFooter($parameters, $object, $action)
 		return 0;
 	}
 
-	print $langs->trans("MyFieldsDBCloseOrderingError");
+	//print $langs->trans("MyFieldsDBCloseOrderingError");
 	return -1;
 }
 

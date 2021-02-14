@@ -434,7 +434,7 @@ class ActionsDigitalSignatureManager
 	public function showLinkedObjectBlock($parameters, &$object, &$action, $hookmanager)
 	{
 		$contexts = explode(':', $parameters['context']);
-		if (!in_array('digitalsignaturerequestcard', $contexts)) {
+		if (!in_array('digitalsignaturerequestcard', $contexts) && $object->element && $object->id) {
 			$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
 			//$linkedDigitalSignatureRequests = $digitalSignatureRequestLinkedObject->getLinkedDigitalSignatureRequests();
 			$signedAndNotStaleLinkDigitalSignatureRequest = $digitalSignatureRequestLinkedObject->getEndedLinkedSignatureWithNoStaledData();

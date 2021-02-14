@@ -929,7 +929,7 @@ class ActionsCompanyRelationships
             }
             $newIds = array();
             foreach ($objectToSearchCompanyInto as $payload) {
-                if (empty($payload->array_options)) {
+                if (method_exists($payload, "fetch_optionals") && empty($payload->array_options)) {
                     $payload->fetch_optionals();
                 }
                 if ($payload->socid) {
