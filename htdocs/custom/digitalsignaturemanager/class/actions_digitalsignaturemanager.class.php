@@ -198,6 +198,9 @@ class ActionsDigitalSignatureManager
 	public function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
 	{
 		global $user;
+		if(!$object->element || !$object->id) {
+			return 0;
+		}
 		$digitalSignatureRequestLinkedObject = new DigitalSignatureRequestLinkedObject($object);
 		$isThereADigitalSignatureRequestInProgress = $digitalSignatureRequestLinkedObject->isThereADigitalSignatureInProgress();
 		$isThereADigitalSignatureRequestInDraft = $digitalSignatureRequestLinkedObject->isThereADigitalSignatureInDraft();
