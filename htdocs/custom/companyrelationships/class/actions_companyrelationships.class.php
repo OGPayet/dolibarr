@@ -165,14 +165,12 @@ class ActionsCompanyRelationships
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
-
             dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
             if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
-
                 if ($object->element == 'fichinter') {
                     $userRightsElementCreer = $user->rights->ficheinter->creer;
-                } else if ($object->element == 'order_supplier') {
+                } elseif ($object->element == 'order_supplier') {
                     $userRightsElementCreer = $user->rights->fournisseur->commande->creer;
                 } else {
                     $userRightsElementCreer = $user->rights->{$object->table_element}->creer;
@@ -205,14 +203,12 @@ class ActionsCompanyRelationships
                     // it doesn't work because object is new in create mode
                     //$object->cr_confirm_socid = 1;
                     $action = 'create';
-                }
-                // update extra fields
-                else if ($action == 'update_extras' && $userRightsElementCreer) {
+                } // update extra fields
+                elseif ($action == 'update_extras' && $userRightsElementCreer) {
                     $attribute = GETPOST('attribute', 'alpha');
 
                     // update benefactor company
                     if ($attribute == 'companyrelationships_fk_soc_benefactor') {
-
                         require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 
                         $langs->load('companyrelationships@companyrelationships');
@@ -258,10 +254,8 @@ class ActionsCompanyRelationships
                                 exit();
                             }
                         }
-                    }
-                    // update watcher company
-                    else if ($attribute == 'companyrelationships_fk_soc_watcher') {
-
+                    } // update watcher company
+                    elseif ($attribute == 'companyrelationships_fk_soc_watcher') {
                         require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
 
                         $langs->load('companyrelationships@companyrelationships');
@@ -395,7 +389,6 @@ class ActionsCompanyRelationships
             dol_include_once('/companyrelationships/class/companyrelationships.class.php');
 
             if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
-
                 if ($action == 'clone') {
                     dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 
@@ -438,12 +431,12 @@ class ActionsCompanyRelationships
                     $fomrConfirmTitle = 'Clone';
                     if ($object->element == "commande") {
                         $fomrConfirmTitle .= 'Order';
-                    } else if ($object->element == "facture") {
+                    } elseif ($object->element == "facture") {
                         $fomrConfirmTitle .= 'Invoice';
                         $fomrConfirmUrlId = 'facid=' . $object->id;
-                    } else if ($object->element == "fichinter") {
+                    } elseif ($object->element == "fichinter") {
                         $fomrConfirmTitle .= 'Intervention';
-                    } else if ($object->element == "contrat") {
+                    } elseif ($object->element == "contrat") {
                         $fomrConfirmTitle .= 'Contract';
                     } else {
                         $fomrConfirmTitle .= ucfirst($object->element);
@@ -484,10 +477,9 @@ class ActionsCompanyRelationships
 
             // /!\ element shipping (uses expediton/shipment.php for edit mode and uses expedition/card.php has only create card)
             if (!empty($object->table_element) && !empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
-
                 if ($object->element == 'fichinter') {
                     $userRightsElementCreer = $user->rights->ficheinter->creer;
-                } else if ($object->element == 'order_supplier') {
+                } elseif ($object->element == 'order_supplier') {
                     $userRightsElementCreer = $user->rights->fournisseur->commande->creer;
                 } else {
                     $userRightsElementCreer = $user->rights->{$object->table_element}->creer;
@@ -512,7 +504,6 @@ class ActionsCompanyRelationships
 
                     // set default values for socid and fk_soc_benefactor if this element linked to a previous element (origin)
                     if (!empty($originid) && intval($fk_soc_benefactor) <= 0) {
-
                         if (intval($fk_soc_benefactor) <= 0) {
                             $fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
                         }
@@ -734,10 +725,8 @@ class ActionsCompanyRelationships
                     }
 
                     print $out;
-                }
-                // edit extrafields
-                else if ($action == 'edit_extras' && $userRightsElementCreer) {
-
+                } // edit extrafields
+                elseif ($action == 'edit_extras' && $userRightsElementCreer) {
                     $attribute = GETPOST('attribute', 'alpha');
 
                     // benefactor
@@ -751,9 +740,8 @@ class ActionsCompanyRelationships
 
                             print $out;
                         }
-                    }
-                    // watcher
-                    else if ($attribute == 'companyrelationships_fk_soc_watcher') {
+                    } // watcher
+                    elseif ($attribute == 'companyrelationships_fk_soc_watcher') {
                         // company id already posted (an input hidden in this form)
                         if (intval($object->socid) > 0) {
                             dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
@@ -851,10 +839,10 @@ class ActionsCompanyRelationships
     /**
      * Define array with couple subtitution key => subtitution value
      *
-     * @param	Contact 		$object        	contact
-     * @param	Translate 	$outputlangs   	object for output
-     * @param   array_key	$array_key	    Name of the key for return array
-     * @return	array of substitution key->code
+     * @param   Contact         $object         contact
+     * @param   Translate   $outputlangs    object for output
+     * @param   array_key   $array_key      Name of the key for return array
+     * @return  array of substitution key->code
      */
     private function thirdpartysubstitutionarray($db, $object, $outputlangs)
     {
@@ -910,12 +898,49 @@ class ActionsCompanyRelationships
             foreach ($extrafields->attribute_label as $key => $label) {
                 if ($extrafields->attribute_type[$key] == 'price') {
                     $object->array_options['options_' . $key] = price($object->array_options['options_' . $key], 0, $outputlangs, 0, 0, -1, $conf->currency);
-                } else if ($extrafields->attribute_type[$key] == 'select' || $extrafields->attribute_type[$key] == 'checkbox') {
+                } elseif ($extrafields->attribute_type[$key] == 'select' || $extrafields->attribute_type[$key] == 'checkbox') {
                     $object->array_options['options_' . $key] = $extrafields->attribute_param[$key]['options'][$object->array_options['options_' . $key]];
                 }
                 $array_thirdparty = array_merge($array_thirdparty, array('benefactor_company_options_' . $key => $object->array_options['options_' . $key]));
             }
         }
         return $array_thirdparty;
+    }
+
+    /**
+     * Overloading the availableContactListId function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function availableContactListId(&$parameters, &$object, &$action, $hookmanager)
+    {
+        if ($object) {
+            $objectToSearchCompanyInto = array();
+            if ($object->element == 'digitalsignaturemanager_digitalsignaturerequest') {
+                foreach ($object->documents as $document) {
+                    $objectToSearchCompanyInto[] = $document->getLinkedObject();
+                }
+            } else {
+                $objectToSearchCompanyInto[] = $object;
+            }
+            $newIds = array();
+            foreach ($objectToSearchCompanyInto as $payload) {
+                if (method_exists($payload, "fetch_optionals") && empty($payload->array_options)) {
+                    $payload->fetch_optionals();
+                }
+                if ($payload->socid) {
+                    $newIds[] = $payload->socid;
+                } elseif ($payload->fk_soc) {
+                    $newIds[] = $payload->fk_soc;
+                }
+                $newIds[] = $payload->array_options['options_companyrelationships_fk_soc_benefactor'];
+            }
+            $alreadyAskIds = is_array($parameters['filterToFollowingSocId']) ? $parameters['filterToFollowingSocId'] : array($parameters['filterToFollowingSocId']);
+            $parameters['filterToFollowingSocId'] = array_unique(array_filter(array_merge($alreadyAskIds, $newIds)));
+        }
     }
 }
