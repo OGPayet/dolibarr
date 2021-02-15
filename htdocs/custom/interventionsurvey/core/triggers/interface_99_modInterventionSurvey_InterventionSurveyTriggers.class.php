@@ -316,6 +316,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                         $checkInterventionFields = new InterventionCheckFields($object);
                         
                         if (empty($checkInterventionFields->checkInterventionFields())) {
+                            $sendfrom = $conf->global->INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER;
                             $interventionMail->sendInterventionByMail($sendfrom);
                         }
                     }

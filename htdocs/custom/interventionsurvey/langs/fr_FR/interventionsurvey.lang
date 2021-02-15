@@ -53,6 +53,8 @@ InterventionSurveyStricDataCheckOnCloturedDesc = Empêcher la cloture de l'inter
 InterventionSurveyAtLeastOneListMustHaveBeenCreatedName = Forcer la présence d'une ligne d'intervention pour pouvoir la clôturer
 InterventionSurveyAtLeastOneListMustHaveBeenCreatedDesc = Si cette option est activée, il n'est pas possible de clôturer une intervention si aucune ligne d'intervention n'est crée
 InterventionSurveySetupModifyButton = Sauvegarder
+InterventionSurveyDefaultEmailAddressSender = Adresse e-mail expéditeur
+InterventionSurveyDefaultEmailAddressSenderDescription = Adresse e-mail par défaut pour l'envoi par mail des bordereaux PDF d'intervention
 
 # Page À propos
 #
