@@ -654,6 +654,54 @@ class InterventionSurveyApi extends DolibarrApi
         return $this->_cleanObjectData($this->interventionSurvey);
     }
 
+    /**
+     * Get fichinter PDF file of an intervention
+     *
+     * Return the PDF file in base64 string format
+     *
+     * @param 	int 	$id intervention ID
+     * @return 	string
+     * @url	GET /fichinterPdf/{id}
+     * @throws 	RestException
+     */
+    function getFichinterPdf($id)
+    {
+        global $conf;
+        
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->readApi) {
+            throw new RestException(401);
+        }
+
+        if (!($id > 0)) {
+            throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
+        }
+
+        $result = $this->interventionSurvey->fetch($id, '', true, true);
+        if (!($result > 0)) {
+            throw new RestException(404, 'Intervention not found');
+        }
+
+        if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
+            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+
+        $this->interventionSurvey->fetchObjectLinked();
+                
+        $this->updatePdfFileIfNeeded();
+
+        $ref = dol_sanitizeFileName($this->interventionSurvey->ref);
+        include_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
+        $fileparams = dol_most_recent_file($conf->ficheinter->dir_output . '/' . $ref, preg_quote($ref, '/') . '[^\-]+');
+        $file = $fileparams['fullname'];
+
+        $pdf_content = file_get_contents($file);
+        $b64_pdf = 'data:application/pdf;base64,' . base64_encode($pdf_content);
+
+        return $b64_pdf;
+    }
+
+
+
     /******************************************** */
     //                    TOOLS                   //
     /******************************************** */
