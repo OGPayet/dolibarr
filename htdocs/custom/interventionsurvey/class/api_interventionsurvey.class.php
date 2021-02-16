@@ -686,12 +686,12 @@ class InterventionSurveyApi extends DolibarrApi
         }
 
         $this->interventionSurvey->fetchObjectLinked();
-                
+        
         $this->updatePdfFileIfNeeded();
 
         $ref = dol_sanitizeFileName($this->interventionSurvey->ref);
         include_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
-        $fileparams = dol_most_recent_file($conf->ficheinter->dir_output . '/' . $ref, preg_quote($ref, '/') . '[^\-]+');
+        $fileparams = dol_dir_list($conf->ficheinter->dir_output . '/' . $ref)[0];
         $file = $fileparams['fullname'];
 
         $pdf_content = file_get_contents($file);
