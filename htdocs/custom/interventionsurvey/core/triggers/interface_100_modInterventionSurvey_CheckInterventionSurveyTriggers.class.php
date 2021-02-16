@@ -108,7 +108,7 @@ class InterfaceCheckInterventionSurveyTriggers extends DolibarrTriggers
                 dol_syslog("Trigger for action '$action' launched. id=".$object->id);
                 
                 if ($conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS) {
-                    require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_checkinterventionfields.lib.php';
+                    require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/class/interventionsurvey_checkinterventionfields.class.php';
 
                     $checkInterventionFields = new InterventionCheckFields($object);
 
