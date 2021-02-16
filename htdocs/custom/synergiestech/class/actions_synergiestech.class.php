@@ -3632,39 +3632,6 @@ SCRIPT;
             if (!empty($object->array_options['options_customer_signature'])) {
                 $customer_signature = json_decode($object->array_options['options_customer_signature'], true);
                 $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
-
-                // Add signatory customer to the emailList
-                if (!$isCustomerAbsent) {
-                    if (!empty($customer_signature->people)) {
-                        include_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
-                        $contact = new Contact($this->db);
-
-                        foreach ($customer_signature->people as $signatoryCustomer) {
-                            $result = $user->fetch($signatoryCustomer->identifier);
-
-                            if ($result > 0 && !empty($contact->email)) {
-                                array_push($emailList, $contact->email);
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Add signatory user to the emailList
-            if (!empty($object->array_options['options_stakeholder_signature'])) {
-                $stakeholder_signature = json_decode($object->array_options['options_stakeholder_signature'], true);
-
-                $user = new User($this->db);
-
-                if (!empty($stakeholder_signature->people)) {
-                    foreach ($stakeholder_signature->people as $signatoryUser) {
-                        $result = $user->fetch($signatoryUser->identifier);
-
-                        if ($result > 0 && !empty($user->email)) {
-                            array_push($emailList, $user->email);
-                        }
-                    }
-                }
             }
 
             if (!empty($object->array_options['options_companyrelationships_availability_principal'])) {

@@ -379,4 +379,74 @@ class ActionsInterventionSurvey
             return 1;
         }
     }
+
+    /**
+     * Overloading the addMoreToEmail function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+    */
+    public function addMoreToEmail($parameters = array(), &$object, &$action = '', $hookmanager) {
+        global $conf, $user, $langs;
+
+        $contexts = explode(':', $parameters['context']);
+
+        $error = 0;
+        $emailList = $parameters['emailList'];
+        $this->results = array();
+        
+        if(in_array("interventionmail", $contexts)) {
+            $isCustomerAbsent = false;
+            
+            // Check if customer is absent
+            if (!empty($object->array_options['options_customer_signature'])) {
+                $customer_signature = json_decode($object->array_options['options_customer_signature'], true);
+                $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
+
+                // Add signatory customer to the emailList
+                if (!$isCustomerAbsent) {
+                    if (!empty($customer_signature->people)) {
+                        include_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+                        $contact = new Contact($this->db);
+
+                        foreach ($customer_signature->people as $signatoryCustomer) {
+                            $result = $user->fetch($signatoryCustomer->identifier);
+
+                            if ($result > 0 && !empty($contact->email)) {
+                                array_push($emailList, $contact->email);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Add signatory user to the emailList
+            if (!empty($object->array_options['options_stakeholder_signature'])) {
+                $stakeholder_signature = json_decode($object->array_options['options_stakeholder_signature'], true);
+
+                $user = new User($this->db);
+
+                if (!empty($stakeholder_signature->people)) {
+                    foreach ($stakeholder_signature->people as $signatoryUser) {
+                        $result = $user->fetch($signatoryUser->identifier);
+
+                        if ($result > 0 && !empty($user->email)) {
+                            array_push($emailList, $user->email);
+                        }
+                    }
+                }
+            }
+
+            $this->results = $emailList;
+
+            if ($error) {
+                return -1;
+            } else if (!empty($this->results)) {
+                return 0;
+            }
+        }
+    }
 }
