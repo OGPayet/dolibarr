@@ -688,7 +688,7 @@ class InterventionSurveyApi extends DolibarrApi
         $this->updatePdfFileIfNeeded(true);
 
         $ref = dol_sanitizeFileName($this->interventionSurvey->ref);
-        $file = $conf->ficheinter->dir_output . '/' . $ref . '/' . $ref . '.pdf';
+        $file = $conf->ficheinter->multidir_output[$this->interventionSurvey->entity] . '/' . $ref . '/' . $ref . '.pdf';
 
         if (empty($file)) {
             throw new RestException(403, 'Error fichinter PDF not found for Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
