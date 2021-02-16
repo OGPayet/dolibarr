@@ -80,9 +80,7 @@ class InterventionMail {
         global $conf;
 
         $ref = dol_sanitizeFileName($this->object->ref);
-        include_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
-        $fileparams = dol_dir_list($conf->ficheinter->dir_output . '/' . $ref)[0];
-        $file = $fileparams['fullname'];
+        $file = $conf->ficheinter->dir_output . '/' . $ref . '/' . $ref . '.pdf';
 
         return $file;
     }
