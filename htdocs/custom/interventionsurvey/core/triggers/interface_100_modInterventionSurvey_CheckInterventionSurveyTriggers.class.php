@@ -104,35 +104,24 @@ class InterfaceCheckInterventionSurveyTriggers extends DolibarrTriggers
         // Data and type of action are stored into $object and $action
 
         switch ($action) {
-            case 'CHECK_INTERVENTION_FIELDS':
+            case 'FICHINTER_CLASSIFY_DONE':
                 dol_syslog("Trigger for action '$action' launched. id=".$object->id);
                 
-                if ($conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS) {
-                    require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/class/interventionsurvey_checkinterventionfields.class.php';
+                if (!empty($object->array_options['options_contacts_to_send_fichinter_to']) || 
+                    !empty($object->array_options['options_users_to_send_fichinter_to']) || 
+                    !empty($object->array_options['options_third_parties_to_send_fichinter_to'])
+                ) {
+                    if ($conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS) {
+                        require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/class/interventionsurvey_checkinterventionfields.class.php';
 
-                    $checkInterventionFields = new InterventionCheckFields($object);
+                        $checkInterventionFields = new InterventionCheckFields($object);
 
-                    if (empty($checkInterventionFields->checkInterventionFields())) {
-                        // Call trigger
-                        $result = $object->call_trigger('FICHINTER_SENTBYMAIL', $user);
-
-                        if ($result < 0) $error++;
-                        // End call triggers
-
-                        if ($error) {
-                            setEventMessages('', $object->errors, 'errors');
+                        if (!empty($checkInterventionFields->checkInterventionFields())) {
+                            return -1;
                         }
                     }
                 } else {
-                    // Call trigger
-                    $result = $object->call_trigger('FICHINTER_SENTBYMAIL', $user);
-
-                    if ($result < 0) $error++;
-                    // End call triggers
-
-                    if ($error) {
-                        setEventMessages('', $object->errors, 'errors');
-                    }
+                    return -1;
                 }
 
                 return 0;

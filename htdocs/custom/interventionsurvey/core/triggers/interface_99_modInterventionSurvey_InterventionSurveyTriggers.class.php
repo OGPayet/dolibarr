@@ -304,22 +304,6 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                     setEventMessages('', $object->errors, 'errors');
                     return -1;
                 } else {
-                    // Notify involved people by mail
-                    if (!empty($object->array_options['options_contacts_to_send_fichinter_to']) || 
-                        !empty($object->array_options['options_users_to_send_fichinter_to']) || 
-                        !empty($object->array_options['options_third_parties_to_send_fichinter_to'])
-                    ) {
-                        // Call trigger
-                        $result = $object->call_trigger('CHECK_INTERVENTION_FIELDS', $user);
-
-                        if ($result < 0) $error++;
-                        // End call triggers
-
-                        if ($error) {
-                            setEventMessages('', $object->errors, 'errors');
-                        }
-                    }
-
                     // Insertion action
                     if($object->context['closedFromApi']) {
                         $actionLabel = $langs->trans('InterventionSurveyClassifyDoneOpsyOnSiteLabel', $object->ref);
