@@ -560,6 +560,169 @@ class ActionsSynergiesTech
                     $langs->trans("SynergiesTechValidateWithoutCheck") . '</a></div>';
                 }
             }
+        } elseif (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) {
+            // Validate
+            if ($object->statut == 0 && count($object->lines) > 0) {
+                if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->fournisseur->commande->creer))
+                   || (! empty($conf->global->MAIN_USE_ADVANCED_PERMS) && ! empty($user->rights->fournisseur->supplier_order_advance->validate))) {
+                    $tmpbuttonlabel=$langs->trans('Validate');
+                    if ($user->rights->fournisseur->commande->approuver && empty($conf->global->SUPPLIER_ORDER_NO_DIRECT_APPROVE)) {
+                        $tmpbuttonlabel = $langs->trans("ValidateAndApprove");
+                    }
+
+                    print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=valid">';
+                    print $tmpbuttonlabel;
+                    print '</a>';
+                }
+            }
+            // Create event
+            if ($conf->agenda->enabled && ! empty($conf->global->MAIN_ADD_EVENT_ON_ELEMENT_CARD)) {   // Add hidden condition because this is not a "workflow" action so should appears somewhere else on page.
+                print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create&amp;origin=' . $object->element . '&amp;originid=' . $object->id . '&amp;socid=' . $object->socid . '">' . $langs->trans("AddAction") . '</a></div>';
+            }
+
+            // Modify
+            if ($object->statut == 1) {
+                if ($user->rights->fournisseur->commande->commander) {
+                    print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reopen">'.$langs->trans("Modify").'</a>';
+                }
+            }
+
+            // Approve
+            if ($object->statut == 1) {
+                if ($user->rights->fournisseur->commande->approuver) {
+                    if (! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $conf->global->MAIN_FEATURES_LEVEL > 0 && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED && ! empty($object->user_approve_id)) {
+                        print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("FirstApprovalAlreadyDone")).'">'.$langs->trans("ApproveOrder").'</a>';
+                    } else {
+                        print '<a class="butAction"	href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=approve">'.$langs->trans("ApproveOrder").'</a>';
+                    }
+                } else {
+                    print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">'.$langs->trans("ApproveOrder").'</a>';
+                }
+            }
+
+            // Second approval (if option SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED is set)
+            if (! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) && $conf->global->MAIN_FEATURES_LEVEL > 0 && $object->total_ht >= $conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED) {
+                if ($object->statut == 1) {
+                    if ($user->rights->fournisseur->commande->approve2) {
+                        if (! empty($object->user_approve_id2)) {
+                            print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("SecondApprovalAlreadyDone")).'">'.$langs->trans("Approve2Order").'</a>';
+                        } else {
+                            print '<a class="butAction"	href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=approve2">'.$langs->trans("Approve2Order").'</a>';
+                        }
+                    } else {
+                        print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">'.$langs->trans("Approve2Order").'</a>';
+                    }
+                }
+            }
+
+            // Refuse
+            if ($object->statut == 1) {
+                if ($user->rights->fournisseur->commande->approuver || $user->rights->fournisseur->commande->approve2) {
+                    print '<a class="butAction"	href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=refuse">'.$langs->trans("RefuseOrder").'</a>';
+                } else {
+                    print '<a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("NotAllowed")).'">'.$langs->trans("RefuseOrder").'</a>';
+                }
+            }
+
+            // Send
+            if (in_array($object->statut, array(2, 3, 4, 5))) {
+                if ($user->rights->fournisseur->commande->commander) {
+                    print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&action=presend&mode=init#formmailbeforetitle">'.$langs->trans('SendByMail').'</a>';
+                }
+            }
+
+            // Reopen
+            if (in_array($object->statut, array(2))) {
+                $buttonshown=0;
+                if (! $buttonshown && $user->rights->fournisseur->commande->approuver) {
+                    if (empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER_ONLY)
+                        || (! empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER_ONLY) && $user->id == $object->user_approve_id)) {
+                        print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reopen">'.$langs->trans("Disapprove").'</a>';
+                        $buttonshown++;
+                    }
+                }
+                if (! $buttonshown && $user->rights->fournisseur->commande->approve2 && ! empty($conf->global->SUPPLIER_ORDER_3_STEPS_TO_BE_APPROVED)) {
+                    if (empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER2_ONLY)
+                        || (! empty($conf->global->SUPPLIER_ORDER_REOPEN_BY_APPROVER2_ONLY) && $user->id == $object->user_approve_id2)) {
+                        print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reopen">'.$langs->trans("Disapprove").'</a>';
+                    }
+                }
+            }
+            if (in_array($object->statut, array(3, 4, 5, 6, 7, 9))) {
+                if ($user->rights->fournisseur->commande->commander) {
+                    print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=reopen">'.$langs->trans("ReOpen").'</a>';
+                }
+            }
+
+            // Ship
+            if (! empty($conf->stock->enabled) && ! empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER)) {
+                if (in_array($object->statut, array(3,4))) {
+                    if ($conf->fournisseur->enabled && $user->rights->fournisseur->commande->receptionner) {
+                        print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fourn/commande/dispatch.php?id=' . $object->id . '">' . $langs->trans('OrderDispatch') . '</a></div>';
+                    } else {
+                        print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . dol_escape_htmltag($langs->trans("NotAllowed")) . '">' . $langs->trans('OrderDispatch') . '</a></div>';
+                    }
+                }
+            }
+
+            if ($object->statut == 2) {
+                if ($user->rights->fournisseur->commande->commander) {
+                    print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=makeorder#makeorder">'.$langs->trans("MakeOrder").'</a></div>';
+                } else {
+                    print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">'.$langs->trans("MakeOrder").'</a></div>';
+                }
+            }
+
+            // Create bill
+            if (! empty($conf->facture->enabled)) {
+                if (! empty($conf->fournisseur->enabled) && ($object->statut >= 2 && $object->statut != 7 && $object->billed != 1)) {  // statut 2 means approved, 7 means canceled
+                    if ($user->rights->fournisseur->facture->creer) {
+                        print '<a class="butAction" href="'.DOL_URL_ROOT.'/fourn/facture/card.php?action=create&amp;origin='.$object->element.'&amp;originid='.$object->id.'&amp;socid='.$object->socid.'">'.$langs->trans("CreateBill").'</a>';
+                    }
+                }
+            }
+
+            // Classify billed manually (need one invoice if module invoice is on, no condition on invoice if not)
+            // if ($user->rights->fournisseur->commande->creer && $object->statut >= 2 && $object->statut != 7 && $object->billed != 1)  // statut 2 means approved
+            // {
+            //     if (empty($conf->facture->enabled))
+            //     {
+            //         print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=classifybilled">'.$langs->trans("ClassifyBilled").'</a>';
+            //     }
+            //     else if (!empty($object->linkedObjectsIds['invoice_supplier']))
+            //     {
+            //         if ($user->rights->fournisseur->facture->creer)
+            //         {
+            //             print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=classifybilled">'.$langs->trans("ClassifyBilled").'</a>';
+            //         }
+            //     }
+            // }
+
+            // Create a remote order using WebService only if module is activated
+            if (! empty($conf->syncsupplierwebservices->enabled) && $object->statut >= 2) { // 2 means accepted
+                print '<a class="butAction" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=webservice&amp;mode=init">'.$langs->trans('CreateRemoteOrder').'</a>';
+            }
+
+            // Clone
+            if ($user->rights->fournisseur->commande->creer) {
+                print '<a class="butAction" href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&amp;socid='.$object->socid.'&amp;action=clone&amp;object=order">'.$langs->trans("ToClone").'</a>';
+            }
+
+            // Cancel
+            // OpenDSI -- Show cancel button -- Start
+            //if ($object->statut == 2)
+            if ($object->statut != 0) {
+            // OpenDSI -- Show cancel button -- End
+                if ($user->rights->fournisseur->commande->commander) {
+                    print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=cancel">'.$langs->trans("CancelOrder").'</a>';
+                }
+            }
+
+            // Delete
+            if ($user->rights->fournisseur->commande->supprimer) {
+                print '<a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'&amp;action=delete">'.$langs->trans("Delete").'</a>';
+            }
+            return 1;
         }
 
         return 0;
@@ -2256,11 +2419,10 @@ SCRIPT;
      */
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-        global $user, $langs, $conf;
+        global $user, $langs;
 
         $origin = GETPOST('origin', 'alpha');
         $originid = GETPOST('originid', 'int');
-        $contexts = explode(':', $parameters['context']);
 
         // Propagation of references
         if ($action == 'create' && !empty($origin) && !empty($originid)) {
@@ -2296,17 +2458,6 @@ SCRIPT;
     $(document).ready(function() {
         $('input[name="ref_client"]').val("$ref_client");
         $('input[name="ref_customer"]').val("$ref_client");
-    });
-</script>
-SCRIPT;
-        } elseif (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) {
-            //We hide classify done button
-            $buttonContent = dol_string_nohtmltag($langs->trans("ClassifyBilled"));
-            print <<<SCRIPT
-<script type="text/javascript">
-    $(document).ready(function() {
-		console.log("coucou");
-        $("a:contains('$buttonContent')").hide();
     });
 </script>
 SCRIPT;
@@ -3416,11 +3567,11 @@ SCRIPT;
         $modulePart = $parameters['modulepart'];
         if ($modulePart == 'propal') {
             $isUserAllowedToSeePrice = $user->rights->synergiestech->amount->customerpropal;
-            $isUserAllowedToDowloadFile = $user->rights->synergiestech->documents->customerpropal;
-            if (is_object($object) && empty($object->array_options)) {
-                $object->fetch_optionals();
-            }
-            $userCanSeePropal = (empty($propal->array_options['options_sitevalue']) && empty($propal->array_options['options_effectivedate'])) || !empty($user->rights->synergiestech->propal->installation_value);
+			$isUserAllowedToDowloadFile = $user->rights->synergiestech->documents->customerpropal;
+			if(is_object($object) && empty($object->array_options)){
+				$object->fetch_optionals();
+			}
+			$userCanSeePropal = (empty($propal->array_options['options_sitevalue']) && empty($propal->array_options['options_effectivedate'])) || !empty($user->rights->synergiestech->propal->installation_value);
             $userCanDownloadFile = $isUserAllowedToSeePrice && $isUserAllowedToDowloadFile && $userCanSeePropal;
         } elseif ($modulePart == 'commande') {
             $userCanDownloadFile = $user->rights->synergiestech->documents->customerorder;
@@ -3462,8 +3613,7 @@ SCRIPT;
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
     */
-    public function addMoreToEmail($parameters = array(), &$object, &$action = '', $hookmanager)
-    {
+    public function addMoreToEmail($parameters = array(), &$object, &$action = '', $hookmanager) {
         global $conf, $user, $langs;
 
         $contexts = explode(':', $parameters['context']);
@@ -3471,13 +3621,13 @@ SCRIPT;
         $error = 0;
         $emailList = $parameters['emailList'];
         $this->results = array();
-
-        if (in_array("interventionmail", $contexts)) {
+        
+        if(in_array("interventionmail", $contexts)) {
             include_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
             $societe = new Societe($this->db);
             $isCustomerAbsent = false;
             $isAvailabilityPrincipal = false;
-
+            
             // Check if customer is absent
             if (!empty($object->array_options['options_customer_signature'])) {
                 $customer_signature = json_decode($object->array_options['options_customer_signature'], true);
@@ -3499,7 +3649,7 @@ SCRIPT;
                     }
                 }
             }
-
+            
             // Add signatory user to the emailList
             if (!empty($object->array_options['options_stakeholder_signature'])) {
                 $stakeholder_signature = json_decode($object->array_options['options_stakeholder_signature'], true);
@@ -3528,7 +3678,7 @@ SCRIPT;
                 $thirdPartyId = $object->socid;
 
                 $result = $societe->fetch($thirdPartyId);
-
+                                                
                 if ($result > 0 && !empty($societe->email)) {
                     array_push($emailList, $societe->email);
                 } else {
@@ -3540,7 +3690,7 @@ SCRIPT;
 
             if ($error) {
                 return -1;
-            } elseif (!empty($this->results)) {
+            } else if (!empty($this->results)) {
                 return 0;
             }
         }
