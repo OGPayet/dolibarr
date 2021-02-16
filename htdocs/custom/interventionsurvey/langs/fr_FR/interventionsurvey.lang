@@ -58,7 +58,11 @@ InterventionSurveyDefaultEmailAddressSenderDescription = Adresse e-mail par déf
 InterventionSurveyCheckInterventionFields = Vérifier la validité des données de l'intervention à la clôture
 InterventionSurveyCheckInterventionFieldsDescription = Empêcher l'envoi par mail du bordereau PDF d'intervention si les données de l'intervention ne sont pas valides
 InterventionSurveySendFichinterByMail = Envoyer le bordereau PDF d'intervention par mail à la clôture de l'intervention
-InterventionSurveySendFichinterByMailDescription = Envoyer le bordereau PDF d'intervention par mail aux parties prenantes (clients signataires, techniciens signataires, tier bénéficiaire) à la clôture de l'intervention
+InterventionSurveySendFichinterByMailDescription = Activer l'envoi du bordereau PDF d'intervention par mail à la clôture de l'intervention
+InterventionSurveySendMailToSignatoryCustomer = Envoyer le bordereau PDF d'intervention par mail aux clients signataires
+InterventionSurveySendMailToSignatoryCustomerDescription = Activer l'envoi du bordereau PDF d'intervention par mail aux clients signataires
+InterventionSurveySendMailToSignatoryStakeholder = Envoyer le bordereau PDF d'intervention par mail aux utilisateurs (techniciens) signataires
+InterventionSurveySendMailToSignatoryStakeholderDescription = Activer l'envoi du bordereau PDF d'intervention par mail aux utilisateurs (techniciens) signataires
 
 # Page À propos
 #
