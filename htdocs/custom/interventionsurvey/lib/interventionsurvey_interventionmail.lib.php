@@ -183,7 +183,6 @@ class InterventionMail {
         $_POST['sendto'] = implode(",", $emailList);
         $_POST['sendmail'] = 'Send email';
         
-        $trigger_name = 'FICHINTER_SENTBYMAIL';
         $trackid = 'int' . $this->object->id;
         $subject='';$actionmsg='';$actionmsg2='';
 
