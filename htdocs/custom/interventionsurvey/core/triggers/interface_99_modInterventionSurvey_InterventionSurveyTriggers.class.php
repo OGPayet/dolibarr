@@ -309,15 +309,14 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                         !empty($object->array_options['options_users_to_send_fichinter_to']) || 
                         !empty($object->array_options['options_third_parties_to_send_fichinter_to'])
                     ) {
-                        require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_interventionmail.lib.php';
-                        require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_checkinterventionfields.lib.php';
+                        // Call trigger
+                        $result = $object->call_trigger('CHECK_INTERVENTION_FIELDS', $user);
 
-                        $interventionMail = new InterventionMail($this->db, $object, $user);
-                        $checkInterventionFields = new InterventionCheckFields($object);
-                        
-                        if (empty($checkInterventionFields->checkInterventionFields())) {
-                            $sendfrom = $conf->global->INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER;
-                            $interventionMail->sendInterventionByMail($sendfrom);
+                        if ($result < 0) $error++;
+                        // End call triggers
+
+                        if ($error) {
+                            setEventMessages('', $object->errors, 'errors');
                         }
                     }
 

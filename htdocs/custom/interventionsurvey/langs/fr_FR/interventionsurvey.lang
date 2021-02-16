@@ -239,6 +239,7 @@ InterventionSurveyInvolvedUserLabel = Utilisateur(s) intervenu(s)
 InterventionSurveyScheduledUserLabel = Utilisateur(s) prévu(s)
 InterventionSurveyContactsToSendFichinterToLabel = Contact(s) impliqué(s) auxquels envoyer le PDF d'intervention par mail
 InterventionSurveyUsersToSendFichinterToLabel = Utilisateur(s) auxquels envoyer le PDF d'intervention par mail
+InterventionSurveyThirdPartiesToSendFichinterToLabel = Tiers auxquels envoyer le PDF d'intervention par mail
 
 
 #PDF Jupiter
