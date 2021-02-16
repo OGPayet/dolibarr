@@ -684,8 +684,6 @@ class InterventionSurveyApi extends DolibarrApi
         if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
             throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
-
-        $this->interventionSurvey->fetchObjectLinked();
         
         $this->updatePdfFileIfNeeded();
 
@@ -693,6 +691,10 @@ class InterventionSurveyApi extends DolibarrApi
         include_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
         $fileparams = dol_dir_list($conf->ficheinter->dir_output . '/' . $ref)[0];
         $file = $fileparams['fullname'];
+
+        if (empty($file)) {
+            throw new RestException(403, 'Error fichinter PDF not found for Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
+        }
 
         $pdf_content = file_get_contents($file);
         $b64_pdf = 'data:application/pdf;base64,' . base64_encode($pdf_content);
