@@ -685,7 +685,7 @@ class InterventionSurveyApi extends DolibarrApi
             throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
         }
         
-        $this->updatePdfFileIfNeeded();
+        $this->updatePdfFileIfNeeded(true);
 
         $ref = dol_sanitizeFileName($this->interventionSurvey->ref);
         include_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
@@ -708,11 +708,11 @@ class InterventionSurveyApi extends DolibarrApi
     //                    TOOLS                   //
     /******************************************** */
 
-    private function updatePdfFileIfNeeded()
+    private function updatePdfFileIfNeeded($forceUpdate = false)
     {
         global $conf;
         global $langs;
-        if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
+        if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE) || $forceUpdate) {
             require_once DOL_DOCUMENT_ROOT . '/core/modules/fichinter/modules_fichinter.php';
             fichinter_create($this->db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
         }
