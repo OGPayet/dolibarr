@@ -106,21 +106,33 @@ class InterfaceCheckInterventionSurveyTriggers extends DolibarrTriggers
         switch ($action) {
             case 'CHECK_INTERVENTION_FIELDS':
                 dol_syslog("Trigger for action '$action' launched. id=".$object->id);
+                
+                if ($conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS) {
+                    require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_checkinterventionfields.lib.php';
 
-                require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_checkinterventionfields.lib.php';
+                    $checkInterventionFields = new InterventionCheckFields($object);
 
-                $checkInterventionFields = new InterventionCheckFields($object);
+                    if (empty($checkInterventionFields->checkInterventionFields())) {
+                        // Call trigger
+                        $result = $object->call_trigger('FICHINTER_SENTBYMAIL', $user);
 
-                if (empty($checkInterventionFields->checkInterventionFields())) {
+                        if ($result < 0) $error++;
+                        // End call triggers
+
+                        if ($error) {
+                            setEventMessages('', $object->errors, 'errors');
+                        }
+                    }
+                } else {
                     // Call trigger
-					$result = $object->call_trigger('FICHINTER_SENTBYMAIL', $user);
+                    $result = $object->call_trigger('FICHINTER_SENTBYMAIL', $user);
 
-					if ($result < 0) $error++;
-					// End call triggers
+                    if ($result < 0) $error++;
+                    // End call triggers
 
-					if ($error) {
-						setEventMessages('', $object->errors, 'errors');
-					}
+                    if ($error) {
+                        setEventMessages('', $object->errors, 'errors');
+                    }
                 }
 
                 return 0;

@@ -106,13 +106,15 @@ class InterfaceSendByMailInterventionSurveyTriggers extends DolibarrTriggers
         switch ($action) {
             case 'FICHINTER_SENTBYMAIL':
                 dol_syslog("Trigger for action '$action' launched. id=".$object->id);
-
-                require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_interventionmail.lib.php';
-
-                $interventionMail = new InterventionMail($this->db, $object, $user);
                 
-                $sendfrom = $conf->global->INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER;
-                $interventionMail->sendInterventionByMail($sendfrom);
+                if ($conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL) {
+                    require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/lib/interventionsurvey_interventionmail.lib.php';
+
+                    $interventionMail = new InterventionMail($this->db, $object, $user);
+                    
+                    $sendfrom = $conf->global->INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER;
+                    $interventionMail->sendInterventionByMail($sendfrom);
+                }
 
                 return 0;
                 break;

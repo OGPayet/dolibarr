@@ -55,6 +55,10 @@ InterventionSurveyAtLeastOneListMustHaveBeenCreatedDesc = Si cette option est ac
 InterventionSurveySetupModifyButton = Sauvegarder
 InterventionSurveyDefaultEmailAddressSender = Adresse e-mail expéditeur
 InterventionSurveyDefaultEmailAddressSenderDescription = Adresse e-mail par défaut pour l'envoi par mail des bordereaux PDF d'intervention
+InterventionSurveyCheckInterventionFields = Vérifier la validité des données de l'intervention à la clôture
+InterventionSurveyCheckInterventionFieldsDescription = Empêcher l'envoi par mail du bordereau PDF d'intervention si les données de l'intervention ne sont pas valides
+InterventionSurveySendFichinterByMail = Envoyer le bordereau PDF d'intervention par mail à la clôture de l'intervention
+InterventionSurveySendFichinterByMailDescription = Envoyer le bordereau PDF d'intervention par mail aux parties prenantes (clients signataires, techniciens signataires, tier bénéficiaire) à la clôture de l'intervention
 
 # Page À propos
 #

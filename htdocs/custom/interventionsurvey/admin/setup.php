@@ -65,7 +65,9 @@ $arrayofparameters = array(
     'INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE' => array('enabled' => 1),
     'INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED' => array('enabled' => 1),
     'INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED' => array('enabled' => 1),
+    'INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL' => array('enabled' => 1),
     'INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER' => array('enabled' => 1),
+    'INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS' => array('enabled' => 1),
 );
 
 
@@ -175,6 +177,15 @@ if (!empty($conf->use_javascript_ajax)) {
 }
 print '</td></tr>' . "\n";
 
+// INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendFichinterByMail") . '</td>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendFichinterByMailDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+print $form->select_all_categories('product', $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL, "INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL");
+print '</td></tr>' . "\n";
+
 //INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER
 $var = !$var;
 print '<tr ' . $bc[$var] . '>' . "\n";
@@ -183,6 +194,15 @@ print '<td>' . $langs->trans("InterventionSurveyDefaultEmailAddressSenderDescrip
 print '<td align="right">'."\n";
 print '<input type="text" name="INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER" value="'.dol_escape_htmltag($conf->global->INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER).'">';
 print '</td></tr>'."\n";
+print '</td></tr>' . "\n";
+
+// INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveyCheckInterventionFields") . '</td>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveyCheckInterventionFieldsDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+print $form->select_all_categories('product', $conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS, "INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS");
 print '</td></tr>' . "\n";
 
 print '</table>';
