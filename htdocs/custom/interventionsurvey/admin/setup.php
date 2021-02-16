@@ -183,7 +183,15 @@ print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>' . $langs->trans("InterventionSurveySendFichinterByMail") . '</td>' . "\n";
 print '<td>' . $langs->trans("InterventionSurveySendFichinterByMailDescription") . '</td>' . "\n";
 print '<td align="right">' . "\n";
-print $form->select_all_categories('product', $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL, "INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL");
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL');
+} else {
+    if (empty($conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
 print '</td></tr>' . "\n";
 
 //INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER
@@ -202,7 +210,15 @@ print '<tr ' . $bc[$var] . '>' . "\n";
 print '<td>' . $langs->trans("InterventionSurveyCheckInterventionFields") . '</td>' . "\n";
 print '<td>' . $langs->trans("InterventionSurveyCheckInterventionFieldsDescription") . '</td>' . "\n";
 print '<td align="right">' . "\n";
-print $form->select_all_categories('product', $conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS, "INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS");
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS');
+} else {
+    if (empty($conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
 print '</td></tr>' . "\n";
 
 print '</table>';
