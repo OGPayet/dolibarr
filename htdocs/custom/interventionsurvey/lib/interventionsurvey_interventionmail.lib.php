@@ -81,7 +81,7 @@ class InterventionMail {
 
         $ref = dol_sanitizeFileName($this->object->ref);
         include_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
-        $fileparams = dol_most_recent_file($conf->ficheinter->dir_output . '/' . $ref, preg_quote($ref, '/') . '[^\-]+');
+        $fileparams = dol_dir_list($conf->ficheinter->dir_output . '/' . $ref)[0];
         $file = $fileparams['fullname'];
 
         return $file;
