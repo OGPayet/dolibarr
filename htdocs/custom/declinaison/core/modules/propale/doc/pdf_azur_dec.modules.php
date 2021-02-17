@@ -274,7 +274,7 @@ class pdf_azur_dec extends ModelePDFPropales
 
 				// Set nblignes with the new facture lines content after hook
 				$nblignes = count($object->lines);
-
+				
 				// Create pdf instance
                 $pdf=pdf_getInstance($this->format);
                 $default_font_size = pdf_getPDFFontSize($outputlangs);	// Must be after pdf_getInstance
@@ -422,9 +422,9 @@ class pdf_azur_dec extends ModelePDFPropales
 				// Loop on each lines
 				for ($i = 0; $i < $nblignes; $i++)
 				{
-
+					
 					if($object->lines[$i]->special_code == 3) continue;
-
+					
 					$curY = $nexY;
 					$pdf->SetFont('','', $default_font_size - 1);   // Into loop to work with multipage
 					$pdf->SetTextColor(0,0,0);
@@ -1068,7 +1068,7 @@ class pdf_azur_dec extends ModelePDFPropales
 							}
 						}
 					}
-			//}
+	      		//}
 				//Local tax 2 before VAT
 				//if (! empty($conf->global->FACTURE_LOCAL_TAX2_OPTION) && $conf->global->FACTURE_LOCAL_TAX2_OPTION=='localtax2on')
 				//{
@@ -1160,7 +1160,7 @@ class pdf_azur_dec extends ModelePDFPropales
 							}
 						}
 					}
-			//}
+	      		//}
 				//Local tax 2 after VAT
 				//if (! empty($conf->global->FACTURE_LOCAL_TAX2_OPTION) && $conf->global->FACTURE_LOCAL_TAX2_OPTION=='localtax2on')
 				//{
@@ -1506,20 +1506,20 @@ class pdf_azur_dec extends ModelePDFPropales
 		{
 			// Sender properties
 			$carac_emetteur='';
-			// Add internal contact of proposal if defined
+		 	// Add internal contact of proposal if defined
 			$arrayidcontact=$object->getIdContact('internal','SALESREPFOLL');
-			if (count($arrayidcontact) > 0)
-			{
-				$object->fetch_user($arrayidcontact[0]);
-				$labelbeforecontactname=($outputlangs->transnoentities("FromContactName")!='FromContactName'?$outputlangs->transnoentities("FromContactName"):$outputlangs->transnoentities("Name"));
-				$carac_emetteur .= ($carac_emetteur ? "\n" : '' ).$labelbeforecontactname." ".$outputlangs->convToOutputCharset($object->user->getFullName($outputlangs))."\n";
-			}
+		 	if (count($arrayidcontact) > 0)
+		 	{
+		 		$object->fetch_user($arrayidcontact[0]);
+		 		$labelbeforecontactname=($outputlangs->transnoentities("FromContactName")!='FromContactName'?$outputlangs->transnoentities("FromContactName"):$outputlangs->transnoentities("Name"));
+		 		$carac_emetteur .= ($carac_emetteur ? "\n" : '' ).$labelbeforecontactname." ".$outputlangs->convToOutputCharset($object->user->getFullName($outputlangs))."\n";
+		 	}
 
-			$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty);
+		 	$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty);
 
 			// Show sender
 			$posy=42;
-			$posx=$this->marge_gauche;
+		 	$posx=$this->marge_gauche;
 			if (! empty($conf->global->MAIN_INVERT_SENDER_RECIPIENT)) $posx=$this->page_largeur-$this->marge_droite-80;
 			$hautcadre=40;
 
@@ -1643,3 +1643,4 @@ class pdf_azur_dec extends ModelePDFPropales
 		return ($tab_hl*7);
 	}
 }
+

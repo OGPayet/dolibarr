@@ -241,12 +241,12 @@ class pdf_typhon_dec extends ModelePDFDeliveryOrder
 				// Positionne $this->atleastonediscount si on a au moins une remise
 				for ($i = 0 ; $i < $nblines ; $i++)
 				{
-					if ($object->lines[$i]->remise_percent)
-					{
-						$this->atleastonediscount++;
-					}
+				 	if ($object->lines[$i]->remise_percent)
+				 	{
+				 		$this->atleastonediscount++;
+				 	}
 				}
-				if (empty($this->atleastonediscount))
+ 				if (empty($this->atleastonediscount))
 				{
 					$this->posxpicture+=($this->postotalht - $this->posxdiscount);
 					$this->posxtva+=($this->postotalht - $this->posxdiscount);
@@ -348,31 +348,31 @@ class pdf_typhon_dec extends ModelePDFDeliveryOrder
                     $pageposafter=$pdf->getPage();
                     if ($pageposafter > $pageposbefore)	// There is a pagebreak
                     {
-			$pdf->rollbackTransaction(true);
-			$pageposafter=$pageposbefore;
-			//print $pageposafter.'-'.$pageposbefore;exit;
-			$pdf->setPageOrientation('', 1, $heightforfooter);	// The only function to edit the bottom margin of current page to set it.
-			pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxcomm-$curX,4,$curX,$curY,$hideref,$hidedesc);
-			$posyafter=$pdf->GetY();
-			if ($posyafter > ($this->page_hauteur - ($heightforfooter+$heightforfreetext+$heightforinfotot)))	// There is no space left for total+free text
-			{
-				if ($i == ($nblines-1))	// No more lines, and no space left to show total, so we create a new page
-				{
-					$pdf->AddPage('','',true);
-					if (! empty($tplidx)) $pdf->useTemplate($tplidx);
-					if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
-					$pdf->setPage($pageposafter+1);
-				}
-			}
-			else
-			{
-				// We found a page break
-				$showpricebeforepagebreak=0;
-			}
+                    	$pdf->rollbackTransaction(true);
+                    	$pageposafter=$pageposbefore;
+                    	//print $pageposafter.'-'.$pageposbefore;exit;
+                    	$pdf->setPageOrientation('', 1, $heightforfooter);	// The only function to edit the bottom margin of current page to set it.
+                    	pdf_writelinedesc($pdf,$object,$i,$outputlangs,$this->posxcomm-$curX,4,$curX,$curY,$hideref,$hidedesc);
+                    	$posyafter=$pdf->GetY();
+                    	if ($posyafter > ($this->page_hauteur - ($heightforfooter+$heightforfreetext+$heightforinfotot)))	// There is no space left for total+free text
+                    	{
+                    		if ($i == ($nblines-1))	// No more lines, and no space left to show total, so we create a new page
+                    		{
+                    			$pdf->AddPage('','',true);
+                    			if (! empty($tplidx)) $pdf->useTemplate($tplidx);
+                    			if (empty($conf->global->MAIN_PDF_DONOTREPEAT_HEAD)) $this->_pagehead($pdf, $object, 0, $outputlangs);
+                    			$pdf->setPage($pageposafter+1);
+                    		}
+                    	}
+                    	else
+                    	{
+                    		// We found a page break
+                    		$showpricebeforepagebreak=0;
+                    	}
                     }
                     else	// No pagebreak
                     {
-			$pdf->commitTransaction();
+                    	$pdf->commitTransaction();
                     }
 
 					$nexY = $pdf->GetY();
@@ -514,16 +514,16 @@ class pdf_typhon_dec extends ModelePDFDeliveryOrder
 								  $outputlangs->transnoentities('Qty')
 								  );
 
-				// Header
-				$num = count($header);
-					for($i = 0; $i < $num; $i++)
-					{
-						$pdf->Cell($w[$i],7,$header[$i],1,0,'C');
-					}
+    				// Header
+    				$num = count($header);
+   					for($i = 0; $i < $num; $i++)
+   					{
+   						$pdf->Cell($w[$i],7,$header[$i],1,0,'C');
+   					}
 
-				$pdf->Ln();
+			    	$pdf->Ln();
 
-				// Data
+			    	// Data
 					foreach($waitingDelivery as $value)
 					{
 						$pdf->Cell($w[0], 6, $value['ref'], 1, 0, 'L');
@@ -913,3 +913,4 @@ class pdf_typhon_dec extends ModelePDFDeliveryOrder
 	}
 
 }
+

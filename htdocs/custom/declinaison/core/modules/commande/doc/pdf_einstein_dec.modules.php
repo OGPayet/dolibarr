@@ -102,7 +102,7 @@ class pdf_einstein_dec extends ModelePDFCommandes
 		$langs->load("bills");
 		$langs->load("products");
 		$langs->load("declinaison@declinaison");
-
+		
 		$this->db = $db;
 		$this->name = "einstein_dec";
 		$this->description = $langs->trans('PDFEinsteinDecDescription');
@@ -245,7 +245,7 @@ class pdf_einstein_dec extends ModelePDFCommandes
 
 				// Set nblignes with the new facture lines content after hook
 				$nblignes = count($object->lines);
-
+				
 				// Create pdf instance
 				$pdf=pdf_getInstance($this->format);
 				$default_font_size = pdf_getPDFFontSize($outputlangs);	// Must be after pdf_getInstance
@@ -382,9 +382,9 @@ class pdf_einstein_dec extends ModelePDFCommandes
 				// Loop on each lines
 				for ($i = 0 ; $i < $nblignes ; $i++)
 				{
-
+					
 					if($object->lines[$i]->special_code == 3) continue;
-
+					
 					$curY = $nexY;
 					$pdf->SetFont('','', $default_font_size - 1);   // Into loop to work with multipage
 					$pdf->SetTextColor(0,0,0);
@@ -695,8 +695,8 @@ class pdf_einstein_dec extends ModelePDFCommandes
         // Check a payment mode is defined
         /* Not used with orders
 		if (empty($object->mode_reglement_code)
-		&& ! $conf->global->FACTURE_CHQ_NUMBER
-		&& ! $conf->global->FACTURE_RIB_NUMBER)
+        	&& ! $conf->global->FACTURE_CHQ_NUMBER
+        	&& ! $conf->global->FACTURE_RIB_NUMBER)
 		{
             $pdf->SetXY($this->marge_gauche, $posy);
             $pdf->SetTextColor(200,0,0);
@@ -750,11 +750,11 @@ class pdf_einstein_dec extends ModelePDFCommandes
 			$posy=$pdf->GetY()+1;
 		}
 
-	// Show payment mode
+      	// Show payment mode
         if ($object->mode_reglement_code
-		 && $object->mode_reglement_code != 'CHQ'
-		 && $object->mode_reglement_code != 'VIR')
-		 {
+        	 && $object->mode_reglement_code != 'CHQ'
+           	 && $object->mode_reglement_code != 'VIR')
+           	 {
 	            $pdf->SetFont('','B', $default_font_size - 2);
 	            $pdf->SetXY($this->marge_gauche, $posy);
 	            $titre = $outputlangs->transnoentities("PaymentMode").':';
@@ -766,12 +766,12 @@ class pdf_einstein_dec extends ModelePDFCommandes
 	            $pdf->MultiCell(80, 5, $lib_mode_reg,0,'L');
 
 	            $posy=$pdf->GetY()+2;
-		 }
+           	 }
 
 		// Show payment mode CHQ
         if (empty($object->mode_reglement_code) || $object->mode_reglement_code == 'CHQ')
         {
-		// Si mode reglement non force ou si force a CHQ
+        	// Si mode reglement non force ou si force a CHQ
 	        if (! empty($conf->global->FACTURE_CHQ_NUMBER))
 	        {
 	            if ($conf->global->FACTURE_CHQ_NUMBER > 0)
@@ -918,7 +918,7 @@ class pdf_einstein_dec extends ModelePDFCommandes
 							}
 						}
 					}
-			//}
+	      		//}
 				//Local tax 2 before VAT
 				//if (! empty($conf->global->FACTURE_LOCAL_TAX2_OPTION) && $conf->global->FACTURE_LOCAL_TAX2_OPTION=='localtax2on')
 				//{
@@ -1009,7 +1009,7 @@ class pdf_einstein_dec extends ModelePDFCommandes
 							}
 						}
 					}
-			//}
+	      		//}
 				//Local tax 2 after VAT
 				//if (! empty($conf->global->FACTURE_LOCAL_TAX2_OPTION) && $conf->global->FACTURE_LOCAL_TAX2_OPTION=='localtax2on')
 				//{
@@ -1417,3 +1417,4 @@ class pdf_einstein_dec extends ModelePDFCommandes
 	}
 
 }
+

@@ -1,7 +1,7 @@
 Module104080Name = Prodotti Variabili
 Module104080Desc = Gestione dei prodotti variabili
 Declinaison = Variabili
-DeclinaisonSetup = Configurazione del modulo Prodotti Variabili
+DeclinaisonSetup = Configurazione del modulo Prodotti Variabili 
 DeclinaisonAbout = A proposito del modulo Prodotti Variabili
 NewDeclinaison = Nuova variabile di prodotto
 AbricotNotFound=Modulo Free Abricot necessario qui. Scaricare

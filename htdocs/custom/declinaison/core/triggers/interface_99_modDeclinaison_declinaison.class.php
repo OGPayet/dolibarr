@@ -115,7 +115,7 @@ class InterfaceDeclinaison
         // Data and type of action are stored into $object and $action
         // Users
         $db=&$this->db;
-
+		
         if ($action == 'PRODUCT_MODIFY') {
 
 			if($conf->global->DECLINAISON_NO_MODIFY_ITEM==1) {
@@ -154,14 +154,14 @@ class InterfaceDeclinaison
 						$product->accountancy_code_sell= $object->accountancy_code_sell;
 
 						$product->array_options = $object->array_options;
-
-						if (!empty($conf->global->PRODUIT_MULTIPRICES))
+						
+						if (!empty($conf->global->PRODUIT_MULTIPRICES)) 
 						{
 							foreach($object->multiprices as $i => $price){
 								$product->updatePrice($price, $object->multiprices_base_type[$i], $user, $object->multiprices_tva_tx[$i],'', $i);
 							}
 						}
-
+						
 						$product->update($product->id, $user);
 
 				}
@@ -175,14 +175,14 @@ class InterfaceDeclinaison
         } elseif ($action == 'PRODUCT_DELETE') {
             $sql = "DELETE FROM ".MAIN_DB_PREFIX."declinaison";
 			$sql.= " WHERE fk_declinaison = ".$object->id;
-
+			
 			$db->query($sql);
-
+			
             dol_syslog(
                 "Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
-            );
+            );			
         } elseif ($action == 'PRODUCT_PRICE_MODIFY') {
-		/*
+        	/*
 			 * Quand on modifie le prix du parents tous ses enfants héritent de la propriété si bouton 'maintenir à jour' coché
 			 */
 
@@ -202,20 +202,20 @@ class InterfaceDeclinaison
 					if($dec->up_to_date == 1) {
 						$product = new Product($db);
 						$product->fetch($fk_declinaison);
-						$npr = (isset($product->tva_npr)?$product->tva_npr:0);
-
+					 	$npr = (isset($product->tva_npr)?$product->tva_npr:0);
+						
 						// Si plusieurs prix
 						if (!empty($object->multiprices)) {
-
+								
 							foreach($object->multiprices as $niveau=>$price) {
-
+								
 								 if(empty($price)) continue;
-
+								
 								 if($dec->more_price!=0)$price+=$dec->more_price;
-					 else if($dec->more_percent!=0)$price*= (1 + ($dec->more_percent/100)) ;
+	                        	 else if($dec->more_percent!=0)$price*= (1 + ($dec->more_percent/100)) ;
 								 $product->updatePrice($price, 'HT', $user,'','', $niveau, $product->$npr);
 							}
-
+												
 						} else {
 							$price = $object->price;
 	                        if($dec->more_price!=0)$price+=$dec->more_price;
@@ -239,11 +239,11 @@ class InterfaceDeclinaison
 	        {
 				if (! in_array('createfromclone', $object->context))	// If we are not into a context of cloning
 				{
-				$productid=$object->fk_product;
+		        	$productid=$object->fk_product;
 					if ($productid > 0)					// Try to complete line only if it is a a predefined product.
 					{
 						$sql ="SELECT fk_parent FROM ".MAIN_DB_PREFIX."declinaison WHERE fk_declinaison = ".$productid;
-					$resql = $db->query($sql);
+			        	$resql = $db->query($sql);
 						if ($resql)
 						{
 							$obj = $db->fetch_object($resql);

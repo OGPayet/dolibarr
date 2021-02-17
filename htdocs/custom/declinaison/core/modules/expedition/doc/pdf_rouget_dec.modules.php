@@ -646,41 +646,41 @@ class pdf_rouget_dec extends ModelePdfExpedition
 		if ($object->trueWeight) $totalWeighttoshow=showDimensionInBestUnit($object->trueWeight, $object->weight_units, "weight", $outputlangs);
 		if ($object->trueVolume) $totalVolumetoshow=showDimensionInBestUnit($object->trueVolume, $object->volume_units, "volume", $outputlangs);
 
-	$pdf->SetFillColor(255,255,255);
-	$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
-	$pdf->MultiCell($col2x-$col1x, $tab2_hl, $outputlangs->transnoentities("Total"), 0, 'L', 1);
+    	$pdf->SetFillColor(255,255,255);
+    	$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
+    	$pdf->MultiCell($col2x-$col1x, $tab2_hl, $outputlangs->transnoentities("Total"), 0, 'L', 1);
 
         if (empty($conf->global->SHIPPING_PDF_HIDE_ORDERED))
         {
             $pdf->SetXY($this->posxqtyordered, $tab2_top + $tab2_hl * $index);
-		$pdf->MultiCell($this->posxqtytoship - $this->posxqtyordered, $tab2_hl, $totalOrdered, 0, 'C', 1);
+        	$pdf->MultiCell($this->posxqtytoship - $this->posxqtyordered, $tab2_hl, $totalOrdered, 0, 'C', 1);
         }
 
-	$pdf->SetXY($this->posxqtytoship, $tab2_top + $tab2_hl * $index);
-	$pdf->MultiCell($this->posxpuht - $this->posxqtytoship, $tab2_hl, $totalToShip, 0, 'C', 1);
+    	$pdf->SetXY($this->posxqtytoship, $tab2_top + $tab2_hl * $index);
+    	$pdf->MultiCell($this->posxpuht - $this->posxqtytoship, $tab2_hl, $totalToShip, 0, 'C', 1);
 
 		if(!empty($conf->global->MAIN_PDF_SHIPPING_DISPLAY_AMOUNT_HT)) {
 
-		$pdf->SetXY($this->posxpuht, $tab2_top + $tab2_hl * $index);
-		$pdf->MultiCell($this->posxtotalht - $this->posxpuht, $tab2_hl, '', 0, 'C', 1);
+	    	$pdf->SetXY($this->posxpuht, $tab2_top + $tab2_hl * $index);
+	    	$pdf->MultiCell($this->posxtotalht - $this->posxpuht, $tab2_hl, '', 0, 'C', 1);
 
-		$pdf->SetXY($this->posxtotalht, $tab2_top + $tab2_hl * $index);
-		$pdf->MultiCell($this->page_largeur - $this->marge_droite - $this->posxtotalht, $tab2_hl, price($object->total_ht, 0, $outputlangs), 0, 'C', 1);
+	    	$pdf->SetXY($this->posxtotalht, $tab2_top + $tab2_hl * $index);
+	    	$pdf->MultiCell($this->page_largeur - $this->marge_droite - $this->posxtotalht, $tab2_hl, price($object->total_ht, 0, $outputlangs), 0, 'C', 1);
 
 		}
 
 		// Total Weight
 		if ($totalWeighttoshow)
 		{
-		$pdf->SetXY($this->posxweightvol, $tab2_top + $tab2_hl * $index);
-		$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), $tab2_hl, $totalWeighttoshow, 0, 'C', 1);
+    		$pdf->SetXY($this->posxweightvol, $tab2_top + $tab2_hl * $index);
+    		$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), $tab2_hl, $totalWeighttoshow, 0, 'C', 1);
 
-		$index++;
+    		$index++;
 		}
 		if ($totalVolumetoshow)
 		{
-		$pdf->SetXY($this->posxweightvol, $tab2_top + $tab2_hl * $index);
-		$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), $tab2_hl, $totalVolumetoshow, 0, 'C', 1);
+    		$pdf->SetXY($this->posxweightvol, $tab2_top + $tab2_hl * $index);
+    		$pdf->MultiCell(($this->posxqtyordered - $this->posxweightvol), $tab2_hl, $totalVolumetoshow, 0, 'C', 1);
 
 		    $index++;
 		}
@@ -741,11 +741,11 @@ class pdf_rouget_dec extends ModelePdfExpedition
         if (empty($conf->global->SHIPPING_PDF_HIDE_ORDERED))
         {
             $pdf->line($this->posxqtyordered-1, $tab_top, $this->posxqtyordered-1, $tab_top + $tab_height);
-		if (empty($hidetop))
-		{
-			$pdf->SetXY($this->posxqtyordered-1, $tab_top+1);
-			$pdf->MultiCell(($this->posxqtytoship - $this->posxqtyordered), 2, $outputlangs->transnoentities("QtyOrdered"),'','C');
-		}
+    		if (empty($hidetop))
+    		{
+    			$pdf->SetXY($this->posxqtyordered-1, $tab_top+1);
+    			$pdf->MultiCell(($this->posxqtytoship - $this->posxqtyordered), 2, $outputlangs->transnoentities("QtyOrdered"),'','C');
+    		}
         }
 
 		$pdf->line($this->posxqtytoship-1, $tab_top, $this->posxqtytoship-1, $tab_top + $tab_height);
@@ -797,7 +797,7 @@ class pdf_rouget_dec extends ModelePdfExpedition
 		// Show Draft Watermark
 		if($object->statut==0 && (! empty($conf->global->SHIPPING_DRAFT_WATERMARK)) )
 		{
-			pdf_watermark($pdf,$outputlangs,$this->page_hauteur,$this->page_largeur,'mm',$conf->global->SHIPPING_DRAFT_WATERMARK);
+            		pdf_watermark($pdf,$outputlangs,$this->page_hauteur,$this->page_largeur,'mm',$conf->global->SHIPPING_DRAFT_WATERMARK);
 		}
 
 		//Prepare la suite
@@ -880,10 +880,10 @@ class pdf_rouget_dec extends ModelePdfExpedition
 		// Date planned delivery
 		if (! empty($object->date_delivery))
 		{
-			$posy+=4;
-			$pdf->SetXY($posx,$posy);
-			$pdf->SetTextColor(0,0,60);
-			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateDeliveryPlanned")." : ".dol_print_date($object->date_delivery,"day",false,$outputlangs,true), '', 'R');
+    			$posy+=4;
+    			$pdf->SetXY($posx,$posy);
+    			$pdf->SetTextColor(0,0,60);
+    			$pdf->MultiCell($w, 4, $outputlangs->transnoentities("DateDeliveryPlanned")." : ".dol_print_date($object->date_delivery,"day",false,$outputlangs,true), '', 'R');
 		}
 
 		if (! empty($object->thirdparty->code_client))
@@ -930,16 +930,16 @@ class pdf_rouget_dec extends ModelePdfExpedition
 		{
 			// Sender properties
 			$carac_emetteur='';
-			// Add internal contact of origin element if defined
+		 	// Add internal contact of origin element if defined
 			$arrayidcontact=array();
 			if (! empty($origin) && is_object($object->$origin)) $arrayidcontact=$object->$origin->getIdContact('internal','SALESREPFOLL');
-			if (count($arrayidcontact) > 0)
-			{
-				$object->fetch_user(reset($arrayidcontact));
-				$carac_emetteur .= ($carac_emetteur ? "\n" : '' ).$outputlangs->transnoentities("Name").": ".$outputlangs->convToOutputCharset($object->user->getFullName($outputlangs))."\n";
-			}
+		 	if (count($arrayidcontact) > 0)
+		 	{
+		 		$object->fetch_user(reset($arrayidcontact));
+		 		$carac_emetteur .= ($carac_emetteur ? "\n" : '' ).$outputlangs->transnoentities("Name").": ".$outputlangs->convToOutputCharset($object->user->getFullName($outputlangs))."\n";
+		 	}
 
-			$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty);
+		 	$carac_emetteur .= pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty);
 
 			// Show sender
 			$posy=!empty($conf->global->MAIN_PDF_USE_ISO_LOCATION) ? 40 : 42;
@@ -1040,3 +1040,4 @@ class pdf_rouget_dec extends ModelePdfExpedition
 	}
 
 }
+
