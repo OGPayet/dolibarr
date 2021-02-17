@@ -63,6 +63,8 @@ InterventionSurveySendMailToSignatoryCustomer = Envoyer le bordereau PDF d'inter
 InterventionSurveySendMailToSignatoryCustomerDescription = Activer l'envoi du bordereau PDF d'intervention par mail aux clients signataires
 InterventionSurveySendMailToSignatoryStakeholder = Envoyer le bordereau PDF d'intervention par mail aux utilisateurs (techniciens) signataires
 InterventionSurveySendMailToSignatoryStakeholderDescription = Activer l'envoi du bordereau PDF d'intervention par mail aux utilisateurs (techniciens) signataires
+InterventionSurveySendMailToThirdpartyBenefactor = Envoyer le bordereau PDF d'intervention par mail au tier bénéficiaire
+InterventionSurveySendMailToThirdpartyBenefactorDescription = Activer l'envoi du bordereau PDF d'intervention par mail au tier bénéficiaire
 
 # Page À propos
 #

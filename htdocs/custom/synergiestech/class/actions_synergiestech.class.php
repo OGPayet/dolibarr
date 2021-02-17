@@ -3641,7 +3641,7 @@ SCRIPT;
             }
 
             // Add third party benefactor to the emailList
-            if ($isCustomerAbsent || $isAvailabilityPrincipal) {
+            if (($isCustomerAbsent || $isAvailabilityPrincipal) && $conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR) {
                 $thirdPartyId = $object->socid;
 
                 $result = $societe->fetch($thirdPartyId);

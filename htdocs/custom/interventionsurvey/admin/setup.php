@@ -66,10 +66,11 @@ $arrayofparameters = array(
     'INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED' => array('enabled' => 1),
     'INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED' => array('enabled' => 1),
     'INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL' => array('enabled' => 1),
-    'INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER' => array('enabled' => 1),
-    'INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS' => array('enabled' => 1),
-    'INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER' => array('enabled' => 1),
-    'INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER' => array('enabled' => 1),
+    'INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
+    'INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
+    'INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
+    'INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
+    'INTERVENTIONSURVEY_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
 );
 
 
@@ -253,6 +254,23 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// INTERVENTIONSURVEY_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendMailToThirdpartyBenefactor") . '</td>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendMailToThirdpartyBenefactorDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('INTERVENTIONSURVEY_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR');
+} else {
+    if (empty($conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";

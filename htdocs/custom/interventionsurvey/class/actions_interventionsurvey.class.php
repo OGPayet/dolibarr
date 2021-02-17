@@ -407,7 +407,7 @@ class ActionsInterventionSurvey
                 $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
 
                 // Add signatory customer to the emailList
-                if (!$isCustomerAbsent) {
+                if (!$isCustomerAbsent && $conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER) {
                     if (!empty($customer_signature->people)) {
                         include_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
                         $contact = new Contact($this->db);
@@ -424,7 +424,7 @@ class ActionsInterventionSurvey
             }
             
             // Add signatory user to the emailList
-            if (!empty($object->array_options['options_stakeholder_signature'])) {
+            if (!empty($object->array_options['options_stakeholder_signature']) && $conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER) {
                 $stakeholder_signature = json_decode($object->array_options['options_stakeholder_signature'], true);
 
                 $user = new User($this->db);
