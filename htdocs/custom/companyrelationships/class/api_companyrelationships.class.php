@@ -4958,6 +4958,8 @@ class CompanyRelationshipsApi extends DolibarrApi
 				$result = $object->fetch($refname);
 				if (!$result) {
 					return [];
+				} else {
+					$entity = $object->entity;
 				}
 			}
 
