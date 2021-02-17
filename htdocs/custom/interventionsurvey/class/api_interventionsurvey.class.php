@@ -689,15 +689,16 @@ class InterventionSurveyApi extends DolibarrApi
 
         $ref = dol_sanitizeFileName($this->interventionSurvey->ref);
         $file = $conf->ficheinter->multidir_output[$this->interventionSurvey->entity] . '/' . $ref . '/' . $ref . '.pdf';
+        $filename = $ref . '.pdf';
+        $filename_osencoded = dol_osencode($file); // New file name encoded in OS encoding charset
 
-        if (empty($file)) {
-            throw new RestException(403, 'Error fichinter PDF not found for Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
-        }
+        if (!file_exists($file)) {
+			return [];
+		}
 
         $pdf_content = file_get_contents($file);
-        $b64_pdf = 'data:application/pdf;base64,' . base64_encode($pdf_content);
 
-        return $b64_pdf;
+        return array('filename' => $filename, 'content' => 'data:application/pdf;base64,' . base64_encode($pdf_content), 'encoding' => 'MIME base64 (base64_encode php function, http://php.net/manual/en/function.base64-encode.php)', 'Content-Type' => mime_content_type($filename_osencoded));
     }
 
 
