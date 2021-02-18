@@ -107,11 +107,13 @@ class modAtlantis extends DolibarrModules
 			'theme' => 0,
 			// Set this to relative path of css file if module has its own css file
 			'css' => array(
-				'/atlantis/css/atlantis_select2sortable.css.php'
+				'/atlantis/css/atlantis_select2sortable.css.php',
+				'/atlantis/css/atlantis_floatingscrollbar.css.php'
 			),
 			// Set this to relative path of js file if module must load a js on all pages
 			'js' => array(
 				'/atlantis/js/select2-sortable.min.js',
+				'/atlantis/js/floatingscrollbar.js'
 			),
 			// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context to 'all'
 			'hooks' => array(
