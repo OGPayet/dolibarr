@@ -70,9 +70,23 @@ class InterventionCheckFields {
         return $error;
     }
 
-    public function checkInterventionFields() {
-        return array_merge($this->isArrayOptionsEmpty(), $this->isStakeholderSignatureEmpty(), 
-            $this->isCustomerSignatureEmpty(), $this->isInterventionLinesEmpty());
+    public function checkInterventionFields($trigger_name = '') {
+        global $user;
+
+        $result = array_merge($this->isArrayOptionsEmpty(), $this->isStakeholderSignatureEmpty(), 
+        $this->isCustomerSignatureEmpty(), $this->isInterventionLinesEmpty());
+        
+        // Call trigger if no error in intervention fields
+        if (empty($result)) {
+            $call_trigger = $this->object->call_trigger($trigger_name, $user);
+
+            // End call trigger
+            if ($call_trigger < 0) {
+                setEventMessages('', $this->object->errors, 'errors');
+            }
+        }
+
+        return $result;
     }
 }
 

@@ -104,7 +104,7 @@ class InterfaceSendByMailInterventionSurveyTriggers extends DolibarrTriggers
         // Data and type of action are stored into $object and $action
 
         switch ($action) {
-            case 'FICHINTER_CLASSIFY_DONE':
+            case 'FICHINTER_FIELDS_CHECKED':
                 dol_syslog("Trigger for action '$action' launched. id=".$object->id);
                 
                 if ($conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL) {

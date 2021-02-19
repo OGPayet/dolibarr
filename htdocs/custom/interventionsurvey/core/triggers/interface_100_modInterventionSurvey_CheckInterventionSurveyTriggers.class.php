@@ -115,13 +115,10 @@ class InterfaceCheckInterventionSurveyTriggers extends DolibarrTriggers
                         require_once DOL_DOCUMENT_ROOT . '/custom/interventionsurvey/class/interventionsurvey_checkinterventionfields.class.php';
 
                         $checkInterventionFields = new InterventionCheckFields($object);
+                        $trigger_name = "FICHINTER_FIELDS_CHECKED";
 
-                        if (!empty($checkInterventionFields->checkInterventionFields())) {
-                            return -1;
-                        }
+                        $checkInterventionFields->checkInterventionFields($trigger_name);
                     }
-                } else {
-                    return -1;
                 }
 
                 return 0;
