@@ -398,16 +398,14 @@ class ActionsInterventionSurvey
         $emailList = $parameters['emailList'];
         $this->results = array();
         
-        if(in_array("interventionmail", $contexts)) {
-            $isCustomerAbsent = false;
-            
+        if(in_array("interventionmail", $contexts)) {            
             // Check if customer is absent
-            if (!empty($object->array_options['options_customer_signature'])) {
+            if (!empty($object->array_options['options_customer_signature']) && $conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER) {
                 $customer_signature = json_decode($object->array_options['options_customer_signature'], true);
                 $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
 
                 // Add signatory customer to the emailList
-                if (!$isCustomerAbsent && $conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER) {
+                if (!$isCustomerAbsent) {
                     if (!empty($customer_signature->people)) {
                         include_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
                         $contact = new Contact($this->db);
