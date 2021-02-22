@@ -183,7 +183,7 @@ class ActionsDeclinaison
 
     function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
-	global $langs,$db;
+      	global $langs,$db;
 
 		if (in_array('productcard',explode(':',$parameters['context'])) && $action == 'view')
 		{
@@ -193,10 +193,8 @@ class ActionsDeclinaison
 				?>
 				<script type="text/javascript">
 					$(document).ready(function() {
-
-					// Modification made by Alexis LAURIER on 13 Nov 2018 - we let action button on child product cards
-					//	$('a.butAction, span.butAction').parent('div').remove();
-					console.log("test");
+						// Modification made by Alexis LAURIER on 13 Nov 2018 - we let action button on child product cards
+						//$('a.butAction, span.butAction').parent('div').remove();
 					});
 				</script>
 				<?php
@@ -209,7 +207,7 @@ class ActionsDeclinaison
     function formEditProductOptions($parameters, &$object, &$action, $hookmanager)
     {
 
-	if (in_array('invoicecard',explode(':',$parameters['context'])))
+    	if (in_array('invoicecard',explode(':',$parameters['context'])))
         {
 
         }

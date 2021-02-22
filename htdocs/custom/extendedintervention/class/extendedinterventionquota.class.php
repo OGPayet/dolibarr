@@ -210,8 +210,8 @@ class ExtendedInterventionQuota
             }
             $sql .= " AND fi.fk_soc = " . $contract->socid .
                 " AND fi.fk_contrat = " . $contract->id .
-                " AND '" . $this->db->idate($period['begin']) . "' <= fi.dateo" .
-                " AND fi.dateo <= '" . $this->db->idate($period['end']) . "'".
+                " AND (( '" . $this->db->idate($period['begin']) . "' <= fi.dateo AND fi.dateo <= '" . $this->db->idate($period['end']) . "') OR (fi.dateo IS NULL AND '" . $this->db->idate($period['begin']) . "' <= fief.st_estimated_begin_date AND fief.st_estimated_begin_date <= '" . $this->db->idate($period['end']) . "') OR (fi.dateo IS NULL AND fief.st_estimated_begin_date is NULL AND '" . $this->db->idate($period['begin']) . "' <= fi.datec AND fi.datec <= '" . $this->db->idate($period['end']) . "'))".
+
                 " GROUP BY fief.ei_type";
 
             $resql = $this->db->query($sql);
