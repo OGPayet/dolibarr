@@ -49,7 +49,7 @@ class pdf_merou_dec extends ModelePdfExpedition
 	{
 		global $conf,$langs,$mysoc;
 		$langs->load("declinaison@declinaison");
-
+		
 		$this->db = $db;
 		$this->name = "merou_dec";
 		$this->description = $langs->trans("DocumentModelMerouDec");
@@ -102,7 +102,7 @@ class pdf_merou_dec extends ModelePdfExpedition
 		$outputlangs->load("deliveries");
 		$outputlangs->load("sendings");
 		$outputlangs->load("productbatch");
-
+		
 		if ($conf->expedition->dir_output)
 		{
 			$object->fetch_thirdparty();
@@ -240,9 +240,9 @@ class pdf_merou_dec extends ModelePdfExpedition
 				// Loop on each lines
 				for ($i = 0; $i < $num; $i++)
 				{
-
+					
 					if($object->lines[$i]->special_code == 3) continue;
-
+					
 					$curY = $nexY;
 					$pdf->SetFont('','', $default_font_size - 3);
 					$pdf->SetTextColor(0,0,0);
@@ -271,7 +271,7 @@ class pdf_merou_dec extends ModelePdfExpedition
 					$pdf->SetDrawColor(120,120,120);
 					$pdf->Rect(10+3, $curY, 3, 3);
 					$pdf->Rect(20+3, $curY, 3, 3);
-
+					
 					//Insertion de la reference du produit
 					$pdf->SetXY(30, $curY);
 					$pdf->SetFont('','B', $default_font_size - 3);
@@ -364,7 +364,7 @@ class pdf_merou_dec extends ModelePdfExpedition
                     @chmod($file, octdec($conf->global->MAIN_UMASK));
 
 				$this->result = array('fullpath'=>$file);
-
+                
 				return 1;
 			}
 			else
@@ -444,7 +444,7 @@ class pdf_merou_dec extends ModelePdfExpedition
 		// Show page nb only on iso languages (so default Helvetica font)
         //if (pdf_getPDFFont($outputlangs) == 'Helvetica')
         //{
-	//    $pdf->SetXY(-10,-10);
+    	//    $pdf->SetXY(-10,-10);
         //    $pdf->MultiCell(11, 2, $pdf->PageNo().'/'.$pdf->getAliasNbPages(), 0, 'R', 0);
         //}
 	}

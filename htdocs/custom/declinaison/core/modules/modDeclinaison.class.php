@@ -82,7 +82,7 @@ class modDeclinaison extends DolibarrModules
         $this->module_parts = array(
             'triggers' => 1
             ,'hooks' => array('productcard','globalcard','pdfgeneration')
-		,'models'=>1
+        	,'models'=>1
         );
 
         // Data directories to create when module is enabled.
@@ -128,7 +128,7 @@ class modDeclinaison extends DolibarrModules
         // Example:
         $this->tabs = array(
             // To add a new tab identified by code tabname1
-		'product:+declinaison:Déclinaison:declinaison@declinaison:$user->rights->declinaison->read:/declinaison/liste.php?fk_product=__ID__',
+            	'product:+declinaison:Déclinaison:declinaison@declinaison:$user->rights->declinaison->read:/declinaison/liste.php?fk_product=__ID__',
             //	// To add another new tab identified by code tabname2
             //	'objecttype:+tabname2:Title2:langfile@Declinaison:$user->rights->othermodule->read:/declinaison/mynewtab2.php?id=__ID__',
             //	// To remove an existing tab identified by code tabname
@@ -221,16 +221,16 @@ class modDeclinaison extends DolibarrModules
         //// Permission id (must not be already used)
         $this->rights[$r][0] = $this->numero+$r;
         $this->rights[$r][1] = 'Voir les déclinaisons';
-        $this->rights[$r][3] = 1;
+        $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'read';
         $r++;
-
+		
 		$this->rights[$r][0] = $this->numero+$r;
         $this->rights[$r][1] = 'Supprimer les liens';
-        $this->rights[$r][3] = 1;
+        $this->rights[$r][3] = 0;
         $this->rights[$r][4] = 'delete';
         $r++;
-
+        
         // Main menu entries
         $this->menus = array(); // List of menus to add
         $r = 0;
@@ -420,18 +420,18 @@ class modDeclinaison extends DolibarrModules
     public function init($options = '')
     {
        global $conf;
-
+       
 	    $sql = array();
 
         $result = $this->loadTables();
-
+        
         define('INC_FROM_DOLIBARR', true);
         dol_include_once('/declinaison/script/create-maj-base.php');
-
+        
 		dolibarr_set_const($this->db, 'DECLINAISON_SILENT_MODE',$conf->global->DECLINAISON_SILENT_MODE ,'chaine',1,'Affiche ou pas un popin après la création de la déclinaison',0);
 		dolibarr_set_const($this->db, 'DECLINAISON_NO_SHOW_ITEM', $conf->global->DECLINAISON_NO_SHOW_ITEM ,'chaine',1,'Affiche ou pas les déclinaison dans la liste des produit',0);
-	dolibarr_set_const($this->db, 'DECLINAISON_NO_MODIFY_ITEM', $conf->global->DECLINAISON_NO_MODIFY_ITEM ,'chaine',1,'Permet de modifier ou pas les déclinaisons',0);
-
+    	dolibarr_set_const($this->db, 'DECLINAISON_NO_MODIFY_ITEM', $conf->global->DECLINAISON_NO_MODIFY_ITEM ,'chaine',1,'Permet de modifier ou pas les déclinaisons',0);
+		
         return $this->_init($sql, $options);
     }
 

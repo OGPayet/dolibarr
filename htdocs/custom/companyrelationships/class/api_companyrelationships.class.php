@@ -4958,6 +4958,8 @@ class CompanyRelationshipsApi extends DolibarrApi
 				$result = $object->fetch($refname);
 				if (!$result) {
 					return [];
+				} else {
+					$entity = $object->entity;
 				}
 			}
 
@@ -5166,7 +5168,6 @@ class CompanyRelationshipsApi extends DolibarrApi
 			if (!$result) {
 				return [];
 			}
-			$object->entity = 1;
 			if ($showlogo == false) {
 				$upload_dir = $conf->societe->multidir_output[$object->entity] . "/contact/" . $object->id;
 			} else if ($showlogo == true) {
@@ -5508,23 +5509,21 @@ class CompanyRelationshipsApi extends DolibarrApi
 			$filearraylogo = dol_dir_list($upload_dir_logo, "files", 0, '', '(\.meta|_preview.*\.png)$', $sortfield, (strtolower($sortorder) == 'desc' ? SORT_DESC : SORT_ASC), 1);
 
 			//Add identifier for logo only
-			$tmp_array = array();
+			$result_logo = array();
 			foreach ($filearraylogo as $logo) {
 				$logo['type'] = 'logo';
-				$tmp_array[] = $logo;
+				$result_logo[] = $logo;
 			}
-			$filearraylogo = $tmp_array;
 
 			if ($active == true) {
-				$tmp_array = "";
-				foreach ($filearraylogo as $logo) {
+				foreach ($result_logo as $logo) {
 					if ($logo['relativename'] == $logo_name) {
-						$tmp_array = $logo;
+						$result_logo_active = $logo;
 					}
 				}
-				$filearraylogo = $tmp_array;
+				$result_logo = $result_logo_active ? array($result_logo_active) : array();
 			}
-			$filearray[] = $filearraylogo;
+			$filearray = array_merge($filearray,$result_logo);
 		}
 
 		if (empty($filearray)) {

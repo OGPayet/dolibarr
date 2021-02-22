@@ -84,7 +84,7 @@ class pdf_crabe_dec extends ModelePDFFactures
 		$langs->load("main");
 		$langs->load("bills");
 		$langs->load("declinaison@declinaison");
-
+		
 		$this->db = $db;
 		$this->name = "crabe_dec";
 		$this->description = $langs->trans('PDFCrabeDecDescription');
@@ -413,9 +413,9 @@ class pdf_crabe_dec extends ModelePDFFactures
 				// Loop on each lines
 				for ($i = 0; $i < $nblignes; $i++)
 				{
-
+					
 					if($object->lines[$i]->special_code == 3) continue;
-
+					
 					$curY = $nexY;
 					$pdf->SetFont('','', $default_font_size - 1);   // Into loop to work with multipage
 					$pdf->SetTextColor(0,0,0);
@@ -1119,7 +1119,7 @@ class pdf_crabe_dec extends ModelePDFFactures
 							}
 						}
 					}
-			//}
+	      		//}
 				//Local tax 2 before VAT
 				//if (! empty($conf->global->FACTURE_LOCAL_TAX2_OPTION) && $conf->global->FACTURE_LOCAL_TAX2_OPTION=='localtax2on')
 				//{
@@ -1231,7 +1231,7 @@ class pdf_crabe_dec extends ModelePDFFactures
 							}
 						}
 					}
-			//}
+	      		//}
 				//Local tax 2 after VAT
 				//if (! empty($conf->global->FACTURE_LOCAL_TAX2_OPTION) && $conf->global->FACTURE_LOCAL_TAX2_OPTION=='localtax2on')
 				//{
@@ -1791,3 +1791,4 @@ class pdf_crabe_dec extends ModelePDFFactures
 	}
 
 }
+
