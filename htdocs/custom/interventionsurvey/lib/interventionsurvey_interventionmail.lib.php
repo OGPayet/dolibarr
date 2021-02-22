@@ -82,6 +82,10 @@ class InterventionMail {
         $ref = dol_sanitizeFileName($this->object->ref);
         $file = $conf->ficheinter->dir_output . '/' . $ref . '/' . $ref . '.pdf';
 
+        if (!file_exists($file)) {
+			$file = [];
+		}
+        
         return $file;
     }
 
@@ -290,6 +294,18 @@ class InterventionMail {
                 $formmail->trackid = $trackid;      // $trackid must be defined
 
                 $file = $this->getInterventionPdfFile();
+                if (!file_exists($file)) {
+                    $langs->load("other");
+                    $mesg='<div class="error">';
+                    $mesg.='No mail sent. The PDF file for this intervention was not found.';
+                    $mesg.='</div>';
+
+                    setEventMessages($mesg, null, 'warnings');
+                    dol_syslog('No mail sent. The PDF file for this intervention was not found.', LOG_WARNING);
+
+                    return -1;
+                }
+
                 $formmail->clear_attached_files();
 			    $formmail->add_attached_files($file, basename($file), dol_mimetype($file));
 
