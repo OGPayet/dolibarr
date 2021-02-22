@@ -654,15 +654,64 @@ class InterventionSurveyApi extends DolibarrApi
         return $this->_cleanObjectData($this->interventionSurvey);
     }
 
+    /**
+     * Get fichinter PDF file of an intervention
+     *
+     * Return the PDF file in base64 string format
+     *
+     * @param 	int 	$id intervention ID
+     * @return 	string
+     * @url	GET /fichinterPdf/{id}
+     * @throws 	RestException
+     */
+    function getFichinterPdf($id)
+    {
+        global $conf;
+        
+        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->readApi) {
+            throw new RestException(401);
+        }
+
+        if (!($id > 0)) {
+            throw new RestException(400, 'Bad Request : you must provide a valid Intervention Id');
+        }
+
+        $result = $this->interventionSurvey->fetch($id, '', true, true);
+        if (!($result > 0)) {
+            throw new RestException(404, 'Intervention not found');
+        }
+
+        if (!$this->interventionSurvey->checkUserAccess(DolibarrApiAccess::$user)) {
+            throw new RestException(401, 'Access to instance id=' . $this->interventionSurvey->id . ' of object not allowed for login ' . DolibarrApiAccess::$user->login);
+        }
+        
+        $this->updatePdfFileIfNeeded(true);
+
+        $ref = dol_sanitizeFileName($this->interventionSurvey->ref);
+        $file = $conf->ficheinter->multidir_output[$this->interventionSurvey->entity] . '/' . $ref . '/' . $ref . '.pdf';
+        $file_osencoded = dol_osencode($file); // New file encoded in OS encoding charset
+        $filename = basename($file);
+
+        if (!file_exists($file_osencoded)) {
+			throw new RestException(404, 'Error fichinter PDF not found for Intervention with id=' . $this->interventionSurvey->id . ' : ' . $this->_getErrors($this->interventionSurvey));
+		}
+
+        $pdf_content = file_get_contents($file_osencoded);
+
+        return array('filename' => $filename, 'content' => 'data:application/pdf;base64,' . base64_encode($pdf_content), 'encoding' => 'MIME base64 (base64_encode php function, http://php.net/manual/en/function.base64-encode.php)', 'Content-Type' => mime_content_type($file_osencoded));
+    }
+
+
+
     /******************************************** */
     //                    TOOLS                   //
     /******************************************** */
 
-    private function updatePdfFileIfNeeded()
+    private function updatePdfFileIfNeeded($forceUpdate = false)
     {
         global $conf;
         global $langs;
-        if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
+        if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE) || $forceUpdate) {
             require_once DOL_DOCUMENT_ROOT . '/core/modules/fichinter/modules_fichinter.php';
             fichinter_create($this->db, $this->interventionSurvey, $this->interventionSurvey->modelpdf, $langs);
         }
