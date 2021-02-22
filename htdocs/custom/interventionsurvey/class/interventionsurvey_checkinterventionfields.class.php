@@ -1,93 +1,109 @@
 <?php
+/* Copyright (C) 2020 Alexis LAURIER
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-class InterventionCheckFields {
-    var $langs;
-    var $object;
-    var $errors;
+/**
+ * \file    interventionsurvey/class/interventionsurvey_checkinterventionfields.class.php
+ * \ingroup interventionsurvey
+ *
+ * Class to check data on intervention and intervention survey
+ */
+
+/**
+ * Class ActionsInterventionSurvey
+ */
+class InterventionCheckFields
+{
+    /**
+     * @var Trans language object to use
+     */
+    public $langs;
 
     /**
-	 * Constructor
-	 *
-	 * @param DoliDB $db Database handler
-	*/
-	function __construct($object) {
-        global $langs;
+     * @var InterventionSurvey Instance on which check data
+     */
+    public $object;
 
+    /**
+     * Constructor
+     *
+     * @param DoliDB $db Database handler
+    */
+    public function __construct($object, $langs)
+    {
         $langs->load("interventionsurvey@interventionsurvey");
-
         $this->langs = $langs;
         $this->object = $object;
-		$this->errors = array();
     }
 
-    // Check array options
-    public function isArrayOptionsEmpty() {
-        $error = array();
-
-        if (empty($this->object->array_options)) {
-            $error[] = $this->langs->trans('InterventionSurveyMissingArrayOptions', $this->object->id); 
+    /**
+     * Check if stakeholder signature contains correct data
+     * @return string[] return array of validation errors
+     **/
+    public function isStakeholderSignatureEmpty()
+    {
+        $errors = array();
+        if (empty($this->object->array_options['options_stakeholder_signature'])
+            || empty(json_decode($this->object->array_options['options_stakeholder_signature'])->value)
+            ) {
+            $errors[] = $this->langs->trans('InterventionSurveyMissingStakeholderSignature', $this->object->id);
         }
-
-        return $error;
+        return $errors;
     }
 
-    // Check stakeholder signature
-    public function isStakeholderSignatureEmpty() {
-        $error = array();
-
-        if (empty($this->object->array_options['options_stakeholder_signature'])) {
-            $error[] = $this->langs->trans('InterventionSurveyMissingStakeholderSignature', $this->object->id); 
-        } else if (empty(json_decode($this->object->array_options['options_stakeholder_signature'])->value)) {
-            $error[] = $this->langs->trans('InterventionSurveyMissingStakeholderSignature', $this->object->id); 
+    /**
+     * Check if customer signature contains correct data
+     * @return string[] return array of validation errors
+     **/
+    public function isCustomerSignatureEmpty()
+    {
+        $errors = array();
+        if (empty($this->object->array_options['options_customer_signature'])
+            || (
+                empty(json_decode($this->object->array_options['options_customer_signature'])->value)
+                && !json_decode($this->object->array_options['options_customer_signature'])->isCustomerAbsent)
+            ) {
+            $errors[] = $this->langs->trans('InterventionSurveyMissingCustomerSignature', $this->object->id);
         }
-
-        return $error;
+        return $errors;
     }
 
-    // Check customer signature
-    public function isCustomerSignatureEmpty() {
-        $error = array();
-
-        if (empty($this->object->array_options['options_customer_signature'])) {
-            $error[] = $this->langs->trans('InterventionSurveyMissingCustomerSignature', $this->object->id); 
-        } else if (empty(json_decode($this->object->array_options['options_customer_signature'])->value)) {
-            if (!json_decode($this->object->array_options['options_customer_signature'])->isCustomerAbsent) {
-                $error[] = $this->langs->trans('InterventionSurveyMissingCustomerSignature', $this->object->id); 
-            }
-        }
-
-        return $error;
-    }
-
-    // Check intervention lines
-    public function isInterventionLinesEmpty() {
-        $error = array();
-
+    /**
+     * Check if intervention lines contain correct data
+     * @return string[] return array of validation errors
+     **/
+    public function isInterventionLinesEmpty()
+    {
+        $errors = array();
         if (empty($this->object->lines)) {
-            $error[] = $this->langs->trans('InterventionSurveyMissingInterventionLines', $this->object->label, $this->object->id); 
+            $errors[] = $this->langs->trans('InterventionSurveyMissingInterventionLines', $this->object->label, $this->object->id);
         }
-
-        return $error;
+        return $errors;
     }
 
-    public function checkInterventionFields($trigger_name = '') {
-        global $user;
-
-        $result = array_merge($this->isArrayOptionsEmpty(), $this->isStakeholderSignatureEmpty(), 
-        $this->isCustomerSignatureEmpty(), $this->isInterventionLinesEmpty());
-        
-        // Call trigger if no error in intervention fields
-        if (empty($result)) {
-            $call_trigger = $this->object->call_trigger($trigger_name, $user);
-
-            // End call trigger
-            if ($call_trigger < 0) {
-                setEventMessages('', $this->object->errors, 'errors');
-            }
-        }
-
-        return $result;
+    /**
+     * Check intervention data
+     * @return string[] return array of validation errors
+     **/
+    public function checkIntervention()
+    {
+        return array_merge(
+            $this->isStakeholderSignatureEmpty(),
+            $this->isCustomerSignatureEmpty(),
+            $this->isInterventionLinesEmpty()
+        );
     }
 }
-
-?>

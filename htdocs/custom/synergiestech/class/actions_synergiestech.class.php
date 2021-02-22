@@ -543,17 +543,6 @@ class ActionsSynergiesTech
                 print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("SynergiesTechTicketGenerateReport") . '</a></div>';
             }
         } elseif (in_array('interventioncard', $contexts)) {
-            // ReOpen
-            if ($object->statut == 2 /* invoiced */ || $object->statut == 3 /* done */) {
-                $langs->load('synergiestech@synergiestech');
-
-                if ($user->rights->synergiestech->fichinter->reopen) {
-                    print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=reopen' . (empty($conf->global->MAIN_JUMP_TAG) ? '' : '#reopen') . '">' .
-                        $langs->trans("ReOpen") . '</a></div>';
-                } else {
-                    print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("ReOpen") . '</a></div>';
-                }
-            }
             if ($object->statut == 0) { //draft
                 if ($user->rights->synergiestech->intervention->validateWithoutCheck) {
                     print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=validateWithoutCheck' . (empty($conf->global->MAIN_JUMP_TAG) ? '' : '#reopen') . '">' .
@@ -2305,7 +2294,6 @@ SCRIPT;
             print <<<SCRIPT
 <script type="text/javascript">
     $(document).ready(function() {
-		console.log("coucou");
         $("a:contains('$buttonContent')").hide();
     });
 </script>
@@ -3477,7 +3465,7 @@ SCRIPT;
             $societe = new Societe($this->db);
             $isCustomerAbsent = false;
             $isAvailabilityPrincipal = false;
-            
+
             // Check if customer is absent
             if (!empty($object->array_options['options_customer_signature'])) {
                 $customer_signature = json_decode($object->array_options['options_customer_signature'], true);
@@ -3495,7 +3483,7 @@ SCRIPT;
                 $thirdPartyId = $object->socid;
 
                 $result = $societe->fetch($thirdPartyId);
-                                                
+
                 if ($result > 0 && !empty($societe->email)) {
                     array_push($emailList, $societe->email);
                 } else {

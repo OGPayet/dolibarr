@@ -27,6 +27,7 @@
 /**
  * Class ActionsInterventionSurvey
  */
+include_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
 class ActionsInterventionSurvey
 {
     /**
@@ -59,7 +60,7 @@ class ActionsInterventionSurvey
     /**
      * Constructor
      *
-     *  @param		DoliDB		$db      Database handler
+     *  @param      DoliDB      $db      Database handler
      */
     public function __construct($db)
     {
@@ -104,15 +105,15 @@ class ActionsInterventionSurvey
                 if ($sourceElementType == "fichinter") {
                     $interventionId = array($object->id);
                     $otherLinkedElementType = $destinationElementType;
-                } else if ($destinationElementType == "fichinter") {
+                } elseif ($destinationElementType == "fichinter") {
                     $interventionId = GETPOST('idtolinkto', 'array');
-                    if(empty($interventionId)){
+                    if (empty($interventionId)) {
                         $interventionId = array(GETPOST('idtolinkto', 'int'));
                     }
                     $otherLinkedElementType = $sourceElementType;
                 }
                 $id = $object->id; //used for /core/actions_dellink.inc.php
-            } elseif($action == "dellink") {
+            } elseif ($action == "dellink") {
                 //here $action == "dellink"
 
                 $sql = "SELECT fk_source, sourcetype, targettype, fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE rowid = " . GETPOST('dellinkid', 'int');
@@ -123,7 +124,7 @@ class ActionsInterventionSurvey
                         if ($obj->sourcetype == "fichinter") {
                             $interventionId = array($obj->fk_source);
                             $otherLinkedElementType = $obj->targettype;
-                        } else if ($obj->targettype == "fichinter") {
+                        } elseif ($obj->targettype == "fichinter") {
                             $interventionId = array($obj->fk_target);
                             $otherLinkedElementType = $obj->sourcetype;
                         }
@@ -140,7 +141,7 @@ class ActionsInterventionSurvey
                 //We add value needed for the include, as we don't fetch it from hookmanager
                 if ($object->element == "fichinter") {
                     $permissiondellink = $user->rights->ficheinter->creer; //used for /core/actions_dellink.inc.php
-                } else if ($object->element == "equipement") {
+                } elseif ($object->element == "equipement") {
                     $permissiondellink = $user->rights->equipement->creer; //used for /core/actions_dellink.inc.php
                 }
                 //We do actions in order to have database updated
@@ -149,13 +150,12 @@ class ActionsInterventionSurvey
                 $action = null;
             }
 
-            foreach($interventionId as $interId){
+            foreach ($interventionId as $interId) {
                 if ($interId > 0 && empty($errors) && $otherLinkedElementType == "equipement") {
                     //We launch update of the intervention
                     dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                     $interventionSurvey = new InterventionSurvey($this->db);
-                    if (
-                        $interventionSurvey->fetch($interId, null, true, true) > 0
+                    if ($interventionSurvey->fetch($interId, null, true, true) > 0
                         && (!$interventionSurvey->is_survey_read_only() || $interventionSurvey->statut == InterventionSurvey::STATUS_DRAFT)
                     ) {
                         $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
@@ -172,7 +172,7 @@ class ActionsInterventionSurvey
                 $this->errors = array_merge($errors, $interventionSurvey->errors);
                 return -1;
             }
-        } else if ($action == 'classifyDoneWithoutDataCheck') {
+        } elseif ($action == 'classifyDoneWithoutDataCheck') {
             if ($user->rights->interventionsurvey->survey->noCheck) {
                 $object->noSurveyDataCheck = true;
             }
@@ -185,7 +185,7 @@ class ActionsInterventionSurvey
             if ($action == 'confirm_deletefile') {
                 $urlfile = GETPOST('urlfile', 'alpha', 0, null, null, 1);
                 $filename = basename($urlfile);
-            } else if ($action == 'renamefile') {
+            } elseif ($action == 'renamefile') {
                 $filename = dol_sanitizeFileName(GETPOST('renamefilefrom', 'alpha'));
                 $newfilename = dol_sanitizeFileName(GETPOST('renamefileto', 'alpha'));
 
@@ -214,9 +214,7 @@ class ActionsInterventionSurvey
                 }
             }
             $object->saveSurvey($user, true);
-        }
-        else if (in_array('interventioncard', $contexts) && $action == "addline" && $user->rights->ficheinter->creer) {
-
+        } elseif (in_array('interventioncard', $contexts) && $action == "addline" && $user->rights->ficheinter->creer) {
             $mesg = array();
             if (empty($conf->global->FICHINTER_WITHOUT_DURATION) && !GETPOST('durationhour', 'int') && !GETPOST('durationmin', 'int')) {
                 $mesg[] = '<div class="error">' . $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Duration")) . '</div>';
@@ -251,8 +249,12 @@ class ActionsInterventionSurvey
                 // Define output language
                 $outputlangs = $langs;
                 $newlang = '';
-                if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) $newlang = GETPOST('lang_id', 'aZ09');
-                if ($conf->global->MAIN_MULTILANGS && empty($newlang)) $newlang = $object->thirdparty->default_lang;
+                if ($conf->global->MAIN_MULTILANGS && empty($newlang) && GETPOST('lang_id', 'aZ09')) {
+                    $newlang = GETPOST('lang_id', 'aZ09');
+                }
+                if ($conf->global->MAIN_MULTILANGS && empty($newlang)) {
+                    $newlang = $object->thirdparty->default_lang;
+                }
                 if (!empty($newlang)) {
                     $outputlangs = new Translate("", $conf);
                     $outputlangs->setDefaultLang($newlang);
@@ -260,7 +262,9 @@ class ActionsInterventionSurvey
 
                 if ($result >= 0) {
                     $this->db->commit();
-                    if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) fichinter_create($this->db, $object, $object->modelpdf, $outputlangs);
+                    if (empty($conf->global->MAIN_DISABLE_PDF_AUTOUPDATE)) {
+                        fichinter_create($this->db, $object, $object->modelpdf, $outputlangs);
+                    }
                     header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
                     exit;
                 } else {
@@ -268,8 +272,8 @@ class ActionsInterventionSurvey
                     $this->db->rollback();
                 }
             }
-            if(!empty($mesg)){
-                setEventMessages('',$mesg, 'errors');
+            if (!empty($mesg)) {
+                setEventMessages('', $mesg, 'errors');
             }
             $action = null;
         }
@@ -289,13 +293,13 @@ class ActionsInterventionSurvey
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
 
-    function addMoreActionsButtons($parameters = array(), &$object, &$action = '', $hookmanager)
+    public function addMoreActionsButtons($parameters = array(), &$object, &$action = '', $hookmanager)
     {
         global $conf, $user, $langs;
 
         $contexts = explode(':', $parameters['context']);
 
-        if(in_array("interventioncard", $contexts)){
+        if (in_array("interventioncard", $contexts)) {
             if ($user->societe_id == 0) {
                 if ($action != 'editdescription' && ($action != 'presend')) {
                     //Validate fichinter without survey check
@@ -304,79 +308,34 @@ class ActionsInterventionSurvey
                     }
 
                     // Validate
-                    if ($object->statut == 0) {
+                    if ($object->statut == Fichinter::STATUS_DRAFT && count($object->lines) == 0 && empty($conf->global->FICHINTER_DISABLE_DETAILS)) {
                         if ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->creer) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->ficheinter_advance->validate)) {
                             print '<div class="inline-block divButAction"><a class="butAction" href="card.php?id=' . $object->id . '&action=validate"';
                             print '>' . $langs->trans("Validate") . '</a></div>';
                         }
                     }
-
-                    // Modify
-                    if ($object->statut == 1 && ((empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->creer) || (!empty($conf->global->MAIN_USE_ADVANCED_PERMS) && $user->rights->ficheinter->ficheinter_advance->unvalidate))) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="card.php?id=' . $object->id . '&action=modify">';
-                        if (empty($conf->global->FICHINTER_DISABLE_DETAILS)) print $langs->trans("Modify");
-                        else print $langs->trans("SetToDraft");
-                        print '</a></div>';
-                    }
-
-                    // Send
-                    if ($object->statut > 0) {
-                        if (empty($conf->global->MAIN_USE_ADVANCED_PERMS) || $user->rights->ficheinter->ficheinter_advance->send) {
-                            print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&action=presend&mode=init#formmailbeforetitle">' . $langs->trans('SendByMail') . '</a></div>';
-                        } else print '<div class="inline-block divButAction"><a class="butActionRefused" href="#">' . $langs->trans('SendByMail') . '</a></div>';
-                    }
-
-                    // Event agenda
-                    if (!empty($conf->global->FICHINTER_ADDLINK_TO_EVENT)) {
-                        if (!empty($conf->agenda->enabled) && $object->statut > 0) {
-                            $langs->load("agenda");
-                            if ($object->statut < 2) {
-                                if ($user->rights->agenda->myactions->create) print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/action/card.php?action=create&amp;origin=' . $object->element . '&amp;originid=' . $object->id . '&amp;socid=' . $object->socid . '&amp;backtopage=' . urlencode($_SERVER["PHP_SELF"] . '?id=' . $object->id) . '">' . $langs->trans("AddEvent") . '</a></div>';
-                                else print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("AddEvent") . '</a></div>';
-                            }
+                                // ReOpen
+                    if ($object->statut == 2 /* invoiced */ || $object->statut == 3 /* done */) {
+                        $langs->load('synergiestech@synergiestech');
+                        if ($user->rights->synergiestech->fichinter->reopen) {
+                            print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=reopen' . (empty($conf->global->MAIN_JUMP_TAG) ? '' : '#reopen') . '">' .
+                                $langs->trans("ReOpen") . '</a></div>';
+                        } else {
+                            print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("ReOpen") . '</a></div>';
                         }
-                    }
-
-                    // Proposal
-                    if (!empty($conf->propal->enabled) && $object->statut > 0) {
-                        $langs->load("propal");
-                        if ($object->statut < 2) {
-                            if ($user->rights->propal->creer) print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/comm/propal/card.php?action=create&amp;origin=' . $object->element . '&amp;originid=' . $object->id . '&amp;socid=' . $object->socid . '">' . $langs->trans("AddProp") . '</a></div>';
-                            else print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("AddProp") . '</a></div>';
-                        }
-                    }
-
-                    // Invoicing
-                    if (!empty($conf->facture->enabled) && $object->statut > 0) {
-                        $langs->load("bills");
-                        if ($object->statut < 2) {
-                            if ($user->rights->facture->creer) print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/compta/facture/card.php?action=create&amp;origin=' . $object->element . '&amp;originid=' . $object->id . '&amp;socid=' . $object->socid . '">' . $langs->trans("AddBill") . '</a></div>';
-                            else print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="' . $langs->trans("NotEnoughPermissions") . '">' . $langs->trans("AddBill") . '</a></div>';
-                        }
-
-                        if (!empty($conf->global->FICHINTER_CLASSIFY_BILLED))    // Option deprecated. In a future, billed must be managed with a dedicated field to 0 or 1
-                        {
-                            if ($object->statut != 2) {
-                                print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifybilled">' . $langs->trans("InterventionClassifyBilled") . '</a></div>';
-                            } else {
-                                print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifyunbilled">' . $langs->trans("InterventionClassifyUnBilled") . '</a></div>';
-                            }
-                        }
-                    }
-
-                    // Done
-                    if (empty($conf->global->FICHINTER_CLASSIFY_BILLED) && $object->statut > 0 && $object->statut < 3) {
-                        print '<div class="inline-block divButAction"><a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=classifydone">' . $langs->trans("InterventionClassifyDoneButton") . '</a></div>';
-                    }
-
-                    // Delete
-                    if (($object->statut == 0 && $user->rights->ficheinter->creer) || $user->rights->ficheinter->supprimer) {
-                        print '<div class="inline-block divButAction"><a class="butActionDelete" href="' . $_SERVER["PHP_SELF"] . '?id=' . $object->id . '&amp;action=delete"';
-                        print '>' . $langs->trans('Delete') . '</a></div>';
+                        //We hide classify done button
+            $buttonContent = dol_string_nohtmltag($langs->trans("Reopen"));
+            print <<<SCRIPT
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("a:contains('$buttonContent')").hide();
+    });
+</script>
+SCRIPT;
                     }
                 }
             }
-            return 1;
+            return 0;
         }
     }
 
@@ -389,30 +348,26 @@ class ActionsInterventionSurvey
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
     */
-    public function addMoreToEmail($parameters = array(), &$object, &$action = '', $hookmanager) {
+    public function addMoreToEmail($parameters = array(), &$object, &$action = '', $hookmanager)
+    {
         global $conf, $user, $langs;
 
         $contexts = explode(':', $parameters['context']);
-
-        $error = 0;
+        $errors = array();
         $emailList = $parameters['emailList'];
         $this->results = array();
-        
-        if(in_array("interventionmail", $contexts)) {            
+        if (in_array("interventionmail", $contexts)) {
             // Check if customer is absent
             if (!empty($object->array_options['options_customer_signature']) && $conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER) {
                 $customer_signature = json_decode($object->array_options['options_customer_signature'], true);
                 $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
-
                 // Add signatory customer to the emailList
                 if (!$isCustomerAbsent) {
                     if (!empty($customer_signature->people)) {
-                        include_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
-                        $contact = new Contact($this->db);
-
                         foreach ($customer_signature->people as $signatoryCustomer) {
-                            $result = $user->fetch($signatoryCustomer->identifier);
-
+                            $contact = new Contact($this->db);
+                            $result = $contact->fetch($signatoryCustomer->identifier);
+                            $errors = array_merge($errors, $contact->errors);
                             if ($result > 0 && !empty($contact->email)) {
                                 array_push($emailList, $contact->email);
                             }
@@ -420,29 +375,25 @@ class ActionsInterventionSurvey
                     }
                 }
             }
-            
             // Add signatory user to the emailList
             if (!empty($object->array_options['options_stakeholder_signature']) && $conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER) {
                 $stakeholder_signature = json_decode($object->array_options['options_stakeholder_signature'], true);
-
-                $user = new User($this->db);
-
                 if (!empty($stakeholder_signature->people)) {
                     foreach ($stakeholder_signature->people as $signatoryUser) {
+                        $user = new User($this->db);
                         $result = $user->fetch($signatoryUser->identifier);
-
+                        $errors = array_merge($errors, $user->errors);
                         if ($result > 0 && !empty($user->email)) {
                             array_push($emailList, $user->email);
                         }
                     }
                 }
             }
-
             $this->results = $emailList;
-
-            if ($error) {
+            $this->errors = array_merge($this->errors, $errors);
+            if (!empty($errors)) {
                 return -1;
-            } else if (!empty($this->results)) {
+            } else {
                 return 0;
             }
         }
