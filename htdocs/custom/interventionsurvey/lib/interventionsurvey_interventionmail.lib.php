@@ -176,6 +176,7 @@ class InterventionMail {
 
         $template = $this->getEMailTemplate($this->db, $emailInitTemplate, $this->user, $outputlangs);
 
+        $trigger_name = 'FICHINTER_SENTBYMAIL';
         $paramname = 'id';
         $mode = 'emailfromintervention';
         $_POST['langsmodels'] = $outputlangs->defaultlang;
