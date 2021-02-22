@@ -72,6 +72,14 @@ class InterventionMail
             }
         }
 
+        $company = new Societe($this->db);
+        $thirdpartyIdsToSendFichInterTo = array_map('intval', explode(', ', $this->object->array_options['options_third_parties_to_send_fichinter_to']));
+        foreach ($thirdpartyIdsToSendFichInterTo as $id) {
+            if ($company->fetch($id) > 0 && !empty($company->email)) {
+                array_push($emailList, $company->email);
+            }
+        }
+
         $parameters = array('emailList' => $emailList);
         $reshook = $hookmanager->executeHooks('addMoreToEmail', $parameters, $this->object, $action); // Note that $action and $object may have been modified by some hooks
         if (empty($reshook)) {
