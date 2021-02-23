@@ -3480,7 +3480,10 @@ SCRIPT;
             }
 
             // Add third party principal to the emailList
-            if ($isAvailabilityPrincipal && !empty($object->socid) && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL) {
+            if (
+                ($isCustomerAbsent || $isAvailabilityPrincipal) 
+                && !empty($object->socid) && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL
+            ) {
                 $principalId = $object->socid;
 
                 $result = $societe->fetch($principalId);
@@ -3501,7 +3504,7 @@ SCRIPT;
 
             // Add third party benefactor to the emailList
             if (
-                ($isCustomerAbsent || $isAvailabilityBenefactor) 
+                $isAvailabilityBenefactor
                 && !empty($object->array_options['options_companyrelationships_fk_soc_benefactor'])
                 && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR
             ) {
