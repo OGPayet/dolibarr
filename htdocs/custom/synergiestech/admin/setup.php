@@ -485,11 +485,28 @@ $selectedOrderEntity = explode(",", $conf->global->SYNERGIESTECH_FICHINTER_INTER
 print $form->multiselectarray("SYNERGIESTECH_FICHINTER_INTERVENTIONORDERENTITY", $listOfEntity, $selectedOrderEntity, 0, 0, 'minwidth100 maxwidth300');
 print '</td></tr>' . "\n";
 
+// SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechSendMailToThirdpartyPrincipal") . '</td>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechSendMailToThirdpartyPrincipalDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL');
+} else {
+    if (empty($conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
 // SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR
 $var = !$var;
 print '<tr ' . $bc[$var] . '>' . "\n";
-print '<td>' . $langs->trans("InterventionSurveySendMailToThirdpartyBenefactor") . '</td>' . "\n";
-print '<td>' . $langs->trans("InterventionSurveySendMailToThirdpartyBenefactorDescription") . '</td>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechSendMailToThirdpartyBenefactor") . '</td>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechSendMailToThirdpartyBenefactorDescription") . '</td>' . "\n";
 print '<td align="right">' . "\n";
 if (!empty($conf->use_javascript_ajax)) {
     print ajax_constantonoff('SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR');
@@ -498,6 +515,23 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_OBSERVER
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechSendMailToThirdpartyObserver") . '</td>' . "\n";
+print '<td>' . $langs->trans("SynergiesTechSendMailToThirdpartyObserverDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_OBSERVER');
+} else {
+    if (empty($conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_OBSERVER)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_OBSERVER">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_OBSERVER">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";

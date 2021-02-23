@@ -3472,17 +3472,58 @@ SCRIPT;
                 $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
             }
 
+            // Check if document is made available by default for the principal
             if (!empty($object->array_options['options_companyrelationships_availability_principal'])) {
                 if ($object->array_options['options_companyrelationships_availability_principal'] == '1') {
                     $isAvailabilityPrincipal = true;
                 }
             }
 
-            // Add third party benefactor to the emailList
-            if (($isCustomerAbsent || $isAvailabilityPrincipal) && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR) {
-                $thirdPartyId = $object->socid;
+            // Add third party principal to the emailList
+            if ($isAvailabilityPrincipal && !empty($object->socid) && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL) {
+                $principalId = $object->socid;
 
-                $result = $societe->fetch($thirdPartyId);
+                $result = $societe->fetch($principalId);
+
+                if ($result > 0 && !empty($societe->email)) {
+                    array_push($emailList, $societe->email);
+                } else {
+                    $error = 1;
+                }
+            }
+
+            // Check if document is made available by default for the beneficiary
+            if (!empty($object->array_options['options_companyrelationships_availability_benefactor'])) {
+                if ($object->array_options['options_companyrelationships_availability_benefactor'] == '1') {
+                    $isAvailabilityBenefactor = true;
+                }
+            }
+
+            // Add third party benefactor to the emailList
+            if (
+                ($isCustomerAbsent || $isAvailabilityBenefactor) 
+                && !empty($object->array_options['options_companyrelationships_fk_soc_benefactor'])
+                && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_BENEFACTOR
+            ) {
+                $benefactorId = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+
+                $result = $societe->fetch($benefactorId);
+
+                if ($result > 0 && !empty($societe->email)) {
+                    array_push($emailList, $societe->email);
+                } else {
+                    $error = 1;
+                }
+            }
+
+            // Add third party observer to the emailList
+            if (
+                !empty($object->array_options['options_companyrelationships_fk_soc_watcher']) 
+                && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_OBSERVER
+            ) {
+                $observerId = $object->array_options['options_companyrelationships_fk_soc_watcher'];
+
+                $result = $societe->fetch($observerId);
 
                 if ($result > 0 && !empty($societe->email)) {
                     array_push($emailList, $societe->email);
