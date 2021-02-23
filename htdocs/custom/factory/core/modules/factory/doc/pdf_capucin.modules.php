@@ -36,7 +36,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 /**
  *	Class to build equipement documents with model Soleil
  */
-class pdf_capucin extends ModeleFactory
+class pdf_capucin extends ModelePDFFactory
 {
 	var $db;
 	var $name;
@@ -225,7 +225,7 @@ class pdf_capucin extends ModeleFactory
 					$objectligne = $prods_arbo[$i];
 					$curY = $nexY+3;
 
-					// quantité unitaire
+					// quantitï¿½ unitaire
 					$pdf->SetXY($this->marge_gauche, $curY);
 					$txt=dol_htmlentitiesbr($objectligne['nb']);
 					$pdf->MultiCell(18, 8, $txt, 0, "R", 0);
@@ -472,7 +472,7 @@ class pdf_capucin extends ModeleFactory
 
 		$pdf->SetFont('', 'B', $default_font_size + 2);
 
-		// ref de l'équipement + num immocompta si saisie
+		// ref de l'ï¿½quipement + num immocompta si saisie
 		$posy+=10;
 		$posx=100;
 		$pdf->SetXY($posx, $posy);
@@ -480,7 +480,7 @@ class pdf_capucin extends ModeleFactory
 
 		$pdf->MultiCell(100, 4, $outputlangs->transnoentities("Ref")." : " . $object->ref, '', 'L');
 
-		// référence du produit
+		// rï¿½fï¿½rence du produit
 		$prod=new Product($this->db);
 		$prod->fetch($object->fk_product);
 		$posy+=4;
@@ -547,7 +547,7 @@ class pdf_capucin extends ModeleFactory
 		// les liens
 		$posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, 100, 3, 'R', $default_font_size);
 
-		// la description du produit à la gauche dans une zone rectangulaire
+		// la description du produit ï¿½ la gauche dans une zone rectangulaire
 		if ($object->description) {
 			// Show description
 			$posy=42;

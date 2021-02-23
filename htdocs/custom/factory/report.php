@@ -380,14 +380,14 @@ if (empty($reshook)) {
             if (!$error) {
                 //on memorise les infos de l'OF
                 $sql  = "UPDATE " . MAIN_DB_PREFIX . "factory";
-                $sql .= " SET date_end_made = " . ($factory->date_end_made ? $db->idate($factory->date_end_made) : 'null');
-                $sql .= " , duration_made = " . ($factory->duration_made ? $factory->duration_made : 'null');
-                $sql .= " , qty_made = " . ($factory->qty_made ? $factory->qty_made : 'null');
-                $sql .= " , description = '" . $db->escape($factory->description) . "'";
-                $sql .= " , manufacturing_cost = " . price2num($factory->qty_made ? ($product_cost_sum + $service_cost_sum) / $factory->qty_made : 0, 'MU');
-                $sql .= " , manufacturing_cost_excluding_services = " . price2num($factory->qty_made ? $product_cost_sum / $factory->qty_made : 0, 'MU');
-                $sql .= " , fk_statut = 2";
-                $sql .= " WHERE rowid = " . $id;
+                $sql .= ' SET date_end_made = ' . ($factory->date_end_made ? '"' . $db->idate($factory->date_end_made) . '"' : 'NULL');
+                $sql .= ' , duration_made = ' . ($factory->duration_made ? '"' .$factory->duration_made. '"' : 'NULL');
+                $sql .= ' , qty_made = ' . ($factory->qty_made ? '"' .$factory->qty_made. '"' : 'NULL');
+                $sql .= ' , description = "' . $db->escape($factory->description) . '"';
+                $sql .= ' , manufacturing_cost = "' . price2num($factory->qty_made ? ($product_cost_sum + $service_cost_sum) / $factory->qty_made : 0, 'MU'). '"';
+                $sql .= ' , manufacturing_cost_excluding_services = "' . price2num($factory->qty_made ? $product_cost_sum / $factory->qty_made : 0, 'MU'). '"';
+                $sql .= ' , fk_statut = "2"';
+                $sql .= ' WHERE rowid = "' . $id . '"';
 
                 if (!$db->query($sql)) {
                     $error++;
@@ -443,13 +443,13 @@ if (empty($reshook)) {
 
                         // on met a jour les infos des lignes de l'OF
                         $sql = "UPDATE " . MAIN_DB_PREFIX . "factorydet";
-                        $sql .= " SET qty_used = " . $componentQtyUsed;
-                        $sql .= ", qty_deleted = " . $componentQtyDeleted;
-                        $sql .= ", fk_entrepot = " . ($componentFkEntrepot > 0 ? $componentFkEntrepot : 'NULL');
-                        $sql .= " WHERE fk_factory = " . $id;
-                        $sql .= " AND fk_product = " . $componentProductId;
-                        $sql .= " AND id_dispatched_line = " . $lineNum;
-                        $sql .= " AND indice_factory_build = " . $indiceFactoryBuild;
+                        $sql .= ' SET qty_used = "' . $componentQtyUsed . '"';
+                        $sql .= ', qty_deleted = "' . $componentQtyDeleted. '"';
+                        $sql .= ', fk_entrepot = ' . ($componentFkEntrepot > 0 ? '"' . $componentFkEntrepot . '"' : 'NULL');
+                        $sql .= ' WHERE fk_factory = "' . $id. '"';
+                        $sql .= ' AND fk_product = "' . $componentProductId. '"';
+                        $sql .= ' AND id_dispatched_line = "' . $lineNum. '"';
+                        $sql .= ' AND indice_factory_build = "' . $indiceFactoryBuild. '"';
 
                         if (!$db->query($sql)) {
                             $error++;

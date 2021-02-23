@@ -1837,9 +1837,9 @@ class Factory extends CommonObject
 	function updatefactoryprices($fk_product_children, $pmp=0, $price=0)
 	{
 		$sql = 'UPDATE '.MAIN_DB_PREFIX.'product_factory';
-		$sql .= ' SET pmp= '.price2num($pmp).', price='.price2num($price);
-		$sql .= ' where fk_product_father= '.$this->id;
-		$sql .= ' and fk_product_children= '.$fk_product_children ;
+		$sql .= ' SET pmp= "'.price2num($pmp).'", price="'.price2num($price) . '"';
+		$sql .= ' where fk_product_father= "'.$this->id . '"';
+		$sql .= ' and fk_product_children= "'.$fk_product_children . '"' ;
 //print $sql."<br>";
 		if (! $this->db->query($sql)) {
 			dol_print_error($this->db);
@@ -1856,9 +1856,9 @@ class Factory extends CommonObject
 	function updateOFprices($fk_product, $pmp=0, $price=0)
 	{
 		$sql = 'UPDATE '.MAIN_DB_PREFIX.'factorydet';
-		$sql .= ' SET pmp= '.price2num($pmp).', price='.price2num($price);
-		$sql .= ' where fk_factory= '.$this->id;
-		$sql .= ' and fk_product= '.$fk_product;
+		$sql .= ' SET pmp= "'.price2num($pmp).'", price="'.price2num($price) . '"';
+		$sql .= ' where fk_factory= "'.$this->id . '"';
+		$sql .= ' and fk_product= "'.$fk_product . '"';
 //print $sql."<br>";
 		if (! $this->db->query($sql)) {
 			dol_print_error($this->db);
@@ -1877,9 +1877,9 @@ class Factory extends CommonObject
 	function updatefactorytaskprices($fk_task, $fk_product, $pmp, $price)
 	{
 		$sql = 'UPDATE '.MAIN_DB_PREFIX.'projet_taskdet';
-		$sql .= ' SET pmp='.($pmp?$pmp:'null').', price='.($price?$price:'null');
-		$sql .= ' where fk_task= '.$fk_task;
-		$sql .= ' and fk_product= '.$fk_product ;
+		$sql .= ' SET pmp='.($pmp?'"' . $pmp . '"':'null').', price='.($price?'"' . $price . '"':'null');
+		$sql .= ' where fk_task= "'.$fk_task .'"';
+		$sql .= ' and fk_product= "'.$fk_product . '"';
 //print $sql."<br>";
 		if (! $this->db->query($sql)) {
 			dol_print_error($this->db);
@@ -1896,9 +1896,9 @@ class Factory extends CommonObject
 	function updatefactorytaskqty($fk_task, $fk_product, $qtyused, $qtydeleted)
 	{
 		$sql = 'UPDATE '.MAIN_DB_PREFIX.'projet_taskdet';
-		$sql .= ' SET qty_used='.($qtyused ? $qtyused : 'null').', qty_deleted='.($qtydeleted ? $qtydeleted : 'null');
-		$sql .= ' where fk_task= '.$fk_task;
-		$sql .= ' and fk_product= '.$fk_product ;
+		$sql .= ' SET qty_used='.($qtyused ? '"' . $qtyused . '"' : 'null').', qty_deleted='.($qtydeleted ? '"' . $qtydeleted . '"' : 'null');
+		$sql .= ' where fk_task= "'.$fk_task . '"';
+		$sql .= ' and fk_product= "'.$fk_product . '"';
 //print $sql."<br>";
 		if (! $this->db->query($sql)) {
 			dol_print_error($this->db);
@@ -1978,8 +1978,8 @@ class Factory extends CommonObject
 		    $this->db->begin();
 
 		    $sql  = "UPDATE " . MAIN_DB_PREFIX . "factory SET";
-			$sql .= " date_start_made = " . ($datestartmade ? $this->db->idate($datestartmade) : 'null');
-			$sql .= ", fk_statut =" . ($datestartmade ? '1' : '0');
+			$sql .= ' date_start_made = ' . ($datestartmade ? '"' . $this->db->idate($datestartmade) . '"' : 'null');
+			$sql .= ', fk_statut ="' . ($datestartmade ? '1' : '0') . '"';
 			$sql .= " WHERE rowid = " . $this->id;
 
 			if (! $this->db->query($sql)) {
@@ -2017,8 +2017,8 @@ class Factory extends CommonObject
 
 		if ($user->rights->factory->creer) {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
-			$sql.= " SET date_start_planned = ".($datestartplanned? $this->db->idate($datestartplanned) :'null');
-			$sql.= " WHERE rowid = ".$this->id;
+			$sql.= ' SET date_start_planned = '.($datestartplanned? '"' . $this->db->idate($datestartplanned) . '"' :'null');
+			$sql.= ' WHERE rowid = "'.$this->id . '"';
 
 			if ($this->db->query($sql)) {
 				$this->date_start_planned = $datestartplanned;
@@ -2037,8 +2037,8 @@ class Factory extends CommonObject
 
 		if ($user->rights->factory->creer) {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
-			$sql.= " SET date_end_planned = ".($dateendplanned? $this->db->idate($dateendplanned) :'null');
-			$sql.= " WHERE rowid = ".$this->id;
+			$sql.= ' SET date_end_planned = '.($dateendplanned? '"'. $this->db->idate($dateendplanned).'"' :'null');
+			$sql.= ' WHERE rowid = "'.$this->id . '"';
 
 			if ($this->db->query($sql)) {
 				$this->date_end_planned = $dateendplanned;
@@ -2057,8 +2057,8 @@ class Factory extends CommonObject
 
 		if ($user->rights->factory->creer) {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
-			$sql.= " SET duration_planned = ".($durationplanned ? $durationplanned :'null');
-			$sql.= " WHERE rowid = ".$this->id;
+			$sql.= ' SET duration_planned = '.($durationplanned ? '"' . $durationplanned . '"' :'null');
+			$sql.= ' WHERE rowid = "'.$this->id . '"';
 
 			if ($this->db->query($sql)) {
 				$this->duration_planned = $durationplanned;
@@ -2076,8 +2076,8 @@ class Factory extends CommonObject
 
 		if ($user->rights->factory->creer) {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
-			$sql.= " SET description = '".$this->db->escape($description)."'";
-			$sql.= " WHERE rowid = ".$this->id;
+			$sql.= ' SET description = "'.$this->db->escape($description).'"';
+			$sql.= ' WHERE rowid = "'.$this->id . '"';
 
 			if ($this->db->query($sql)) {
 				$this->description = $description;
@@ -2095,8 +2095,8 @@ class Factory extends CommonObject
 
 		if ($user->rights->factory->creer) {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
-			$sql.= " SET fk_entrepot = ".$fk_entrepot;
-			$sql.= " WHERE rowid = ".$this->id;
+			$sql.= ' SET fk_entrepot = "'.$fk_entrepot . '"';
+			$sql.= ' WHERE rowid = "'.$this->id . '"';
 
 			if ($this->db->query($sql)) {
 				$this->fk_entrepot = $fk_entrepot;
@@ -2114,8 +2114,8 @@ class Factory extends CommonObject
 
 		if ($user->rights->factory->creer) {
 			$sql = "UPDATE ".MAIN_DB_PREFIX."factory ";
-			$sql.= " SET qty_planned = ".($qty_planned?$qty_planned:'null');
-			$sql.= " WHERE rowid = ".$this->id;
+			$sql.= ' SET qty_planned = '.($qty_planned?'"' . $qty_planned . '"':'null');
+			$sql.= ' WHERE rowid = "'.$this->id . '"';
 
 			if ($this->db->query($sql)) {
 				$this->qty_planned = $qty_planned;
