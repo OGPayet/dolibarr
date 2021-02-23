@@ -3463,14 +3463,7 @@ SCRIPT;
         if (in_array("interventionmail", $contexts)) {
             include_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
             $societe = new Societe($this->db);
-            $isCustomerAbsent = false;
             $isAvailabilityPrincipal = false;
-
-            // Check if customer is absent
-            if (!empty($object->array_options['options_customer_signature'])) {
-                $customer_signature = json_decode($object->array_options['options_customer_signature'], true);
-                $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
-            }
 
             // Check if document is made available by default for the principal
             if (!empty($object->array_options['options_companyrelationships_availability_principal'])) {
@@ -3481,7 +3474,7 @@ SCRIPT;
 
             // Add third party principal to the emailList
             if (
-                ($isCustomerAbsent || $isAvailabilityPrincipal) 
+                $isAvailabilityPrincipal
                 && !empty($object->socid) && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_PRINCIPAL
             ) {
                 $principalId = $object->socid;
@@ -3519,9 +3512,17 @@ SCRIPT;
                 }
             }
 
+            // Check if document is made available by default for the observer
+            if (!empty($object->array_options['options_companyrelationships_availability_watcher'])) {
+                if ($object->array_options['options_companyrelationships_availability_watcher'] == '1') {
+                    $isAvailabilityObserver = true;
+                }
+            }
+
             // Add third party observer to the emailList
             if (
-                !empty($object->array_options['options_companyrelationships_fk_soc_watcher']) 
+                $isAvailabilityObserver
+                && !empty($object->array_options['options_companyrelationships_fk_soc_watcher']) 
                 && $conf->global->SYNERGIESTECH_SEND_MAIL_TO_THIRDPARTY_OBSERVER
             ) {
                 $observerId = $object->array_options['options_companyrelationships_fk_soc_watcher'];
