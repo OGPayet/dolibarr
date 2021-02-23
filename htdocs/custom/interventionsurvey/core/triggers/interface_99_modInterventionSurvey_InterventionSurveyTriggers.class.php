@@ -34,7 +34,8 @@
  */
 
 require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
-
+dol_include_once('/interventionsurvey/class/interventionsurvey_checkinterventionfields.class.php');
+dol_include_once('/interventionsurvey/lib/interventionsurvey_interventionmail.lib.php');
 
 /**
  *  Class of triggers for InterventionSurvey module
@@ -89,16 +90,18 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
      * All functions "runTrigger" are triggered if file
      * is inside directory core/triggers
      *
-     * @param string 		$action 	Event action code
-     * @param CommonObject 	$object 	Object
-     * @param User 			$user 		Object user
-     * @param Translate 	$langs 		Object langs
-     * @param Conf 			$conf 		Object conf
-     * @return int              		<0 if KO, 0 if no triggered ran, >0 if OK
+     * @param string        $action     Event action code
+     * @param CommonObject  $object     Object
+     * @param User          $user       Object user
+     * @param Translate     $langs      Object langs
+     * @param Conf          $conf       Object conf
+     * @return int                      <0 if KO, 0 if no triggered ran, >0 if OK
      */
     public function runTrigger($action, $object, User $user, Translate $langs, Conf $conf)
     {
-        if (empty($conf->interventionsurvey->enabled)) return 0;     // If module is not enabled, we do nothing
+        if (empty($conf->interventionsurvey->enabled)) {
+            return 0;     // If module is not enabled, we do nothing
+        }
 
         // Put here code you want to execute when a Dolibarr business events occurs.
         // Data and type of action are stored into $object and $action
@@ -260,8 +263,7 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                 //We launch update of the intervention
                 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                 $interventionSurvey = new InterventionSurvey($this->db);
-                if (
-                    $interventionSurvey->fetch($object->id, '', true, true) > 0
+                if ($interventionSurvey->fetch($object->id, '', true, true) > 0
                 ) {
                     $interventionSurvey->softUpdateOfSurveyFromDictionary($user);
                     $object->errors = array_merge($object->errors, $interventionSurvey->errors);
@@ -273,39 +275,36 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                 //We launch deletion of the survey
                 dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                 $interventionSurvey = new InterventionSurvey($this->db);
-                if (
-                    $interventionSurvey->fetch($object->id, '', true, true) > 0
+                if ($interventionSurvey->fetch($object->id, '', true, true) > 0
                 ) {
                     $interventionSurvey->deleteSurvey($user);
                     $object->errors = array_merge($object->errors, $interventionSurvey->errors);
                 }
                 break;
             case 'FICHINTER_CLASSIFY_DONE':
-                $error = 0;
+                $errors = array();
                 $langs->load("interventionsurvey@interventionsurvey");
                 if (!$object->noSurveyDataCheck && !empty($conf->global->INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED)) {
                     //We emit an error in order to avoid fichinter to be classify done if some required data are missing
                     dol_include_once('/interventionsurvey/class/interventionsurvey.class.php');
                     $interventionSurvey = new InterventionSurvey($this->db);
-                    if (
-                        $interventionSurvey->fetch($object->id, '', true, true) > 0
+                    if ($interventionSurvey->fetch($object->id, '', true, true) > 0
                         && !$interventionSurvey->areDataValid()
                     ) {
-                        $object->errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
-                        $object->errors = array_merge($object->errors, $interventionSurvey->errors);
-                        $error++;
+                        $errors[] = $langs->trans('InterventionSurveyMissingRequiredFieldInSurvey');
+                        $errors = array_merge($errors, $interventionSurvey->errors);
                     }
                 }
                 if ($conf->global->INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED && count($object->lines) == 0) {
-                    $object->errors[] = $langs->trans('InterventionSurveyMissingInterventionLines');
-                    $error++;
+                    $errors[] = $langs->trans('InterventionSurveyMissingInterventionLines');
                 }
-                if ($error > 0) {
-                    setEventMessages('', $object->errors, 'errors');
-                    return -1;
-                } else {
+                if ($conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS) {
+                    $checkInterventionFields = new InterventionCheckFields($object, $langs);
+                    $errors = array_merge($errors, $checkInterventionFields->checkIntervention());
+                }
+                if (empty($errors)) {
                     // Insertion action
-                    if($object->context['closedFromApi']) {
+                    if ($object->context['closedFromApi']) {
                         $actionLabel = $langs->trans('InterventionSurveyClassifyDoneOpsyOnSiteLabel', $object->ref);
                         $actionMessage = $langs->trans('InterventionSurveyClassifyDoneOpsyOnSiteMessage', $object->ref);
                     } else {
@@ -330,9 +329,18 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                     $actioncomm->fk_element  = $object->id;
                     $actioncomm->elementtype = $object->element;
 
-                    return $actioncomm->create($user);       // User creating action
+                    if ($actioncomm->create($user) < 0) {
+                        $errors[] = $langs->trans('InterventionSurveyErrorWhileCreatingClosedFromApiEvent');
+                        $errors = array_merge($errors, $actioncomm->errors);
+                    };
                 }
-                return 0;
+                if (empty($errors) && $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL) {
+                    $interventionMail = new InterventionMail($this->db, $object, $user);
+                    $interventionMail->sendInterventionBySeparateMail($langs, $conf->global->INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER, "fichinter_send");
+                    $errors = array_merge($errors, $interventionMail->errors);
+                }
+                $object->errors = $errors;
+                return empty($errors) ? 1 : -1;
                 break;
                 //case 'LINEFICHINTER_CREATE':
                 //case 'LINEFICHINTER_UPDATE':

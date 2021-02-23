@@ -443,35 +443,23 @@ class modInterventionSurvey extends DolibarrModules
         $extrafields->addExtraField('involved_users', $langs->trans('InterventionSurveyInvolvedUserLabel'), 'chkbxlst', 1000,  NULL, 'fichinterdet',   0, 1, NULL, array('options'=>array('user:firstname|lastname:rowid::statut = 1 AND fk_soc IS NULL'=>null)), 0, '', 1, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
         $extrafields->addExtraField('stakeholder_signature', $langs->trans('InterventionSurveyStakeholderSignatureLabel'), 'text', 1000,  NULL, 'fichinter',   0, 0, NULL, NULL, 0, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
         $extrafields->addExtraField('customer_signature', $langs->trans('InterventionSurveyCustomerSignatureLabel'), 'text', 1000,  NULL, 'fichinter',   0, 0, NULL, NULL, 0, '', 0, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled');
+        $extrafields->addExtraField('contacts_to_send_fichinter_to', $langs->trans('InterventionSurveyContactsToSendFichinterToLabel'), 'chkbxlst', 305, NULL, 'fichinter', 0, 0, NULL, array('options'=>array('socpeople:firstname|lastname:rowid'=>null)), -1, '', -1, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled && $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL');
+        $extrafields->addExtraField('users_to_send_fichinter_to', $langs->trans('InterventionSurveyUsersToSendFichinterToLabel'), 'chkbxlst', 305, NULL, 'fichinter', 0, 0, NULL, array('options'=>array('user:firstname|lastname:rowid::statut = 1'=>null)), -1, '', -1, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled && $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL');
+        $extrafields->addExtraField('third_parties_to_send_fichinter_to', $langs->trans('InterventionSurveyThirdPartiesToSendFichinterToLabel'), 'chkbxlst', 305, NULL, 'fichinter', 0, 0, NULL, array('options'=>array('societe:nom:rowid'=>null)), -1, '', -1, 0, '', '', 'interventionsurvey@interventionsurvey', '$conf->interventionsurvey->enabled && $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL');
         // Permissions
         $this->remove($options);
 
         $sql = array();
-
-        // ODT template
-        /*
-        $src=DOL_DOCUMENT_ROOT.'/install/doctemplates/interventionsurvey/template_interventionsurveys.odt';
-        $dirodt=DOL_DATA_ROOT.'/doctemplates/interventionsurvey';
-        $dest=$dirodt.'/template_interventionsurveys.odt';
-
-        if (file_exists($src) && ! file_exists($dest))
-        {
-            require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-            dol_mkdir($dirodt);
-            $result=dol_copy($src, $dest, 0, 0);
-            if ($result < 0)
-            {
-                $langs->load("errors");
-                $this->error=$langs->trans('ErrorFailToCopyFile', $src, $dest);
-                return 0;
-            }
-        }
-
-        $sql = array(
-            "DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = '".$this->db->escape($this->const[0][2])."' AND type = 'interventionsurvey' AND entity = ".$conf->entity,
-            "INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('".$this->db->escape($this->const[0][2])."','interventionsurvey',".$conf->entity.")"
-        );
-        */
+        $sql = array("INSERT INTO llx_c_email_templates (entity,module,type_template,lang,private,fk_user,datec,label,position,active,topic,content) VALUES (" .
+            '"' . $conf->entity . '"' . "," .
+            '"' . $this->db->escape('interventionsurvey') . '"' . "," .
+            '"' . $this->db->escape('fichinter_send') . '"' . "," .
+            '"' . $this->db->escape('fr_FR') . '"' . "," .
+            "0, NULL, NULL," .
+            '"' . $this->db->escape("Email de notification de fin d'intervention avec PDF en pièce jointe") . '"' . "," .
+            "13, 1," .
+            '"' . $this->db->escape("L'intervention __REF__ est terminée") . '"' . "," .
+            '"' . $this->db->escape("Bonjour,\r\n\r\n\r\nSuite à notre visite sur site, veuillez trouver ci-joint le rapport de l'intervention __REF__ effectué pour __THIRDPARTY_NAME__.\r\n\r\n\r\nNous vous prions de bien vouloir vérifier les informations et de nous contacter par courrier, sous huitaine, pour toute éventuelle remarque.\r\n\r\n\r\nBonne réception.\r\n\r\n\r\nCordialement,\r\n\r\n\r\nL’équipe SYNERGIES-TECH\r\n\r\n\r\n\r\n\r\nSi vous n'êtes pas le bon destinataire ou si vous souhaitez ne plus recevoir de communication, merci de le signaler par retour de mail.") . '"' . ")");
 
         return $this->_init($sql, $options);
     }

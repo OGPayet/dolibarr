@@ -123,7 +123,7 @@ class SynergiesTechApi extends DolibarrApi
 					$finalItem = $this->_cleanObjectDatas($user_static);
 
 						$resultObj=array();
-						$temp=array("id","firstname","lastname","statut");
+						$temp=array("id","firstname","lastname","email","statut");
 						foreach($temp as $tempkey){$resultObj[$tempkey]=$finalItem->$tempkey;}
                     $obj_ret[] = $resultObj;
 	            }

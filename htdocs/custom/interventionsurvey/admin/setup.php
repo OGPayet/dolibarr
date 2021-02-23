@@ -65,6 +65,11 @@ $arrayofparameters = array(
     'INTERVENTIONSURVEY_ROOT_PRODUCT_CATEGORY_INCLUDE' => array('enabled' => 1),
     'INTERVENTIONSURVEY_STRICT_DATA_CHECK_ON_CLOTURED' => array('enabled' => 1),
     'INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED' => array('enabled' => 1),
+    'INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL' => array('enabled' => 1),
+    'INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
+    'INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
+    'INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
+    'INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER' => array('enabled' => $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL),
 );
 
 
@@ -170,6 +175,84 @@ if (!empty($conf->use_javascript_ajax)) {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=set_INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
     } else {
         print '<a href="' . $_SERVER['PHP_SELF'] . '?action=del_INTERVENTIONSURVEY_ATLEASTONINTERVENTIONLINESMUSTEXISTONCLOTURED">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendFichinterByMail") . '</td>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendFichinterByMailDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL');
+} else {
+    if (empty($conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+//INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveyDefaultEmailAddressSender") . '</td>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveyDefaultEmailAddressSenderDescription") . '</td>' . "\n";
+print '<td align="right">'."\n";
+print '<input type="text" name="INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER" value="'.dol_escape_htmltag($conf->global->INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER).'">';
+print '</td></tr>'."\n";
+print '</td></tr>' . "\n";
+
+// INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveyCheckInterventionFields") . '</td>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveyCheckInterventionFieldsDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS');
+} else {
+    if (empty($conf->global->INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_CHECK_INTERVENTION_FIELDS">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendMailToSignatoryCustomer") . '</td>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendMailToSignatoryCustomerDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER');
+} else {
+    if (empty($conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_CUSTOMER">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
+    }
+}
+print '</td></tr>' . "\n";
+
+// INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER
+$var = !$var;
+print '<tr ' . $bc[$var] . '>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendMailToSignatoryStakeholder") . '</td>' . "\n";
+print '<td>' . $langs->trans("InterventionSurveySendMailToSignatoryStakeholderDescription") . '</td>' . "\n";
+print '<td align="right">' . "\n";
+if (!empty($conf->use_javascript_ajax)) {
+    print ajax_constantonoff('INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER');
+} else {
+    if (empty($conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER)) {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+    } else {
+        print '<a href="' . $_SERVER['PHP_SELF'] . '?action=INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER">' . img_picto($langs->trans("Enabled"), 'switch_on') . '</a>';
     }
 }
 print '</td></tr>' . "\n";
