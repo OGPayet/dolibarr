@@ -363,10 +363,10 @@ SCRIPT;
                 $isCustomerAbsent = $customer_signature['isCustomerAbsent'];
                 // Add signatory customer to the emailList
                 if (!$isCustomerAbsent) {
-                    if (!empty($customer_signature->people)) {
-                        foreach ($customer_signature->people as $signatoryCustomer) {
+                    if (!empty($customer_signature['people'])) {
+                        foreach ($customer_signature['people'] as $signatoryCustomer) {
                             $contact = new Contact($this->db);
-                            $result = $contact->fetch($signatoryCustomer->identifier);
+                            $result = $contact->fetch($signatoryCustomer['identifier']);
                             $errors = array_merge($errors, $contact->errors);
                             if ($result > 0 && !empty($contact->email)) {
                                 array_push($emailList, $contact->email);
@@ -378,10 +378,10 @@ SCRIPT;
             // Add signatory user to the emailList
             if (!empty($object->array_options['options_stakeholder_signature']) && $conf->global->INTERVENTIONSURVEY_SEND_MAIL_TO_SIGNATORY_STAKEHOLDER) {
                 $stakeholder_signature = json_decode($object->array_options['options_stakeholder_signature'], true);
-                if (!empty($stakeholder_signature->people)) {
-                    foreach ($stakeholder_signature->people as $signatoryUser) {
+                if (!empty($stakeholder_signature['people'])) {
+                    foreach ($stakeholder_signature['people'] as $signatoryUser) {
                         $user = new User($this->db);
-                        $result = $user->fetch($signatoryUser->identifier);
+                        $result = $user->fetch($signatoryUser['identifier']);
                         $errors = array_merge($errors, $user->errors);
                         if ($result > 0 && !empty($user->email)) {
                             array_push($emailList, $user->email);
