@@ -107,7 +107,7 @@ class modSynergiesTech extends DolibarrModules
 			'tpl' => 1,
 			'models' => 1,
 			'triggers' => 1,
-			'hooks' => array('globalapi', 'requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main'),
+			'hooks' => array('globalapi', 'requestmanagercard', 'requestmanagerdao', 'propalcard', 'ordercard', 'contractcard', 'tab_supplier_order', 'tab_expedition_add', 'invoicelist', 'commonobject', 'main', 'interventionmail'),
 			'moduleforexternal' => 1,
 			'js' => array('/synergiestech/js/large_model_select.js'),
 		);
