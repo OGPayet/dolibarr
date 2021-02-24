@@ -451,7 +451,7 @@ class modInterventionSurvey extends DolibarrModules
         $this->remove($options);
 
         $sql = array();
-        $sql = array("INSERT INTO llx_c_email_templates (entity,module,type_template,lang,private,fk_user,datec,label,position,active,topic,content) VALUES (" .
+        $sql = array("INSERT IGNORE INTO llx_c_email_templates (entity,module,type_template,lang,private,fk_user,datec,label,position,active,topic,content) VALUES (" .
             '"' . $conf->entity . '"' . "," .
             '"' . $this->db->escape('interventionsurvey') . '"' . "," .
             '"' . $this->db->escape('fichinter_send') . '"' . "," .
@@ -460,8 +460,7 @@ class modInterventionSurvey extends DolibarrModules
             '"' . $this->db->escape("Email de notification de fin d'intervention avec PDF en pièce jointe") . '"' . "," .
             "13, 1," .
             '"' . $this->db->escape("L'intervention __REF__ est terminée") . '"' . "," .
-            '"' . $this->db->escape("Bonjour,\r\n\r\n\r\nSuite à notre visite sur site, veuillez trouver ci-joint le rapport de l'intervention __REF__ effectué pour __THIRDPARTY_NAME__.\r\n\r\n\r\nNous vous prions de bien vouloir vérifier les informations et de nous contacter par courrier, sous huitaine, pour toute éventuelle remarque.\r\n\r\n\r\nBonne réception.\r\n\r\n\r\nCordialement,\r\n\r\n\r\nL’équipe SYNERGIES-TECH\r\n\r\n\r\n\r\n\r\nSi vous n'êtes pas le bon destinataire ou si vous souhaitez ne plus recevoir de communication, merci de le signaler par retour de mail.") . '"' . ")  ON DUPLICATE KEY IGNORE");
-
+            '"' . $this->db->escape("Bonjour,\r\n\r\n\r\nSuite à notre visite sur site, veuillez trouver ci-joint le rapport de l'intervention __REF__ effectué pour __THIRDPARTY_NAME__.\r\n\r\n\r\nNous vous prions de bien vouloir vérifier les informations et de nous contacter par courrier, sous huitaine, pour toute éventuelle remarque.\r\n\r\n\r\nBonne réception.\r\n\r\n\r\nCordialement,\r\n\r\n\r\nL’équipe SYNERGIES-TECH\r\n\r\n\r\n\r\n\r\nSi vous n'êtes pas le bon destinataire ou si vous souhaitez ne plus recevoir de communication, merci de le signaler par retour de mail.") . '"' . ")");
         return $this->_init($sql, $options);
     }
 
