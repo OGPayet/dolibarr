@@ -366,7 +366,7 @@ SCRIPT;
                     if (!empty($customer_signature['people'])) {
                         foreach ($customer_signature['people'] as $signatoryCustomer) {
                             $contact = new Contact($this->db);
-                            $result = $contact->fetch($signatoryCustomer->identifier);
+                            $result = $contact->fetch($signatoryCustomer['identifier']);
                             $errors = array_merge($errors, $contact->errors);
                             if ($result > 0 && !empty($contact->email)) {
                                 array_push($emailList, $contact->email);
@@ -381,7 +381,7 @@ SCRIPT;
                 if (!empty($stakeholder_signature['people'])) {
                     foreach ($stakeholder_signature['people'] as $signatoryUser) {
                         $user = new User($this->db);
-                        $result = $user->fetch($signatoryUser->identifier);
+                        $result = $user->fetch($signatoryUser['identifier']);
                         $errors = array_merge($errors, $user->errors);
                         if ($result > 0 && !empty($user->email)) {
                             array_push($emailList, $user->email);
