@@ -105,7 +105,8 @@ class modInterventionSurvey extends DolibarrModules
             'hooks' => array(
                 'interventiondocument',
                 'interventioncard',
-                'equipementcard'
+                'equipementcard',
+                'interventionmail'
             ),
             // Set this to 1 if features of module are opened to external users
             'moduleforexternal' => 0,

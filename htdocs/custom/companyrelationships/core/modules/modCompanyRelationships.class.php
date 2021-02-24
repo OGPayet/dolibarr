@@ -98,7 +98,7 @@ class modCompanyRelationships extends DolibarrModules
         $this->module_parts = array(
             'dictionaries' => 1,
             'substitutions' => 1,
-            'hooks' => array('globalcard', 'propallist', 'orderlist', 'invoicelist', 'shipmentlist', 'interventionlist', 'contractlist', 'digitalsignaturemanager'),
+            'hooks' => array('globalcard', 'propallist', 'orderlist', 'invoicelist', 'shipmentlist', 'interventionlist', 'contractlist', 'digitalsignaturemanager', 'interventionmail'),
             'triggers' => 1
         );
 
