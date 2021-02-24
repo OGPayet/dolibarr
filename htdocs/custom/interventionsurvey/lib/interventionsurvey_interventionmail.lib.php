@@ -420,7 +420,7 @@ class InterventionMail
                 }
 
                 // Send mail (substitutionarray must be done just before this)
-                    $mailfile = new CMailFile($subject, $sendTo, $from, $message, $filepath, $mimetype, $filename, $sendtocc, $sendtobcc, $deliveryreceipt, -1, '', '', $trackid);
+                    $mailfile = new CMailFile($subject, $sendto, $from, $message, $filepath, $mimetype, $filename, $sendtocc, $sendtobcc, $deliveryreceipt, -1, '', '', $trackid);
                     if ($mailfile->error) {
                         $errors[] = $mailfile->error;
                     } else {
