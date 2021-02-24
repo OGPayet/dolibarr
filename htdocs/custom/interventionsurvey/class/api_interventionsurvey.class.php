@@ -361,7 +361,7 @@ class InterventionSurveyApi extends DolibarrApi
         }
         //We update too signature contained into array_options
         $fields = array('options_customer_signature', 'options_stakeholder_signature', 
-            'options_contacts_to_send_fichinter_to', 'options_users_to_send_fichinter_to');
+            'options_contacts_to_send_fichinter_to', 'options_users_to_send_fichinter_to', 'options_third_parties_to_send_fichinter_to');
         if (!$this->interventionSurvey->array_options) {
             $this->interventionSurvey->array_options = array();
         }
