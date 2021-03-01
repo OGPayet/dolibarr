@@ -24,6 +24,7 @@
 
 <!-- BEGIN PHP TEMPLATE -->
 <?php
+dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
 if ($list_mode == 0 || $list_mode == 1) {
     $now = dol_now();
 
@@ -39,18 +40,47 @@ if ($list_mode == 0 || $list_mode == 1) {
 
     // Get request ids (parent + children)
     $request_children_ids = $object->getAllChildrenRequest();
+	$request_ids = array($object->id);
     if ($search_include_linked_event_to_children_request) {
         $request_ids = array_merge($request_children_ids, array($object->id));
         $request_ids = array_unique($request_ids);
-        $request_ids = implode(',', $request_ids);
-    } else {
-        $request_ids = $object->id;
     }
-    $request_children_ids = array_unique($request_children_ids);
-    $request_children_ids = implode(',', $request_children_ids);
+
+	$arrayOfLinkedObject = array();
+	foreach($request_ids as $id) {
+		$request_static = new RequestManager($db);
+		if($request_static->fetch($id) > 0 && $request_static->fetchObjectLinked() > 0) {
+			foreach($request_static->linkedObjectsIds as $elementType => $ids ){
+				if(!is_array($arrayOfLinkedObject[$elementType])) {
+					$arrayOfLinkedObject[$elementType] = array();
+				}
+				if(!is_array($ids)) {
+					$ids = array($ids);
+				}
+				$arrayOfLinkedObject[$elementType] = array_merge($arrayOfLinkedObject[$elementType], $ids);
+			}
+		}
+	}
+
+	$arrayOfElementTypeConversion = array('contrat'=>'contract', 'facture'=>'invoice', 'commande'=>'order');
+	foreach($arrayOfElementTypeConversion as $elementElementName => $actionCommName) {
+		if(!empty($arrayOfElementTypeConversion[$elementElementName])) {
+			$arrayOfElementTypeConversion[$actionCommName] = $arrayOfElementTypeConversion[$elementElementName];
+			unset($arrayOfElementTypeConversion[$elementElementName]);
+		}
+	}
+
+	$actionCommFromLinkedObject = array();
+	foreach($arrayOfLinkedObject as $elementType => $ids) {
+		if(!empty($ids)) {
+			$actionCommFromLinkedObject[] = '( ac.elementtype = "' . $elementType . '" AND ac.fk_element IN (' . implode(',', $ids) . ') )';
+		}
+	}
+
+	$sqlForActionCommFromLinkObject = implode(' OR ', $actionCommFromLinkedObject);
 
     $sql = "SELECT ac.id,";
-    $sql .= " IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.sourcetype='requestmanager', ee.fk_source, IF(ee.targettype='requestmanager', ee.fk_target, NULL))) as fk_request,";
+    $sql .= " IF(ac.elementtype='requestmanager', ac.fk_element, NULL) as fk_request,";
     $sql .= " ac.id as ref,";
     $sql .= " ac.datep,";
     $sql .= " ac.datep2,";
@@ -72,11 +102,6 @@ if ($list_mode == 0 || $list_mode == 1) {
     $sql .= " ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail, ua.photo as userauthorphoto, ua.gender as userauthorgender,";
     $sql .= " um.firstname as usermodfirstname, um.lastname as usermodlastname, um.email as usermodemail,";
     $sql .= " p.ref as projectref, p.title as projecttitle, p.public as projectpublic, p.fk_statut as projectstatus, p.datee as projectdatee";
-    // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled) {
-        dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-        $sql .= ", MIN(IFNULL(ecm.mode, " . EventConfidentiality::MODE_HIDDEN . ")) as ec_mode, tags_info.internal_tags_info, tags_info.external_tags_info";
-    }
     // Add fields from extrafields
     foreach ($extrafields_actioncomm->attribute_label as $key => $val) $sql .= ($extrafields_actioncomm->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
     foreach ($extrafields_message->attribute_label as $key => $val) $sql .= ($extrafields_message->attribute_type[$key] != 'separate' ? ",efm." . $key . ' as m_options_' . $key : '');
@@ -84,43 +109,8 @@ if ($list_mode == 0 || $list_mode == 1) {
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListSelect', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= $hookmanager->resPrint;
-    $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac ";
-    $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
-    $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
-        "IF(ac.elementtype = 'contract', 'contrat', " .
-        " IF(ac.elementtype = 'invoice', 'facture', " .
-        "  IF(ac.elementtype = 'order', 'commande', " .
-        "   ac.elementtype)))" .
-        ")";
-    $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = ac.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = ac.fk_element)";
-    // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled) {
-        if ($user->rights->eventconfidentiality->manage && ($search_internal_tag || $search_external_tag || $search_level_tag >= 0)) {
-            $sql .= " INNER JOIN (";
-            $sql .= "   SELECT ecm.fk_actioncomm AS event_id";
-            $sql .= "   FROM " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm";
-            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ecm.fk_c_eventconfidentiality_tag = cecti.rowid AND (cecti.external != 1 OR cecti.external IS NULL)";
-            $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecte.external = 1";
-            $search_tag_where = array();
-            if ($search_internal_tag) $search_tag_where[] = natural_search("cecti.label", $search_internal_tag, 0, 1);
-            if ($search_external_tag) $search_tag_where[] = natural_search("cecte.label", $search_external_tag, 0, 1);
-            if ($search_level_tag >= 0) $search_tag_where[] = 'ecm.mode = ' . $search_level_tag;
-            $sql .= "   WHERE " . implode(' AND ', $search_tag_where);
-            $sql .= "   GROUP BY ecm.fk_actioncomm";
-            $sql .= " ) AS search_tag ON search_tag.event_id = ac.id";
-        }
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm ON ecm.fk_actioncomm = ac.id";
-        $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cect ON ecm.fk_c_eventconfidentiality_tag = cect.rowid";
-        $sql .= " LEFT JOIN (";
-        $sql .= "   SELECT ecm.fk_actioncomm AS event_id";
-        $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecti.rowid IS NOT NULL, CONCAT(cecti.rowid, ':', ecm.mode), NULL) SEPARATOR ',') AS internal_tags_info";
-        $sql .= "   , GROUP_CONCAT(DISTINCT IF(cecte.rowid IS NOT NULL, CONCAT(cecte.rowid, ':', ecm.mode), NULL) SEPARATOR ',') AS external_tags_info";
-        $sql .= "   FROM " . MAIN_DB_PREFIX . "eventconfidentiality_mode AS ecm";
-        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecti ON ecm.fk_c_eventconfidentiality_tag = cecti.rowid AND (cecti.external != 1 OR cecti.external IS NULL)";
-        $sql .= "   LEFT JOIN " . MAIN_DB_PREFIX . "c_eventconfidentiality_tag AS cecte ON ecm.fk_c_eventconfidentiality_tag = cecte.rowid AND cecte.external = 1";
-        $sql .= "   GROUP BY ecm.fk_actioncomm";
-        $sql .= " ) AS tags_info ON tags_info.event_id = ac.id";
-    }
+	$sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as ac ";
+
     if (is_array($extrafields_actioncomm->attribute_label) && count($extrafields_actioncomm->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "actioncomm_extrafields as ef on (ac.id = ef.fk_object)";
     if (is_array($extrafields_message->attribute_label) && count($extrafields_message->attribute_label)) $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message_extrafields as efm on (ac.id = efm.fk_object)";
     $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "requestmanager_message as rmm ON ac.id = rmm.fk_actioncomm";
@@ -144,16 +134,13 @@ if ($list_mode == 0 || $list_mode == 1) {
     $soc_ids = array_unique($soc_ids);
     $sql .= ' WHERE ac.fk_soc IN (' . implode(',', $soc_ids) . ')';
     $sql .= ' AND ac.entity IN (' . getEntity('agenda') . ')';
-    if ($search_only_linked_to_request) {
-        $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
-    } else {
-        if (!$search_include_event_other_request) {
-            $sql .= " AND (ac.elementtype != 'requestmanager' OR ac.fk_element IN (" . (!empty($request_ids) ? $request_ids : '-1') . "))";
-        }
-        if (!$search_include_linked_event_to_children_request) {
-            $sql .= " AND IF(ac.elementtype='requestmanager', ac.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) NOT IN (" . (!empty($request_children_ids) ? $request_children_ids : '-1') . ")";
-        }
-    }
+
+	$requestIdsString = !empty($request_ids) ? implode(',', $request_ids) : '-1';
+
+	$sql .= ' AND (ac.elementtype="requestmanager" AND ac.fk_element IN (' . $requestIdsString .') OR (' . $sqlForActionCommFromLinkObject . ') ) ';
+	if (!$search_include_event_other_request) {
+		$sql .= " AND (ac.elementtype != 'requestmanager' OR ac.fk_element IN (" . $requestIdsString . "))";
+	}
     if ($search_ref) $sql .= natural_search('ac.id', $search_ref);
     if (!empty($search_origin) && !$search_dont_show_selected_event_type_origin) $sql .= " AND ac.elementtype IN ('" . implode("','", $search_origin) . "')";
     if ($search_thirdparty) $sql .= natural_search(array('s.nom', 's.name_alias'), $search_thirdparty);
@@ -236,37 +223,12 @@ if ($list_mode == 0 || $list_mode == 1) {
             $sql .= natural_search('efm.' . $tmpkey, $crit, $mode);
         }
     }
-    // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled) {
-        $eventconfidentiality = new EventConfidentiality($db);
-        $tags_list = $eventconfidentiality->getConfidentialTagsOfUser($user);
-        if (!is_array($tags_list)) {
-            dol_print_error('', $eventconfidentiality->error, $eventconfidentiality->errors);
-        }
-        if ($user->socid > 0) {
-            $sql .= ' AND cect.external = 1';
-        } else {
-            $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
-        }
-        if (!$user->rights->eventconfidentiality->manage) {
-            $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
-            if ($user->socid == 0) {
-                $sql .= ' OR ecm.rowid IS NULL';
-            }
-            $sql .= ')';
-        }
-    }
     // Add where from hooks
     $parameters = array();
     $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= $hookmanager->resPrint;
 
     $sql .= " GROUP BY ac.id";
-    // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled && !$user->rights->eventconfidentiality->manage && $user->socid > 0) {
-        $sql .= ' HAVING ec_mode != ' . EventConfidentiality::MODE_HIDDEN;
-    }
-    $sql .= $db->order($sortfield . ', ac.id', $sortorder . ',' . $sortorder);
 
     // Count total nb of records
     $nbtotalofrecords = '';
@@ -759,13 +721,6 @@ SCRIPT;
         $knowledge_base = Dictionary::getDictionary($db, 'requestmanager', 'requestmanagerknowledgebase');
         $knowledge_base->fetch_lines(1);
 
-        // Event confidentiality
-        //--------------------------------------
-        if ($conf->eventconfidentiality->enabled) {
-            $confidentiality_tags = Dictionary::getDictionary($db, 'eventconfidentiality', 'eventconfidentialitytag');
-            $confidentiality_tags->fetch_lines(1);
-        }
-
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
         $actioncomm_static = new ActionComm($db);
 
@@ -801,10 +756,19 @@ SCRIPT;
         while ($i < min($num, $limit)) {
             $obj = $db->fetch_object($resql);
 
-            // Event confidentiality
+		$parameters = array();
+		$reshook = $hookmanager->executeHooks('afterSQLFetch', $parameters, $obj, $action); // Note that $action and $object may have been modified by some hooks
+		if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+		if(empty($obj->id)) {
+			$i++;
+			continue;
+		}
+		    // Event confidentiality
             //--------------------------------------
             if ($conf->eventconfidentiality->enabled) {
-                $ec_mode = $obj->ec_mode;
+				$eventconfidentiality = new EventConfidentiality($db);
+                // Get mode for the user and event
+                $ec_mode = $eventconfidentiality->getModeForUserAndEvent($user_f, $object->id);
                 if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->socid == 0) $ec_mode = EventConfidentiality::MODE_VISIBLE;
             }
 
@@ -1059,17 +1023,29 @@ SCRIPT;
                     }
                     print '</td>';
                 }
+				//load tags
+				if(!empty($arrayfields['internal_tags']['checked']) || !empty($arrayfields['external_tags']['checked'])) {
+					$internal_tags = array();
+					$external_tags = array();
+					$eventconfidentiality = new EventConfidentiality($db);
+					$tags_set = $eventconfidentiality->fetchAllTagsOfEvent($obj->id);
+					foreach ($tags_set as $tag) {
+                        if ($tag['mode'] != EventConfidentiality::MODE_HIDDEN) {
+                            if (empty($tag['external'])) {
+                                $internal_tags[] = $tag;
+                            } else {
+                                $external_tags[] = $tag;
+                            }
+                        }
+                    }
+				}
                 // Internal tags
                 if (!empty($arrayfields['internal_tags']['checked'])) {
                     print '<td class="nowrap"' . $tdcolor . '>';
                     if (!$conf->eventconfidentiality->enabled || $arrayfields['internal_tags']['ec_mode'] >= $ec_mode) {
-                        $tags_list = !empty($obj->internal_tags_info) ? explode(',', $obj->internal_tags_info) : array();
                         $to_print = array();
-                        foreach ($tags_list as $tag_info) {
-                            $info = explode(':', $tag_info);
-                            $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' .
-                                (!empty($confidentiality_tags->lines[$info[0]]) ? $confidentiality_tags->lines[$info[0]]->fields['label'] : '') .
-                                ' (' . (!empty($confidentiality_levels[$info[1]]) ? $confidentiality_levels[$info[1]] : '') . ')' . '</li>';
+                        foreach ($internal_tags as $tag_info) {
+                            $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $tag_info['label'] . ' (' . $tag_info['mode_label'] . ')' . '</li>';
                         }
                         print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
                     }
@@ -1079,13 +1055,9 @@ SCRIPT;
                 if (!empty($arrayfields['external_tags']['checked'])) {
                     print '<td class="nowrap"' . $tdcolor . '>';
                     if (!$conf->eventconfidentiality->enabled || $arrayfields['external_tags']['ec_mode'] >= $ec_mode) {
-                        $tags_list = !empty($obj->external_tags_info) ? explode(',', $obj->external_tags_info) : array();
                         $to_print = array();
-                        foreach ($tags_list as $tag_info) {
-                            $info = explode(':', $tag_info);
-                            $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' .
-                                (!empty($confidentiality_tags->lines[$info[0]]) ? $confidentiality_tags->lines[$info[0]]->fields['label'] : '') .
-                                ' (' . (!empty($confidentiality_levels[$info[1]]) ? $confidentiality_levels[$info[1]] : '') . ')' . '</li>';
+                        foreach ($external_tags as $tag_info) {
+                            $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $tag_info['label'] . ' (' . $tag_info['mode_label'] . ')' . '</li>';
                         }
                         print '<div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
                     }
@@ -1310,29 +1282,41 @@ SCRIPT;
                 if (!empty($arrayfields['ac.priority']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['ac.priority']['ec_mode'] >= $ec_mode) && !empty($actioncomm_static->priority)) {
                     $infos_to_print[] = $arrayfields['ac.priority']['label'] . ' : ' . $actioncomm_static->priority;
                 }
-                // Internal tags
-                if (!empty($arrayfields['internal_tags']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['internal_tags']['ec_mode'] >= $ec_mode) && !empty($obj->internal_tags_info)) {
-                    $tags_list = explode(',', $obj->internal_tags_info);
-                    $to_print = array();
-                    foreach ($tags_list as $tag_info) {
-                        $info = explode(':', $tag_info);
-                        $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' .
-                            (!empty($confidentiality_tags->lines[$info[0]]) ? $confidentiality_tags->lines[$info[0]]->fields['label'] : '') .
-                            ' (' . (!empty($confidentiality_levels[$info[1]]) ? $confidentiality_levels[$info[1]] : '') . ')' . '</li>';
+				//load tags
+				if(!empty($arrayfields['internal_tags']['checked']) || !empty($arrayfields['external_tags']['checked'])) {
+					$internal_tags = array();
+					$external_tags = array();
+					$eventconfidentiality = new EventConfidentiality($db);
+					$tags_set = $eventconfidentiality->fetchAllTagsOfEvent($obj->id);
+					foreach ($tags_set as $tag) {
+                        if ($tag['mode'] != EventConfidentiality::MODE_HIDDEN) {
+                            if (empty($tag['external'])) {
+                                $internal_tags[] = $tag;
+                            } else {
+                                $external_tags[] = $tag;
+                            }
+                        }
                     }
-                    $infos_to_print[] = $arrayfields['internal_tags']['label'] . ' : <div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
+				}
+                // Internal tags
+                if (!empty($arrayfields['internal_tags']['checked'])) {
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['internal_tags']['ec_mode'] >= $ec_mode) {
+                        $to_print = array();
+                        foreach ($internal_tags as $tag_info) {
+                            $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $tag_info['label'] . ' (' . $tag_info['mode_label'] . ')' . '</li>';
+                        }
+						$infos_to_print[] = $arrayfields['internal_tags']['label'] . ' : <div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
+                    }
                 }
                 // External tags
-                if (!empty($arrayfields['external_tags']['checked']) && (!$conf->eventconfidentiality->enabled || $arrayfields['external_tags']['ec_mode'] >= $ec_mode) && !empty($obj->external_tags_info)) {
-                    $tags_list = explode(',', $obj->external_tags_info);
-                    $to_print = array();
-                    foreach ($tags_list as $tag_info) {
-                        $info = explode(':', $tag_info);
-                        $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' .
-                            (!empty($confidentiality_tags->lines[$info[0]]) ? $confidentiality_tags->lines[$info[0]]->fields['label'] : '') .
-                            ' (' . (!empty($confidentiality_levels[$info[1]]) ? $confidentiality_levels[$info[1]] : '') . ')' . '</li>';
+                if (!empty($arrayfields['external_tags']['checked'])) {
+                    if (!$conf->eventconfidentiality->enabled || $arrayfields['external_tags']['ec_mode'] >= $ec_mode) {
+                        $to_print = array();
+                        foreach ($external_tags as $tag_info) {
+                            $to_print[] = '<li class="select2-search-choice-dolibarr noborderoncategories style="background: #aaa">' . $tag_info['label'] . ' (' . $tag_info['mode_label'] . ')' . '</li>';
+                        }
+						$infos_to_print[] = $arrayfields['external_tags']['label'] . ' : <div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
                     }
-                    $infos_to_print[] = $arrayfields['external_tags']['label'] . ' : <div class="select2-container-multi-dolibarr" style="width: 90%;"><ul class="select2-choices-dolibarr">' . implode(' ', $to_print) . '</ul></div>';
                 }
                 // Extra fields of the event
                 if (is_array($extrafields_actioncomm->attribute_label) && count($extrafields_actioncomm->attribute_label)) {
@@ -1516,11 +1500,6 @@ SCRIPT;
     $sql .= " cac.id as type_id, cac.code as type_code, cac.libelle as type_label, cac.color as type_color, cac.picto as type_picto,";
     $sql .= " ua.firstname as userauthorfirstname, ua.lastname as userauthorlastname, ua.email as userauthoremail, ua.photo as userauthorphoto, ua.gender as userauthorgender,";
     $sql .= " um.firstname as usermodfirstname, um.lastname as usermodlastname, um.email as usermodemail";
-    // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled) {
-        dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-        $sql .= ", MIN(IFNULL(ecm.mode, " . EventConfidentiality::MODE_HIDDEN . ")) as ec_mode";
-    }
     // Add fields from extrafields
     foreach ($extrafields_message->attribute_label as $key => $val) $sql .= ($extrafields_message->attribute_type[$key] != 'separate' ? ",ef." . $key . ' as options_' . $key : '');
     // Add fields from hooks
@@ -1549,36 +1528,12 @@ SCRIPT;
     $sql .= ' WHERE ac.entity IN (' . getEntity('agenda') . ')';
     $sql .= " AND (ac.fk_element = " . $object->id . " AND ac.elementtype = '" . $object->element . "')";
     $sql .= " AND (ac.code = 'AC_RM_IN' OR ac.code = 'AC_RM_OUT' OR ac.code = 'AC_RM_PRIV')";
-    // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled) {
-        $eventconfidentiality = new EventConfidentiality($db);
-        $tags_list = $eventconfidentiality->getConfidentialTagsOfUser($user);
-        if (!is_array($tags_list)) {
-            dol_print_error('', $eventconfidentiality->error, $eventconfidentiality->errors);
-        }
-        if ($user->socid > 0) {
-            $sql .= ' AND cect.external = 1';
-        } else {
-            $sql .= ' AND (cect.external IS NULL OR cect.external = 0)';
-        }
-        if (!$user->rights->eventconfidentiality->manage) {
-            $sql .= ' AND (ecm.fk_c_eventconfidentiality_tag IN (' . (count($tags_list) > 0 ? implode(',', $tags_list) : -1) . ')';
-            if ($user->socid == 0) {
-                $sql .= ' OR ecm.rowid IS NULL';
-            }
-            $sql .= ')';
-        }
-    }
     // Add where from hooks
     $parameters = array('rm_show_event' => true);
     $reshook = $hookmanager->executeHooks('printFieldListWhere', $parameters);    // Note that $action and $object may have been modified by hook
     $sql .= $hookmanager->resPrint;
 
     $sql .= " GROUP BY ac.id";
-    // Event confidentiality support
-    if ($conf->eventconfidentiality->enabled && !$user->rights->eventconfidentiality->manage && $user->socid > 0) {
-        $sql .= ' HAVING ec_mode != ' . EventConfidentiality::MODE_HIDDEN;
-    }
     $sql .= $db->order($sortfield, $sortorder);
 
     // Count total nb of records
@@ -1671,14 +1626,22 @@ SCRIPT;
         $backtopage = dol_buildpath('/requestmanager/card.php', 1) . '?id=' . $object->id . '#rm-events-balise';
 
         $i = 0;
-        while ($i < min($num, $limit)) {
+		while ($i < min($num, $limit)) {
             $obj = $db->fetch_object($resql);
 
+			$parameters = array();
+			$reshook = $hookmanager->executeHooks('afterSQLFetch', $parameters, $obj, $action); // Note that $action and $object may have been modified by some hooks
+			if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+			if(empty($obj->id)) {
+				$i++;
+				continue;
+			}
             // Event confidentiality
             //--------------------------------------
             if ($conf->eventconfidentiality->enabled) {
-                $ec_mode = $obj->ec_mode;
-                if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->socid == 0) $ec_mode = EventConfidentiality::MODE_VISIBLE;
+				$eventconfidentiality = new EventConfidentiality($db);
+                // Get mode for the user and event
+                $ec_mode = $eventconfidentiality->getModeForUserAndEvent($user_f, $object->id);                if ($ec_mode == EventConfidentiality::MODE_HIDDEN && $user->socid == 0) $ec_mode = EventConfidentiality::MODE_VISIBLE;
             }
 
             $requestmessage_static->id = $obj->id;

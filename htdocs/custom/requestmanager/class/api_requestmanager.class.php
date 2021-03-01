@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2018	Julien Vercruysse	<julien.vercruysse@elonet.fr>
+/* Copyright (C) 2018   Julien Vercruysse   <julien.vercruysse@elonet.fr>
  * Copyright (C) 2018	Open-DSI	        <support@open-dsi.fr>
  * Copyright (C) 2018      Alexis LAURIER             <alexis@alexislaurier.fr>
  * Copyright (C) 2018      Synergies-Tech             <infra@synergies-france.fr>
@@ -29,7 +29,8 @@ dol_include_once('/requestmanager/class/requestmanagermessage.class.php');
  * @access protected
  * @class  DolibarrApiAccess {@requires user,external}
  */
-class RequestManagerApi extends DolibarrApi {
+class RequestManagerApi extends DolibarrApi
+{
     /**
      * @var string Error
      */
@@ -197,11 +198,11 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Get the list of requests
      *
-     * @param   string	    $sort_field         Sort field
-     * @param   string	    $sort_order         Sort order
-     * @param   int		    $limit		        Limit for list
-     * @param   int		    $page		        Page number
-     * @param   int         $only_assigned	    1=Restrict list to the request assigned to this user or his user groups
+     * @param   string      $sort_field         Sort field
+     * @param   string      $sort_order         Sort order
+     * @param   int         $limit              Limit for list
+     * @param   int         $page               Page number
+     * @param   int         $only_assigned      1=Restrict list to the request assigned to this user or his user groups
      * @param   string      $sql_filters        Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
      * @param   string      $linked_filters     Filter for linked object 'element:id,id;element:id,id'
      *                                          ex: 'commande' only request linked with order, 'commande:1,10' only request linked with order id 1 and 10
@@ -212,7 +213,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  401         RestException       Insufficient rights
      * @throws  500         RestException       Error when retrieve request list
      */
-    function index($sort_field="t.rowid", $sort_order='ASC', $limit=100, $page=0, $only_assigned=0, $sql_filters='', $linked_filters='')
+    function index($sort_field = "t.rowid", $sort_order = 'ASC', $limit = 100, $page = 0, $only_assigned = 0, $sql_filters = '', $linked_filters = '')
     {
         $obj_ret = array();
 
@@ -248,7 +249,7 @@ class RequestManagerApi extends DolibarrApi {
             $sqlFilter = ' AND rmau.fk_user = ' . DolibarrApiAccess::$user->id;
 
             require_once DOL_DOCUMENT_ROOT . '/user/class/usergroup.class.php';
-            $usergroup_static = new UserGroup( $this->db);
+            $usergroup_static = new UserGroup($this->db);
             $groupslist = $usergroup_static->listGroupsForUser(DolibarrApiAccess::$user->id);
             if (!empty($groupslist)) {
                 $myGroups = implode(',', array_keys($groupslist));
@@ -267,7 +268,9 @@ class RequestManagerApi extends DolibarrApi {
 
         // If the internal user must only see his customers, force searching by him
         $search_sale = 0;
-        if (! DolibarrApiAccess::$user->rights->societe->client->voir) $search_sale = DolibarrApiAccess::$user->id;
+        if (! DolibarrApiAccess::$user->rights->societe->client->voir) {
+            $search_sale = DolibarrApiAccess::$user->id;
+        }
 
         $sql = "SELECT t.rowid";
         $sql .= " FROM " . MAIN_DB_PREFIX . "requestmanager as t" . $assignedSQLJoin;
@@ -315,7 +318,7 @@ class RequestManagerApi extends DolibarrApi {
         $resql = $this->db->query($sql);
         if ($resql) {
             while ($obj = $this->db->fetch_object($resql)) {
-                $requestmanager = new RequestManager( $this->db);
+                $requestmanager = new RequestManager($this->db);
                 if ($requestmanager->fetch($obj->rowid) > 0) {
                     $requestmanager->fetch_assigned(1);
                     $requestmanager->fetch_requesters(1);
@@ -379,12 +382,12 @@ class RequestManagerApi extends DolibarrApi {
         $this->_validate($request_data);
 
         // todo remplir auto le socid_origin, socid et socid_benefactor si un utilisateur externe ?
-        $requestmanager = new RequestManager( $this->db);
+        $requestmanager = new RequestManager($this->db);
         foreach ($request_data as $field => $value) {
             $requestmanager->$field = $value;
         }
 
-        if(!$requestmanager->context){
+        if (!$requestmanager->context) {
             $requestmanager->context = array();
         }
 
@@ -422,7 +425,9 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager->oldcopy = clone $requestmanager;
         $exclude_fields = array('id', 'socid_origin', 'socid', 'socid_benefactor');
         foreach ($request_data as $field => $value) {
-            if (in_array($field, $exclude_fields)) continue;
+            if (in_array($field, $exclude_fields)) {
+                continue;
+            }
             $requestmanager->$field = $value;
         }
 
@@ -468,21 +473,21 @@ class RequestManagerApi extends DolibarrApi {
     }
 
     /**
-   	 *  Get lines of the given request
-   	 *
-     * @url	GET {id}/lines
+     *  Get lines of the given request
+     *
+     * @url GET {id}/lines
      *
      * @param   int     $id                 Id of the request
-   	 *
-   	 * @return  array                       List of request line
+     *
+     * @return  array                       List of request line
      *
      * @throws  401     RestException       Insufficient rights
      * @throws  403     RestException       Access unauthorized
      * @throws  404     RestException       Request not found
      * @throws  500     RestException       Error when retrieve request
      * @throws  500     RestException       Error when retrieve the request lines
-   	 */
-   	function getLines($id)
+     */
+    function getLines($id)
     {
         if (!DolibarrApiAccess::$user->rights->requestmanager->lire) {
             throw new RestException(401, "Insufficient rights");
@@ -506,7 +511,7 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Add a line to the given request
      *
-     * @url	POST {id}/lines
+     * @url POST {id}/lines
      *
      * @param   int     $id                 Id of the request
      * @param   array   $request_data       Request line data
@@ -569,7 +574,7 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Update a given request line
      *
-     * @url	PUT {id}/lines/{line_id}
+     * @url PUT {id}/lines/{line_id}
      *
      * @param   int     $id                 Id of request to update
      * @param   int     $line_id            Id of line to update
@@ -594,7 +599,7 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
-        $requestline = new RequestManagerLine( $this->db);
+        $requestline = new RequestManagerLine($this->db);
         $result = $requestline->fetch($line_id);
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
@@ -639,7 +644,7 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Delete a given request line
      *
-     * @url	DELETE {id}/lines/{line_id}
+     * @url DELETE {id}/lines/{line_id}
      *
      * @param   int     $id                 Id of request to delete
      * @param   int     $line_id            Id of line to delete
@@ -663,7 +668,7 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
-        $requestline = new RequestManagerLine( $this->db);
+        $requestline = new RequestManagerLine($this->db);
         $result = $requestline->fetch($line_id);
         if ($result == 0 || ($result > 0 && $requestline->fk_requestmanager != $id)) {
             throw new RestException(404, "Request line not found");
@@ -681,7 +686,7 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Get the request message
      *
-     * @url	GET {id}/message/{message_id}
+     * @url GET {id}/message/{message_id}
      *
      * @param   int             $id                 ID of the request
      * @param   int             $message_id         ID of the request message (event)
@@ -704,7 +709,7 @@ class RequestManagerApi extends DolibarrApi {
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
 
-        $requestmanager_message = new RequestManagerMessage( $this->db);
+        $requestmanager_message = new RequestManagerMessage($this->db);
         $result = $requestmanager_message->fetch($message_id);
         if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
             throw new RestException(404, "Request message not found");
@@ -735,7 +740,7 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Create a request message
      *
-     * @url	POST {id}/message
+     * @url POST {id}/message
      *
      * @param   int         $id                         ID of the request
      * @param   array       $request_message_data       Request message data
@@ -763,7 +768,7 @@ class RequestManagerApi extends DolibarrApi {
         $this->_validateMessage($request_message_data);
 
         dol_include_once('/requestmanager/class/html.formrequestmanagermessage.class.php');
-        $formrequestmanagermessage = new FormRequestManagerMessage( $this->db, $requestmanager);
+        $formrequestmanagermessage = new FormRequestManagerMessage($this->db, $requestmanager);
 
         // Add attached files
         if (isset($request_message_data['attached_files'])) {
@@ -777,7 +782,7 @@ class RequestManagerApi extends DolibarrApi {
             $request_message_data['attached_files'] = $formrequestmanagermessage->get_attached_files();
         }
 
-        $requestmanager_message = new RequestManagerMessage( $this->db);
+        $requestmanager_message = new RequestManagerMessage($this->db);
         foreach ($request_message_data as $field => $value) {
             $requestmanager_message->$field = $value;
         }
@@ -811,18 +816,18 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Get the list of the events of the request
      *
-     * @url	GET {id}/events
+     * @url GET {id}/events
      *
      * @param   int         $id                                         ID of the request
-     * @param   string	    $sort_field                                 Sort field
-     * @param   string	    $sort_order                                 Sort order
-     * @param   int		    $limit		                                Limit for list
-     * @param   int		    $page		                                Page number
+     * @param   string      $sort_field                                 Sort field
+     * @param   string      $sort_order                                 Sort order
+     * @param   int         $limit                                      Limit for list
+     * @param   int         $page                                       Page number
      * @param   string      $sql_filters                                Other criteria to filter answers separated by a comma. Syntax example "(t.ref:like:'SO-%') and (t.datec:<:'20160101')"
-     * @param   int		    $only_message		                        1=Return only request message of the request
-     * @param   int		    $only_linked_to_request		                1=Return only linked events to the request
-     * @param   int		    $include_events_other_request		        1=Return also events of other request (taken into account if only_linked_to_request = 0)
-     * @param   int		    $include_linked_events_children_request	    1=Return also events of children request
+     * @param   int         $only_message                               1=Return only request message of the request
+     * @param   int         $only_linked_to_request                     1=Return only linked events to the request
+     * @param   int         $include_events_other_request               1=Return also events of other request (taken into account if only_linked_to_request = 0)
+     * @param   int         $include_linked_events_children_request     1=Return also events of children request
      *
      * @return  array                                                   Array of order objects
      *
@@ -834,7 +839,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  500         RestException                               Error when retrieve tags list of the user
      * @throws  500         RestException                               Error when retrieve request list
      */
-    function indexEvents($id, $sort_field="t.datec", $sort_order='DESC', $limit=100, $page=0, $sql_filters='', $only_message=0, $only_linked_to_request=1, $include_events_other_request=0, $include_linked_events_children_request=1)
+    function indexEvents($id, $sort_field = "t.datec", $sort_order = 'DESC', $limit = 100, $page = 0, $sql_filters = '', $only_message = 0, $only_linked_to_request = 1, $include_events_other_request = 0, $include_linked_events_children_request = 1)
     {
         global $conf;
 
@@ -846,16 +851,49 @@ class RequestManagerApi extends DolibarrApi {
 
         // Get request object
         $requestmanager = $this->_getRequestManagerObject($id);
-
-        // Get request ids (parent + children)
+    // Get request ids (parent + children)
         $request_children_ids = $requestmanager->getAllChildrenRequest();
+		$request_ids = array();
+		if($only_linked_to_request) {
+			$request_ids[] = $requestmanager->id;
+		}
         if ($include_linked_events_children_request) {
             $request_ids = array_merge($request_children_ids, array($requestmanager->id));
-            $request_ids = implode(',', $request_ids);
-        } else {
-            $request_ids = $requestmanager->id;
+            $request_ids = array_unique($request_ids);
         }
-        $request_children_ids = implode(',', $request_children_ids);
+
+        $arrayOfLinkedObject = array();
+        foreach ($request_ids as $id) {
+            $request_static = new RequestManager($this->db);
+            if ($request_static->fetch($id) > 0 && $request_static->fetchObjectLinked() > 0) {
+                foreach ($request_static->linkedObjectsIds as $elementType => $ids) {
+                    if (!is_array($arrayOfLinkedObject[$elementType])) {
+                        $arrayOfLinkedObject[$elementType] = array();
+                    }
+                    if (!is_array($ids)) {
+                        $ids = array($ids);
+                    }
+                    $arrayOfLinkedObject[$elementType] = array_merge($arrayOfLinkedObject[$elementType], $ids);
+                }
+            }
+        }
+
+        $arrayOfElementTypeConversion = array('contrat'=>'contract', 'facture'=>'invoice', 'commande'=>'order');
+        foreach ($arrayOfElementTypeConversion as $elementElementName => $actionCommName) {
+            if (!empty($arrayOfElementTypeConversion[$elementElementName])) {
+                $arrayOfElementTypeConversion[$actionCommName] = $arrayOfElementTypeConversion[$elementElementName];
+                unset($arrayOfElementTypeConversion[$elementElementName]);
+            }
+        }
+
+        $actionCommFromLinkedObject = array();
+        foreach ($arrayOfLinkedObject as $elementType => $ids) {
+            if (!empty($ids)) {
+                $actionCommFromLinkedObject[] = '( t.elementtype = "' . $elementType . '" AND t.fk_element IN (' . implode(',', $ids) . ') )';
+            }
+        }
+
+        $sqlForActionCommFromLinkObject = implode(' OR ', $actionCommFromLinkedObject);
 
         $sql = "SELECT t.id, t.code";
         // Event confidentiality support
@@ -864,16 +902,6 @@ class RequestManagerApi extends DolibarrApi {
             $sql .= ", MIN(IFNULL(ecm.mode, " . EventConfidentiality::MODE_HIDDEN . ")) as ec_mode";
         }
         $sql .= " FROM " . MAIN_DB_PREFIX . "actioncomm as t";
-        if (!$only_message) {
-            $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "element_element as ee";
-            $element_correspondance = "(" . // Todo a completer si il y a d'autres correspondances
-                "IF(t.elementtype = 'contract', 'contrat', " .
-                " IF(t.elementtype = 'invoice', 'facture', " .
-                "  IF(t.elementtype = 'order', 'commande', " .
-                "   t.elementtype)))" .
-                ")";
-            $sql .= " ON (ee.sourcetype = " . $element_correspondance . " AND ee.fk_source = t.fk_element) OR (ee.targettype = " . $element_correspondance . " AND ee.fk_target = t.fk_element)";
-        }
         // Event confidentiality support
         if ($conf->eventconfidentiality->enabled) {
             $sql .= " LEFT JOIN " . MAIN_DB_PREFIX . "eventconfidentiality_mode as ecm ON ecm.fk_actioncomm = t.id";
@@ -886,16 +914,12 @@ class RequestManagerApi extends DolibarrApi {
                 $soc_ids[] = $requestmanager->socid_watcher;
             }
             $sql .= ' AND t.fk_soc IN (' . implode(',', $soc_ids) . ')';
-            if ($only_linked_to_request) {
-                $sql .= " AND IF(t.elementtype='requestmanager', t.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) IN(" . (!empty($request_ids) ? $request_ids : '-1') . ")";
-            } else {
-                if (!$include_events_other_request) {
-                    $sql .= " AND (t.elementtype != 'requestmanager' OR t.fk_element IN (" . (!empty($request_ids) ? $request_ids : '-1') . "))";
-                }
-                if (!$include_linked_events_children_request) {
-                    $sql .= " AND IF(t.elementtype='requestmanager', t.fk_element, IF(ee.targettype='requestmanager', ee.fk_target, IF(ee.sourcetype='requestmanager', ee.fk_source, NULL))) NOT IN (" . (!empty($request_children_ids) ? $request_children_ids : '-1') . ")";
-                }
-            }
+			$requestIdsString = !empty($request_ids) ? implode(',', $request_ids) : '-1';
+
+			$sql .= ' AND (t.elementtype="requestmanager" AND t.fk_element IN (' . $requestIdsString .') OR (' . $sqlForActionCommFromLinkObject . ') ) ';
+			if (!$include_events_other_request) {
+				$sql .= " AND (t.elementtype != 'requestmanager' OR t.fk_element IN (" . $requestIdsString . "))";
+			}
         } else {
             $sql .= " AND t.elementtype = 'requestmanager' AND t.fk_element IN (" . $request_ids . ")";
             $sql .= " AND (t.code = 'AC_RM_PRIV' OR t.code = 'AC_RM_IN' OR t.code = 'AC_RM_OUT')";
@@ -905,7 +929,7 @@ class RequestManagerApi extends DolibarrApi {
         }
         // Event confidentiality support
         if ($conf->eventconfidentiality->enabled) {
-            $eventconfidentiality = new EventConfidentiality( $this->db);
+            $eventconfidentiality = new EventConfidentiality($this->db);
             $tags_list = $eventconfidentiality->getConfidentialTagsOfUser(DolibarrApiAccess::$user);
             if (!is_array($tags_list)) {
                 throw new RestException(500, 'Error when retrieve tags list of the user', [ 'details' => $this->_getErrors($eventconfidentiality) ]);
@@ -954,7 +978,7 @@ class RequestManagerApi extends DolibarrApi {
             require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
             while ($obj = $this->db->fetch_object($resql)) {
                 if ($obj->code == 'AC_RM_PRIV' || $obj->code == 'AC_RM_IN' || $obj->code == 'AC_RM_OUT') {
-                    $requestmanager_message = new RequestManagerMessage( $this->db);
+                    $requestmanager_message = new RequestManagerMessage($this->db);
                     if ($requestmanager_message->fetch($obj->id) > 0 && $requestmanager_message->id > 0) {
                         $requestmanager_message->fetch_knowledge_base();
                         $requestmanager_message->fetch_optionals();
@@ -968,7 +992,7 @@ class RequestManagerApi extends DolibarrApi {
                         $obj_ret[] = $this->_cleanObjectData($requestmanager_message);
                     }
                 } else {
-                    $event = new ActionComm( $this->db);
+                    $event = new ActionComm($this->db);
                     if ($event->fetch($obj->id) > 0 && $event->id > 0) {
                         $event->fetch_optionals();
                         $event->fetch_contact();
@@ -994,7 +1018,7 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Set request status
      *
-     * @url	POST {id}/set_status
+     * @url POST {id}/set_status
      *
      * @param   int     $id                         ID of the request
      * @param   int     $status_id                  New status (ID of a status defined into the dictionary)
@@ -1012,7 +1036,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  500     RestException               Error when retrieve request
      * @throws  500     RestException               Error while setting the request status
      */
-    function setStatus($id, $status_id=0, $status_type=-1, $reason_resolution_id=0, $reason_resolution_details='', $no_trigger=0, $force_reload=0)
+    function setStatus($id, $status_id = 0, $status_type = -1, $reason_resolution_id = 0, $reason_resolution_details = '', $no_trigger = 0, $force_reload = 0)
     {
         if (!DolibarrApiAccess::$user->rights->requestmanager->creer) {
             throw new RestException(401, "Insufficient rights");
@@ -1031,12 +1055,12 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Get the files list of the request or request message
      *
-     * @url	GET {id}/{message_id}/documents
+     * @url GET {id}/{message_id}/documents
      *
      * @param   int             $id                 ID of the request
      * @param   int             $message_id         ID of the request message (event) (=0 if not message)
-     * @param	string	        $sortfield		    Sort criteria ('','fullname','relativename','name','date','size')
-   	 * @param	string	        $sortorder		    Sort order ('asc' or 'desc')
+     * @param   string          $sortfield          Sort criteria ('','fullname','relativename','name','date','size')
+     * @param   string          $sortorder          Sort order ('asc' or 'desc')
      *
      * @return  array                               Files list of the request or request message
      *
@@ -1048,7 +1072,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  500             RestException       Error when retrieve request message
      * @throws  500             RestException       Error while retrieve the mode of confidentiality for the request message
      */
-    function indexDocuments($id, $message_id, $sortfield='', $sortorder='')
+    function indexDocuments($id, $message_id, $sortfield = '', $sortorder = '')
     {
         global $conf;
 
@@ -1060,7 +1084,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         if ($message_id > 0) {
-            $requestmanager_message = new RequestManagerMessage( $this->db);
+            $requestmanager_message = new RequestManagerMessage($this->db);
             $result = $requestmanager_message->fetch($message_id);
             if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
                 throw new RestException(404, "Request message not found");
@@ -1070,7 +1094,7 @@ class RequestManagerApi extends DolibarrApi {
                 // List documents of the request message
                 if ($conf->eventconfidentiality->enabled) {
                     dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-                    $eventconfidentiality = new EventConfidentiality( $this->db);
+                    $eventconfidentiality = new EventConfidentiality($this->db);
 
                     // Get mode for the user and event
                     $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $requestmanager_message->id);
@@ -1118,11 +1142,11 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Get the file of the request or request message
      *
-     * @url	GET {id}/{message_id}/documents/download
+     * @url GET {id}/{message_id}/documents/download
      *
      * @param   int             $id                 ID of the request
      * @param   int             $message_id         ID of the request message (event) (=0 if not message)
-     * @param	string	        $filename		    Filename of the file to download
+     * @param   string          $filename           Filename of the file to download
      *
      * @return  array                               File information
      *
@@ -1146,7 +1170,7 @@ class RequestManagerApi extends DolibarrApi {
         $requestmanager = $this->_getRequestManagerObject($id);
 
         if ($message_id > 0) {
-            $requestmanager_message = new RequestManagerMessage( $this->db);
+            $requestmanager_message = new RequestManagerMessage($this->db);
             $result = $requestmanager_message->fetch($message_id);
             if ($result == 0 || ($result > 0 && ($requestmanager_message->elementtype != $requestmanager->element || $requestmanager_message->fk_element != $requestmanager->id))) {
                 throw new RestException(404, "Request message not found");
@@ -1156,7 +1180,7 @@ class RequestManagerApi extends DolibarrApi {
                 // List documents of the request message
                 if ($conf->eventconfidentiality->enabled) {
                     dol_include_once('/eventconfidentiality/class/eventconfidentiality.class.php');
-                    $eventconfidentiality = new EventConfidentiality( $this->db);
+                    $eventconfidentiality = new EventConfidentiality($this->db);
 
                     // Get mode for the user and event
                     $mode = $eventconfidentiality->getModeForUserAndEvent(DolibarrApiAccess::$user, $requestmanager_message->id);
@@ -1207,7 +1231,7 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Create a calling event
      *
-     * @url	POST /call/{unique_id}/begin
+     * @url POST /call/{unique_id}/begin
      *
      * @param   string      $unique_id          Unique ID of the call
      * @param   string      $caller_id_num      Caller's number
@@ -1228,7 +1252,7 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  500         RestException       Error when retrieve internal user
      * @throws  500         RestException       Error while creating the calling event
      */
-    function CallBegin($unique_id, $caller_id_num, $called_num, $direction, $channel='', $caller_id_name='', $context='', $extension='', $begin_ask_hour='', $transfer_suffix='')
+    function CallBegin($unique_id, $caller_id_num, $called_num, $direction, $channel = '', $caller_id_name = '', $context = '', $extension = '', $begin_ask_hour = '', $transfer_suffix = '')
     {
         global $conf, $langs;
 
@@ -1247,11 +1271,11 @@ class RequestManagerApi extends DolibarrApi {
         $target_num = preg_replace("/\D/", "", $called_num);
         $target_num = substr($target_num, -$nb_number);
 
-        if(empty($from_num) || $caller_id_num == "anonymous"){
+        if (empty($from_num) || $caller_id_num == "anonymous") {
             $from_num = $caller_id_num;
         }
 
-        if(empty($target_num)|| $called_num == "anonymous"){
+        if (empty($target_num)|| $called_num == "anonymous") {
             $target_num = $called_num;
         }
 
@@ -1282,7 +1306,7 @@ class RequestManagerApi extends DolibarrApi {
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(sc.fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
 
         // Set filters for phones into extra fields
-        $extrafields = new ExtraFields( $this->db);
+        $extrafields = new ExtraFields($this->db);
         $extralabels = $extrafields->fetch_name_optionals_label('societe');
         foreach ($extrafields->attributes['societe']['type'] as $key => $type) {
             if ($type == '') {
@@ -1290,9 +1314,9 @@ class RequestManagerApi extends DolibarrApi {
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(sef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
             }
         }
-        $extrafields = new ExtraFields( $this->db);
-		$extralabels = $extrafields->fetch_name_optionals_label('socpeople');
-		$socPeopleExtrafields = empty($extrafields->attributes['socpeople']['type']) ? array() : $extrafields->attributes['socpeople']['type'];
+        $extrafields = new ExtraFields($this->db);
+        $extralabels = $extrafields->fetch_name_optionals_label('socpeople');
+        $socPeopleExtrafields = empty($extrafields->attributes['socpeople']['type']) ? array() : $extrafields->attributes['socpeople']['type'];
         foreach ($socPeopleExtrafields as $key => $type) {
             if ($type == '') {
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(spef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
@@ -1323,7 +1347,7 @@ class RequestManagerApi extends DolibarrApi {
 
         if ($socid > 0) {
             require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-            $societe = new Societe( $this->db);
+            $societe = new Societe($this->db);
             $result = $societe->fetch($socid);
             if ($result < 0) {
                 throw new RestException(500, "Error when retrieve company information", ['details' => $this->_getErrors($requestmanager)]);
@@ -1348,7 +1372,7 @@ class RequestManagerApi extends DolibarrApi {
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
 
         // Set filters for phones into extra fields
-        $extrafields = new ExtraFields( $this->db);
+        $extrafields = new ExtraFields($this->db);
         $extralabels = $extrafields->fetch_name_optionals_label('user');
         foreach ($extrafields->attributes['user']['type'] as $key => $type) {
             if ($type == '') {
@@ -1377,7 +1401,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-        $actioncomm = new ActionComm( $this->db);
+        $actioncomm = new ActionComm($this->db);
 
         // Begin date
         //--------------------------------------------------
@@ -1407,30 +1431,37 @@ class RequestManagerApi extends DolibarrApi {
 
         switch ($direction) {
             case 'incoming':
-
                 //Society displayed Name
                 $displayName = $caller_id_num;
-                if ($socid > 0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                if ($socid > 0) {
+                    $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                }
                 $actioncomm->label = $langs->trans('RequestManagerIncomingCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
                 break;
 
             case 'outgoing':
                 //Society displayed Name
                 $displayName = $called_num;
-                if ($socid > 0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                if ($socid > 0) {
+                    $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                }
                 $actioncomm->label = $langs->trans('RequestManagerOutgoingCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
                 break;
 
             case 'transfered':
                 //Society displayed Name
                 $displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
-                if ($socid > 0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                if ($socid > 0) {
+                    $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                }
                 $actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
                 break;
 
             default:
                 $displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
-                if ($socid > 0) $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                if ($socid > 0) {
+                    $displayName = empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias;
+                }
                 $actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $langs->trans('RequestManagerInProgressCall');
                 break;
         }
@@ -1440,9 +1471,15 @@ class RequestManagerApi extends DolibarrApi {
         $message = '';
         $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
         $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
-        if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-        if (!empty($extension)) $message .= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
-        if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', dol_print_date($begin_date, '%d/%m/%Y %H:%M:%S'));
+        if (!empty($context)) {
+            $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+        }
+        if (!empty($extension)) {
+            $message .= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
+        }
+        if (!empty($begin_ask_hour)) {
+            $message .= $langs->trans('RequestManagerIPBXBeginAskHour', dol_print_date($begin_date, '%d/%m/%Y %H:%M:%S'));
+        }
         $actioncomm->note = $message;
 
         if ($actioncomm->create(DolibarrApiAccess::$user) < 0) {
@@ -1455,7 +1492,7 @@ class RequestManagerApi extends DolibarrApi {
     /**
      *  Close a calling event
      *
-     * @url	PUT /call/{unique_id}/ending
+     * @url PUT /call/{unique_id}/ending
      *
      * @param   string      $unique_id              Unique ID of the call
      * @param   string      $caller_id_num          Caller's number
@@ -1504,11 +1541,45 @@ class RequestManagerApi extends DolibarrApi {
      * @throws  500         RestException           Error when retrieve company information
      * @throws  500         RestException           Error while closing the calling event
      */
-    function CallEnding($unique_id, $caller_id_num, $called_num, $direction, $channel='', $caller_id_name='', $context='', $extension='', $begin_ask_hour='', $transfer_suffix='',
-                        $end_hour='', $answered = false, $privilege='', $connected_line_num='', $connected_line_name='', $account_code=false, $channel_state='',
-                        $channel_state_desc='', $priority='', $seconds='', $id='', $from='', $from_channel='', $to='', $to_channel='', $type='', $class='', $dest_type='',
-                        $direction_id='', $date_call='', $duration='', $bill_sec='', $cost='', $tags='', $pbx='', $user_field='', $fax_data='')
-    {
+    function CallEnding(
+        $unique_id,
+        $caller_id_num,
+        $called_num,
+        $direction,
+        $channel = '',
+        $caller_id_name = '',
+        $context = '',
+        $extension = '',
+        $begin_ask_hour = '',
+        $transfer_suffix = '',
+        $end_hour = '',
+        $answered = false,
+        $privilege = '',
+        $connected_line_num = '',
+        $connected_line_name = '',
+        $account_code = false,
+        $channel_state = '',
+        $channel_state_desc = '',
+        $priority = '',
+        $seconds = '',
+        $id = '',
+        $from = '',
+        $from_channel = '',
+        $to = '',
+        $to_channel = '',
+        $type = '',
+        $class = '',
+        $dest_type = '',
+        $direction_id = '',
+        $date_call = '',
+        $duration = '',
+        $bill_sec = '',
+        $cost = '',
+        $tags = '',
+        $pbx = '',
+        $user_field = '',
+        $fax_data = ''
+    ) {
         global $conf, $langs;
 
         if (!DolibarrApiAccess::$user->rights->agenda->myactions->create) {
@@ -1539,32 +1610,56 @@ class RequestManagerApi extends DolibarrApi {
         // u.office_phone
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
-        if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
-        if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
-        if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        if (!empty($connected_line_num)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
+        }
+        if (!empty($from)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
+        }
+        if (!empty($to)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_phone, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        }
         // u.office_fax
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
-        if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
-        if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
-        if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        if (!empty($connected_line_num)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
+        }
+        if (!empty($from)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
+        }
+        if (!empty($to)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.office_fax, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        }
         // u.user_mobile
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
         $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
-        if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
-        if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
-        if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        if (!empty($connected_line_num)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
+        }
+        if (!empty($from)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
+        }
+        if (!empty($to)) {
+            $phones[] = "RIGHT(RM_GLOBAL_TRIM(u.user_mobile, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+        }
 
         // Set filters for phones into extra fields
-        $extrafields = new ExtraFields( $this->db);
+        $extrafields = new ExtraFields($this->db);
         $extralabels = $extrafields->fetch_name_optionals_label('user');
         foreach ($extrafields->attributes['user']['type'] as $key => $type) {
             if ($type == '') {
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_num'";
                 $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$target_num'";
-                if (!empty($connected_line_num)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
-                if (!empty($from)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
-                if (!empty($to)) $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+                if (!empty($connected_line_num)) {
+                    $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$connected_line_num_formatted'";
+                }
+                if (!empty($from)) {
+                    $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$from_formatted'";
+                }
+                if (!empty($to)) {
+                    $phones[] = "RIGHT(RM_GLOBAL_TRIM(uef.$key, '0123456789'), $nb_number) COLLATE utf8_general_ci = '$to_formatted'";
+                }
             }
         }
 
@@ -1611,7 +1706,7 @@ class RequestManagerApi extends DolibarrApi {
         }
 
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
-        $actioncomm = new ActionComm( $this->db);
+        $actioncomm = new ActionComm($this->db);
         $result = $actioncomm->fetch($actioncommid);
         if ($result < 0) {
             throw new RestException(500, "Error when retrieve calling event", ['details' => $this->_getErrors($actioncomm)]);
@@ -1623,7 +1718,7 @@ class RequestManagerApi extends DolibarrApi {
         //--------------------------------------------------
         if ($actioncomm->socid > 0) {
             require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-            $societe = new Societe( $this->db);
+            $societe = new Societe($this->db);
             $result = $societe->fetch($actioncomm->socid);
             if ($result < 0) {
                 throw new RestException(500, "Error when retrieve company information", ['details' => $this->_getErrors($requestmanager)]);
@@ -1648,7 +1743,9 @@ class RequestManagerApi extends DolibarrApi {
         $waitingTime = $duration - $bill_sec;
 
         //Date when the operator has taken the call - except for outgoing call
-        if ($direction != "outgoing") $begin_date = $begin_date + $waitingTime;
+        if ($direction != "outgoing") {
+            $begin_date = $begin_date + $waitingTime;
+        }
 
 
         // End date
@@ -1686,47 +1783,82 @@ class RequestManagerApi extends DolibarrApi {
         $message = '';
         switch ($direction) {
             case 'incoming':
-
                 //Society displayed Name
                 $displayName = $caller_id_num;
-                if ($socid > 0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                if ($socid > 0) {
+                    $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                }
                 //Title
                 $actioncomm->label = $langs->trans('RequestManagerIncomingCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
                 //Message
                 $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
                 $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
-                if (!empty($connected_line_num)) $message .= $langs->trans('RequestManagerIPBXPosteNumber', $connected_line_num) . '<br>';
-                if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-                if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-                if (isset($bill_sec)) $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
-                if (isset($answered)) $message .= $langs->trans('RequestManagerIPBXAnswered') . ($answered ? $langs->trans('RequestManagerIPBXAnsweredYes') : $langs->trans('RequestManagerIPBXAnsweredNo')) . '<br>';
-                if (isset($waitingTime) || $waitingTime == 0) $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
-                if (isset($duration) || $duration == 0) $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
-                if (!empty($user_field)) $message .= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
+                if (!empty($connected_line_num)) {
+                    $message .= $langs->trans('RequestManagerIPBXPosteNumber', $connected_line_num) . '<br>';
+                }
+                if (!empty($context)) {
+                    $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+                }
+                if (!empty($begin_ask_hour)) {
+                    $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+                }
+                if (isset($bill_sec)) {
+                    $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
+                }
+                if (isset($answered)) {
+                    $message .= $langs->trans('RequestManagerIPBXAnswered') . ($answered ? $langs->trans('RequestManagerIPBXAnsweredYes') : $langs->trans('RequestManagerIPBXAnsweredNo')) . '<br>';
+                }
+                if (isset($waitingTime) || $waitingTime == 0) {
+                    $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
+                }
+                if (isset($duration) || $duration == 0) {
+                    $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
+                }
+                if (!empty($user_field)) {
+                    $message .= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
+                }
                 break;
 
             case 'outgoing':
                 //Society displayed Name
                 $displayName = $called_num;
-                if ($socid > 0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                if ($socid > 0) {
+                    $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                }
                 //Title
                 $actioncomm->label = $langs->trans('RequestManagerOutgoingCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
                 //Message
                 $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $connected_line_num) . '<br>';
                 $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
-                if (!empty($connected_line_num)) $message .= $langs->trans('RequestManagerIPBXPosteNumber', $caller_id_num) . '<br>';
-                if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-                if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-                if (isset($bill_sec)) $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
-                if (isset($answered)) $message .= $langs->trans('RequestManagerIPBXAnswered') . ($answered ? $langs->trans('RequestManagerIPBXAnsweredYes') : $langs->trans('RequestManagerIPBXAnsweredNo')) . '<br>';
-                if (isset($waitingTime) || $waitingTime == 0) $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
-                if (isset($duration) || $duration == 0) $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
+                if (!empty($connected_line_num)) {
+                    $message .= $langs->trans('RequestManagerIPBXPosteNumber', $caller_id_num) . '<br>';
+                }
+                if (!empty($context)) {
+                    $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+                }
+                if (!empty($begin_ask_hour)) {
+                    $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+                }
+                if (isset($bill_sec)) {
+                    $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
+                }
+                if (isset($answered)) {
+                    $message .= $langs->trans('RequestManagerIPBXAnswered') . ($answered ? $langs->trans('RequestManagerIPBXAnsweredYes') : $langs->trans('RequestManagerIPBXAnsweredNo')) . '<br>';
+                }
+                if (isset($waitingTime) || $waitingTime == 0) {
+                    $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
+                }
+                if (isset($duration) || $duration == 0) {
+                    $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
+                }
                 break;
 
             case 'transfered':
                 //Society displayed Name
                 $displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
-                if ($socid > 0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                if ($socid > 0) {
+                    $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                }
                 //Title
                 $actioncomm->label = $langs->trans('RequestManagerTransferedCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
                 //Message
@@ -1734,67 +1866,148 @@ class RequestManagerApi extends DolibarrApi {
 
 
                 $whereUserNumberCanBeFound = array($from, $to, $connected_line_num);
-                $posteUtilisateur = array_filter($whereUserNumberCanBeFound,
+                $posteUtilisateur = array_filter(
+                    $whereUserNumberCanBeFound,
                     function ($n) {
                         return ($n <= 10000 && $n > 0);
-                    });
+                    }
+                );
                 $posteUtilisateur = min($posteUtilisateur);
-                if (!empty($posteUtilisateur)) $message .= $langs->trans('RequestManagerIPBXPosteNumber', $posteUtilisateur) . '<br>';
-                if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-                if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-                if (isset($bill_sec)) $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
-                if (isset($waitingTime) || $waitingTime == 0) $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
-                if (isset($duration) || $duration == 0) $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
+                if (!empty($posteUtilisateur)) {
+                    $message .= $langs->trans('RequestManagerIPBXPosteNumber', $posteUtilisateur) . '<br>';
+                }
+                if (!empty($context)) {
+                    $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+                }
+                if (!empty($begin_ask_hour)) {
+                    $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+                }
+                if (isset($bill_sec)) {
+                    $message .= $langs->trans('RequestManagerIPBXTalkingTime', $duration_fomatted) . '<br>';
+                }
+                if (isset($waitingTime) || $waitingTime == 0) {
+                    $message .= $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . '<br>';
+                }
+                if (isset($duration) || $duration == 0) {
+                    $message .= $langs->trans('RequestManagerIPBXTotalTime', $totaltime_formatted) . '<br>';
+                }
                 break;
 
             default:
                 //Society displayed Name
                 $displayName = $caller_id_num . ' ' . $langs->trans('RequestManagerToward') . ' ' . $called_num;
-                if ($socid > 0) $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                if ($socid > 0) {
+                    $displayName = (empty($societe->name_alias) ? $societe->getFullName($langs) : $societe->name_alias);
+                }
                 //Title
                 $actioncomm->label = $langs->trans('RequestManagerDefaultCall') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
                 //Message
                 $message .= $langs->trans('RequestManagerIPBXCallerIDNum', $caller_id_num) . '<br>';
-                if (!empty($caller_id_name)) $message .= $langs->trans('RequestManagerIPBXCallerIDName', $caller_id_name) . '<br>';
+                if (!empty($caller_id_name)) {
+                    $message .= $langs->trans('RequestManagerIPBXCallerIDName', $caller_id_name) . '<br>';
+                }
                 $message .= $langs->trans('RequestManagerIPBXCalledNum', $called_num) . '<br>';
                 $message .= $langs->trans('RequestManagerIPBXDirection', $direction) . '<br>';
-                if (!empty($context)) $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
-                if (!empty($extension)) $message .= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
-                if (!empty($begin_ask_hour)) $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
-                if (!empty($transfer_suffix)) $message .= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
-                if (!empty($end_hour)) $message .= $langs->trans('RequestManagerIPBXEndHour', $end_hour) . '<br>';
-                if (isset($answered)) $message .= $langs->trans('RequestManagerIPBXAnswered', yn($answered)) . '<br>';
-                if (!empty($privilege)) $message .= $langs->trans('RequestManagerIPBXPrivilege', $privilege) . '<br>';
-                if (!empty($connected_line_num)) $message .= $langs->trans('RequestManagerIPBXConnectedLineNum', $connected_line_num) . '<br>';
-                if (!empty($connected_line_name)) $message .= $langs->trans('RequestManagerIPBXConnectedLineName', $connected_line_name) . '<br>';
-                if (!empty($account_code)) $message .= $langs->trans('RequestManagerIPBXAccountCode', yn($account_code)) . '<br>';
-                if (!empty($channel_state)) $message .= $langs->trans('RequestManagerIPBXChannelState', $channel_state) . '<br>';
-                if (!empty($channel_state_desc)) $message .= $langs->trans('RequestManagerIPBXChannelStateDesc', $channel_state_desc) . '<br>';
-                if (!empty($priority)) $message .= $langs->trans('RequestManagerIPBXPriority', $priority) . '<br>';
-                if (!empty($seconds)) $message .= $langs->trans('RequestManagerIPBXSeconds', $seconds) . '<br>';
-                if (!empty($id)) $message .= $langs->trans('RequestManagerIPBXId', $id) . '<br>';
-                if (!empty($from)) $message .= $langs->trans('RequestManagerIPBXFrom', $from) . '<br>';
-                if (!empty($from_channel)) $message .= $langs->trans('RequestManagerIPBXFromChannel', $from_channel) . '<br>';
-                if (!empty($to)) $message .= $langs->trans('RequestManagerIPBXTo', $to) . '<br>';
-                if (!empty($to_channel)) $message .= $langs->trans('RequestManagerIPBXToChannel', $to_channel) . '<br>';
-                if (!empty($type)) $message .= $langs->trans('RequestManagerIPBXType', $type) . '<br>';
-                if (!empty($class)) $message .= $langs->trans('RequestManagerIPBXClass', $class) . '<br>';
-                if (!empty($dest_type)) $message .= $langs->trans('RequestManagerIPBXDestinationType', $dest_type) . '<br>';
-                if (isset($direction_id)) $message .= $langs->trans('RequestManagerIPBXDirectionId', $direction_id) . '<br>';
-                if (isset($date_call)) $message .= $langs->trans('RequestManagerIPBXDate', $date_call) . '<br>';
-                if (isset($duration)) $message .= $langs->trans('RequestManagerIPBXDuration', $duration) . '<br>';
-                if (isset($bill_sec)) $message .= $langs->trans('RequestManagerIPBXBillSec', $bill_sec) . '<br>';
-                if (!empty($cost)) $message .= $langs->trans('RequestManagerIPBXCost', $cost) . '<br>';
-                if (!empty($tags)) $message .= $langs->trans('RequestManagerIPBXTags', $tags) . '<br>';
-                if (!empty($pbx)) $message .= $langs->trans('RequestManagerIPBXPbx', $pbx) . '<br>';
-                if (!empty($user_field)) $message .= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
-                if (!empty($fax_data)) $message .= $langs->trans('RequestManagerIPBXFaxData') . '<br>' . $fax_data . '';
+                if (!empty($context)) {
+                    $message .= $langs->trans('RequestManagerIPBXContext', $context) . '<br>';
+                }
+                if (!empty($extension)) {
+                    $message .= $langs->trans('RequestManagerIPBXExtension', $extension) . '<br>';
+                }
+                if (!empty($begin_ask_hour)) {
+                    $message .= $langs->trans('RequestManagerIPBXBeginAskHour', $begin_ask_hour) . '<br>';
+                }
+                if (!empty($transfer_suffix)) {
+                    $message .= $langs->trans('RequestManagerIPBXTransferSuffix', $transfer_suffix) . '<br>';
+                }
+                if (!empty($end_hour)) {
+                    $message .= $langs->trans('RequestManagerIPBXEndHour', $end_hour) . '<br>';
+                }
+                if (isset($answered)) {
+                    $message .= $langs->trans('RequestManagerIPBXAnswered', yn($answered)) . '<br>';
+                }
+                if (!empty($privilege)) {
+                    $message .= $langs->trans('RequestManagerIPBXPrivilege', $privilege) . '<br>';
+                }
+                if (!empty($connected_line_num)) {
+                    $message .= $langs->trans('RequestManagerIPBXConnectedLineNum', $connected_line_num) . '<br>';
+                }
+                if (!empty($connected_line_name)) {
+                    $message .= $langs->trans('RequestManagerIPBXConnectedLineName', $connected_line_name) . '<br>';
+                }
+                if (!empty($account_code)) {
+                    $message .= $langs->trans('RequestManagerIPBXAccountCode', yn($account_code)) . '<br>';
+                }
+                if (!empty($channel_state)) {
+                    $message .= $langs->trans('RequestManagerIPBXChannelState', $channel_state) . '<br>';
+                }
+                if (!empty($channel_state_desc)) {
+                    $message .= $langs->trans('RequestManagerIPBXChannelStateDesc', $channel_state_desc) . '<br>';
+                }
+                if (!empty($priority)) {
+                    $message .= $langs->trans('RequestManagerIPBXPriority', $priority) . '<br>';
+                }
+                if (!empty($seconds)) {
+                    $message .= $langs->trans('RequestManagerIPBXSeconds', $seconds) . '<br>';
+                }
+                if (!empty($id)) {
+                    $message .= $langs->trans('RequestManagerIPBXId', $id) . '<br>';
+                }
+                if (!empty($from)) {
+                    $message .= $langs->trans('RequestManagerIPBXFrom', $from) . '<br>';
+                }
+                if (!empty($from_channel)) {
+                    $message .= $langs->trans('RequestManagerIPBXFromChannel', $from_channel) . '<br>';
+                }
+                if (!empty($to)) {
+                    $message .= $langs->trans('RequestManagerIPBXTo', $to) . '<br>';
+                }
+                if (!empty($to_channel)) {
+                    $message .= $langs->trans('RequestManagerIPBXToChannel', $to_channel) . '<br>';
+                }
+                if (!empty($type)) {
+                    $message .= $langs->trans('RequestManagerIPBXType', $type) . '<br>';
+                }
+                if (!empty($class)) {
+                    $message .= $langs->trans('RequestManagerIPBXClass', $class) . '<br>';
+                }
+                if (!empty($dest_type)) {
+                    $message .= $langs->trans('RequestManagerIPBXDestinationType', $dest_type) . '<br>';
+                }
+                if (isset($direction_id)) {
+                    $message .= $langs->trans('RequestManagerIPBXDirectionId', $direction_id) . '<br>';
+                }
+                if (isset($date_call)) {
+                    $message .= $langs->trans('RequestManagerIPBXDate', $date_call) . '<br>';
+                }
+                if (isset($duration)) {
+                    $message .= $langs->trans('RequestManagerIPBXDuration', $duration) . '<br>';
+                }
+                if (isset($bill_sec)) {
+                    $message .= $langs->trans('RequestManagerIPBXBillSec', $bill_sec) . '<br>';
+                }
+                if (!empty($cost)) {
+                    $message .= $langs->trans('RequestManagerIPBXCost', $cost) . '<br>';
+                }
+                if (!empty($tags)) {
+                    $message .= $langs->trans('RequestManagerIPBXTags', $tags) . '<br>';
+                }
+                if (!empty($pbx)) {
+                    $message .= $langs->trans('RequestManagerIPBXPbx', $pbx) . '<br>';
+                }
+                if (!empty($user_field)) {
+                    $message .= $langs->trans('RequestManagerIPBXUserField') . '<br>' . $user_field . '';
+                }
+                if (!empty($fax_data)) {
+                    $message .= $langs->trans('RequestManagerIPBXFaxData') . '<br>' . $fax_data . '';
+                }
 
                 break;
-
         }
         //Title for message let on the answerPhone
-        if (!empty($user_field)) $actioncomm->label = $langs->trans('RequestManagerAnswerPhone') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
+        if (!empty($user_field)) {
+            $actioncomm->label = $langs->trans('RequestManagerAnswerPhone') . ' - ' . $displayName . ' - ' . dol_print_date($begin_date, ' %H:%M:%S') . ' - ' . $duration_fomatted . ' (' . $langs->trans('RequestManagerWaitingTime', $waitingTime_formatted) . ')';
+        }
 
         $actioncomm->note = $message;
 
@@ -1818,7 +2031,7 @@ class RequestManagerApi extends DolibarrApi {
      */
     function _getRequestManagerObject($request_id)
     {
-        $requestmanager = new RequestManager( $this->db);
+        $requestmanager = new RequestManager($this->db);
         $result = $requestmanager->fetch($request_id);
         if ($result == 0) {
             throw new RestException(404, "Request not found");
@@ -1850,8 +2063,9 @@ class RequestManagerApi extends DolibarrApi {
     function _validate($data)
     {
         foreach (self::$FIELDS as $field) {
-            if (!isset($data[$field]))
+            if (!isset($data[$field])) {
                 throw new RestException(400, "Field missing: $field");
+            }
         }
     }
 
@@ -1867,8 +2081,9 @@ class RequestManagerApi extends DolibarrApi {
     function _validateMessage($data)
     {
         foreach (self::$MESSAGE_FIELDS as $field) {
-            if (!isset($data[$field]))
+            if (!isset($data[$field])) {
                 throw new RestException(400, "Field missing: $field");
+            }
         }
     }
 
@@ -1906,7 +2121,7 @@ class RequestManagerApi extends DolibarrApi {
 
         if ($id > 0) {
             require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
-            $user = new User( $this->db);
+            $user = new User($this->db);
             if ($user->fetch($id) > 0) {
                 $result = $user;
             }
@@ -1926,7 +2141,7 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @throws
      */
-	function _addAttachedFile(&$requestmanager, &$formrequestmanagermessage, $file_info)
+    function _addAttachedFile(&$requestmanager, &$formrequestmanagermessage, $file_info)
     {
         global $conf, $langs;
 
@@ -1935,8 +2150,12 @@ class RequestManagerApi extends DolibarrApi {
         $fileencoding = $file_info['encoding'];
 
         $newfilecontent = '';
-        if (empty($fileencoding)) $newfilecontent = $filecontent;
-        if ($fileencoding == 'base64') $newfilecontent = base64_decode($filecontent);
+        if (empty($fileencoding)) {
+            $newfilecontent = $filecontent;
+        }
+        if ($fileencoding == 'base64') {
+            $newfilecontent = base64_decode($filecontent);
+        }
         $original_file = dol_sanitizeFileName($filename);
 
         // Set tmp user directory
@@ -2034,28 +2253,34 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
      */
-   	function _cleanObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    function _cleanObjectData(&$object, $whitelist_of_properties = array(), $blacklist_of_properties = array())
     {
         if (!empty($object->element)) {
             $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties);
         }
 
-        if (!is_array($whitelist_of_properties)) $whitelist_of_properties = array();
+        if (!is_array($whitelist_of_properties)) {
+            $whitelist_of_properties = array();
+        }
         $has_whitelist = count($whitelist_of_properties) > 0 && !isset($whitelist_of_properties['']);
-        if (!is_array($blacklist_of_properties)) $blacklist_of_properties = array();
+        if (!is_array($blacklist_of_properties)) {
+            $blacklist_of_properties = array();
+        }
         $has_blacklist = count($blacklist_of_properties) > 0 && !isset($blacklist_of_properties['']);
         foreach ($object as $k => $v) {
             if (($has_whitelist && !isset($whitelist_of_properties[$k])) || ($has_blacklist && isset($blacklist_of_properties[$k]) && !is_array($blacklist_of_properties[$k]))) {
-                if (is_array($object))
+                if (is_array($object)) {
                     unset($object[$k]);
-                else
+                } else {
                     unset($object->$k);
+                }
             } else {
                 if (is_object($v) || is_array($v)) {
-                    if (is_array($object))
+                    if (is_array($object)) {
                         $this->_cleanSubObjectData($object[$k], $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
-                    else
+                    } else {
                         $this->_cleanSubObjectData($object->$k, $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                    }
                 }
             }
         }
@@ -2074,28 +2299,34 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @throws  500             RestException               Error while retrieve the custom whitelist of properties for the object type
      */
-   	function _cleanSubObjectData(&$object, $whitelist_of_properties=array(), $blacklist_of_properties=array())
+    function _cleanSubObjectData(&$object, $whitelist_of_properties = array(), $blacklist_of_properties = array())
     {
         if (!empty($object->element)) {
             $this->_getBlackWhitelistOfProperties($object, $whitelist_of_properties, $blacklist_of_properties, true);
         }
 
-        if (!is_array($whitelist_of_properties)) $whitelist_of_properties = array();
+        if (!is_array($whitelist_of_properties)) {
+            $whitelist_of_properties = array();
+        }
         $has_whitelist = count($whitelist_of_properties) > 0 && !isset($whitelist_of_properties['']);
-        if (!is_array($blacklist_of_properties)) $blacklist_of_properties = array();
+        if (!is_array($blacklist_of_properties)) {
+            $blacklist_of_properties = array();
+        }
         $has_blacklist = count($blacklist_of_properties) > 0 && !isset($blacklist_of_properties['']);
         foreach ($object as $k => $v) {
             if (($has_whitelist && !isset($whitelist_of_properties[$k])) || ($has_blacklist && isset($blacklist_of_properties[$k]) && !is_array($blacklist_of_properties[$k]))) {
-                if (is_array($object))
+                if (is_array($object)) {
                     unset($object[$k]);
-                else
+                } else {
                     unset($object->$k);
+                }
             } else {
                 if (is_object($v) || is_array($v)) {
-                    if (is_array($object))
+                    if (is_array($object)) {
                         $this->_cleanSubObjectData($object[$k], $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
-                    else
+                    } else {
                         $this->_cleanSubObjectData($object->$k, $whitelist_of_properties[$k], $blacklist_of_properties[$k]);
+                    }
                 }
             }
         }
@@ -2125,7 +2356,7 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @throws  500         RestException       Error while retrieve the custom whitelist of properties for the object type
      */
-   	function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object=false)
+    function _getBlackWhitelistOfProperties($object, &$whitelist_of_properties, &$blacklist_of_properties, $linked_object = false)
     {
         global $hookmanager;
 
@@ -2140,26 +2371,30 @@ class RequestManagerApi extends DolibarrApi {
                 $object_class = get_class($object);
 
                 // Whitelist
-                if (!empty(self::$WHITELIST_OF_PROPERTIES[$object->element]))
+                if (!empty(self::$WHITELIST_OF_PROPERTIES[$object->element])) {
                     $whitelist_of_properties = self::$WHITELIST_OF_PROPERTIES[$object->element];
-                elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES))
+                } elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES)) {
                     $whitelist_of_properties = $object_class::$API_WHITELIST_OF_PROPERTIES;
+                }
 
-                if (!empty(self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element]))
+                if (!empty(self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element])) {
                     $whitelist_of_properties_linked_object = self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
-                elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT))
+                } elseif (!empty($object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT)) {
                     $whitelist_of_properties_linked_object = $object_class::$API_WHITELIST_OF_PROPERTIES_LINKED_OBJECT;
+                }
 
                 // Blacklist
-                if (!empty(self::$BLACKLIST_OF_PROPERTIES[$object->element]))
+                if (!empty(self::$BLACKLIST_OF_PROPERTIES[$object->element])) {
                     $blacklist_of_properties = self::$BLACKLIST_OF_PROPERTIES[$object->element];
-                elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES))
+                } elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES)) {
                     $blacklist_of_properties = $object_class::$API_BLACKLIST_OF_PROPERTIES;
+                }
 
-                if (!empty(self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element]))
+                if (!empty(self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element])) {
                     $blacklist_of_properties_linked_object = self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
-                elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT))
+                } elseif (!empty($object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT)) {
                     $blacklist_of_properties_linked_object = $object_class::$API_BLACKLIST_OF_PROPERTIES_LINKED_OBJECT;
+                }
 
                 // Modification by hook
                 $hookmanager->initHooks(array('companyrelationshipsapi', 'globalapi'));
@@ -2170,8 +2405,12 @@ class RequestManagerApi extends DolibarrApi {
                     throw new RestException(500, "Error while retrieve the custom blacklist and whitelist of properties for the object type: " . $object->element, ['details' => $this->_getErrors($hookmanager)]);
                 }
 
-                if (empty($whitelist_of_properties_linked_object)) $whitelist_of_properties_linked_object = $whitelist_of_properties;
-                if (empty($blacklist_of_properties_linked_object)) $blacklist_of_properties_linked_object = $blacklist_of_properties;
+                if (empty($whitelist_of_properties_linked_object)) {
+                    $whitelist_of_properties_linked_object = $whitelist_of_properties;
+                }
+                if (empty($blacklist_of_properties_linked_object)) {
+                    $blacklist_of_properties_linked_object = $blacklist_of_properties;
+                }
 
                 self::$WHITELIST_OF_PROPERTIES[$object->element] = $whitelist_of_properties;
                 self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element] = $whitelist_of_properties_linked_object;
@@ -2179,16 +2418,19 @@ class RequestManagerApi extends DolibarrApi {
                 self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element] = $blacklist_of_properties_linked_object;
 
                 self::$BLACKWHITELIST_OF_PROPERTIES_LOADED[$object->element] = true;
-            }
-            // Get white list
+            } // Get white list
             elseif (isset(self::$WHITELIST_OF_PROPERTIES[$object->element])) {
                 $whitelist_of_properties = self::$WHITELIST_OF_PROPERTIES[$object->element];
                 $whitelist_of_properties_linked_object = self::$WHITELIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
-                if (empty($whitelist_of_properties_linked_object)) $whitelist_of_properties_linked_object = $whitelist_of_properties;
+                if (empty($whitelist_of_properties_linked_object)) {
+                    $whitelist_of_properties_linked_object = $whitelist_of_properties;
+                }
 
                 $blacklist_of_properties = self::$BLACKLIST_OF_PROPERTIES[$object->element];
                 $blacklist_of_properties_linked_object = self::$BLACKLIST_OF_PROPERTIES_LINKED_OBJECT[$object->element];
-                if (empty($blacklist_of_properties_linked_object)) $blacklist_of_properties_linked_object = $blacklist_of_properties;
+                if (empty($blacklist_of_properties_linked_object)) {
+                    $blacklist_of_properties_linked_object = $blacklist_of_properties;
+                }
             }
         }
 
@@ -2203,7 +2445,7 @@ class RequestManagerApi extends DolibarrApi {
      *
      * @return array                Array of errors
      */
-	function _getErrors(&$object)
+    function _getErrors(&$object)
     {
         $errors = is_array($object->errors) ? $object->errors : array();
         $errors = array_merge($errors, (!empty($object->error) ? array($object->error) : array()));
