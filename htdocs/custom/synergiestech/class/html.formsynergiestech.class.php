@@ -664,6 +664,7 @@ class FormSynergiesTech
                 $objp2 = $this->db->fetch_object($result2);
                 if ($objp2) {
                     $found = 1;
+					if($user->rights->synergiestech->product_line_price->lire) {
                     if ($objp2->price_base_type == 'HT') {
                         $opt .= ' - ' . price($objp2->price, 1, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->trans("HT");
                         $outval .= ' - ' . price($objp2->price, 0, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->transnoentities("HT");
@@ -671,6 +672,7 @@ class FormSynergiesTech
                         $opt .= ' - ' . price($objp2->price_ttc, 1, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->trans("TTC");
                         $outval .= ' - ' . price($objp2->price_ttc, 0, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->transnoentities("TTC");
                     }
+				}
                     $outprice_ht = price($objp2->price);
                     $outprice_ttc = price($objp2->price_ttc);
                     $outpricebasetype = $objp2->price_base_type;
@@ -688,12 +690,12 @@ class FormSynergiesTech
             $outdiscount = $objp->remise_percent;
             if ($objp->quantity == 1) {
                 $opt .= ' - ' . price($objp->unitprice, 1, $langs, 0, 0, -1, $conf->currency) . "/";
-                $outval .= ' - ' . price($objp->unitprice, 0, $langs, 0, 0, -1, $conf->currency) . "/";
+				$outval .= ' - '. ($user->rights->synergiestech->product_line_price->lire ? price($objp->unitprice, 0, $langs, 0, 0, -1, $conf->currency) : '')."/";
                 $opt .= $langs->trans("Unit");  // Do not use strtolower because it breaks utf8 encoding
                 $outval .= $langs->transnoentities("Unit");
             } else {
                 $opt .= ' - ' . price($objp->price, 1, $langs, 0, 0, -1, $conf->currency) . "/" . $objp->quantity;
-                $outval .= ' - ' . price($objp->price, 0, $langs, 0, 0, -1, $conf->currency) . "/" . $objp->quantity;
+				$outval .= ' - '.($user->rights->synergiestech->product_line_price->lire ? price($objp->price, 0, $langs, 0, 0, -1, $conf->currency) : '')."/".$objp->quantity;
                 $opt .= $langs->trans("Units");  // Do not use strtolower because it breaks utf8 encoding
                 $outval .= $langs->transnoentities("Units");
             }
@@ -719,10 +721,10 @@ class FormSynergiesTech
 
                 if ($objp->custprice_base_type == 'HT') {
                     $opt .= ' - ' . price($objp->custprice, 1, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->trans("HT");
-                    $outval .= ' - ' . price($objp->custprice, 0, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->transnoentities("HT");
+					$outval .= ' - '. ($user->rights->synergiestech->product_line_price->lire ? price($objp->custprice, 0, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->transnoentities("HT") : '');
                 } else {
                     $opt .= ' - ' . price($objp->custprice_ttc, 1, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->trans("TTC");
-                    $outval .= ' - ' . price($objp->custprice_ttc, 0, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->transnoentities("TTC");
+					$outval .= ' - '. ($user->rights->synergiestech->product_line_price->lire ?price($objp->custprice_ttc, 0, $langs, 0, 0, -1, $conf->currency) . ' '.$langs->transnoentities("TTC"): '');
                 }
 
                 $outprice_ht = price($objp->custprice);
@@ -736,10 +738,10 @@ class FormSynergiesTech
         if (empty($hidepriceinlabel) && !$found) {
             if ($objp->price_base_type == 'HT') {
                 $opt .= ' - ' . price($objp->price, 1, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->trans("HT");
-                $outval .= ' - ' . price($objp->price, 0, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->transnoentities("HT");
+				$outval .= ' - '. ($user->rights->synergiestech->product_line_price->lire ? price($objp->price, 0, $langs, 0, 0, -1, $conf->currency) : '') .' '.$langs->transnoentities("HT");
             } else {
                 $opt .= ' - ' . price($objp->price_ttc, 1, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->trans("TTC");
-                $outval .= ' - ' . price($objp->price_ttc, 0, $langs, 0, 0, -1, $conf->currency) . ' ' . $langs->transnoentities("TTC");
+				$outval .= ' - '. ($user->rights->synergiestech->product_line_price->lire ? price($objp->price_ttc, 0, $langs, 0, 0, -1, $conf->currency) : '').' '.$langs->transnoentities("TTC");
             }
             $outprice_ht = price($objp->price);
             $outprice_ttc = price($objp->price_ttc);
