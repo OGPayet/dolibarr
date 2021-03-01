@@ -1710,7 +1710,8 @@ if ($action == 'create')
 			$newclassname = 'Intervention';
 
 		print '<tr><td>'.$langs->trans($newclassname).'</td><td>'.$objectsrc->getNomUrl(1).'</td></tr>';
-		print '<tr><td>'.$langs->trans('AmountHT').'</td><td>'.price($objectsrc->total_ht, 0, $langs, 1, -1, -1, $conf->currency).'</td></tr>';
+		if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
+		print '<tr><td>'.$langs->trans('AmountHT').'</td><td>'. price($objectsrc->total_ht, 0, $langs, 1, -1, -1, $conf->currency).'</td></tr>';
 		print '<tr><td>'.$langs->trans('AmountVAT').'</td><td>'.price($objectsrc->total_tva, 0, $langs, 1, -1, -1, $conf->currency)."</td></tr>";
 		if ($mysoc->localtax1_assuj == "1" || $objectsrc->total_localtax1 != 0) 		// Localtax1
 		{
@@ -1729,6 +1730,7 @@ if ($action == 'create')
 			print '<tr><td>'.$langs->trans('MulticurrencyAmountVAT').'</td><td>'.price($objectsrc->multicurrency_total_tva)."</td></tr>";
 			print '<tr><td>'.$langs->trans('MulticurrencyAmountTTC').'</td><td>'.price($objectsrc->multicurrency_total_ttc)."</td></tr>";
 		}
+	}
 	}
 
 	print "</table>\n";
@@ -2263,7 +2265,6 @@ if ($action == 'create')
 	print '<div class="underbanner clearboth"></div>';
 
 	print '<table class="border tableforfield centpercent">';
-
 	//-------------------------------------------------------------------------------
     // Modification - Open-DSI - Begin
     if (!$conf->synergiestech->enabled || $user->rights->synergiestech->amount->customerpropal) {
