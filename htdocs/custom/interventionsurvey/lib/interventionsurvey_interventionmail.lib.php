@@ -315,8 +315,6 @@ class InterventionMail
 
                 $replyto = $_POST['replytoname']. ' <' . $_POST['replytomail'].'>';
 
-                $societe = new Societe($this->db);
-                $societe->fetch($this->object->socid);
                 $message = $template['content'];
 
                 // Make a change into HTML code to allow to include images from medias directory with an external reabable URL.
@@ -387,6 +385,12 @@ class InterventionMail
                     }
                 }
 
+                $societe = new Societe($this->db);
+                $societe->fetch($this->object->socid);
+                $principal_name = $societe->nom;
+                $societe->fetch($this->object->array_options['options_companyrelationships_fk_soc_benefactor']);
+                $benefactor_name = $societe->nom;
+
                 $substitutionarray=array(
                     '__DOL_MAIN_URL_ROOT__'=>DOL_MAIN_URL_ROOT,
                     '__ID__' => (is_object($this->object)?$this->object->id:''),
@@ -394,8 +398,9 @@ class InterventionMail
                     '__CHECK_READ__' => (is_object($this->object) && is_object($this->object->thirdparty))?'<img src="'.DOL_MAIN_URL_ROOT.'/public/emailing/mailing-read.php?tag='.$this->object->thirdparty->tag.'&securitykey='.urlencode($conf->global->MAILING_EMAIL_UNSUBSCRIBE_KEY).'" width="1" height="1" style="width:1px;height:1px" border="0"/>':'',
                     '__REF__' => (is_object($this->object)?$this->object->ref:''),
                     '__SIGNATURE__' => (($this->user->signature && empty($conf->global->MAIN_MAIL_DO_NOT_USE_SIGN))?$this->user->signature:''),
-                    '__THIRDPARTY_NAME__' => $societe->nom,
-                    '__MYCOMPANY_NAME__' => $conf->global->MAIN_INFO_SOCIETE_NOM
+                    '__THIRDPARTY_NAME__' => $principal_name,
+                    '__MYCOMPANY_NAME__' => $conf->global->MAIN_INFO_SOCIETE_NOM,
+                    '__BENEFACTOR_NAME__' => $benefactor_name
                     /* not available on all object
                     /'__FIRSTNAME__'=>(is_object($object)?$object->firstname:''),
                     '__LASTNAME__'=>(is_object($object)?$object->lastname:''),
