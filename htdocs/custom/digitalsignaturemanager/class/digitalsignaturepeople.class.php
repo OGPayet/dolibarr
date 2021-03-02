@@ -1031,8 +1031,10 @@ class DigitalSignaturePeople extends CommonObject
 	public function getInternationalPhoneNumber()
 	{
 		// to do - use of libPhone number google library to properly format phone number
-		if (!empty($this->phoneNumber) && strlen((string) $this->phoneNumber) > 9) {
-			return '33' . substr($this->phoneNumber, -9);
+		$phoneNumber = $this->phoneNumber;
+		$phoneNumber = str_replace(' ', '', $phoneNumber);
+		if (!empty($phoneNumber) && strlen((string) $phoneNumber) > 9) {
+			return '33' . substr($phoneNumber, -9);
 		}
 		return "";
 	}
