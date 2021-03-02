@@ -50,4 +50,20 @@ function companyrelationships_completesubstitutionarray(&$substitutionarray, $la
 
         $substitutionarray['COMPANIESRELATIONSHIPLABEL'] = $langs->trans("CompanyRelationshipsTab") . ($nbmaincompanies > 0 || $nbbenefactorcompanies > 0 ? ' <span class="badge">' . ($nbmaincompanies) . '|' . ($nbbenefactorcompanies) . '</span>' : '');
     }
+
+    if ($object->array_options['options_companyrelationships_fk_soc_benefactor']) {
+        $societe = new Societe($db);
+        $societe->fetch($object->array_options['options_companyrelationships_fk_soc_benefactor']);
+        $benefactor_name = $societe->nom;
+
+        $substitutionarray['__BENEFACTOR_NAME__'] = $benefactor_name;
+    }
+
+    if ($object->array_options['options_companyrelationships_fk_soc_watcher']) {
+        $societe = new Societe($db);
+        $societe->fetch($object->array_options['options_companyrelationships_fk_soc_watcher']);
+        $watcher_name = $societe->nom;
+
+        $substitutionarray['__WATCHER_NAME__'] = $watcher_name;
+    }
 }
