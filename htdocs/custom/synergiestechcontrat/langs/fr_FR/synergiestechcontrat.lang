@@ -131,6 +131,7 @@ STCContractRevaluationDate                      = Date de revalorisation
 STCContractRevaluationIndex                     = Indice de revalorisation
 STCContractStartRevaluationDate                 = Activer la possibilité de revaloriser à partir du :
 STCContractLastRevaluationIndexUsed             = 1er indice à utiliser (ou dernier indice utilisé dans un calcul)
+STCErrorContractInDraftMode                     = Le contrat %s est au status brouillon
 STCErrorBadRevaluationIndexInfo                 = L'indice de revalorisation %s pour le mois %s de l'année %s est incorrect: "%s"
 STCErrorBadWatchingPeriod                       = Mauvais paramètres fournit pour la période à regarder
 STCErrorBadFieldValue                           = Mauvaise valeur pour le champ du contrat "%s": "%s"

@@ -323,6 +323,7 @@ $sql .= " WHERE c.fk_soc = s.rowid ";
 //$sql.= ' AND c.entity IN ('.getEntity('contract').')';
 //We can't invoice contract from other entity
 $sql .= ' AND c.entity IN (' . $conf->entity . ')';
+$sql .= ' AND c.statut NOT IN (0)';
 if ($search_invoices != '' && empty($search_invoices)) $sql .= ' AND ci.contract_id IS NULL';
 if ($search_invoices_total_ht != '') $sql .= natural_search('ci.invoice_total_ht', $search_invoices_total_ht, 1);
 if ($search_invoices_total_vat != '') $sql .= natural_search('ci.invoice_total_vat', $search_invoices_total_vat, 1);
