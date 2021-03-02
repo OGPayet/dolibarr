@@ -2280,6 +2280,11 @@ SCRIPT;
 			if ($element == 'contract') {
 				$element = $subelement = 'contrat';
 			}
+			if($element == 'supplier' && $subelement = 'proposal') {
+				$element = 'supplier_proposal';
+				$subelement = 'SupplierProposal';
+				dol_include_once('/supplier_proposal/class/supplier_proposal.class.php');
+			}
 
 			dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
 

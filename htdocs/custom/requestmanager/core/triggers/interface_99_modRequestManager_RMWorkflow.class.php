@@ -79,7 +79,11 @@ class InterfaceRMWorkflow extends DolibarrTriggers
             if ($element == 'shipping') {
                 $element = $subelement = 'expedition';
             }
-
+			if($element == 'supplier' && $subelement = 'proposal') {
+				$element = 'supplier_proposal';
+				$subelement = 'SupplierProposal';
+				dol_include_once('/supplier_proposal/class/supplier_proposal.class.php');
+			}
             dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
             $classname = ucfirst($subelement);
             $srcobject = new $classname($this->db);
