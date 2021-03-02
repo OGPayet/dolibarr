@@ -27,7 +27,7 @@ function sepamandatmanager_completesubstitutionarray(&$substitutionarray, $langs
 	if ($object->element == 'societe' && $parameters['needforkey'] == 'SUBSTITUTION_SEPAMANDATTABLABEL') {
 
 		$staticObject = new SepaMandat($db);
-		$mandatesOfThisThirdparty = $staticObject->fetchAll('', '', 0, 0, array('fk_soc' => $object->id, 'status' => $object::STATUS_SIGNED), 'AND');
+		$mandatesOfThisThirdparty = $staticObject->fetchAll('', '', 0, 0, array('fk_soc' => $object->id, 'status' => $staticObject::STATUS_SIGNED), 'AND');
 		$nbOfMandat = count($mandatesOfThisThirdparty);
 		$result =  $langs->trans("SepaMandatTab");
 		if ($nbOfMandat > 0) {
