@@ -1034,7 +1034,10 @@ class DigitalSignaturePeople extends CommonObject
 		$phoneNumber = $this->phoneNumber;
 		$phoneNumber = str_replace(' ', '', $phoneNumber);
 		if (!empty($phoneNumber) && strlen((string) $phoneNumber) > 9) {
-			return '33' . substr($phoneNumber, -9);
+			$phoneNumber = substr($phoneNumber, -9);
+			if(in_array($phoneNumber[0], array('6', '7'))) {
+				return '33' . $phoneNumber;
+			}
 		}
 		return "";
 	}
