@@ -4447,6 +4447,8 @@ class Form
                          		$.each(inputok, function(i, inputname) {
                          			var more = "";
 									var inputvalue;
+									inputname = inputname.replace("[","");
+									inputname = inputname.replace("]","");
                          			if ($("input[name=\'" + inputname + "\']").attr("type") == "radio") {
 										inputvalue = $("input[name=\'" + inputname + "\']").val();
 									} else {
@@ -4469,6 +4471,8 @@ class Form
                          	if (inputko.length>0) {
                          		$.each(inputko, function(i, inputname) {
                          			var more = "";
+								    inputname = inputname.replace("[","");
+									inputname = inputname.replace("]","");
                          			if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
                          			var inputvalue = $("#" + inputname + more).val();
                          			if (typeof inputvalue == "undefined") { inputvalue=""; }
