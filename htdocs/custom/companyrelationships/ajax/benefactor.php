@@ -67,7 +67,7 @@ if (! empty($socid) && ! empty($action) && ! empty($htmlname))
     $relation_ids = is_array($relation_ids) ? $relation_ids : array();
 
     // determine selected company id by default
-    if ($relation_socid=='' ||  $relation_socid>0) {
+    if ($relation_socid>0) {
         $selectedCompanyId = $relation_socid;
     } else {
         if (!empty($origin) && !empty($originid)) {

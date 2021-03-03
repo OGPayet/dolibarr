@@ -723,6 +723,16 @@ class ActionsCompanyRelationships
                         $comboenhancement = ajax_combobox('options_companyrelationships_fk_soc_watcher', array(), $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
                         $out .= $comboenhancement;
                     }
+                    //We add empty choice to benefactor selection on creation form
+                    //Compare to dolibarr v6, starting dolibarr v13, empty choice is missing and this module needs it for ajax treatment
+                    if (empty(GETPOST('options_companyrelationships_fk_soc_benefactor'))) {
+                        $out .= '<script type="text/javascript" language="javascript">';
+                        $out .= '  jQuery(document).ready(function(){';
+                        $out .= '    jQuery("#options_companyrelationships_fk_soc_benefactor").append(new Option(" ",-1, false, false));';
+                        $out .= '    jQuery("#options_companyrelationships_fk_soc_benefactor").val("-1").trigger(\'change.select2\');';
+                        $out .= '  });';
+                        $out .= '</script>';
+                    }
 
                     print $out;
                 } // edit extrafields
