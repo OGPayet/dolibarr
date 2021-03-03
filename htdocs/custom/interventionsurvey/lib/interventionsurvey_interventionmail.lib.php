@@ -315,8 +315,6 @@ class InterventionMail
 
                 $replyto = $_POST['replytoname']. ' <' . $_POST['replytomail'].'>';
 
-                $societe = new Societe($this->db);
-                $societe->fetch($this->object->socid);
                 $message = $template['content'];
 
                 // Make a change into HTML code to allow to include images from medias directory with an external reabable URL.
@@ -387,28 +385,21 @@ class InterventionMail
                     }
                 }
 
-                $substitutionarray=array(
-                    '__DOL_MAIN_URL_ROOT__'=>DOL_MAIN_URL_ROOT,
-                    '__ID__' => (is_object($this->object)?$this->object->id:''),
-                    '__EMAIL__' => $sendto,
-                    '__CHECK_READ__' => (is_object($this->object) && is_object($this->object->thirdparty))?'<img src="'.DOL_MAIN_URL_ROOT.'/public/emailing/mailing-read.php?tag='.$this->object->thirdparty->tag.'&securitykey='.urlencode($conf->global->MAILING_EMAIL_UNSUBSCRIBE_KEY).'" width="1" height="1" style="width:1px;height:1px" border="0"/>':'',
-                    '__REF__' => (is_object($this->object)?$this->object->ref:''),
-                    '__SIGNATURE__' => (($this->user->signature && empty($conf->global->MAIN_MAIL_DO_NOT_USE_SIGN))?$this->user->signature:''),
-                    '__THIRDPARTY_NAME__' => $societe->nom,
-                    '__MYCOMPANY_NAME__' => $conf->global->MAIN_INFO_SOCIETE_NOM
-                    /* not available on all object
-                    /'__FIRSTNAME__'=>(is_object($object)?$object->firstname:''),
-                    '__LASTNAME__'=>(is_object($object)?$object->lastname:''),
-                    '__FULLNAME__'=>(is_object($object)?$object->getFullName($langs):''),
-                    '__ADDRESS__'=>(is_object($object)?$object->address:''),
-                    '__ZIP__'=>(is_object($object)?$object->zip:''),
-                    '__TOWN_'=>(is_object($object)?$object->town:''),
-                    '__COUNTRY__'=>(is_object($object)?$object->country:''),
-                    */
-                );
+            // Make substitution in email content
+                $substitutionarray = getCommonSubstitutionArray($langs, 0, null, $this->object);
+                $substitutionarray['__EMAIL__'] = $sendto;
+                $substitutionarray['__CHECK_READ__'] = (is_object($this->object) && is_object($this->object->thirdparty)) ? '<img src="'.DOL_MAIN_URL_ROOT.'/public/emailing/mailing-read.php?tag='.$this->object->thirdparty->tag.'&securitykey='.urlencode($conf->global->MAILING_EMAIL_UNSUBSCRIBE_KEY).'" width="1" height="1" style="width:1px;height:1px" border="0"/>' : '';
 
-                $subject=make_substitutions($subject, $substitutionarray);
-                $message=make_substitutions($message, $substitutionarray);
+                $parameters = array('mode'=>'formemail');
+                complete_substitutions_array($substitutionarray, $langs, $this->object, $parameters);
+
+                $subject = make_substitutions($subject, $substitutionarray);
+                $message = make_substitutions($message, $substitutionarray);
+
+                if (method_exists($this->object, 'makeSubstitution')) {
+                    $subject = $this->object->makeSubstitution($subject);
+                    $message = $this->object->makeSubstitution($message);
+                }
 
                 $actionmsg2 = $langs->transnoentities('MailSentBy').' '.CMailFile::getValidAddress($from, 4, 0, 1).' '.$langs->transnoentities('To').' '.CMailFile::getValidAddress($sendto, 4, 0, 1);
                 if ($message) {
@@ -421,69 +412,69 @@ class InterventionMail
 
                 // Send mail (substitutionarray must be done just before this)
                     $mailfile = new CMailFile($subject, $sendto, $from, $message, $filepath, $mimetype, $filename, $sendtocc, $sendtobcc, $deliveryreceipt, -1, '', '', $trackid);
-                    if ($mailfile->error) {
-                        $errors[] = $mailfile->error;
-                    } else {
-                        $result=$mailfile->sendfile();
-                        if ($result) {
-                            $error=0;
+                if ($mailfile->error) {
+                    $errors[] = $mailfile->error;
+                } else {
+                    $result=$mailfile->sendfile();
+                    if ($result) {
+                        $error=0;
 
-                            // FIXME This must be moved into the trigger for action $trigger_name
-                            if (! empty($conf->dolimail->enabled)) {
-                                $mid = (GETPOST('mid', 'int') ? GETPOST('mid', 'int') : 0);   // Original mail id is set ?
-                                if ($mid) {
-                                    // set imap flag answered if it is an answered mail
-                                    $dolimail=new DoliMail($this->db);
-                                    $dolimail->id = $mid;
-                                    $res=$dolimail->set_prop($this->user, 'answered', 1);
-                                }
-                                if ($imap==1) {
-                                    // write mail to IMAP Server
-                                    $movemail = $mailboxconfig->putMail($subject, $sendTo, $from, $message, $filepath, $mimetype, $filename, $sendtocc, $folder, $deliveryreceipt, $mailfile);
-                                    if (!$movemail) {
-                                        $errors[] = $langs->trans("MailMovedToImapFolder_Warning", $folder);
-                                    }
+                        // FIXME This must be moved into the trigger for action $trigger_name
+                        if (! empty($conf->dolimail->enabled)) {
+                            $mid = (GETPOST('mid', 'int') ? GETPOST('mid', 'int') : 0);   // Original mail id is set ?
+                            if ($mid) {
+                                // set imap flag answered if it is an answered mail
+                                $dolimail=new DoliMail($this->db);
+                                $dolimail->id = $mid;
+                                $res=$dolimail->set_prop($this->user, 'answered', 1);
+                            }
+                            if ($imap==1) {
+                                // write mail to IMAP Server
+                                $movemail = $mailboxconfig->putMail($subject, $sendTo, $from, $message, $filepath, $mimetype, $filename, $sendtocc, $folder, $deliveryreceipt, $mailfile);
+                                if (!$movemail) {
+                                    $errors[] = $langs->trans("MailMovedToImapFolder_Warning", $folder);
                                 }
                             }
-
-                            // Initialisation of datas
-                            if (is_object($this->object)) {
-                                if (empty($actiontypecode)) {
-                                    $actiontypecode='AC_OTH_AUTO'; // Event insert into agenda automatically
-                                }
-
-                                $this->object->socid            = $sendtosocid;    // To link to a company
-                                $this->object->sendtoid         = $sendtoid;       // To link to contacts/addresses. This is an array.
-                                $this->object->actiontypecode   = $actiontypecode; // Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
-                                $this->object->actionmsg        = $actionmsg;      // Long text
-                                $this->object->actionmsg2       = $actionmsg2;     // Short text
-                                $this->object->trackid          = $trackid;
-                                $this->object->fk_element       = $object->id;
-                                $this->object->elementtype      = $object->element;
-                                $this->object->attachedfiles    = $attachedfiles;
-
-                                // Call of triggers
-                                if (! empty($trigger_name)) {
-                                    $interface=new Interfaces($this->db);
-                                    $result=$interface->run_triggers($trigger_name, $this->object, $this->user, $langs, $conf);
-                                    if ($result < 0) {
-                                        $errors = array_merge($errors, $interface->errors);
-                                    }
-                                }
-                            }
-                        } else {
-                            $langs->load("other");
-                            $mesg="";
-                            if ($mailfile->error) {
-                                $mesg.=$langs->trans('ErrorFailedToSendMail', $from, $sendTo);
-                                $mesg.='<br>'.$mailfile->error;
-                            } else {
-                                $mesg.='No mail sent. Feature is disabled by option MAIN_DISABLE_ALL_MAILS';
-                            }
-                            $errors[] = $mesg;
-                            $result = 0;
                         }
+
+                        // Initialisation of datas
+                        if (is_object($this->object)) {
+                            if (empty($actiontypecode)) {
+                                $actiontypecode='AC_OTH_AUTO'; // Event insert into agenda automatically
+                            }
+
+                            $this->object->socid            = $sendtosocid;    // To link to a company
+                            $this->object->sendtoid         = $sendtoid;       // To link to contacts/addresses. This is an array.
+                            $this->object->actiontypecode   = $actiontypecode; // Type of event ('AC_OTH', 'AC_OTH_AUTO', 'AC_XXX'...)
+                            $this->object->actionmsg        = $actionmsg;      // Long text
+                            $this->object->actionmsg2       = $actionmsg2;     // Short text
+                            $this->object->trackid          = $trackid;
+                            $this->object->fk_element       = $object->id;
+                            $this->object->elementtype      = $object->element;
+                            $this->object->attachedfiles    = $attachedfiles;
+
+                            // Call of triggers
+                            if (! empty($trigger_name)) {
+                                $interface=new Interfaces($this->db);
+                                $result=$interface->run_triggers($trigger_name, $this->object, $this->user, $langs, $conf);
+                                if ($result < 0) {
+                                    $errors = array_merge($errors, $interface->errors);
+                                }
+                            }
+                        }
+                    } else {
+                        $langs->load("other");
+                        $mesg="";
+                        if ($mailfile->error) {
+                            $mesg.=$langs->trans('ErrorFailedToSendMail', $from, $sendTo);
+                            $mesg.='<br>'.$mailfile->error;
+                        } else {
+                            $mesg.='No mail sent. Feature is disabled by option MAIN_DISABLE_ALL_MAILS';
+                        }
+                        $errors[] = $mesg;
+                        $result = 0;
                     }
+                }
             } else {
                 $langs->load("errors");
                 $errors[] = $langs->trans('ErrorFieldRequired', $langs->transnoentitiesnoconv("MailTo"));

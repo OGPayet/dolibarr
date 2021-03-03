@@ -16,10 +16,11 @@
  */
 
 /**
- *	\file       htdocs/companyrelationships/lib/functions_companyrelationships.lib.php
- *	\brief      Ensemble de fonctions de substitutions pour le module Company Relationships
- * 	\ingroup	companyrelationships
+ *  \file       htdocs/companyrelationships/lib/functions_companyrelationships.lib.php
+ *  \brief      Ensemble de fonctions de substitutions pour le module Company Relationships
+ *  \ingroup    companyrelationships
  */
+dol_include_once("/companyrelationships/class/companyrelationships.class.php");
 
 function companyrelationships_completesubstitutionarray(&$substitutionarray, $langs, $object, $parameters)
 {
@@ -49,5 +50,50 @@ function companyrelationships_completesubstitutionarray(&$substitutionarray, $la
         }
 
         $substitutionarray['COMPANIESRELATIONSHIPLABEL'] = $langs->trans("CompanyRelationshipsTab") . ($nbmaincompanies > 0 || $nbbenefactorcompanies > 0 ? ' <span class="badge">' . ($nbmaincompanies) . '|' . ($nbbenefactorcompanies) . '</span>' : '');
+    }
+
+    $thirdPartySubstitutionArray = array(
+        'ID' => 'id',
+        'NAME' => 'name',
+        'NAME_ALIAS' => 'name_alias',
+        'CODE_CLIENT' => 'code_client',
+        'CODE_FOURNISSEUR' => 'code_fournisseur',
+        'EMAIL' => 'email',
+        'PHONE' => 'phone',
+        'FAX' => 'fax',
+        'ADDRESS' => 'address',
+        'ZIP' => 'zip',
+        'TOWN' => 'town',
+        'COUNTRY_ID' => 'country_id',
+        'COUNTRY_CODE' => 'country_code',
+        'IDPROF1' => 'idprof1',
+        'IDPROF2' => 'idprof2',
+        'IDPROF3' => 'idprof3',
+        'IDPROF4' => 'idprof4',
+        'IDPROF5' => 'idprof5',
+        'IDPROF6' => 'idprof6',
+        'TVAINTRA' => 'tva_intra',
+        'NOTE_PUBLIC' => 'note_public',
+        'NOTE_PRIVATE' => 'note_private'
+    );
+    $benefactor = new Societe($db);
+    $watcher = new Societe($db);
+    $benefactor->fetch($object->array_options['options_companyrelationships_fk_soc_benefactor']);
+    $watcher->fetch($object->array_options['options_companyrelationships_fk_soc_watcher']);
+    $companyObjects = array('BENEFACTOR' => $benefactor, 'WATCHER' => $watcher);
+    foreach ($companyObjects as $prefix => $payload) {
+        foreach ($thirdPartySubstitutionArray as $substitutionKey => $field) {
+            $key = '__' . $prefix . '_' . $substitutionKey . '__';
+            $substitutionarray[$key] = $key;
+            if ($object->element) {
+                $substitutionarray[$key] = '';
+            }
+            if (in_array($object->element, CompanyRelationships::$psa_element_list)) {
+                $substitutionarray[$key] = $payload->$field;
+            }
+            if (in_array($field, array('note_public', 'note_private'))) {
+                $substitutionarray[$key] = dol_htmlentitiesbr($substitutionarray[$key]);
+            }
+        }
     }
 }
