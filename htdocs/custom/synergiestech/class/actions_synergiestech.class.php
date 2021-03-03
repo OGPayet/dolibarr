@@ -1116,6 +1116,14 @@ SCRIPT;
 			print $formconfirm;
 			return 1;
 		} elseif (in_array('interventioncard', $contexts)) {
+			if($object->statut == 0 || $object->statut == 1) {
+				if(!$object->linkedObjectsIds) {
+					$object->fetchObjectLinked();
+				}
+				if(empty($object->linkedObjectsIds['equipement'])) {
+					setEventMessages($langs->trans("SynergiesTechNoEquipementLinked"), array(), 'warnings');
+				}
+			}
 			// Confirm reopen
 			if ($action == 'reopen') {
 				$langs->load('synergiestech@synergiestech');

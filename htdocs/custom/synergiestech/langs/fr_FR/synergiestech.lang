@@ -322,6 +322,7 @@ SynergiesTechValidateWithoutCheckConfirmation = Êtes-vous sûr de vouloir passe
 SynergiesTechValidateForcedActionLabel = Intervention %s validée sans élément commercial
 SynergiesTechValidateForcedActionMessage = Intervention %s validée sans contrat actif ou commande validée permettant de justifier son statut commercial
 SynergiesTechAuthor = Auteur : %s
+SynergiesTechNoEquipementLinked = Aucun équipement n'est lié à cette intervention
 #############################################################
 ### Thirdparty card
 #############################################################
