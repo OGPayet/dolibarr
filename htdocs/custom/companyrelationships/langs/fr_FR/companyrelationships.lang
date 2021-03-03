@@ -74,7 +74,8 @@ CompanyRelationshipsPublicSpaceAvailabilityWatcher    = Visible sur l'espace cli
 ############################################################
 ### Company Relationships : Confirm clone box
 ############################################################
-CompanysRelationshipsWarningCloneConfirmBenefactor = Attention, pensez à bien vérifier la société bénéficiaire après clonage
+CompanyRelationShipsSelectThirdpartyForClone = Sélection des tiers pour le clonage de la pièce commerciale %s
+CompanyRelationShipsSelectThirdpartyForCloneDescription = Confirmez-vous le clonage de la pièce commerciale %s avec le jeu de tiers et mise à dispositions précisé ci-dessus ?
 
 ############################################################
 ### Errors

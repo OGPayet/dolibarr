@@ -306,7 +306,7 @@ class FormCompanyRelationships
         if ($useajax)
         {
             $autoOpen=true;
-            $dialogconfirm='dialog-confirm';
+            $dialogconfirm='dialog-confirm-socid';
             $button='';
             if (! is_numeric($useajax))
             {

@@ -22,7 +22,8 @@
  *
  * Put detailed description here.
  */
-
+dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
 /**
  * Class ActionsCompanyRelationships
  */
@@ -76,20 +77,17 @@ class ActionsCompanyRelationships
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
-            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-
+            //For other pdf than jupiter into fichinter, we change thirdparty instance to benefactor
             if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
                 if ($object->element == 'fichinter') {
                     $pdfInstance = $parameters["pdfInstance"];
                     if (isset($pdfInstance) && $pdfInstance->name != "jupiter") {
                         // get benefactor of this element
                         $benefactorId = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
-
                         if ($benefactorId > 0) {
                             require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
                             $companyRecipient = new Societe($this->db);
                             $companyRecipient->fetch($benefactorId);
-
                             if ($companyRecipient->id > 0) {
                                 $object->thirdparty = $companyRecipient;
                             }
@@ -101,53 +99,6 @@ class ActionsCompanyRelationships
 
         return 0;
     }
-
-
-    /**
-     * Overloading the doActions function : replacing the parent's function with the one below
-     *
-     * @param   array()         $parameters     Hook metadatas (context, etc...)
-     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          &$action        Current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-     */
-    /*
-    function createFrom($parameters, &$object, &$action, $hookmanager)
-    {
-        global $conf, $langs, $user;
-
-        $contexts = explode(':', $parameters['context']);
-
-        if (in_array('contractcard', $contexts)) {
-            // specific for contract only
-            if ($object->element == "contrat") {
-                if ($object->context['createfromclone'] == 'createfromclone') {
-                    if (isset($parameters['objFrom']) && isset($parameters['clonedObj'])) {
-                        $fk_soc_benefactor = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
-
-                        $objFrom  = $parameters['objFrom'];
-                        $cloneObj = $parameters['clonedObj'];
-
-                        // /!\ socid maybe different of fk_soc if cloned
-                        $cloneObj->fk_soc = $cloneObj->socid;
-                        $cloneObj->array_options['options_companyrelationships_fk_soc_benefactor'] = $fk_soc_benefactor;
-
-                        // /!\ update is non common in all objects (socid maybe diiferent of fk_soc)
-                        $result = $cloneObj->update($user, 1);
-                        if ($result < 0) {
-                            $objFrom->errors[] = $cloneObj->errorsToString();
-                            return -1;
-                        }
-                    }
-                }
-            }
-        }
-
-        return 0;
-    }
-    */
-
 
     /**
      * Overloading the doActions function : replacing the parent's function with the one below
@@ -165,8 +116,6 @@ class ActionsCompanyRelationships
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
-            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-
             if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
                 if ($object->element == 'fichinter') {
                     $userRightsElementCreer = $user->rights->ficheinter->creer;
@@ -302,66 +251,9 @@ class ActionsCompanyRelationships
                         }
                     }
                 }
-                // action clone object
-                /*
-                else if ($action == 'confirm_clone' && $confirm == 'yes' && $userRightsElementCreer)
-                {
-                    if (!GETPOST('socid', 'int')) {
-                        setEventMessages($langs->trans("NoCloneOptionsSpecified"), null, 'errors');
-                    } else {
-                        $socid = GETPOST('socid', 'int');
-                        $fk_soc_benefactor = GETPOST('options_companyrelationships_fk_soc_benefactor', 'int');
-
-                        if ($object->id > 0) {
-
-                            // Because createFromClone modifies the object, we must clone it so that we can restore it later
-                            $orig = clone $object;
-
-                            $object->array_options['options_companyrelationships_fk_soc_benefactor'] = $fk_soc_benefactor;
-
-                            // propal only
-                            if ($object->element == "propal") {
-                                if (!empty($conf->global->PROPAL_CLONE_DATE_DELIVERY)) {
-                                    //Get difference between old and new delivery date and change lines according to difference
-                                    $date_delivery = dol_mktime(12, 0, 0,
-                                        GETPOST('date_deliverymonth', 'int'),
-                                        GETPOST('date_deliveryday', 'int'),
-                                        GETPOST('date_deliveryyear', 'int')
-                                    );
-                                    if (!empty($object->date_livraison) && !empty($date_delivery)) {
-                                        //Attempt to get the date without possible hour rounding errors
-                                        $old_date_delivery = dol_mktime(12, 0, 0,
-                                            dol_print_date($object->date_livraison, '%m'),
-                                            dol_print_date($object->date_livraison, '%d'),
-                                            dol_print_date($object->date_livraison, '%Y')
-                                        );
-                                        //Calculate the difference and apply if necessary
-                                        $difference = $date_delivery - $old_date_delivery;
-                                        if ($difference != 0) {
-                                            $object->date_livraison = $date_delivery;
-                                            foreach ($object->lines as $line) {
-                                                if (isset($line->date_start)) $line->date_start = $line->date_start + $difference;
-                                                if (isset($line->date_end)) $line->date_end = $line->date_end + $difference;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            $result = $object->createFromClone($socid);
-                            if ($result > 0) {
-                                header("Location: " . $_SERVER['PHP_SELF'] . '?id=' . $result);
-                                exit();
-                            } else {
-                                //setEventMessages($object->error, $object->errors, 'errors');
-                                $object->error = 'New error on clone';
-                                $object = $orig;
-                                $action = '';
-                            }
-                        }
-                    }
+                if ($action == 'confirm_clone' && GETPOST('confirm') == 'yes' && empty(GETPOST('options_companyrelationships_fk_soc_benefactor'))) {
+                    $action = 'clone_set_companyrelationships';
                 }
-                */
             }
         }
 
@@ -381,76 +273,56 @@ class ActionsCompanyRelationships
 
     function formConfirm($parameters, &$object, &$action, $hookmanager)
     {
-        global $conf, $langs, $user;
+        global $langs;
 
         $contexts = explode(':', $parameters['context']);
 
-        if (in_array('globalcard', $contexts)) {
-            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
+        if (in_array('globalcard', $contexts) && $action == 'clone_set_companyrelationships') {
+            $formcompanyrelationships = new FormCompanyRelationships($this->db);
+            $form = $formcompanyrelationships->form;
+            $langs->load('companyrelationships@companyrelationships');
 
-            if (!empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
-                if ($action == 'clone') {
-                    dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
+            $socid = GETPOST('socid', 'int') > 0 ? GETPOST('socid', 'int') : GETPOST('companyrelationships_socid', 'int');
+            $soc = new Societe($this->db);
+            $soc->fetch($socid);
+            //We add hidden field
+            $formQuestion = array(
+                array('type' => 'hidden', 'name' => 'id', 'value' => $object->id),
+                array('type' => 'hidden', 'name' => 'action', 'value' => 'confirm_clone'),
+                array('type' => 'hidden', 'name' => 'cloneWithCompanyRelationShips', 'value' => '1'),
+            );
+            // we add question for main company
+            $formQuestion [] = array('type' => 'other', 'label' => $langs->trans("Customer"), 'value' => $soc->getNomUrl(1));
+            $formQuestion [] =array('type' => 'hidden', 'name' => 'socid', 'value' => $socid);
+            global $extrafields;
 
-                    $langs->load('companyrelationships@companyrelationships');
-
-                    $formcompanyrelationships = new FormCompanyRelationships($this->db);
-                    $form = $formcompanyrelationships->form;
-
-                    $out = '';
-
-                    $socid = GETPOST('socid', 'int') ? GETPOST('socid', 'int') : $object->socid;
-                    //$fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
-
-                    // events
-                    //$events = array();
-                    //$events[] = array('action' => 'getBenefactor', 'url' => dol_buildpath('/companyrelationships/ajax/benefactor.php', 1), 'htmlname' => 'options_companyrelationships_fk_soc_benefactor', 'more_data' => array('fk_soc_benefactor' => $fk_soc_benefactor));
-
-                    // Create an array for form
-                    $formquestion = array(
-                        // 'text' => $langs->trans("ConfirmClone"),
-                        // array('type' => 'checkbox', 'name' => 'clone_content', 'label' => $langs->trans("CloneMainAttributes"), 'value' => 1),
-                        // array('type' => 'checkbox', 'name' => 'update_prices', 'label' => $langs->trans("PuttingPricesUpToDate"), 'value' =>
-                        // 1),
-                        array('type' => 'other', 'name' => 'socid', 'label' => $langs->trans("SelectThirdParty"), 'value' => $form->select_company($socid, 'socid', '(s.client=1 OR s.client=2 OR s.client=3) AND status=1', '', 0, 0, null, 0, 'minwidth300'))
-                    );
-                    if ($object->element == "propal") {
-                        if (!empty($conf->global->PROPAL_CLONE_DATE_DELIVERY) && !empty($object->date_livraison)) {
-                            $formquestion[] = array('type' => 'date', 'name' => 'date_delivery', 'label' => $langs->trans("DeliveryDate"), 'value' => $object->date_livraison);
-                        }
-                    }
-
-                    // add warning
-                    $formquestion[] = array('type' => 'onecolumn', 'value' => '<div style="color: red;">' . $langs->trans('CompanysRelationshipsWarningCloneConfirmBenefactor') . '</div>');
-
-                    // add benefactor list
-                    //$formquestion[] = array('label' => $langs->trans('CompanyRelationshipsBenefactorCompany'), 'name' => 'options_companyrelationships_fk_soc_benefactor', 'type' => 'select', 'values' => array($fk_soc_benefactor), 'default' => '');
-
-                    // form confirm
-                    $fomrConfirmUrlId = 'id=' . $object->id;
-                    $fomrConfirmTitle = 'Clone';
-                    if ($object->element == "commande") {
-                        $fomrConfirmTitle .= 'Order';
-                    } elseif ($object->element == "facture") {
-                        $fomrConfirmTitle .= 'Invoice';
-                        $fomrConfirmUrlId = 'facid=' . $object->id;
-                    } elseif ($object->element == "fichinter") {
-                        $fomrConfirmTitle .= 'Intervention';
-                    } elseif ($object->element == "contrat") {
-                        $fomrConfirmTitle .= 'Contract';
-                    } else {
-                        $fomrConfirmTitle .= ucfirst($object->element);
-                    }
-                    $fomrConfirmQuestion = 'Confirm' . $fomrConfirmTitle;
-                    $formconfirm = $form->formconfirm($_SERVER["PHP_SELF"] . '?' . $fomrConfirmUrlId, $langs->trans($fomrConfirmTitle), $langs->trans($fomrConfirmQuestion, $object->ref), 'confirm_clone', $formquestion, 'yes', 1, 300, 800);
-
-                    $out .= $formconfirm;
-
-                    $this->resprints = $out;
-
-                    return 1;
+            $arrayOfFields = array(
+                'options_companyrelationships_fk_soc_benefactor',
+                'options_companyrelationships_availability_principal',
+                'options_companyrelationships_availability_benefactor',
+                'options_companyrelationships_fk_soc_watcher',
+                'options_companyrelationships_availability_watcher'
+            );
+            $arrayOfValues = array();
+            foreach ($arrayOfFields as $name) {
+                $value = GETPOST($name);
+                if (!$value && $value != -1 && ($socid == $object->fk_soc || $socid == $object->socid)) {
+                    $value = $object->array_options[$name];
                 }
+                $arrayOfValues[$name] = $value;
             }
+            //We add benefactor selection field
+            $formQuestion [] = array('type' => 'other', 'name'=> 'options_companyrelationships_fk_soc_benefactor', 'label' => $langs->trans("CompanyRelationshipsBenefactorCompany"), 'value' => $extrafields->showInputField('companyrelationships_fk_soc_benefactor', $arrayOfValues['options_companyrelationships_fk_soc_benefactor']));
+            //We add availability for main company and benefactor
+            $formQuestion [] = array('type' => 'other', 'name'=> 'options_companyrelationships_availability_principal', 'label' => $langs->trans("CompanyRelationshipsPublicSpaceAvailabilityPrincipal"), 'value' => $extrafields->showInputField('companyrelationships_availability_principal', $arrayOfValues['options_companyrelationships_availability_principal']));
+            $formQuestion [] = array('type' => 'other', 'name'=> 'options_companyrelationships_availability_benefactor', 'label' => $langs->trans("CompanyRelationshipsPublicSpaceAvailabilityBenefactor"), 'value' => $extrafields->showInputField('companyrelationships_availability_benefactor', $arrayOfValues['options_companyrelationships_availability_benefactor']));
+
+            //We add benefactor selection field
+            $formQuestion [] = array('type' => 'other', 'name'=> 'options_companyrelationships_fk_soc_watcher', 'label' => $langs->trans("CompanyRelationshipsWatcherCompany"), 'value' => $extrafields->showInputField('companyrelationships_fk_soc_watcher', $arrayOfValues['options_companyrelationships_fk_soc_watcher']));
+            $formQuestion [] = array('type' => 'other', 'name'=> 'options_companyrelationships_availability_watcher', 'label' => $langs->trans("CompanyRelationshipsPublicSpaceAvailabilityWatcher"), 'value' => $extrafields->showInputField('companyrelationships_availability_watcher', $arrayOfValues['options_companyrelationships_availability_watcher']));
+
+            //We add availability for watcher
+            $this->resprints = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('CompanyRelationShipsSelectThirdpartyForClone', $object->ref), $langs->trans('CompanyRelationShipsSelectThirdpartyForCloneDescription', $object->ref), 'confirm_clone', $formQuestion, 'yes', 1, 400, 900);
         }
 
         return 0;
@@ -473,8 +345,6 @@ class ActionsCompanyRelationships
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('globalcard', $contexts)) {
-            dol_include_once('/companyrelationships/class/companyrelationships.class.php');
-
             // /!\ element shipping (uses expediton/shipment.php for edit mode and uses expedition/card.php has only create card)
             if (!empty($object->table_element) && !empty($object->element) && in_array($object->element, CompanyRelationships::$psa_element_list)) {
                 if ($object->element == 'fichinter') {
@@ -486,9 +356,7 @@ class ActionsCompanyRelationships
                 }
 
                 // create
-                if ($action == 'create' && $userRightsElementCreer) {
-                    dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
-
+                if (($action == 'create' || $action == 'clone_set_companyrelationships') && $userRightsElementCreer) {
                     $langs->load('companyrelationships@companyrelationships');
 
                     $out = '';
@@ -547,7 +415,7 @@ class ActionsCompanyRelationships
                     $companyRelationships = new CompanyRelationships($this->db);
 
                     // get the name of form to keep values and to submit
-                    $formName = $companyRelationships->getFormNameForElementAndAction($object->element, $action);
+					$formName = $companyRelationships->getFormNameForElementAndAction($object->element, $action);
 
                     // form confirm to choose the principal company
                     $out .= '<tr>';
@@ -578,7 +446,15 @@ class ActionsCompanyRelationships
                             $formQuestionList[] = array('label' => $langs->trans('CompanyRelationshipsPrincipalCompany'), 'name' => 'companyrelationships_socid', 'type' => 'select', 'values' => $principalCompanySelectArray, 'default' => '');
 
                             // form confirm to choose the principal company
-                            $out .= $formcompanyrelationships->formconfirm_socid($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1, 200, 500, $formName);
+							if($action == 'clone_set_companyrelationships') {
+								$formName = 'forceSocIdId';
+								$out .='<form name="' .$formName . '" action = "' . $_SERVER['PHP_SELF'] . '">';
+								$out .= '<input type="hidden" name="socid" value="' . GETPOST('socid', 'int') . '">';
+								$out.='</>';
+								$out .= $formcompanyrelationships->formconfirm_socid($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), $action, $formQuestionList, '', 1, 200, 500, $formName);
+							} else {
+								$out .= $formcompanyrelationships->formconfirm_socid($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1, 200, 500, $formName);
+							}
                         }
                     }
                     $out .= '</div>';
@@ -592,6 +468,14 @@ class ActionsCompanyRelationships
                     if (intval($socid) > 0) {
                         $jquery_socid = $socid;
 
+						if($action == 'clone_set_companyrelationships' && $object->socid == $socid) {
+							if(!GETPOST('options_companyrelationships_fk_soc_benefactor')) {
+								$fk_soc_benefactor = $object->array_options['options_companyrelationships_fk_soc_benefactor'];
+							}
+							if(!GETPOST('options_companyrelationships_fk_soc_watcher')) {
+								$fk_soc_watcher = $object->array_options['options_companyrelationships_fk_soc_watcher'];
+							}
+						}
                         $out .= '<script type="text/javascript" language="javascript">';
                         $out .= 'jQuery(document).ready(function(){';
 
@@ -743,8 +627,6 @@ class ActionsCompanyRelationships
                     if ($attribute == 'companyrelationships_fk_soc_benefactor') {
                         // company id already posted (an input hidden in this form)
                         if (intval($object->socid) > 0) {
-                            dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
-
                             $formcompanyrelationships = new FormCompanyRelationships($this->db);
                             $out = $formcompanyrelationships->relation_select_search_autocompleter('options_companyrelationships_fk_soc_benefactor', $object->socid, CompanyRelationships::RELATION_TYPE_BENEFACTOR, $object->array_options['options_companyrelationships_fk_soc_benefactor']);
 
@@ -754,8 +636,6 @@ class ActionsCompanyRelationships
                     elseif ($attribute == 'companyrelationships_fk_soc_watcher') {
                         // company id already posted (an input hidden in this form)
                         if (intval($object->socid) > 0) {
-                            dol_include_once('/companyrelationships/class/html.formcompanyrelationships.class.php');
-
                             $formcompanyrelationships = new FormCompanyRelationships($this->db);
                             $out = $formcompanyrelationships->relation_select_search_autocompleter('options_companyrelationships_fk_soc_watcher', $object->socid, CompanyRelationships::RELATION_TYPE_WATCHER, $object->array_options['options_companyrelationships_fk_soc_watcher']);
 
@@ -769,56 +649,6 @@ class ActionsCompanyRelationships
         return 0;
     }
 
-    /**
-     * Overloading the printFieldPreListTitle function : replacing the parent's function with the one below
-     *
-     * @param   array()         $parameters     Hook metadatas (context, etc...)
-     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-     * @param   string          &$action        Current action (if set). Generally create or edit or null
-     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-     */
-    function printFieldListOption($parameters, &$object, &$action, $hookmanager)
-    {
-        global $conf, $form;
-        $contexts = explode(':', $parameters['context']);
-
-        if (count(array_diff(array('propallist', 'orderlist', 'invoicelist', 'shipmentlist', 'interventionlist', 'contractlist'), $contexts)) != 6) {
-            if (!is_object($form)) {
-                require_once DOL_DOCUMENT_ROOT . '/core/class/html.form.class.php';
-                $form = new Form($this->db);
-            }
-
-            $selected = GETPOST('search_options_companyrelationships_fk_soc_benefactor', 'int');
-            $out = $form->select_company($selected, 'new_search_options_companyrelationships_fk_soc_benefactor', '(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1', 'SelectThirdParty', 0, 0, null, 0, 'maxwidth300');
-
-            $out .= '<script type="text/javascript" language="javascript">';
-            $out .= '  $(document).ready(function(){';
-            $out .= '    var cr_old_select = $("select#options_companyrelationships_fk_soc_benefactor");';
-            $out .= '    var cr_new_select = $("select#new_search_options_companyrelationships_fk_soc_benefactor");';
-            $out .= '    if (cr_new_select.length == 0) cr_new_select = $("input#new_search_options_companyrelationships_fk_soc_benefactor");';
-            $out .= '    var cr_new_select_div = $("div#s2id_new_search_options_companyrelationships_fk_soc_benefactor");';
-            $out .= '    cr_new_select_div.detach().prependTo(cr_old_select.parent());';
-            $out .= '    cr_new_select.detach().prependTo(cr_old_select.parent());';
-            $out .= '    cr_old_select.remove();';
-            $out .= '    cr_new_select.attr("name", "search_options_companyrelationships_fk_soc_benefactor");';
-            $out .= '    cr_new_select.find(\'option[value="-1"]\').attr("value", "0");';
-            $out .= '  });';
-            $out .= '</script>';
-
-            if (!empty($conf->use_javascript_ajax) && !empty($conf->global->COMPANY_USE_SEARCH_TO_SELECT)) {
-                $urloption = 'htmlname=search_options_companyrelationships_fk_soc_benefactor&outjson=1&filter=' . urlencode('(s.client = 1 OR s.client = 2 OR s.client = 3) AND status=1') . '&showtype=SelectThirdParty';
-                $out .= ajax_autocompleter($selected, 'search_options_companyrelationships_fk_soc_benefactor', DOL_URL_ROOT . '/societe/ajax/company.php', $urloption, $conf->global->COMPANY_USE_SEARCH_TO_SELECT, 0);
-            } elseif ($conf->use_javascript_ajax) {
-                include_once DOL_DOCUMENT_ROOT . '/core/lib/ajax.lib.php';
-                $out .= ajax_combobox('search_options_companyrelationships_fk_soc_benefactor', null, $conf->global->COMPANY_USE_SEARCH_TO_SELECT);
-            }
-
-            $this->resprints = $out;
-        }
-
-        return 0;
-    }
     /**
      * Overloading the printFieldPreListTitle function : replacing the parent's function with the one below
      *
@@ -951,6 +781,35 @@ class ActionsCompanyRelationships
             }
             $alreadyAskIds = is_array($parameters['filterToFollowingSocId']) ? $parameters['filterToFollowingSocId'] : array($parameters['filterToFollowingSocId']);
             $parameters['filterToFollowingSocId'] = array_unique(array_filter(array_merge($alreadyAskIds, $newIds)));
+        }
+    }
+
+     /**
+     * Overloading the createFrom function : replacing the parent's function with the one below
+     *
+     * @param   array()         $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          &$action        Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function createFrom(&$parameters, &$object, &$action, $hookmanager)
+    {
+        global $conf, $langs, $user;
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('globalcard', $contexts)) {
+            // /!\ element shipping (uses expediton/shipment.php for edit mode and uses expedition/card.php has only create card)
+            if (GETPOST('cloneWithCompanyRelationShips')) {
+                //We use extrafields values from post content
+                $object->array_options["options_companyrelationships_fk_soc_benefactor"] = GETPOST('options_companyrelationships_fk_soc_benefactor');
+                $object->array_options["options_companyrelationships_availability_principal"] = GETPOST('options_companyrelationships_availability_principal');
+                $object->array_options["options_companyrelationships_availability_benefactor"] = GETPOST('options_companyrelationships_availability_benefactor');
+                $object->array_options["options_companyrelationships_fk_soc_watcher"] = GETPOST('options_companyrelationships_fk_soc_watcher');
+                $object->array_options["options_companyrelationships_availability_watcher"] = GETPOST('options_companyrelationships_availability_watcher');
+                $object->insertExtraFields();
+            }
         }
     }
 }

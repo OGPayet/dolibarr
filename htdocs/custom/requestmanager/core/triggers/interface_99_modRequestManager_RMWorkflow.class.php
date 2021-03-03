@@ -86,7 +86,9 @@ class InterfaceRMWorkflow extends DolibarrTriggers
 			}
             dol_include_once('/' . $element . '/class/' . $subelement . '.class.php');
             $classname = ucfirst($subelement);
-            $srcobject = new $classname($this->db);
+			if(class_exists($classname)) {
+				$srcobject = new $classname($this->db);
+			}
             if (method_exists($srcobject, 'fetchObjectLinked')) {
                 $result = $srcobject->fetch($object->origin_id);
                 if ($result > 0) {
