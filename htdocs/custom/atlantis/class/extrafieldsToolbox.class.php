@@ -33,9 +33,39 @@ class ExtrafieldsToolbox extends ExtraFields
   * Method to clone extrafields from one elementtype to one another
   * @param string $sourceElementType Element type from which clone extrafields
   * @param string $destinationElementType Element type to which create and update extrafields
+  * @param bool $removeOtherExtrafield Should we remove extrafield from destinationElementType not present into sourceElementType
   * @return string[] array of errors
   */
-  public function cloneExtrafields($sourceElementType, $destinationElementType) {
-	  
-  }
+    public function cloneExtrafields($sourceElementType, $destinationElementType, $removeOtherExtrafield = true)
+    {
+		$errors = array();
+		$this->fetch_name_optionals_label($sourceElementType, true);
+		$this->fetch_name_optionals_label($destinationElementType, true);
+		$sourceExtrafields = $this->attributes[$destinationElementType];
+		$destinationExtrafields = $this->attributes[$destinationElementType];
+		$sourceExtrafieldsKey = array_keys($sourceExtrafields['type']);
+		$destinationExtrafieldsKey = array_keys($destinationExtrafields['type']);
+
+		foreach($sourceExtrafieldsKey as $sourceKey) {
+			$staticExtrafield = new Extrafields($this->db);
+			if(in_array($sourceKey, $destinationExtrafieldsKey)) {
+				//We update extrafields
+				$staticExtrafield->update();
+			}
+			else {
+				//We create extrafields
+			}
+			$errors = array_merge($errors, $staticExtrafield->errors);
+		}
+		if($removeOtherExtrafield) {
+			foreach($destinationExtrafields as $destinationKey) {
+				if(!in_array($destinationKey, $sourceExtrafieldsKey)) {
+					$staticExtrafield = new Extrafields($this->db);
+					//We delete this extrafields
+				}
+				$errors = array_merge($errors, $staticExtrafield->errors);
+			}
+		}
+		return $errors;
+    }
 }
