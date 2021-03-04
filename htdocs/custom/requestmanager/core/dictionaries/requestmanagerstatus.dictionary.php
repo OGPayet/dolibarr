@@ -918,7 +918,7 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
             }
         }
 
-        return parent::showOutputField($fieldName, $value);
+        return parent::showOutputFieldAD($fieldName, $value);
     }
 
     /**
@@ -1142,6 +1142,6 @@ class RequestManagerStatusDictionaryLine extends DictionaryLine
 SCRIPT;
         }
 
-        return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);
+        return parent::showInputFieldAD($fieldName, $value, $keyprefix, $keysuffix, $objectid);
     }
 }

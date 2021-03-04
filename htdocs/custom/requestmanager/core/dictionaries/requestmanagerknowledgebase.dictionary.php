@@ -366,7 +366,7 @@ class RequestManagerKnowledgeBaseDictionaryLine extends DictionaryLine
             }
         }
 
-        return parent::showOutputField($fieldName, $value);
+        return parent::showOutputFieldAD($fieldName, $value);
     }
 
     /**
@@ -423,6 +423,6 @@ class RequestManagerKnowledgeBaseDictionaryLine extends DictionaryLine
             }
         }
 
-        return parent::showInputField($fieldName, $value, $keyprefix, $keysuffix, $objectid);
+        return parent::showInputFieldAD($fieldName, $value, $keyprefix, $keysuffix, $objectid);
     }
 }

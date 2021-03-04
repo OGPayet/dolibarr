@@ -1105,12 +1105,25 @@ SCRIPT;
 				$formdictionary = new FormDictionary($this->db);
 
 				$status_list = array_values($requestManagerStatusDictionary->lines);
-				$status_init = isset($status_list[0]) ? $status_list[0] : array();
-				$next_status_list = !empty($status_init->fields['next_status']) ? explode(',', $status_init->fields['next_status']) : array();
+				if(!$next_status) {
+					$next_status = $status_list[0];
+				}
+				$formquestion[] = array(
+					'type' => 'other',
+					'name' => 'next_status',
+					'label' => $langs->trans('SynergiesTechNextStatus'),
+					'value' => $formdictionary->select_dictionary(
+						'requestmanager',
+						'requestmanagerstatus',
+						$next_status, 'next_status', '', 'rowid', '{{label}}',
+						array('request_type' => array($selectedFkType)), array('label' => 'ASC'), 0, array(), 0, 0, $morecss = 'minwidth300'));
 
-				$formquestion[] = array('type' => 'other', 'name' => 'next_status', 'label' => $langs->trans('SynergiesTechNextStatus'), 'value' => $formdictionary->select_dictionary('requestmanager', 'requestmanagerstatus', $next_status, 'next_status', '', 'rowid', '{{label}}', array('rowid' => (!empty($next_status_list) ? $next_status_list : array($status_init->id))), array('label' => 'ASC'), 0, array(), 0, 0, $morecss = 'minwidth300'));
-
-				$formconfirm = $formsynergiestech->formconfirm($_SERVER["PHP_SELF"], $langs->trans('SynergiesTechCreateAndTakeInCharge'), $langs->trans('SynergiesTechConfirmCreateAndTakeInCharge'), 'confirm_create_take_charge', $formquestion, 0, 1, 200, 500, 1);
+				$formconfirm = $formsynergiestech->formconfirm(
+					$_SERVER["PHP_SELF"],
+					$langs->trans('SynergiesTechCreateAndTakeInCharge'),
+					$langs->trans('SynergiesTechConfirmCreateAndTakeInCharge'),
+					'confirm_create_take_charge',
+					$formquestion, 0, 1, 200, 500, 1);
 			}
 
 			print $formconfirm;
