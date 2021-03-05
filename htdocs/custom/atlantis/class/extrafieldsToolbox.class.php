@@ -74,16 +74,16 @@ class ExtrafieldsToolbox extends ExtraFields
                 $staticExtrafield->update($attrname, $label, $type, $length, $elementtype, $unique, $required, $pos, $param, $alwayseditable, $perms, $list, $help, $default, $computed, $entity, $langfile, $enabled, $totalizable, $printable);
             } else {
                 //We create extrafields
-                $staticExtrafield->addExtraField($attrname, $label, $type, $pos, $size, $elementtype, $unique, $required, $default, $param, $alwayseditable, $perms, $list, $help, $computed, $entity, $langfile, $enabled, $totalizable, $printable);
+                $staticExtrafield->addExtraField($attrname, $label, $type, $pos, $length, $elementtype, $unique, $required, $default, $param, $alwayseditable, $perms, $list, $help, $computed, $entity, $langfile, $enabled, $totalizable, $printable);
             }
             $errors = array_merge($errors, $staticExtrafield->errors);
         }
         if ($removeOtherExtrafield) {
-            foreach ($destinationExtrafields as $destinationKey) {
+            foreach ($destinationExtrafieldsKey as $destinationKey) {
                 if (!in_array($destinationKey, $sourceExtrafieldsKey)) {
                     $staticExtrafield = new Extrafields($this->db);
                     //We delete this extrafields
-                    $staticExtrafield->delete($destinationKey, $destinationElementType)
+                    $staticExtrafield->delete($destinationKey, $destinationElementType);
                 }
                 $errors = array_merge($errors, $staticExtrafield->errors);
             }

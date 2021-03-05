@@ -17,11 +17,12 @@
 CREATE TABLE llx_buypricehistory_buypricehistory(
 	-- BEGIN MODULEBUILDER FIELDS
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
+	fk_object integer NOT NULL, 
 	entity integer DEFAULT 1 NOT NULL, 
 	datec datetime, 
 	original_datec datetime, 
 	tms timestamp NOT NULL,
-	original_tms timestamp NOT NULL,  
+	original_tms timestamp NULL DEFAULT NULL,  
 	fk_product integer, 
 	fk_soc integer, 
 	ref_fourn varchar(255), 
