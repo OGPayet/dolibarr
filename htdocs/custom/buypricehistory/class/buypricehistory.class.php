@@ -93,9 +93,11 @@ class BuyPriceHistory extends CommonObject
     public $fields=array(
         'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>0,),
         'entity' => array('type'=>'integer', 'label'=>'Entity', 'enabled'=>'1', 'position'=>15, 'notnull'=>1, 'visible'=>-2, 'default'=>'1', 'index'=>1,),
-        'datec' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
+		'datec' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
+		'original_datec' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
         'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>25, 'notnull'=>1, 'visible'=>-1,),
-        'fk_product' => array('type'=>'integer:Product:product/class/product.class.php:1', 'label'=>'Fkproduct', 'enabled'=>'1', 'position'=>30, 'notnull'=>0, 'visible'=>-1,),
+		'original_tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>25, 'notnull'=>1, 'visible'=>-1,),
+		'fk_product' => array('type'=>'integer:Product:product/class/product.class.php:1', 'label'=>'Fkproduct', 'enabled'=>'1', 'position'=>30, 'notnull'=>0, 'visible'=>-1,),
         'fk_soc' => array('type'=>'integer:Societe:societe/class/societe.class.php', 'label'=>'ThirdParty', 'enabled'=>'1', 'position'=>35, 'notnull'=>0, 'visible'=>-1,),
         'ref_fourn' => array('type'=>'varchar(255)', 'label'=>'Reffourn', 'enabled'=>'1', 'position'=>40, 'notnull'=>0, 'visible'=>-1,),
         'desc_fourn' => array('type'=>'text', 'label'=>'Descfourn', 'enabled'=>'1', 'position'=>45, 'notnull'=>0, 'visible'=>-1,),
@@ -110,6 +112,7 @@ class BuyPriceHistory extends CommonObject
         'tva_tx' => array('type'=>'double(6,3)', 'label'=>'Tvatx', 'enabled'=>'1', 'position'=>90, 'notnull'=>1, 'visible'=>-1,),
         'info_bits' => array('type'=>'integer', 'label'=>'Infobits', 'enabled'=>'1', 'position'=>95, 'notnull'=>1, 'visible'=>-1,),
         'fk_user' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'Fkuser', 'enabled'=>'1', 'position'=>100, 'notnull'=>0, 'visible'=>-1,),
+		'original_fk_user' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'Fkuser', 'enabled'=>'1', 'position'=>100, 'notnull'=>0, 'visible'=>-1,),
         'fk_supplier_price_expression' => array('type'=>'integer', 'label'=>'Fksupplierpriceexpression', 'enabled'=>'1', 'position'=>105, 'notnull'=>0, 'visible'=>-1,),
         'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>'1', 'position'=>900, 'notnull'=>0, 'visible'=>-2,),
         'delivery_time_days' => array('type'=>'integer', 'label'=>'Deliverytimedays', 'enabled'=>'1', 'position'=>115, 'notnull'=>0, 'visible'=>-1,),
@@ -130,7 +133,9 @@ class BuyPriceHistory extends CommonObject
     public $rowid;
     public $entity;
     public $datec;
+	public $original_datec;
     public $tms;
+	public $original_tms;
     public $fk_product;
     public $fk_soc;
     public $ref_fourn;
@@ -146,6 +151,7 @@ class BuyPriceHistory extends CommonObject
     public $tva_tx;
     public $info_bits;
     public $fk_user;
+	public $original_fk_user;
     public $fk_supplier_price_expression;
     public $import_key;
     public $delivery_time_days;
@@ -211,11 +217,7 @@ class BuyPriceHistory extends CommonObject
      */
     public function fetch($id, $ref = null)
     {
-        $result = $this->fetchCommon($id, $ref);
-        if ($result > 0 && !empty($this->table_element_line)) {
-            $this->fetchLines();
-        }
-        return $result;
+        return $this->fetchCommon($id, $ref);
     }
 
     /**
@@ -299,18 +301,6 @@ class BuyPriceHistory extends CommonObject
     }
 
     /**
-     * Update object into database
-     *
-     * @param  User $user      User that modifies
-     * @param  bool $notrigger false=launch triggers after, true=disable triggers
-     * @return int             <0 if KO, >0 if OK
-     */
-    public function update(User $user, $notrigger = false)
-    {
-        return $this->updateCommon($user, $notrigger);
-    }
-
-    /**
      * Delete object in database
      *
      * @param User $user       User that deletes
@@ -321,4 +311,25 @@ class BuyPriceHistory extends CommonObject
     {
         return $this->deleteCommon($user, $notrigger);
     }
+
+	/**
+	 * Log a supplier price thanks to a price id
+	 * @param int $priceId
+	 * @return string[] array of errors
+	 */
+	public function logPriceFromId($priceId) {
+
+	}
+
+	/**
+	 * Log a supplier price thanks to a ProductFournisseur instance
+	 * @param ProductFournisseur $productPrice
+	 * @return string[] array of errors
+	 */
+	public function logPriceFromInstance($productPrice) {
+		if($productPrice->id) {
+			$productPriceHistory = new self($this->db);
+			$productPrice
+		}
+	}
 }

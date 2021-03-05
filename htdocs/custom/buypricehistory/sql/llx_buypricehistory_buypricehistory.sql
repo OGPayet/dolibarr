@@ -16,10 +16,12 @@
 
 CREATE TABLE llx_buypricehistory_buypricehistory(
 	-- BEGIN MODULEBUILDER FIELDS
-	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL, 
+	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
 	entity integer DEFAULT 1 NOT NULL, 
 	datec datetime, 
-	tms timestamp NOT NULL, 
+	original_datec datetime, 
+	tms timestamp NOT NULL,
+	original_tms timestamp NOT NULL,  
 	fk_product integer, 
 	fk_soc integer, 
 	ref_fourn varchar(255), 
@@ -34,7 +36,8 @@ CREATE TABLE llx_buypricehistory_buypricehistory(
 	default_vat_code varchar(10), 
 	tva_tx double(6,3) NOT NULL, 
 	info_bits integer NOT NULL, 
-	fk_user integer, 
+	fk_user integer,
+	original_fk_user integer,  
 	fk_supplier_price_expression integer, 
 	import_key varchar(14), 
 	delivery_time_days integer, 
