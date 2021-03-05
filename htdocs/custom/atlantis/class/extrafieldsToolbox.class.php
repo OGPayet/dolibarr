@@ -33,39 +33,61 @@ class ExtrafieldsToolbox extends ExtraFields
   * Method to clone extrafields from one elementtype to one another
   * @param string $sourceElementType Element type from which clone extrafields
   * @param string $destinationElementType Element type to which create and update extrafields
-  * @param bool $removeOtherExtrafield Should we remove extrafield from destinationElementType not present into sourceElementType
+  * @param bool $removeOtherExtrafield Should we remove extrafield present in destination and not in source
   * @return string[] array of errors
   */
     public function cloneExtrafields($sourceElementType, $destinationElementType, $removeOtherExtrafield = true)
     {
-		$errors = array();
-		$this->fetch_name_optionals_label($sourceElementType, true);
-		$this->fetch_name_optionals_label($destinationElementType, true);
-		$sourceExtrafields = $this->attributes[$destinationElementType];
-		$destinationExtrafields = $this->attributes[$destinationElementType];
-		$sourceExtrafieldsKey = array_keys($sourceExtrafields['type']);
-		$destinationExtrafieldsKey = array_keys($destinationExtrafields['type']);
+        $errors = array();
+        $this->fetch_name_optionals_label($sourceElementType, true);
+        $this->fetch_name_optionals_label($destinationElementType, true);
+        $sourceExtrafields = $this->attributes[$destinationElementType];
+        $destinationExtrafields = $this->attributes[$destinationElementType];
+        $sourceExtrafieldsKey = array_keys($sourceExtrafields['type']);
+        $destinationExtrafieldsKey = array_keys($destinationExtrafields['type']);
 
-		foreach($sourceExtrafieldsKey as $sourceKey) {
-			$staticExtrafield = new Extrafields($this->db);
-			if(in_array($sourceKey, $destinationExtrafieldsKey)) {
-				//We update extrafields
-				$staticExtrafield->update();
-			}
-			else {
-				//We create extrafields
-			}
-			$errors = array_merge($errors, $staticExtrafield->errors);
-		}
-		if($removeOtherExtrafield) {
-			foreach($destinationExtrafields as $destinationKey) {
-				if(!in_array($destinationKey, $sourceExtrafieldsKey)) {
-					$staticExtrafield = new Extrafields($this->db);
-					//We delete this extrafields
-				}
-				$errors = array_merge($errors, $staticExtrafield->errors);
-			}
-		}
-		return $errors;
+        foreach ($sourceExtrafieldsKey as $sourceKey) {
+            $attrname = $sourceKey;
+            $label = $sourceExtrafields['label'][$sourceKey];
+            $type = $sourceExtrafields['type'][$sourceKey];
+            $length = $sourceExtrafields['size'][$sourceKey];
+            $elementtype = $destinationElementType;
+            $unique = $sourceExtrafields['unique'][$sourceKey];
+            $required = $sourceExtrafields['required'][$sourceKey];
+            $pos = $sourceExtrafields['pos'][$sourceKey];
+            $param = $sourceExtrafields['param'][$sourceKey];
+            $alwayseditable = $sourceExtrafields['alwayseditable'][$sourceKey];
+            $perms = $sourceExtrafields['perms'][$sourceKey];
+            $list = $sourceExtrafields['list'][$sourceKey];
+            $help = $sourceExtrafields['help'][$sourceKey];
+            $default = $sourceExtrafields['default'][$sourceKey];
+            $computed = $sourceExtrafields['computed'][$sourceKey];
+            $entity = $sourceExtrafields['entityid'][$sourceKey];
+            $langfile = $sourceExtrafields['langfile'][$sourceKey];
+            $enabled = $sourceExtrafields['enabled'][$sourceKey];
+            $totalizable = $sourceExtrafields['totalizable'][$sourceKey];
+            $printable = $sourceExtrafields['printable'][$sourceKey];
+
+            $staticExtrafield = new Extrafields($this->db);
+            if (in_array($sourceKey, $destinationExtrafieldsKey)) {
+                //We update extrafields
+                $staticExtrafield->update($attrname, $label, $type, $length, $elementtype, $unique, $required, $pos, $param, $alwayseditable, $perms, $list, $help, $default, $computed, $entity, $langfile, $enabled, $totalizable, $printable);
+            } else {
+                //We create extrafields
+                $staticExtrafield->addExtraField($attrname, $label, $type, $pos, $size, $elementtype, $unique, $required, $default, $param, $alwayseditable, $perms, $list, $help, $computed, $entity, $langfile, $enabled, $totalizable, $printable);
+            }
+            $errors = array_merge($errors, $staticExtrafield->errors);
+        }
+        if ($removeOtherExtrafield) {
+            foreach ($destinationExtrafields as $destinationKey) {
+                if (!in_array($destinationKey, $sourceExtrafieldsKey)) {
+                    $staticExtrafield = new Extrafields($this->db);
+                    //We delete this extrafields
+                    $staticExtrafield->delete($destinationKey, $destinationElementType)
+                }
+                $errors = array_merge($errors, $staticExtrafield->errors);
+            }
+        }
+        return $errors;
     }
 }
