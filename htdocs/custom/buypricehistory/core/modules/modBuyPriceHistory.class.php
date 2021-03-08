@@ -201,54 +201,6 @@ class modBuyPriceHistory extends DolibarrModules
         /* END MODULEBUILDER LEFTMENU BUYPRICEHISTORY */
         // Exports profiles provided by this module
         $r = 1;
-        /* BEGIN MODULEBUILDER EXPORT BUYPRICEHISTORY */
-        /*
-        $langs->load("buypricehistory@buypricehistory");
-        $this->export_code[$r]=$this->rights_class.'_'.$r;
-        $this->export_label[$r]='BuyPriceHistoryLines'; // Translation key (used only if key ExportDataset_xxx_z not found)
-        $this->export_icon[$r]='buypricehistory@buypricehistory';
-        // Define $this->export_fields_array, $this->export_TypeFields_array and $this->export_entities_array
-        $keyforclass = 'BuyPriceHistory'; $keyforclassfile='/buypricehistory/class/buypricehistory.class.php'; $keyforelement='buypricehistory@buypricehistory';
-        include DOL_DOCUMENT_ROOT.'/core/commonfieldsinexport.inc.php';
-        //$this->export_fields_array[$r]['t.fieldtoadd']='FieldToAdd'; $this->export_TypeFields_array[$r]['t.fieldtoadd']='Text';
-        //unset($this->export_fields_array[$r]['t.fieldtoremove']);
-        //$keyforclass = 'BuyPriceHistoryLine'; $keyforclassfile='/buypricehistory/class/buypricehistory.class.php'; $keyforelement='buypricehistoryline@buypricehistory'; $keyforalias='tl';
-        //include DOL_DOCUMENT_ROOT.'/core/commonfieldsinexport.inc.php';
-        $keyforselect='buypricehistory'; $keyforaliasextra='extra'; $keyforelement='buypricehistory@buypricehistory';
-        include DOL_DOCUMENT_ROOT.'/core/extrafieldsinexport.inc.php';
-        //$keyforselect='buypricehistoryline'; $keyforaliasextra='extraline'; $keyforelement='buypricehistoryline@buypricehistory';
-        //include DOL_DOCUMENT_ROOT.'/core/extrafieldsinexport.inc.php';
-        //$this->export_dependencies_array[$r] = array('buypricehistoryline'=>array('tl.rowid','tl.ref')); // To force to activate one or several fields if we select some fields that need same (like to select a unique key if we ask a field of a child to avoid the DISTINCT to discard them, or for computed field than need several other fields)
-        //$this->export_special_array[$r] = array('t.field'=>'...');
-        //$this->export_examplevalues_array[$r] = array('t.field'=>'Example');
-        //$this->export_help_array[$r] = array('t.field'=>'FieldDescHelp');
-        $this->export_sql_start[$r]='SELECT DISTINCT ';
-        $this->export_sql_end[$r]  =' FROM '.MAIN_DB_PREFIX.'buypricehistory as t';
-        //$this->export_sql_end[$r]  =' LEFT JOIN '.MAIN_DB_PREFIX.'buypricehistory_line as tl ON tl.fk_buypricehistory = t.rowid';
-        $this->export_sql_end[$r] .=' WHERE 1 = 1';
-        $this->export_sql_end[$r] .=' AND t.entity IN ('.getEntity('buypricehistory').')';
-        $r++; */
-        /* END MODULEBUILDER EXPORT BUYPRICEHISTORY */
-
-        // Imports profiles provided by this module
-        $r = 1;
-        /* BEGIN MODULEBUILDER IMPORT BUYPRICEHISTORY */
-        /*
-         $langs->load("buypricehistory@buypricehistory");
-         $this->export_code[$r]=$this->rights_class.'_'.$r;
-         $this->export_label[$r]='BuyPriceHistoryLines';    // Translation key (used only if key ExportDataset_xxx_z not found)
-         $this->export_icon[$r]='buypricehistory@buypricehistory';
-         $keyforclass = 'BuyPriceHistory'; $keyforclassfile='/buypricehistory/class/buypricehistory.class.php'; $keyforelement='buypricehistory@buypricehistory';
-         include DOL_DOCUMENT_ROOT.'/core/commonfieldsinexport.inc.php';
-         $keyforselect='buypricehistory'; $keyforaliasextra='extra'; $keyforelement='buypricehistory@buypricehistory';
-         include DOL_DOCUMENT_ROOT.'/core/extrafieldsinexport.inc.php';
-         //$this->export_dependencies_array[$r]=array('mysubobject'=>'ts.rowid', 't.myfield'=>array('t.myfield2','t.myfield3')); // To force to activate one or several fields if we select some fields that need same (like to select a unique key if we ask a field of a child to avoid the DISTINCT to discard them, or for computed field than need several other fields)
-         $this->export_sql_start[$r]='SELECT DISTINCT ';
-         $this->export_sql_end[$r]  =' FROM '.MAIN_DB_PREFIX.'buypricehistory as t';
-         $this->export_sql_end[$r] .=' WHERE 1 = 1';
-         $this->export_sql_end[$r] .=' AND t.entity IN ('.getEntity('buypricehistory').')';
-         $r++; */
-        /* END MODULEBUILDER IMPORT BUYPRICEHISTORY */
     }
 
     /**
