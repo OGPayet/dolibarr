@@ -62,9 +62,9 @@ class BuyPriceHistory extends ProductFournisseur
 
     public $addedFields=array(
         'fk_object' => array('type'=>'integer:ProductFournisseur:fourn/class/fournisseur.product.class.php', 'label'=>'Linked Supplier price', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0),
-        'original_datec' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
-        'original_tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>25, 'notnull'=>1, 'visible'=>-1,),
-        'original_fk_user' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'Fkuser', 'enabled'=>'1', 'position'=>100, 'notnull'=>0, 'visible'=>-1,)
+        'original_datec' => array('type'=>'datetime', 'label'=>'OriginalDateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
+        'original_tms' => array('type'=>'timestamp', 'label'=>'OriginalDateModification', 'enabled'=>'1', 'position'=>25, 'notnull'=>1, 'visible'=>-1,),
+        'original_fk_user' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'OriginalFkuser', 'enabled'=>'1', 'position'=>100, 'notnull'=>0, 'visible'=>-1,)
     );
     /**
      *  'type' field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'sellist:TableName:LabelFieldName[:KeyFieldName[:KeyFieldParent[:Filter]]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'text:none', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
@@ -151,6 +151,11 @@ class BuyPriceHistory extends ProductFournisseur
 
         $productFournisseur = new ProductFournisseur($db);
         $this->fields = array_merge($this->addedFields, $productFournisseur->fields);
+		//We update visibility
+		$visibleFields = array('original_datec');
+
+		//We translate fields
+
 
         if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) {
             $this->fields['rowid']['visible'] = 0;
