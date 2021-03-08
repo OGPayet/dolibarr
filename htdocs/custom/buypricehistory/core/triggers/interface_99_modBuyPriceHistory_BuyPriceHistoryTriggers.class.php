@@ -106,7 +106,7 @@ class InterfaceBuyPriceHistoryTriggers extends DolibarrTriggers
                     $staticBuyPriceHistory->archiveAllPrice();
                     $this->errors = $staticBuyPriceHistory->errors;
                 }
-                return $staticBuyPriceHistory ? 1 : -1;
+				return empty($this->errors) ? 1 : -1;
 			case "SUPPLIER_PRODUCT_BUYPRICE_DELETE":
 				$staticBuyPriceHistory = new BuyPriceHistory($this->db);
                 $extrafieldsToolBox = new ExtrafieldsToolbox($this->db);
@@ -115,6 +115,7 @@ class InterfaceBuyPriceHistoryTriggers extends DolibarrTriggers
                     $staticBuyPriceHistory->logOldPriceFromInstance($object);
                     $this->errors = $staticBuyPriceHistory->errors;
                 }
+				return empty($this->errors) ? 1 : -1;
                 break;
             default:
                 dol_syslog("Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id);

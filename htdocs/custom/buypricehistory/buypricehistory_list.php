@@ -256,8 +256,8 @@ $now = dol_now();
 // Build and execute select
 // --------------------------------------------------------------------
 $sql = 'SELECT ';
-foreach ($object->fields as $key => $val) {
-    $sql .= 't.' . $key . ', ';
+foreach ($arrayfields as $key => $val) {
+    $sql .=  $key . ', ';
 }
 // Add fields from extrafields
 if (!empty($extrafields->attributes[$object->table_element]['label'])) {
@@ -627,7 +627,7 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
     // Supplier
     if (!empty($arrayfields['t.fk_soc']['checked'])) {
         $object->fourn_id = $object->fk_soc;
-        print '<td class="tdoverflowmax200">' . $object->getSocNomUrl(1, 'supplier') . '</td>';
+        print '<td class="tdoverflowmax200">' . $object->showOutputField($object->fields['fk_soc'], 'fk_soc', $object->fk_soc) . '</td>';
     }
 
     // Supplier ref
