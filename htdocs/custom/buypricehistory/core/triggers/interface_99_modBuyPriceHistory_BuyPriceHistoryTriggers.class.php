@@ -103,7 +103,7 @@ class InterfaceBuyPriceHistoryTriggers extends DolibarrTriggers
                 $extrafieldsToolBox = new ExtrafieldsToolbox($this->db);
                 $this->errors = array_merge($this->errors, $extrafieldsToolBox->cloneExtrafields('product_fournisseur_price', $staticBuyPriceHistory->table_element, true));
                 if (empty($this->errors)) {
-                    $staticBuyPriceHistory->logPriceFromInstance($object);
+                    $staticBuyPriceHistory->archiveAllPrice();
                     $this->errors = $staticBuyPriceHistory->errors;
                 }
                 return $staticBuyPriceHistory ? 1 : -1;

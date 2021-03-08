@@ -1330,7 +1330,7 @@ class ProductFournisseur extends Product
 
                 $record = new self($this->db);
                 $record->setVarsFromFetchObj($obj);
-
+$barcode = $record->barcode;
                 $records[$record->id] = $record;
 
                 $i++;

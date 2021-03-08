@@ -151,11 +151,6 @@ class BuyPriceHistory extends ProductFournisseur
 
         $productFournisseur = new ProductFournisseur($db);
         $this->fields = array_merge($this->addedFields, $productFournisseur->fields);
-		//We update visibility
-		$visibleFields = array('original_datec');
-
-		//We translate fields
-
 
         if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) {
             $this->fields['rowid']['visible'] = 0;

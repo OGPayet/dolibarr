@@ -30,6 +30,13 @@ Settings = Réglages
 BuyPriceHistorySetupPage = Page de configuration du module Buy Price History
 
 #
+# List And Tab
+#
+BuyPriceHistoryTabTitle = Historique Prix Achat
+BuyPriceHistoryTitle = Historique des prix d'achats
+
+
+#
 # Page À propos
 #
 About = À propos

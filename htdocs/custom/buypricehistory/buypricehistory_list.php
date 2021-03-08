@@ -97,7 +97,7 @@ $object = new BuyPriceHistory($db);
 $extrafields = new ExtraFields($db);
 $diroutputmassaction = $conf->buypricehistory->dir_output . '/temp/massgeneration/' . $user->id;
 
-$product = new Product($db);
+$product = new ProductFournisseur($db);
 if ($id > 0 || $ref) {
 	$product->fetch($id, $ref);
 }
@@ -148,6 +148,26 @@ foreach ($object->fields as $key => $val) {
 		);
 	}
 }
+
+$arrayfields = array(
+	't.original_tms' => array('label' => $langs->trans("AppliedPricesFrom"), 'checked' => 0, 'position' => 1),
+	't.fk_soc' => array('label' => $langs->trans("Suppliers"), 'checked' => 0, 'position' => 2),
+	't.ref_fourn' => array('label' => $langs->trans("SupplierRef"), 'enabled' => 1, 'checked' => 0, 'position' => 3),
+	't.fk_availability' => array('label' => $langs->trans("Availability"), 'enabled' => !empty($conf->global->FOURN_PRODUCT_AVAILABILITY), 'checked' => 0, 'position' => 4),
+	't.quantity' => array('label' => $langs->trans("QtyMin"), 'checked' => 0, 'position' => 5),
+	't.tva_tx' => array('label' => $langs->trans("VATRate"), 'enabled' => 1, 'checked' => 0, 'position' => 6),
+	't.price' => array('label' => $langs->trans("PriceQtyMinHT"), 'enabled' => 1, 'checked' => 0, 'position' => 7),
+	't.multicurrency_price' => array('label' => $langs->trans("PriceQtyMinHTCurrency"), 'enabled' => !empty($conf->multicurrency->enabled), 'checked' => 0, 'position' => 8),
+	't.unitprice' => array('label' => $langs->trans("UnitPriceHT"), 'checked' => 0, 'position' => 9),
+	't.multicurrency_unitprice' => array('label' => $langs->trans("UnitPriceHTCurrency"), 'enabled' => !empty($conf->multicurrency->enabled), 'checked' => 0, 'position' => 10),
+	't.remise_percent' => array('label' => $langs->trans("DiscountQtyMin"), 'enabled' => $conf->multicurrency->enabled, 'checked' => 0, 'position' => 11),
+	't.delivery_time_days' => array('label' => $langs->trans("NbDaysToDelivery"), 'checked' => 0, 'position' => 13),
+	't.supplier_reputation' => array('label' => $langs->trans("ReputationForThisProduct"), 'checked' => 0, 'position' => 14),
+	't.barcode' => array('label' => $langs->trans("BarcodeValue"), 'enabled' => $conf->barcode->enabled, 'checked' => 0, 'position' => 15),
+	't.fk_barcode_type' => array('label' => $langs->trans("BarcodeType"), 'enabled' => $conf->barcode->enabled, 'checked' => 0, 'position' => 16),
+	't.packaging' => array('label' => $langs->trans("PackagingForThisProduct"), 'enabled' => !empty($conf->global->PRODUCT_USE_SUPPLIER_PACKAGING), 'checked' => 0, 'position' => 17),
+);
+
 // Extra fields
 include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_list_array_fields.tpl.php';
 
@@ -328,16 +348,18 @@ if (GETPOST("type") == '1' || ($object->type == Product::TYPE_SERVICE)) {
 
 llxHeader('', $title, $helpurl, '', 0, 0, '', '', '', 'classforhorizontalscrolloftabs');
 $head = product_prepare_head($product);
-$titre = $langs->trans("CardProduct".$product->type);
+$titre = $langs->trans("CardProduct" . $product->type);
 $picto = ($product->type == Product::TYPE_SERVICE ? 'service' : 'product');
 
 print dol_get_fiche_head($head, 'product_buypricehistory', $titre, -1, $picto);
 
-$linkback = '<a href="'.DOL_URL_ROOT.'/product/list.php?restore_lastsearch_values=1">'.$langs->trans("BackToList").'</a>';
-$product->next_prev_filter = " fk_product_type = ".$product->type;
+$linkback = '<a href="' . DOL_URL_ROOT . '/product/list.php?restore_lastsearch_values=1">' . $langs->trans("BackToList") . '</a>';
+$product->next_prev_filter = " fk_product_type = " . $product->type;
 
 $shownav = 1;
-if ($user->socid && !in_array('product', explode(',', $conf->global->MAIN_MODULES_FOR_EXTERNAL))) $shownav = 0;
+if ($user->socid && !in_array('product', explode(',', $conf->global->MAIN_MODULES_FOR_EXTERNAL))) {
+	$shownav = 0;
+}
 
 dol_banner_tab($product, 'ref', $linkback, $shownav, 'ref');
 
@@ -349,7 +371,7 @@ print '<table class="border tableforfield" width="100%">';
 // Cost price. Can be used for margin module for option "calculate margin on explicit cost price
 print '<tr><td>';
 $textdesc = $langs->trans("CostPriceDescription");
-$textdesc .= "<br>".$langs->trans("CostPriceUsage");
+$textdesc .= "<br>" . $langs->trans("CostPriceUsage");
 $text = $form->textwithpicto($langs->trans("CostPrice"), $textdesc, 1, 'help', '');
 print $form->editfieldkey($text, 'cost_price', $product->cost_price, $product, $usercancreate, 'amount:6');
 print '</td><td colspan="2">';
@@ -357,20 +379,24 @@ print $form->editfieldval($text, 'cost_price', $product->cost_price, $product, $
 print '</td></tr>';
 
 // PMP
-print '<tr><td class="titlefield">'.$form->textwithpicto($langs->trans("AverageUnitPricePMPShort"), $langs->trans("AverageUnitPricePMPDesc")).'</td>';
+print '<tr><td class="titlefield">' . $form->textwithpicto($langs->trans("AverageUnitPricePMPShort"), $langs->trans("AverageUnitPricePMPDesc")) . '</td>';
 print '<td>';
-if ($product->pmp > 0) print price($product->pmp).' '.$langs->trans("HT");
+if ($product->pmp > 0) {
+	print price($product->pmp) . ' ' . $langs->trans("HT");
+}
 print '</td>';
 print '</tr>';
 
 // Best buying Price
-print '<tr><td class="titlefield">'.$langs->trans("BuyingPriceMin").'</td>';
+print '<tr><td class="titlefield">' . $langs->trans("BuyingPriceMin") . '</td>';
 print '<td colspan="2">';
 $product_fourn = new ProductFournisseur($db);
-if ($product_fourn->find_min_price_product_fournisseur($product->id) > 0)
-{
-	if ($product_fourn->product_fourn_price_id > 0) print $product_fourn->display_price_product_fournisseur();
-	else print $langs->trans("NotDefined");
+if ($product_fourn->find_min_price_product_fournisseur($product->id) > 0) {
+	if ($product_fourn->product_fourn_price_id > 0) {
+		print $product_fourn->display_price_product_fournisseur();
+	} else {
+		print $langs->trans("NotDefined");
+	}
 }
 print '</td></tr>';
 
@@ -426,6 +452,7 @@ if ($optioncss != '') {
 print '<input type="hidden" name="token" value="' . newToken() . '">';
 print '<input type="hidden" name="formfilteraction" id="formfilteraction" value="list">';
 print '<input type="hidden" name="action" value="list">';
+print '<input type="hidden" name="id" value="' . $id . '">';
 print '<input type="hidden" name="sortfield" value="' . $sortfield . '">';
 print '<input type="hidden" name="sortorder" value="' . $sortorder . '">';
 print '<input type="hidden" name="contextpage" value="' . $contextpage . '">';
@@ -488,15 +515,20 @@ foreach ($object->fields as $key => $val) {
 		$cssforfield .= ($cssforfield ? ' ' : '') . 'right';
 	}
 	if (!empty($arrayfields['t.' . $key]['checked'])) {
-		print '<td class="liste_titre' . ($cssforfield ? ' ' . $cssforfield : '') . '">';
+		$arrayfields['t.' . $key]['searchform'] = '<td class="liste_titre' . ($cssforfield ? ' ' . $cssforfield : '') . '">';
 		if (!empty($val['arrayofkeyval']) && is_array($val['arrayofkeyval'])) {
-			print $form->selectarray('search_' . $key, $val['arrayofkeyval'], $search[$key], $val['notnull'], 0, 0, '', 1, 0, 0, '', 'maxwidth100', 1);
+			$arrayfields['t.' . $key]['searchform'] .= $form->selectarray('search_' . $key, $val['arrayofkeyval'], $search[$key], $val['notnull'], 0, 0, '', 1, 0, 0, '', 'maxwidth100', 1);
 		} elseif (strpos($val['type'], 'integer:') === 0) {
-			print $object->showInputField($val, $key, $search[$key], '', '', 'search_', 'maxwidth125', 1);
+			$arrayfields['t.' . $key]['searchform'] .= $object->showInputField($val, $key, $search[$key], '', '', 'search_', 'maxwidth125', 1);
 		} elseif (!preg_match('/^(date|timestamp)/', $val['type'])) {
-			print '<input type="text" class="flat maxwidth75" name="search_' . $key . '" value="' . dol_escape_htmltag($search[$key]) . '">';
+			$arrayfields['t.' . $key]['searchform'] .= '<input type="text" class="flat maxwidth75" name="search_' . $key . '" value="' . dol_escape_htmltag($search[$key]) . '">';
 		}
-		print '</td>';
+		$arrayfields['t.' . $key]['searchform'] .= '</td>';
+	}
+}
+foreach($arrayfields as $key=>$value) {
+	if (!empty($arrayfields[$key]['checked']) && !empty($arrayfields[$key]['searchform'])) {
+		print $arrayfields[$key]['searchform'];
 	}
 }
 // Extra fields
@@ -529,7 +561,13 @@ foreach ($object->fields as $key => $val) {
 		$cssforfield .= ($cssforfield ? ' ' : '') . 'right';
 	}
 	if (!empty($arrayfields['t.' . $key]['checked'])) {
-		print getTitleFieldOfList($arrayfields['t.' . $key]['label'], 0, $_SERVER['PHP_SELF'], 't.' . $key, '', $param, ($cssforfield ? 'class="' . $cssforfield . '"' : ''), $sortfield, $sortorder, ($cssforfield ? $cssforfield . ' ' : '')) . "\n";
+		$arrayfields['t.' . $key]['css'] = $cssforfield;
+	}
+}
+foreach($arrayfields as $key=>$value) {
+	if (!empty($arrayfields[$key]['checked'])) {
+		$cssforfield = $arrayfields[$key]['css'];
+		print getTitleFieldOfList($arrayfields[$key]['label'], 0, $_SERVER['PHP_SELF'],$key, '', 'id='.$id, ($cssforfield ? 'class="' . $cssforfield . '"' : ''), $sortfield, $sortorder, ($cssforfield ? $cssforfield . ' ' : '')) . "\n";
 	}
 }
 // Extra fields
@@ -569,43 +607,129 @@ while ($i < ($limit ? min($num, $limit) : $num)) {
 
 	// Show here line of result
 	print '<tr class="oddeven">';
-	foreach ($object->fields as $key => $val) {
-		$cssforfield = (empty($val['css']) ? '' : $val['css']);
-		if (in_array($val['type'], array('date', 'datetime', 'timestamp'))) {
-			$cssforfield .= ($cssforfield ? ' ' : '') . 'center';
-		} elseif ($key == 'status') {
-			$cssforfield .= ($cssforfield ? ' ' : '') . 'center';
-		}
+	// Date from
+	if (!empty($arrayfields['t.original_tms']['checked'])) {
+		print '<td>' . dol_print_date($object->original_tms, 'dayhour') . '</td>';
+	}
 
-		if (in_array($val['type'], array('timestamp'))) {
-			$cssforfield .= ($cssforfield ? ' ' : '') . 'nowrap';
-		} elseif ($key == 'ref') {
-			$cssforfield .= ($cssforfield ? ' ' : '') . 'nowrap';
-		}
+	// Supplier
+	if (!empty($arrayfields['t.fk_soc']['checked'])) {
+		$object->fourn_id = $object->fk_soc;
+		print '<td class="tdoverflowmax200">' . $object->getSocNomUrl(1, 'supplier') . '</td>';
+	}
 
-		if (in_array($val['type'], array('double(24,8)', 'double(6,3)', 'integer', 'real', 'price')) && !in_array($key, array('rowid', 'status'))) {
-			$cssforfield .= ($cssforfield ? ' ' : '') . 'right';
-		}
-		//if (in_array($key, array('fk_soc', 'fk_user', 'fk_warehouse'))) $cssforfield = 'tdoverflowmax100';
+	// Supplier ref
+	if (!empty($arrayfields['t.ref_fourn']['checked'])) {
+	print '<td class="left">' . $object->ref_fourn . '</td>';
+	}
 
-		if (!empty($arrayfields['t.' . $key]['checked'])) {
-			print '<td' . ($cssforfield ? ' class="' . $cssforfield . '"' : '') . '>';
-			if ($key == 'status') {
-				print $object->getLibStatut(5);
-			} else {
-				print $object->showOutputField($val, $key, $object->$key, '');
-			}
-			print '</td>';
-			if (!$i) {
-				$totalarray['nbfield']++;
-			}
-			if (!empty($val['isameasure'])) {
-				if (!$i) {
-					$totalarray['pos'][$totalarray['nbfield']] = 't.' . $key;
-				}
-				$totalarray['val']['t.' . $key] += $object->$key;
+	// Availability
+	if (!empty($arrayfields['t.fk_availability']['checked'])) {
+		$form->load_cache_availability();
+		$availability = $form->cache_availability[$object->fk_availability]['label'];
+		print '<td class="left">' . $availability . '</td>';
+	}
+
+	// Quantity
+	if (!empty($arrayfields['t.quantity']['checked'])) {
+		print '<td class="right">';
+		print $object->quantity;
+		// Units
+		if (!empty($conf->global->PRODUCT_USE_UNITS)) {
+			$unit = $product->getLabelOfUnit();
+			if ($unit !== '') {
+				print '&nbsp;&nbsp;' . $langs->trans($unit);
 			}
 		}
+		print '</td>';
+	}
+
+	// VAT rate
+	if (!empty($arrayfields['t.tva_tx']['checked'])) {
+	print '<td class="right">';
+	print vatrate($object->tva_tx, true);
+	print '</td>';
+	}
+
+	// Price for the quantity
+	if (!empty($arrayfields['t.price']['checked'])) {
+	print '<td class="right">';
+	print $object->price ? price($object->price) : "";
+	print '</td>';
+	}
+
+	if (!empty($conf->multicurrency->enabled) && !empty($arrayfields['t.multicurrency_price']['checked'])) {
+		// Price for the quantity in currency
+		print '<td class="right">';
+		print $object->fourn_multicurrency_price ? price($object->fourn_multicurrency_price) : "";
+		print '</td>';
+	}
+
+	// Unit price
+	if (!empty($arrayfields['t.unitprice']['checked'])) {
+		print '<td class="right">';
+		print price($object->unitprice);
+		print '</td>';
+	}
+
+	// Unit price in currency
+	if (!empty($conf->multicurrency->enabled) && !empty($arrayfields['t.multicurrency_unitprice']['checked'])) {
+		print '<td class="right">';
+		print price($object->multicurrency_unitprice);
+		print '</td>';
+	}
+
+	// Currency
+	if (!empty($conf->multicurrency->enabled) && !empty($arrayfields['t.multicurrency_code']['checked'])) {
+		print '<td class="right">';
+		print $object->multicurrency_code ? currency_name($object->multicurrency_code) : '';
+		print '</td>';
+	}
+
+	// Discount
+	if (!empty($arrayfields['t.remise_percent']['checked'])) {
+	print '<td class="right">';
+	print price2num($object->remise_percent) . '%';
+	print '</td>';
+	}
+
+	// Delivery delay
+	if (!empty($arrayfields['t.delivery_time_days']['checked'])) {
+		print '<td class="right">';
+		print $object->delivery_time_days;
+		print '</td>';
+	}
+
+	// Reputation
+	if (!empty($arrayfields['t.supplier_reputation']['checked'])) {
+		print '<td class="center">';
+		if (!empty($object->supplier_reputation) && !empty($product->reputations[$object->supplier_reputation])) {
+			print $product->reputations[$object->supplier_reputation];
+		}
+		print '</td>';
+	}
+
+	// Barcode
+	if (!empty($arrayfields['t.barcode']['checked'])) {
+		print '<td align="right">';
+		print $object->barcode;
+		print '</td>';
+	}
+
+	// Barcode type
+	if (!empty($arrayfields['t.fk_barcode_type']['checked'])) {
+		print '<td class="center">';
+		$object->barcode_type = !empty($object->fk_barcode_type) ? $object->fk_barcode_type : 0;
+		$object->fetch_barcode();
+		print $object->barcode_type_label ? $object->barcode_type_label : ($object->barcode ? '<div class="warning">' . $langs->trans("SetDefaultBarcodeType") . '<div>' : '');
+		print '</td>';
+	}
+
+	// Packaging
+	if (!empty($arrayfields['t.packaging']['checked'])) {
+		print '<td align="center">';
+		print price2num($object->packaging);
+		print '</td>';
 	}
 	// Extra fields
 	include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_list_print_fields.tpl.php';
