@@ -137,7 +137,7 @@ if ($list_mode == 0 || $list_mode == 1) {
 
 	$requestIdsString = !empty($request_ids) ? implode(',', $request_ids) : '-1';
 
-	$sql .= ' AND (t.elementtype="requestmanager" AND t.fk_element IN (' . $requestIdsString . ') ';
+	$sql .= ' AND (ac.elementtype="requestmanager" AND ac.fk_element IN (' . $requestIdsString . ') ';
 	if (!empty($sqlForActionCommFromLinkObject)) {
 		$sql .= ' OR (' . $sqlForActionCommFromLinkObject . ') ';
 	}
