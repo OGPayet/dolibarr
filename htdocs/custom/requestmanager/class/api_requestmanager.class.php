@@ -916,9 +916,13 @@ class RequestManagerApi extends DolibarrApi
             $sql .= ' AND t.fk_soc IN (' . implode(',', $soc_ids) . ')';
 			$requestIdsString = !empty($request_ids) ? implode(',', $request_ids) : '-1';
 
-			$sql .= ' AND (t.elementtype="requestmanager" AND t.fk_element IN (' . $requestIdsString .') OR (' . $sqlForActionCommFromLinkObject . ') ) ';
+			$sql .= ' AND (t.elementtype="requestmanager" AND t.fk_element IN (' . $requestIdsString .') ';
+			if(!empty($sqlForActionCommFromLinkObject)) {
+				$sql .= ' OR (' . $sqlForActionCommFromLinkObject . ') ';
+			}
+			$sql .= ' ) ';
 			if (!$include_events_other_request) {
-				$sql .= " AND (t.elementtype != 'requestmanager' OR t.fk_element IN (" . $requestIdsString . "))";
+				$sql .= " AND (t.elementtype != 'requestmanager' OR t.fk_element IN (" . $requestIdsString . ") )";
 			}
         } else {
             $sql .= " AND t.elementtype = 'requestmanager' AND t.fk_element IN (" . $request_ids . ")";
