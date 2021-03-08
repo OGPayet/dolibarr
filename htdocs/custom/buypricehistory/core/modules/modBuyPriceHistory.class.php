@@ -122,7 +122,7 @@ class modBuyPriceHistory extends DolibarrModules
         $this->dirs = array("/buypricehistory/temp");
 
         // Config pages. Put here list of php page, stored into buypricehistory/admin directory, to use to setup module.
-        $this->config_page_url = array("setup.php@buypricehistory");
+        $this->config_page_url = array();
 
         // Dependencies
         // A condition to hide module

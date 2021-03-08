@@ -27,7 +27,7 @@ require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
 /**
  * Class for BuyPriceHistory
  */
-class BuyPriceHistory extends ProductFournisseur
+class BuyPriceHistory extends CommonObject
 {
     /**
      * @var string ID of module.
@@ -59,15 +59,6 @@ class BuyPriceHistory extends ProductFournisseur
      * @var string String with name of icon for buypricehistory. Must be the part after the 'object_' into object_buypricehistory.png
      */
     public $picto = 'buypricehistory@buypricehistory';
-
-    public $addedFields=array(
-        'fk_object' => array('type'=>'integer:ProductFournisseur:fourn/class/fournisseur.product.class.php', 'label'=>'Linked Supplier price', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0),
-        'begin_date' => array('type'=>'datetime', 'label'=>'BuyPriceHistoryStartDate', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
-        'end_date' => array('type'=>'datetime', 'label'=>'BuyPriceHistoryEndDate', 'enabled'=>'1', 'position'=>25, 'notnull'=>0, 'visible'=>-1,),
-        'original_datec' => array('type'=>'datetime', 'label'=>'OriginalDateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
-        'original_tms' => array('type'=>'timestamp', 'label'=>'OriginalDateModification', 'enabled'=>'1', 'position'=>25, 'notnull'=>1, 'visible'=>-1,),
-        'original_fk_user' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'OriginalFkuser', 'enabled'=>'1', 'position'=>100, 'notnull'=>0, 'visible'=>-1,)
-    );
     /**
      *  'type' field format ('integer', 'integer:ObjectClass:PathToClass[:AddCreateButtonOrNot[:Filter]]', 'sellist:TableName:LabelFieldName[:KeyFieldName[:KeyFieldParent[:Filter]]]', 'varchar(x)', 'double(24,8)', 'real', 'price', 'text', 'text:none', 'html', 'date', 'datetime', 'timestamp', 'duration', 'mail', 'phone', 'url', 'password')
      *         Note: Filter can be a string like "(t.ref:like:'SO-%') or (t.date_creation:<:'20160101') or (t.nature:is:NULL)"
@@ -98,7 +89,49 @@ class BuyPriceHistory extends ProductFournisseur
     /**
      * @var array  Array with all fields and their property. Do not use it as a static var. It may be modified by constructor.
      */
-    public $fields = array();
+    public $fields = array(
+		'rowid' => array('type'=>'integer', 'label'=>'TechnicalID', 'enabled'=>'1', 'position'=>10, 'notnull'=>1, 'visible'=>0,),
+        'entity' => array('type'=>'integer', 'label'=>'Entity', 'enabled'=>'1', 'position'=>15, 'notnull'=>1, 'visible'=>-2, 'default'=>'1', 'index'=>1,),
+        'datec' => array('type'=>'datetime', 'label'=>'DateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
+        'tms' => array('type'=>'timestamp', 'label'=>'DateModification', 'enabled'=>'1', 'position'=>25, 'notnull'=>1, 'visible'=>-1,),
+        'fk_product' => array('type'=>'integer:Product:product/class/product.class.php:1', 'label'=>'Fkproduct', 'enabled'=>'1', 'position'=>30, 'notnull'=>0, 'visible'=>-1,),
+        'fk_soc' => array('type'=>'integer:Societe:societe/class/societe.class.php', 'label'=>'ThirdParty', 'enabled'=>'1', 'position'=>35, 'notnull'=>0, 'visible'=>-1,),
+        'ref_fourn' => array('type'=>'varchar(255)', 'label'=>'Reffourn', 'enabled'=>'1', 'position'=>40, 'notnull'=>0, 'visible'=>-1,),
+        'desc_fourn' => array('type'=>'text', 'label'=>'Descfourn', 'enabled'=>'1', 'position'=>45, 'notnull'=>0, 'visible'=>-1,),
+        'fk_availability' => array('type'=>'integer', 'label'=>'Fkavailability', 'enabled'=>'1', 'position'=>50, 'notnull'=>0, 'visible'=>-1,),
+        'price' => array('type'=>'double(24,8)', 'label'=>'Price', 'enabled'=>'1', 'position'=>55, 'notnull'=>0, 'visible'=>-1,),
+        'quantity' => array('type'=>'double', 'label'=>'Quantity', 'enabled'=>'1', 'position'=>60, 'notnull'=>0, 'visible'=>-1,),
+        'remise_percent' => array('type'=>'double', 'label'=>'Remisepercent', 'enabled'=>'1', 'position'=>65, 'notnull'=>1, 'visible'=>-1,),
+        'remise' => array('type'=>'double', 'label'=>'Remise', 'enabled'=>'1', 'position'=>70, 'notnull'=>1, 'visible'=>-1,),
+        'unitprice' => array('type'=>'double(24,8)', 'label'=>'Unitprice', 'enabled'=>'1', 'position'=>75, 'notnull'=>0, 'visible'=>-1,),
+        'charges' => array('type'=>'double(24,8)', 'label'=>'Charges', 'enabled'=>'1', 'position'=>80, 'notnull'=>0, 'visible'=>-1,),
+        'default_vat_code' => array('type'=>'varchar(10)', 'label'=>'Defaultvatcode', 'enabled'=>'1', 'position'=>85, 'notnull'=>0, 'visible'=>-1,),
+        'tva_tx' => array('type'=>'double(6,3)', 'label'=>'Tvatx', 'enabled'=>'1', 'position'=>90, 'notnull'=>1, 'visible'=>-1,),
+        'info_bits' => array('type'=>'integer', 'label'=>'Infobits', 'enabled'=>'1', 'position'=>95, 'notnull'=>1, 'visible'=>-1,),
+        'fk_user' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'Fkuser', 'enabled'=>'1', 'position'=>100, 'notnull'=>0, 'visible'=>-1,),
+        'fk_supplier_price_expression' => array('type'=>'integer', 'label'=>'Fksupplierpriceexpression', 'enabled'=>'1', 'position'=>105, 'notnull'=>0, 'visible'=>-1,),
+        'import_key' => array('type'=>'varchar(14)', 'label'=>'ImportId', 'enabled'=>'1', 'position'=>900, 'notnull'=>0, 'visible'=>-2,),
+        'delivery_time_days' => array('type'=>'integer', 'label'=>'Deliverytimedays', 'enabled'=>'1', 'position'=>115, 'notnull'=>0, 'visible'=>-1,),
+        'supplier_reputation' => array('type'=>'varchar(10)', 'label'=>'Supplierreputation', 'enabled'=>'1', 'position'=>120, 'notnull'=>0, 'visible'=>-1,),
+        'fk_multicurrency' => array('type'=>'integer', 'label'=>'Fkmulticurrency', 'enabled'=>'1', 'position'=>125, 'notnull'=>0, 'visible'=>-1,),
+        'multicurrency_code' => array('type'=>'varchar(255)', 'label'=>'Multicurrencycode', 'enabled'=>'1', 'position'=>130, 'notnull'=>0, 'visible'=>-1,),
+        'multicurrency_tx' => array('type'=>'double(24,8)', 'label'=>'Multicurrencytx', 'enabled'=>'1', 'position'=>135, 'notnull'=>0, 'visible'=>-1,),
+        'multicurrency_price' => array('type'=>'double(24,8)', 'label'=>'Multicurrencyprice', 'enabled'=>'1', 'position'=>140, 'notnull'=>0, 'visible'=>-1,),
+        'multicurrency_unitprice' => array('type'=>'double(24,8)', 'label'=>'Multicurrencyunitprice', 'enabled'=>'1', 'position'=>145, 'notnull'=>0, 'visible'=>-1,),
+        'localtax1_tx' => array('type'=>'double(6,3)', 'label'=>'Localtax1tx', 'enabled'=>'1', 'position'=>150, 'notnull'=>0, 'visible'=>-1,),
+        'localtax1_type' => array('type'=>'varchar(10)', 'label'=>'Localtax1type', 'enabled'=>'1', 'position'=>155, 'notnull'=>1, 'visible'=>-1,),
+        'localtax2_tx' => array('type'=>'double(6,3)', 'label'=>'Localtax2tx', 'enabled'=>'1', 'position'=>160, 'notnull'=>0, 'visible'=>-1,),
+        'localtax2_type' => array('type'=>'varchar(10)', 'label'=>'Localtax2type', 'enabled'=>'1', 'position'=>165, 'notnull'=>1, 'visible'=>-1,),
+        'barcode' => array('type'=>'varchar(180)', 'label'=>'Barcode', 'enabled'=>'1', 'position'=>170, 'notnull'=>0, 'visible'=>-1,),
+        'fk_barcode_type' => array('type'=>'integer', 'label'=>'Fkbarcodetype', 'enabled'=>'1', 'position'=>175, 'notnull'=>0, 'visible'=>-1,),
+        'packaging' => array('type'=>'varchar(64)', 'label'=>'Packaging', 'enabled'=>'1', 'position'=>180, 'notnull'=>0, 'visible'=>-1,),
+		'fk_object' => array('type'=>'integer:ProductFournisseur:fourn/class/fournisseur.product.class.php', 'label'=>'Linked Supplier price', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0),
+		'begin_date' => array('type'=>'datetime', 'label'=>'BuyPriceHistoryStartDate', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
+        'end_date' => array('type'=>'datetime', 'label'=>'BuyPriceHistoryEndDate', 'enabled'=>'1', 'position'=>25, 'notnull'=>0, 'visible'=>-1,),
+        'original_datec' => array('type'=>'datetime', 'label'=>'OriginalDateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
+        'original_tms' => array('type'=>'timestamp', 'label'=>'OriginalDateModification', 'enabled'=>'1', 'position'=>25, 'notnull'=>1, 'visible'=>-1,),
+        'original_fk_user' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'OriginalFkuser', 'enabled'=>'1', 'position'=>100, 'notnull'=>0, 'visible'=>-1,),
+	);
 
     public $rowid;
     public $entity;
@@ -152,9 +185,6 @@ class BuyPriceHistory extends ProductFournisseur
         global $conf, $langs;
 
         $this->db = $db;
-
-        $productFournisseur = new ProductFournisseur($db);
-        $this->fields = array_merge($this->addedFields, $productFournisseur->fields);
 
         if (empty($conf->global->MAIN_SHOW_TECHNICAL_ID) && isset($this->fields['rowid'])) {
             $this->fields['rowid']['visible'] = 0;
@@ -285,7 +315,9 @@ class BuyPriceHistory extends ProductFournisseur
         global $user;
         $errors = array();
         if ($productPrice->id) {
-            $instancesToUpdate = $this->fetchAll('DESC', 'begin_date', 0, 0, array('fk_object'=>$productPrice->id, 'customsql' => 'end_date IS NULL'), 'AND');
+			$payload = new self($this->db);
+            $instancesToUpdate = $payload->fetchAll('DESC', 'begin_date', 0, 0, array('fk_object'=>$productPrice->id, 'customsql' => 'end_date IS NULL'), 'AND');
+			$errors = array_merge($errors, $payload->errors);
         }
         if (is_array($instancesToUpdate) && !empty($instancesToUpdate)) {
 			$instancesToUpdate = array_reverse(array_values($instancesToUpdate));
