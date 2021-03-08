@@ -34,7 +34,7 @@ BuyPriceHistorySetupPage = Page de configuration du module Buy Price History
 #
 BuyPriceHistoryTabTitle = Historique Prix Achat
 BuyPriceHistoryTitle = Historique des prix d'achats
-
+BuyPriceHistoryAppliedPricesTo = Prix pratiqué jusqu'au
 
 #
 # Page À propos

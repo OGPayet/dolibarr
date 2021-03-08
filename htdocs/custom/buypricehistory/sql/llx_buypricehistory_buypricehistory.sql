@@ -21,6 +21,8 @@ CREATE TABLE llx_buypricehistory_buypricehistory(
 	entity integer DEFAULT 1 NOT NULL, 
 	datec datetime, 
 	original_datec datetime, 
+	begin_date datetime, 
+	end_date datetime NULL DEFAULT NULL,
 	tms timestamp NOT NULL,
 	original_tms timestamp NULL DEFAULT NULL,  
 	fk_product integer, 

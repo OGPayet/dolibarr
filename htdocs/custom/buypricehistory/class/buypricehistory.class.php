@@ -62,6 +62,8 @@ class BuyPriceHistory extends ProductFournisseur
 
     public $addedFields=array(
         'fk_object' => array('type'=>'integer:ProductFournisseur:fourn/class/fournisseur.product.class.php', 'label'=>'Linked Supplier price', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0),
+        'begin_date' => array('type'=>'datetime', 'label'=>'BuyPriceHistoryStartDate', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
+        'end_date' => array('type'=>'datetime', 'label'=>'BuyPriceHistoryEndDate', 'enabled'=>'1', 'position'=>25, 'notnull'=>0, 'visible'=>-1,),
         'original_datec' => array('type'=>'datetime', 'label'=>'OriginalDateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
         'original_tms' => array('type'=>'timestamp', 'label'=>'OriginalDateModification', 'enabled'=>'1', 'position'=>25, 'notnull'=>1, 'visible'=>-1,),
         'original_fk_user' => array('type'=>'integer:User:user/class/user.class.php', 'label'=>'OriginalFkuser', 'enabled'=>'1', 'position'=>100, 'notnull'=>0, 'visible'=>-1,)
@@ -102,7 +104,9 @@ class BuyPriceHistory extends ProductFournisseur
     public $entity;
     public $datec;
     public $original_datec;
+    public $begin_date;
     public $tms;
+    public $end_date;
     public $original_tms;
     public $fk_product;
     public $fk_soc;
@@ -188,7 +192,7 @@ class BuyPriceHistory extends ProductFournisseur
      * @param  int         $offset       Offset
      * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
      * @param  string      $filtermode   Filter mode (AND or OR)
-     * @return array|int                 int <0 if KO, array of pages if OK
+     * @return BuyPriceHistory[]|int                 int <0 if KO, array of pages if OK
      */
     public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND')
     {
@@ -260,6 +264,18 @@ class BuyPriceHistory extends ProductFournisseur
     }
 
     /**
+     * Update object into database
+     *
+     * @param  User $user      User that modifies
+     * @param  bool $notrigger false=launch triggers after, true=disable triggers
+     * @return int             <0 if KO, >0 if OK
+     */
+    // public function update(User $user, $notrigger = false)
+    // {
+    //     return $this->updateCommon($user, $notrigger);
+    // }
+
+    /**
      * Delete object in database
      *
      * @param User $user       User that deletes
@@ -272,48 +288,67 @@ class BuyPriceHistory extends ProductFournisseur
     }
 
     /**
-     * Log a supplier price thanks to a price id
-     * @param int $priceId
-     * @return BuyPriceHistory|null instance of the history created
+     * Log a supplier price not anymore valid from instance
+     * @param ProductFournisseur $productPrice
+     * @return bool
      */
-    public function logPriceFromId($priceId)
+    public function logOldPriceFromInstance($productPrice)
     {
-        $result = null;
-        $productFournisseur = new self($this->db);
-        $priceFound = $productFournisseur->fetch_product_fournisseur_price($priceId);
-        $this->errors = array_merge($this->errors, $productFournisseur->errors);
-        if ($priceFound > 0) {
-            $result = $this->logPriceFromInstance($productFournisseur);
+        global $user;
+        $errors = array();
+        if ($productPrice->id) {
+            $instancesToUpdate = $this->fetchAll('DESC', 'begin_date', 0, 0, array('fk_object'=>$productPrice->id, 'customsql' => 'end_date IS NULL'), 'AND');
         }
-        return $result;
+        if (is_array($instancesToUpdate) && !empty($instancesToUpdate)) {
+			$instancesToUpdate = array_reverse(array_values($instancesToUpdate));
+            $mostRecentPriceLogged = array_pop($instancesToUpdate);
+            if ($mostRecentPriceLogged) {
+                $mostRecentPriceLogged->end_date = self::getPriceValidityStartDate($productPrice);
+                $mostRecentPriceLogged->updateCommon($user);
+                $errors = array_merge($errors, $mostRecentPriceLogged->errors);
+            }
+            $date_start = $mostRecentPriceLogged->date_start;
+            foreach ($instancesToUpdate as $instance) {
+                $instance->end_date = $date_start;
+                $date_start = $instance->start_date;
+                $instance->updateCommon($user);
+                $errors = array_merge($errors, $instance->errors);
+            }
+        }
+        $this->errors = array_merge($this->errors, $errors);
+        return empty($errors);
     }
-
     /**
      * Log a supplier price thanks to a ProductFournisseur instance
      * @param ProductFournisseur $productPrice
      * @return BuyPriceHistory|null instance of the history created
      */
-    public function logPriceFromInstance($productPrice)
+    public function logNewPriceFromInstance($productPrice)
     {
         global $user;
         $result = null;
         if ($productPrice->id) {
-            $productPriceHistory = new self($this->db);
-            $fieldToBulkUpdate = array_keys($productPrice->fields);
-            $fieldToBulkUpdate = array_diff($fieldToBulkUpdate, array('datec', 'tms', 'fk_user'));
-            foreach ($fieldToBulkUpdate as $field) {
-                $productPriceHistory->$field = $productPrice->$field;
+            //We set old log instance price end date
+            if ($this->logOldPriceFromInstance($productPrice)) {
+//We create a new log instance with this price
+                $productPriceHistory = new self($this->db);
+                $fieldToBulkUpdate = array_keys($productPrice->fields);
+                $fieldToBulkUpdate = array_diff($fieldToBulkUpdate, array('datec', 'tms', 'fk_user'));
+                foreach ($fieldToBulkUpdate as $field) {
+                    $productPriceHistory->$field = $productPrice->$field;
+                }
+                $productPriceHistory->original_fk_user = $productPrice->fk_user;
+                $productPriceHistory->original_tms = $productPrice->tms;
+                $productPriceHistory->original_datec = $productPrice->date_creation;
+                $productPriceHistory->begin_date = self::getPriceValidityStartDate($productPrice);
+                $productPriceHistory->fk_object = $productPrice->id;
+                if (!$productPrice->array_options) {
+                    $productPrice->fetch_optionals();
+                }
+                $productPriceHistory->array_options = $productPrice->array_options;
+                $result = $productPriceHistory->create($user) > 0 ? $productPriceHistory : null;
+                $this->errors = array_merge($this->errors, $productPriceHistory->errors);
             }
-            $productPriceHistory->original_fk_user = $productPrice->fk_user;
-            $productPriceHistory->original_tms = $productPrice->tms;
-            $productPriceHistory->original_datec = $productPrice->date_creation;
-			$productPriceHistory->fk_object = $productPrice->id;
-			if(!$productPrice->array_options) {
-				$productPrice->fetch_optionals();
-			}
-			$productPriceHistory->array_options = $productPrice->array_options;
-            $result = $productPriceHistory->create($user) > 0 ? $productPriceHistory : null;
-            $this->errors = array_merge($this->errors, $productPriceHistory->errors);
         }
         return $result;
     }
@@ -331,11 +366,12 @@ class BuyPriceHistory extends ProductFournisseur
         $sql .= " FROM " . MAIN_DB_PREFIX . "product_fournisseur_price as product_fournisseur_price ";
         $sql .= " LEFT JOIN " . MAIN_DB_PREFIX ."buypricehistory_buypricehistory as buy_price_history ";
         $sql .= " ON (product_fournisseur_price.rowid = buy_price_history.fk_object) ";
-        $sql .= " WHERE ( buy_price_history.fk_object IS NULL OR product_fournisseur_price.tms != buy_price_history.original_tms OR product_fournisseur_price.datec != buy_price_history.original_datec ) ";
+        $sql .= " WHERE ( buy_price_history.fk_object IS NULL OR product_fournisseur_price.tms != buy_price_history.original_tms ) ";
         $sql .= " AND product_fournisseur_price.entity IN (" . getEntity('productsupplierprice') . ")";
         if ($productId) {
             $sql .= 'AND product_fournisseur_price.fk_product = ' . $productId;
         }
+		$sql .= ' GROUP BY product_fournisseur_price.rowid ';
         $resql = $this->db->query($sql);
         if ($resql) {
             $result = array();
@@ -365,12 +401,22 @@ class BuyPriceHistory extends ProductFournisseur
         }
         if (is_array($supplierPriceInstanceToArchive)) {
             foreach ($supplierPriceInstanceToArchive as $supplierPrice) {
-                $payload = $this->logPriceFromInstance($supplierPrice);
+                $payload = $this->logNewPriceFromInstance($supplierPrice);
                 if ($payload) {
                     $result[] = $payload;
                 }
             }
         }
         return $result;
+    }
+
+    /**
+     * Function to get starting price valid date from ProductFournisseur instance
+     * @param ProductFournisseur $productPrice
+     * @return Date|null
+     */
+    public static function getPriceValidityStartDate($productPrice)
+    {
+        return !empty($productPrice->tms) ? $productPrice->tms : $productPrice->date_creation;
     }
 }
