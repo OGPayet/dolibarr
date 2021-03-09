@@ -147,13 +147,7 @@ class ActionsCompanyRelationships
                     }
                 }
 
-                // action confirm principal company on create
-                if ($action == 'companyrelationships_confirm_socid' && $userRightsElementCreer) {
-                    // it doesn't work because object is new in create mode
-                    //$object->cr_confirm_socid = 1;
-                    $action = 'create';
-                } // update extra fields
-                elseif ($action == 'update_extras' && $userRightsElementCreer) {
+              if ($action == 'update_extras' && $userRightsElementCreer) {
                     $attribute = GETPOST('attribute', 'alpha');
 
                     // update benefactor company
@@ -453,7 +447,7 @@ class ActionsCompanyRelationships
 								$out.='</>';
 								$out .= $formcompanyrelationships->formconfirm_socid($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), $action, $formQuestionList, '', 1, 200, 500, $formName);
 							} else {
-								$out .= $formcompanyrelationships->formconfirm_socid($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'companyrelationships_confirm_socid', $formQuestionList, '', 1, 200, 500, $formName);
+								$out .= $formcompanyrelationships->formconfirm_socid($_SERVER['PHP_SELF'], $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyTitle'), $langs->trans('CompanyRelationshipsConfirmPrincipalCompanyChoice'), 'create', $formQuestionList, '', 1, 200, 500, $formName);
 							}
                         }
                     }
