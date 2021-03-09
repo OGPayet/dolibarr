@@ -377,7 +377,7 @@ if (empty($reshook))
 	} elseif ($action == 'setinvoicedate' && $usercancreate) {
 		$object->fetch($id);
 		$old_date_lim_reglement = $object->date_lim_reglement;
-		$date = dol_mktime(12, 0, 0, $_POST['invoicedatemonth'], $_POST['invoicedateday'], $_POST['invoicedateyear']);
+		$date = dol_mktime(12, 0, 0, GETPOST('invoicedatemonth', 'int'), GETPOST('invoicedateday', 'int'), GETPOST('invoicedateyear', 'int'));
 		if (empty($date))
 		{
 			setEventMessages($langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("Date")), null, 'errors');
@@ -1878,7 +1878,7 @@ if (empty($reshook))
 			$_GET["originid"] = $_POST["originid"];
 			setEventMessages($object->error, $object->errors, 'errors');
 		}
-	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'aZ09') && GETPOST('vatforalllines', 'alpha')) {
+	} elseif ($action == 'addline' && GETPOST('submitforalllines', 'alpha') && GETPOST('vatforalllines', 'alpha') !== '') {
 		// Define vat_rate
 		$vat_rate = (GETPOST('vatforalllines') ? GETPOST('vatforalllines') : 0);
 		$vat_rate = str_replace('*', '', $vat_rate);
@@ -1895,8 +1895,8 @@ if (empty($reshook))
 		// Set if we used free entry or predefined product
 		$predef = '';
 		$product_desc = (GETPOST('dp_desc', 'none') ?GETPOST('dp_desc', 'restricthtml') : '');
-		$price_ht = price2num(GETPOST('price_ht'));
-		$price_ht_devise = price2num(GETPOST('multicurrency_price_ht'));
+		$price_ht = price2num(GETPOST('price_ht'), 'MU', 2);
+		$price_ht_devise = price2num(GETPOST('multicurrency_price_ht'), 'CU', 2);
 		$prod_entry_mode = GETPOST('prod_entry_mode', 'alpha');
 		if ($prod_entry_mode == 'free')
 		{
@@ -2216,10 +2216,10 @@ if (empty($reshook))
 		$date_start = dol_mktime(GETPOST('date_starthour'), GETPOST('date_startmin'), GETPOST('date_startsec'), GETPOST('date_startmonth'), GETPOST('date_startday'), GETPOST('date_startyear'));
 		$date_end = dol_mktime(GETPOST('date_endhour'), GETPOST('date_endmin'), GETPOST('date_endsec'), GETPOST('date_endmonth'), GETPOST('date_endday'), GETPOST('date_endyear'));
 		$description = dol_htmlcleanlastbr(GETPOST('product_desc', 'restricthtml') ? GETPOST('product_desc', 'restricthtml') : GETPOST('desc', 'restricthtml'));
-		$pu_ht = GETPOST('price_ht');
+		$pu_ht = price2num(GETPOST('price_ht'), '', 2);
 		$vat_rate = (GETPOST('tva_tx') ? GETPOST('tva_tx') : 0);
 		$qty = GETPOST('qty');
-		$pu_ht_devise = GETPOST('multicurrency_subprice');
+		$pu_ht_devise = price2num(GETPOST('multicurrency_subprice'), '', 2);
 
 		// Define info_bits
 		$info_bits = 0;
@@ -3596,7 +3596,7 @@ if ($action == 'create')
 		if (is_array($objectsrc->linkedObjects['facture']) && count($objectsrc->linkedObjects['facture']) >= 1)
 		{
 			setEventMessages('WarningBillExist', null, 'warnings');
-			echo ' ('.$langs->trans('LatestRelatedBill').end($objectsrc->linkedObjects['facture'])->getNomUrl(1).')';
+			echo ' ('.$langs->trans('LatestRelatedBill').' '.end($objectsrc->linkedObjects['facture'])->getNomUrl(1).')';
 		}
 		echo '</td></tr>';
 		print '<tr><td>'.$langs->trans('AmountHT').'</td><td colspan="2">'.price($objectsrc->total_ht).'</td></tr>';
@@ -4104,7 +4104,7 @@ if ($action == 'create')
 	if ($objectidnext > 0) {
 		$facthatreplace = new Facture($db);
 		$facthatreplace->fetch($objectidnext);
-		print ' <span class="opacitymediumbycolor paddingleft">('.$langs->transnoentities("ReplacedByInvoice", $facthatreplace->getNomUrl(1)).')</span>';
+		print ' <span class="opacitymediumbycolor paddingleft">('.str_replace('{s1}', $facthatreplace->getNomUrl(1), $langs->transnoentities("ReplacedByInvoice", '{s1}')).')</span>';
 	}
 
 	if ($object->type == Facture::TYPE_CREDIT_NOTE || $object->type == Facture::TYPE_DEPOSIT) {
@@ -4112,7 +4112,10 @@ if ($action == 'create')
 		$result = $discount->fetch(0, $object->id);
 		if ($result > 0) {
 			print ' <span class="opacitymediumbycolor paddingleft">';
-			print $langs->transnoentities("CreditNoteConvertedIntoDiscount", $object->getLibType(1), $discount->getNomUrl(1, 'discount'));
+			$s = $langs->trans("CreditNoteConvertedIntoDiscount", '{s1}', '{s2}');
+			$s = str_replace('{s1}', $object->getLibType(1), $s);
+			$s = str_replace('{s2}', $discount->getNomUrl(1, 'discount'), $s);
+			print $s;
 			print '</span><br>';
 		}
 	}
@@ -4123,7 +4126,9 @@ if ($action == 'create')
 		$result = $tmptemplate->fetch($object->fk_fac_rec_source);
 		if ($result > 0) {
 			print ' <span class="opacitymediumbycolor paddingleft">';
-			print $langs->transnoentities("GeneratedFromTemplate", '<a href="'.DOL_URL_ROOT.'/compta/facture/card-rec.php?facid='.$tmptemplate->id.'">'.dol_escape_htmltag($tmptemplate->ref).'</a>');
+			$s = $langs->transnoentities("GeneratedFromTemplate", '{s1}');
+			$s = str_replace('{s1}', '<a href="'.DOL_URL_ROOT.'/compta/facture/card-rec.php?facid='.$tmptemplate->id.'">'.dol_escape_htmltag($tmptemplate->ref).'</a>', $s);
+			print $s;
 			print '</span>';
 		}
 	}

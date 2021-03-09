@@ -253,9 +253,9 @@ class Form
 
 				if (empty($notabletag)) $ret .= '<td class="left">';
 				//else $ret.='<div class="clearboth"></div>';
-				$ret .= '<input type="submit" class="button'.(empty($notabletag) ? '' : ' ').'" name="modify" value="'.$langs->trans("Modify").'">';
+				$ret .= '<input type="submit" class="smallpaddingimp button'.(empty($notabletag) ? '' : ' ').'" name="modify" value="'.$langs->trans("Modify").'">';
 				if (preg_match('/ckeditor|textarea/', $typeofdata) && empty($notabletag)) $ret .= '<br>'."\n";
-				$ret .= '<input type="submit" class="button button-cancel'.(empty($notabletag) ? '' : ' ').'" name="cancel" value="'.$langs->trans("Cancel").'">';
+				$ret .= '<input type="submit" class="smallpaddingimp button button-cancel'.(empty($notabletag) ? '' : ' ').'" name="cancel" value="'.$langs->trans("Cancel").'">';
 				if (empty($notabletag)) $ret .= '</td>';
 
 				if (empty($notabletag)) $ret .= '</tr></table>'."\n";
@@ -3067,10 +3067,10 @@ class Form
 
 
 				// Add new entry
-				// "key" value of json key array is used by jQuery automatically as selected value
+				// "key" value of json key array is used by jQuery automatically as selected value. Example: 'type' = product or service, 'price_ht' = unit price without tax
 				// "label" value of json key array is used by jQuery automatically as text for combo box
 				$out .= $opt;
-				array_push($outarray, array('key'=>$outkey, 'value'=>$outref, 'label'=>$outval, 'qty'=>$outqty, 'up'=>price2num($objp->unitprice, 'MT'), 'discount'=>$outdiscount, 'type'=>$outtype, 'duration_value'=>$outdurationvalue, 'duration_unit'=>$outdurationunit, 'disabled'=>(empty($objp->idprodfournprice) ?true:false)));
+				array_push($outarray, array('key'=>$outkey, 'value'=>$outref, 'label'=>$outval, 'qty'=>$outqty, 'price_ht'=>price2num($objp->unitprice, 'MT'), 'up'=>price2num($objp->unitprice, 'MT'), 'discount'=>$outdiscount, 'type'=>$outtype, 'duration_value'=>$outdurationvalue, 'duration_unit'=>$outdurationunit, 'disabled'=>(empty($objp->idprodfournprice) ?true:false)));
 				// Exemple of var_dump $outarray
 				// array(1) {[0]=>array(6) {[key"]=>string(1) "2" ["value"]=>string(3) "ppp"
 				//           ["label"]=>string(76) "ppp (<strong>f</strong>ff2) - ppp - 20,00 Euros/1unité (20,00 Euros/unité)"
@@ -4919,8 +4919,8 @@ class Form
 			print '<input type="hidden" name="token" value="'.newToken().'">';
 			print '<input type="text" class="maxwidth100" name="'.$htmlname.'" value="'.(!empty($rate) ? price(price2num($rate, 'CU')) : 1).'" /> ';
 			print '<select name="calculation_mode">';
-			print '<option value="1">'.$currency.' > '.$conf->currency.'</option>';
-			print '<option value="2">'.$conf->currency.' > '.$currency.'</option>';
+			print '<option value="1">Change '.$langs->trans("PriceUHT").' of lines</option>';
+			print '<option value="2">Change '.$langs->trans("PriceUHTCurrency").' of lines</option>';
 			print '</select> ';
 			print '<input type="submit" class="button smallpaddingimp valignmiddle" value="'.$langs->trans("Modify").'">';
 			print '</form>';
@@ -5641,6 +5641,9 @@ class Form
 		if ($h == 3) $shour = '';
 		if ($m == 3) $smin = '';
 
+		$nowgmt = dol_now('gmt');
+		//var_dump(dol_print_date($nowgmt, 'dayhourinputnoreduce', 'tzuserrel'));
+
 		// You can set MAIN_POPUP_CALENDAR to 'eldy' or 'jquery'
 		$usecalendar = 'combo';
 		if (!empty($conf->use_javascript_ajax) && (empty($conf->global->MAIN_POPUP_CALENDAR) || $conf->global->MAIN_POPUP_CALENDAR != "none")) {
@@ -5663,13 +5666,13 @@ class Form
 				// Calendrier popup version eldy
 				if ($usecalendar == "eldy")
 				{
-					// Zone de saisie manuelle de la date
+					// Input area to enter date manually
 					$retstring .= '<input id="'.$prefix.'" name="'.$prefix.'" type="text" class="maxwidthdate" maxlength="11" value="'.$formated_date.'"';
 					$retstring .= ($disabled ? ' disabled' : '');
 					$retstring .= ' onChange="dpChangeDay(\''.$prefix.'\',\''.$langs->trans("FormatDateShortJavaInput").'\'); "'; // FormatDateShortInput for dol_print_date / FormatDateShortJavaInput that is same for javascript
 					$retstring .= '>';
 
-					// Icone calendrier
+					// Icon calendar
 					if (!$disabled)
 					{
 						$retstring .= '<button id="'.$prefix.'Button" type="button" class="dpInvisibleButtons"';
@@ -5849,8 +5852,7 @@ class Form
 		{
 			// Script which will be inserted in the onClick of the "Now" link
 			$reset_scripts = "";
-			if ($addnowlink == 2) // local computer time
-			{
+			if ($addnowlink == 2) { // local computer time
 				// pad add leading 0 on numbers
 				$reset_scripts .= "Number.prototype.pad = function(size) {
                         var s = String(this);
@@ -5861,14 +5863,12 @@ class Form
 			}
 
 			// Generate the date part, depending on the use or not of the javascript calendar
-			if ($addnowlink == 1) // server time expressed in user time setup
-			{
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'\').val(\''.dol_print_date(dol_now(), 'day', 'tzuser').'\');';
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'day\').val(\''.dol_print_date(dol_now(), '%d', 'tzuser').'\');';
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'month\').val(\''.dol_print_date(dol_now(), '%m', 'tzuser').'\');';
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'year\').val(\''.dol_print_date(dol_now(), '%Y', 'tzuser').'\');';
-			} elseif ($addnowlink == 2)
-			{
+			if ($addnowlink == 1) { // server time expressed in user time setup
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'\').val(\''.dol_print_date($nowgmt, 'day', 'tzuserrel').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'day\').val(\''.dol_print_date($nowgmt, '%d', 'tzuserrel').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'month\').val(\''.dol_print_date($nowgmt, '%m', 'tzuserrel').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'year\').val(\''.dol_print_date($nowgmt, '%Y', 'tzuserrel').'\');';
+			} elseif ($addnowlink == 2) {
 				/* Disabled because the output does not use the string format defined by FormatDateShort key to forge the value into #prefix.
             	 * This break application for foreign languages.
                 $reset_scripts .= 'jQuery(\'#'.$prefix.'\').val(d.toLocaleDateString(\''.str_replace('_', '-', $langs->defaultlang).'\'));';
@@ -5876,10 +5876,10 @@ class Form
                 $reset_scripts .= 'jQuery(\'#'.$prefix.'month\').val(parseInt(d.getMonth().pad()) + 1);';
                 $reset_scripts .= 'jQuery(\'#'.$prefix.'year\').val(d.getFullYear());';
                 */
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'\').val(\''.dol_print_date(dol_now(), 'day', 'tzuser').'\');';
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'day\').val(\''.dol_print_date(dol_now(), '%d', 'tzuser').'\');';
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'month\').val(\''.dol_print_date(dol_now(), '%m', 'tzuser').'\');';
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'year\').val(\''.dol_print_date(dol_now(), '%Y', 'tzuser').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'\').val(\''.dol_print_date($nowgmt, 'day', 'tzuserrel').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'day\').val(\''.dol_print_date($nowgmt, '%d', 'tzuserrel').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'month\').val(\''.dol_print_date($nowgmt, '%m', 'tzuserrel').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'year\').val(\''.dol_print_date($nowgmt, '%Y', 'tzuserrel').'\');';
 			}
 			/*if ($usecalendar == "eldy")
             {
@@ -5899,7 +5899,7 @@ class Form
 				//$reset_scripts .= 'this.form.elements[\''.$prefix.'hour\'].value=formatDate(new Date(), \'HH\'); ';
 				if ($addnowlink == 1)
 				{
-					$reset_scripts .= 'jQuery(\'#'.$prefix.'hour\').val(\''.dol_print_date(dol_now(), '%H', 'tzuser').'\');';
+					$reset_scripts .= 'jQuery(\'#'.$prefix.'hour\').val(\''.dol_print_date($nowgmt, '%H', 'tzuserrel').'\');';
 					$reset_scripts .= 'jQuery(\'#'.$prefix.'hour\').change();';
 				} elseif ($addnowlink == 2)
 				{
@@ -5916,7 +5916,7 @@ class Form
 				//$reset_scripts .= 'this.form.elements[\''.$prefix.'min\'].value=formatDate(new Date(), \'mm\'); ';
 				if ($addnowlink == 1)
 				{
-					$reset_scripts .= 'jQuery(\'#'.$prefix.'min\').val(\''.dol_print_date(dol_now(), '%M', 'tzuser').'\');';
+					$reset_scripts .= 'jQuery(\'#'.$prefix.'min\').val(\''.dol_print_date($nowgmt, '%M', 'tzuserrel').'\');';
 					$reset_scripts .= 'jQuery(\'#'.$prefix.'min\').change();';
 				} elseif ($addnowlink == 2)
 				{
@@ -5941,22 +5941,22 @@ class Form
 			$reset_scripts = "";
 
 			// Generate the date part, depending on the use or not of the javascript calendar
-			$reset_scripts .= 'jQuery(\'#'.$prefix.'\').val(\''.dol_print_date(dol_now(), 'day').'\');';
-			$reset_scripts .= 'jQuery(\'#'.$prefix.'day\').val(\''.dol_print_date(dol_now(), '%d').'\');';
-			$reset_scripts .= 'jQuery(\'#'.$prefix.'month\').val(\''.dol_print_date(dol_now(), '%m').'\');';
-			$reset_scripts .= 'jQuery(\'#'.$prefix.'year\').val(\''.dol_print_date(dol_now(), '%Y').'\');';
+			$reset_scripts .= 'jQuery(\'#'.$prefix.'\').val(\''.dol_print_date($nowgmt, 'dayinputnoreduce', 'tzuserrel').'\');';
+			$reset_scripts .= 'jQuery(\'#'.$prefix.'day\').val(\''.dol_print_date($nowgmt, '%d', 'tzuserrel').'\');';
+			$reset_scripts .= 'jQuery(\'#'.$prefix.'month\').val(\''.dol_print_date($nowgmt, '%m', 'tzuserrel').'\');';
+			$reset_scripts .= 'jQuery(\'#'.$prefix.'year\').val(\''.dol_print_date($nowgmt, '%Y', 'tzuserrel').'\');';
 			// Update the hour part
 			if ($h)
 			{
 				if ($fullday) $reset_scripts .= " if (jQuery('#fullday:checked').val() == null) {";
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'hour\').val(\''.dol_print_date(dol_now(), '%H').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'hour\').val(\''.dol_print_date($nowgmt, '%H', 'tzuserrel').'\');';
 				if ($fullday) $reset_scripts .= ' } ';
 			}
 			// Update the minute part
 			if ($m)
 			{
 				if ($fullday) $reset_scripts .= " if (jQuery('#fullday:checked').val() == null) {";
-				$reset_scripts .= 'jQuery(\'#'.$prefix.'min\').val(\''.dol_print_date(dol_now(), '%M').'\');';
+				$reset_scripts .= 'jQuery(\'#'.$prefix.'min\').val(\''.dol_print_date($nowgmt, '%M', 'tzuserrel').'\');';
 				if ($fullday) $reset_scripts .= ' } ';
 			}
 			// If reset_scripts is not empty, print the link with the reset_scripts in the onClick
@@ -5968,12 +5968,12 @@ class Form
 			}
 		}
 
-		// Add a "Plus one hour" link
+		// Add a link to set data
 		if ($conf->use_javascript_ajax && $adddateof)
 		{
 			$tmparray = dol_getdate($adddateof);
 			if (empty($labeladddateof)) $labeladddateof = $langs->trans("DateInvoice");
-			$retstring .= ' - <button class="dpInvisibleButtons datenowlink" id="dateofinvoice" type="button" name="_dateofinvoice" value="now" onclick="jQuery(\'#re\').val(\''.dol_print_date($adddateof, 'day').'\');jQuery(\'#reday\').val(\''.$tmparray['mday'].'\');jQuery(\'#remonth\').val(\''.$tmparray['mon'].'\');jQuery(\'#reyear\').val(\''.$tmparray['year'].'\');">'.$labeladddateof.'</a>';
+			$retstring .= ' - <button class="dpInvisibleButtons datenowlink" id="dateofinvoice" type="button" name="_dateofinvoice" value="now" onclick="console.log(\'Click on now link\'); jQuery(\'#re\').val(\''.dol_print_date($adddateof, 'dayinputnoreduce').'\');jQuery(\'#reday\').val(\''.$tmparray['mday'].'\');jQuery(\'#remonth\').val(\''.$tmparray['mon'].'\');jQuery(\'#reyear\').val(\''.$tmparray['year'].'\');">'.$labeladddateof.'</a>';
 		}
 
 		return $retstring;
@@ -7160,7 +7160,7 @@ class Form
 				'invoice'=>array('enabled'=>$conf->facture->enabled, 'perms'=>1, 'label'=>'LinkToInvoice', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_client, t.total as total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."facture as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('invoice').')'),
 				'invoice_template'=>array('enabled'=>$conf->facture->enabled, 'perms'=>1, 'label'=>'LinkToTemplateInvoice', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.titre as ref, t.total as total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."facture_rec as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('invoice').')'),
 				'contrat'=>array('enabled'=>$conf->contrat->enabled, 'perms'=>1, 'label'=>'LinkToContract',
-								'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_customer as ref_client, t.ref_supplier, '' as total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."contrat as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('contract').')'),
+								'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_customer as ref_client, t.ref_supplier, SUM(td.total_ht) as total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."contrat as t, ".MAIN_DB_PREFIX."contratdet as td WHERE t.fk_soc = s.rowid AND td.fk_contrat = t.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('contract').')'),
 				'fichinter'=>array('enabled'=>$conf->ficheinter->enabled, 'perms'=>1, 'label'=>'LinkToIntervention', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."fichinter as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('intervention').')'),
 				'supplier_proposal'=>array('enabled'=>$conf->supplier_proposal->enabled, 'perms'=>1, 'label'=>'LinkToSupplierProposal', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, '' as ref_supplier, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."supplier_proposal as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('supplier_proposal').')'),
 				'order_supplier'=>array('enabled'=>$conf->supplier_order->enabled, 'perms'=>1, 'label'=>'LinkToSupplierOrder', 'sql'=>"SELECT s.rowid as socid, s.nom as name, s.client, t.rowid, t.ref, t.ref_supplier, t.total_ht FROM ".MAIN_DB_PREFIX."societe as s, ".MAIN_DB_PREFIX."commande_fournisseur as t WHERE t.fk_soc = s.rowid AND t.fk_soc IN (".$listofidcompanytoscan.') AND t.entity IN ('.getEntity('commande_fournisseur').')'),
@@ -7233,7 +7233,12 @@ class Form
 						print '</td>';
 						print '<td class="center">'.$objp->ref.'</td>';
 						print '<td>'.$objp->ref_client.'</td>';
-						print '<td class="right">'.price($objp->total_ht).'</td>';
+						print '<td class="right">';
+						if ($possiblelink[label] == 'LinkToContract') {
+							$form = new Form($db);
+							print $form->textwithpicto('', $langs->trans("InformationOnLinkToContract")).' ';
+						}
+						print price($objp->total_ht).'</td>';
 						print '<td>'.$objp->name.'</td>';
 						print '</tr>';
 						$i++;
