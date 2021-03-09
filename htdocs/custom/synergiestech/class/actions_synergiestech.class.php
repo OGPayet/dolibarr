@@ -3474,9 +3474,15 @@ SCRIPT;
 	public function addSearchEntry($parameters, &$object, &$action, $hookmanager)
 	{
 		$result = $parameters['arrayresult'];
-		$result['searchintothirdparty']['position'] = -1000;
-		$result['searchintoproduct']['position'] = -999;
-		$result['searchintointervention']['position'] = -998;
+		if($result['searchintothirdparty']) {
+			$result['searchintothirdparty']['position'] = -1000;
+		}
+		if($result['searchintoproduct']) {
+			$result['searchintoproduct']['position'] = -999;
+		}
+		if($result['searchintointervention']) {
+			$result['searchintointervention']['position'] = -998;
+		}
 		$this->results = $result;
 		return 0;
 	}
