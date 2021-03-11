@@ -334,7 +334,8 @@ class InterfaceInterventionSurveyTriggers extends DolibarrTriggers
                         $errors = array_merge($errors, $actioncomm->errors);
                     };
                 }
-                if (empty($errors) && $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL && $object->array_options['options_send_fichinter_by_mail']) {
+                // if (empty($errors) && $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL && $object->array_options['options_send_fichinter_by_mail']) {
+                if (empty($errors) && $conf->global->INTERVENTIONSURVEY_SEND_FICHINTER_BY_MAIL) {
                     $interventionMail = new InterventionMail($this->db, $object, $user);
                     $interventionMail->sendInterventionBySeparateMail($langs, $conf->global->INTERVENTIONSURVEY_DEFAULT_EMAIL_ADDRESS_SENDER, "fichinter_send");
                     $errors = array_merge($errors, $interventionMail->errors);
