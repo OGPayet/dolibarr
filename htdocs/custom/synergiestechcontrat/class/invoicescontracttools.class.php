@@ -1101,7 +1101,7 @@ class InvoicesContractTools
 					} else {
 						$contract->ref = $contract->ref . "_1";
 					}
-					if ($contract->update() > 0) {
+					if ($contract->update($user) > 0) {
 						// Rename of contract directory to  not lose the linked files
 						$old_ref = dol_sanitizeFileName($old_ref);
 						$new_ref = dol_sanitizeFileName($contract->ref);
