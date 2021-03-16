@@ -5838,7 +5838,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 
 		$upload_dir = dol_sanitizePathName($upload_dir);
 
-		$destfile = $upload_dir . '/' . $original_file;
+		$destfile = $upload_dir . $original_file;
 		$destfiletmp = DOL_DATA_ROOT . '/admin/temp/' . $original_file;
 		dol_delete_file($destfiletmp);
 		//var_dump($original_file);exit;
@@ -5879,8 +5879,7 @@ class CompanyRelationshipsApi extends DolibarrApi
 
 		// Create thumbs
 		if ($object && method_exists($object, "addThumbs")) {
-			$thumbsDir = $relativefile . "thumbs/" . $original_file;
-			$object->addThumbs($thumbsDir);
+			$object->addThumbs($destfile);
 		}
 
 		//--------------------------------------------------------------

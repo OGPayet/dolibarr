@@ -2242,6 +2242,7 @@ function dol_check_secure_access_document($modulepart, $original_file, $entity, 
 	}
 	// Fix modulepart
 	if ($modulepart == 'users') $modulepart = 'user';
+	if ($modulepart == 'thirdparties') $modulepart = 'thirdparty';
 
 	dol_syslog('dol_check_secure_access_document modulepart='.$modulepart.' original_file='.$original_file.' entity='.$entity);
 
