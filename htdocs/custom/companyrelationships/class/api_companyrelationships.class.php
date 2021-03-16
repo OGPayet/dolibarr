@@ -5876,6 +5876,17 @@ class CompanyRelationshipsApi extends DolibarrApi
 			throw new RestException(500, "Failed to move file into '" . $destfile . "'");
 		}
 
+		if ($islogo) {
+			$original_file_array = explode(".", $original_file);
+			$original_file_extension = array_pop($original_file_array);
+
+			if ($original_file_extension != 'png') {
+				$new_file_name = implode(".", $original_file_array);
+				imagepng(imagecreatefromstring(file_get_contents($destfile)), $upload_dir . $new_file_name . ".png");
+				dol_delete_file($destfile);
+				$destfile = $upload_dir . $new_file_name . ".png";
+			}
+		}
 
 		// Create thumbs
 		if ($object && method_exists($object, "addThumbs")) {
