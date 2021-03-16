@@ -5877,8 +5877,10 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 
+		// Create thumbs
 		if ($object && method_exists($object, "addThumbs")) {
-			$object->addThumbs($destfile);
+			$thumbsDir = $relativefile . "thumbs/" . $original_file;
+			$object->addThumbs($thumbsDir);
 		}
 
 		//--------------------------------------------------------------
