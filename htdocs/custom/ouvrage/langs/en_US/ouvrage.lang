@@ -1,4 +1,4 @@
-# Ouvrage
+# Ouvrage  
 # Copyright (C) 2017       Inovea-conseil.com     <info@inovea-conseil.com>
 #
 
@@ -21,8 +21,14 @@ OUVRAGE_HIDE_PRODUCT_DETAIL = Display only the package (not the products/service
 OUVRAGE_HIDE_PRODUCT_DESCRIPTION = Hide the details of the products/services
 OUVRAGE_HIDE_MONTANT = Hide the price of the package
 
+OUVRAGE_QUANTITY_STEP=Step for quantity
+OUVRAGE_QUANTITY_STEP_Tooltip=Choose here by how much you want to increase or decrease the quantities of products / services present in your books / packages. Indicate 1 to go from 1 to 2 during an increase - indicate 0.5 to go from 1 to 1.5 - ...)
+
 BTP_CHOICE = Construction (package "construction work")
 SERVICE_CHOICE = Service (package "bundle")
+PDFouvragefactdesc= PDF template for invoices using packages
+PDFOuvragecomDescription= PDF template for orders using packages
+PDFOuvragepropalDescription = PDF template for quotations using packages
 
 #
 # Menu Ouvrage
@@ -40,6 +46,16 @@ BTP_ = Packages
 OUVRAGES = Packages
 NEW_OUVRAGE = New package
 LISTE_OUVRAGES = List
+
+#
+# Ouvrage Ajax
+#
+OUVRAGE_NO_PRODUCT_FOUND=No product was found
+OUVRAGE_NO_PARENT_ID_WAS_PASSED=No product parent id was passed
+OUVRAGE_NO_PRODUCT_REF_WAS_PASSED=No product ref sent
+Modify=Modify
+OUVRAGE_PRODUCT_ALREADY_IN=Product already used in package
+OUVRAGE_SERVER_ERROR=Error server
 
 #
 # Ouvrage card
@@ -77,7 +93,7 @@ BTP_OUVRAGEDELETED = Package deleted
 SERVICE_OUVRAGEDELETED = Package deleted
 
 #
-# Ajout ouvrage
+# Ajout ouvrage 
 #
 SERVICE_ADDOUVRAGE = Add a package
 BTP_ADDOUVRAGE = Add a package
@@ -99,3 +115,8 @@ RightsO1 = Display of packages
 RightsO11 = read
 RightsO2 = Add/Delete packages
 RightsO21 = write
+
+# Droits utilisateurs
+RightsO1=See packages
+RightsO2=Creat/Modify packages
+RightsO3=Delete packages

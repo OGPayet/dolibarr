@@ -45,78 +45,86 @@ class ActionsOuvrage
         $this->db = $db;
     }
 
-    function formAddObjectLine($parameters=false) {
+    function formAddObjectLine($parameters = false)
+    {
         global $conf, $langs, $user;
         global $object, $bcnd, $var;
 
-        $usemargins=0;
-        $colspanbutton=4;
+        $usemargins = 0;
+        $colspanbutton = 4;
 
-        if (! empty($conf->global->MAIN_VIEW_LINE_NUMBER))
-        {
-            $colspantitle=10;
-            $colspanlabel=7;
-            $colspandesc=7;
-        }
-        else
-        {
-            $colspantitle=9;
-            $colspanlabel=5;
-            $colspandesc=5;
+        if (!empty($conf->global->MAIN_VIEW_LINE_NUMBER)) {
+            $colspantitle = 10;
+            $colspanlabel = 7;
+            $colspandesc = 7;
+        } else {
+            $colspantitle = 9;
+            $colspanlabel = 5;
+            $colspandesc = 5;
         }
 
-        if (! empty($conf->margin->enabled) && ! empty($GLOBALS['object']->element) && in_array($GLOBALS['object']->element,array('facture','propal', 'askpricesupplier','commande')))
-        {
-            $usemargins=1;
-            $colspantitle+=3;
+        if (!empty($conf->margin->enabled) && !empty($GLOBALS['object']->element) && in_array($GLOBALS['object']->element, array('facture', 'propal', 'askpricesupplier', 'commande'))) {
+            $usemargins = 1;
+            $colspantitle += 3;
             $colspanlabel++;
-            $colspandesc+=1;
+            $colspandesc += 1;
         }
-        if (! empty($usemargins) && ! empty($conf->global->DISPLAY_MARGIN_RATES) && $user->rights->margins->liretous)
-        {
-            $colspantitle+=2;
+
+        if (!empty($usemargins) && !empty($conf->global->DISPLAY_MARGIN_RATES) && $user->rights->margins->liretous) {
+            $colspantitle += 2;
             $colspanlabel++;
-            $colspandesc+=1;
+            $colspandesc += 1;
         }
-        if (! empty($usemargins) && ! empty($conf->global->DISPLAY_MARK_RATES) && $user->rights->margins->liretous)
-        {
-            $colspantitle+=2;
+
+        if (!empty($usemargins) && !empty($conf->global->DISPLAY_MARK_RATES) && $user->rights->margins->liretous) {
+            $colspantitle += 2;
             $colspanlabel++;
-            $colspandesc+=1;
+            $colspandesc += 1;
         }
 
         dol_include_once('/ouvrage/class/html.form_ouvrage.class.php');
         $form = new FormOuvrage($this->db);
 
-        echo '<tr class="liste_titre nodrag nodrop"><td colspan="'.$colspantitle.'">'.$langs->trans($conf->global->OUVRAGE_TYPE.'ADDOUVRAGE').'</td></tr>';
-        echo '<tr class="nodrag nodrop"><td colspan="'.$colspantitle.'">'.$form->select_ouvrage();
+        echo '<tr class="liste_titre nodrag nodrop"><td colspan="' . $colspantitle . '">' . $langs->trans($conf->global->OUVRAGE_TYPE . 'ADDOUVRAGE') . '</td></tr>';
+        echo '<tr class="nodrag nodrop"><td colspan="' . $colspantitle . '">' . $form->select_ouvrage();
 
-        echo '<div id="modal-ouvrage" title="'.$langs->trans($conf->global->OUVRAGE_TYPE."OUVRAGE").'" style="display:none;" >
-</div>';
+        echo '<div id="modal-ouvrage" title="' . $langs->trans($conf->global->OUVRAGE_TYPE . "OUVRAGE") . '" style="display:none;" ></div>';
 
         echo '<script>';
         $btnSend = $langs->trans("Add");
         $url = dol_buildpath('/ouvrage/ajax/ajaxOuvrageForm.php', 1);
+        $select2selctingMethod = (int)DOL_VERSION >= '7' ? 'select2:selecting' : 'select2-selecting';
+        $choiceIdParam = (int)DOL_VERSION >= '7' ? 'e.params.args.data.id' : 'e.choice.id';
+        $sobject['id'] = $object->id;
+        $sobject['element'] = $object->element;
+        $sobject2 = json_encode($sobject);
+        $variantsEnabled = ($conf->variants->enabled) ? 1 : -1;
         echo <<<HEREDOC
-        $('#ouvrageid').on('change', function (e) {
-			console.log(e);
-        var ouvrageid = this.value;
+        $(document).on("$select2selctingMethod", '#ouvrageid', function (e) {
+        var ouvrageid = $choiceIdParam;
+        var o = $sobject2;
         $.ajax({
             url: "$url",
-            data: {id: ouvrageid},
-            dataType: 'html'
+            data: {id: ouvrageid, o: o},
+            dataType: 'html',
+            type: 'POST'
         }).done(function( data ) {
             $( "#modal-ouvrage" ).html(data);
                 $( "#modal-ouvrage" ).dialog({
                resizable: true,
                height: "auto",
-               width: 800,
+               width: 1700,
                modal: true,
                    buttons:
                [{
                  text: "$btnSend",
                  click: function () {
                     if ($('#tablelinesouvrage input[name="ouvrage[qty]"]').val() > 0) {
+                        if ($variantsEnabled) {
+                            $('[id^="variants_options_product"]').each(function () {
+                                $(this).empty();
+                            });
+                        }
                         calculTotalOuvrage();
                         $('#tablelinesouvrage').find('input, select').each(function(){
                             $('#addproduct').prepend('<input type="hidden" name="'+$(this).attr('name')+'" value="'+$(this).val()+'" />');
@@ -139,9 +147,15 @@ HEREDOC;
             // Margin Configuration
             $marginConfig = '';
             if (isset($conf->global->MARGIN_TYPE)) {
-                if ($conf->global->MARGIN_TYPE == '1')   $marginConfig = 'bestsupplierprice';
-                if ($conf->global->MARGIN_TYPE == 'pmp') $marginConfig = 'pmp';
-                if ($conf->global->MARGIN_TYPE == 'costprice') $marginConfig = 'costprice';
+                if ($conf->global->MARGIN_TYPE == '1') {
+                    $marginConfig = 'bestsupplierprice';
+                }
+                if ($conf->global->MARGIN_TYPE == 'pmp') {
+                    $marginConfig = 'pmp';
+                }
+                if ($conf->global->MARGIN_TYPE == 'costprice') {
+                    $marginConfig = 'costprice';
+                }
             }
 
             echo <<<HEREDOC
@@ -152,7 +166,7 @@ HEREDOC;
                 var idSelected = 'fournprice_predef_'+productId;
 
                 if (data && data.length > 0)
-		{
+    	    	{
                     var options = '';
                     var defaultkey = '';
                     var defaultprice = '';
@@ -167,70 +181,70 @@ HEREDOC;
                     $.post('$urlAjaxFourn', { 'idprod': productId }, function(data) {
                         if (data && data.length > 0) {
                             var i = 0;
-			$(data).each(function() {
-				if (this.id != 'pmpprice' && this.id != 'costprice')
-				{
-					i++;
+    	      		$(data).each(function() {
+    	      			if (this.id != 'pmpprice' && this.id != 'costprice')
+    		      		{
+    		        		i++;
                             this.price = parseFloat(this.price); // to fix when this.price >0
-					// If margin is calculated on best supplier price, we set it by defaut (but only if value is not 0)
-					if (bestpricefound == 0 && this.price > 0) { defaultkey = this.id; defaultprice = this.price; bestpriceid = this.id; bestpricevalue = this.price; bestpricefound=1; }	// bestpricefound is used to take the first price > 0
-				}
-				if (this.id == 'pmpprice')
-				{
-					// If margin is calculated on PMP, we set it by defaut (but only if value is not 0)
-					if ('pmp' == defaultbuyprice || 'costprice' == defaultbuyprice)
-					{
-						if (this.price > 0) {
-							defaultkey = this.id; defaultprice = this.price; pmppriceid = this.id; pmppricevalue = this.price;
-						}
-					}
-				}
-				if (this.id == 'costprice')
-				{
-					// If margin is calculated on Cost price, we set it by defaut (but only if value is not 0)
-					if ('costprice' == defaultbuyprice)
-					{
-						if (this.price > 0) { defaultkey = this.id; defaultprice = this.price; costpriceid = this.id; costpricevalue = this.price; }
-						else if (pmppricevalue > 0) { defaultkey = pmppriceid; defaultprice = pmppricevalue; }
-					}
-				}
-				options += '<option value="'+this.id+'" price="'+this.price+'">'+this.label+'</option>';
-			});
-			options += '<option value="inputprice" price="'+defaultprice+'">$langInputPrice</option>';
+    			      		// If margin is calculated on best supplier price, we set it by defaut (but only if value is not 0)
+    		      			if (bestpricefound == 0 && this.price > 0) { defaultkey = this.id; defaultprice = this.price; bestpriceid = this.id; bestpricevalue = this.price; bestpricefound=1; }	// bestpricefound is used to take the first price > 0
+    		      		}
+    	      			if (this.id == 'pmpprice')
+    	      			{
+    	      				// If margin is calculated on PMP, we set it by defaut (but only if value is not 0)
+    			      		if ('pmp' == defaultbuyprice || 'costprice' == defaultbuyprice)
+    			      		{
+    			      			if (this.price > 0) {
+    				      			defaultkey = this.id; defaultprice = this.price; pmppriceid = this.id; pmppricevalue = this.price;
+    			      			}
+    			      		}
+    	      			}
+    	      			if (this.id == 'costprice')
+    	      			{
+    	      				// If margin is calculated on Cost price, we set it by defaut (but only if value is not 0)
+    			      		if ('costprice' == defaultbuyprice)
+    			      		{
+    		      				if (this.price > 0) { defaultkey = this.id; defaultprice = this.price; costpriceid = this.id; costpricevalue = this.price; }
+    		      				else if (pmppricevalue > 0) { defaultkey = pmppriceid; defaultprice = pmppricevalue; }
+    			      		}
+    	      			}
+    	        		options += '<option value="'+this.id+'" price="'+this.price+'">'+this.label+'</option>';
+    	      		});
+    	      		options += '<option value="inputprice" price="'+defaultprice+'">$langInputPrice</option>';
 
                         var selectedElt = $("<select></select>").attr('id', idSelected).html(options);
 
-			$(inputMarge).before(selectedElt);
+    	      		$(inputMarge).before(selectedElt);
                         $(selectedElt).after('<br/>')
-			if (defaultkey != '')
-				{
-				$(selectedElt).val(defaultkey);
-			}
+    	      		if (defaultkey != '')
+    				{
+    		      		$(selectedElt).val(defaultkey);
+    		      	}
 
-			/* At loading, no product are yet selected, so we hide field of buying_price */
-			$(inputMarge).hide();
+    	      		/* At loading, no product are yet selected, so we hide field of buying_price */
+    	      		$(inputMarge).hide();
 
-			/* Define default price at loading */
-			var defaultprice = $(selectedElt).find('option:selected').attr("price");
-			    $(inputMarge).val(defaultprice);
+    	      		/* Define default price at loading */
+    	      		var defaultprice = $(selectedElt).find('option:selected').attr("price");
+    			    $(inputMarge).val(defaultprice);
 
-			$(selectedElt).change(function() {
-				/* Hide field buying_price according to choice into list (if 'inputprice' or not) */
-					var linevalue=$(this).find('option:selected').val();
-				var pricevalue = $(this).find('option:selected').attr("price");
-				if (linevalue != 'inputprice' && linevalue != 'pmpprice') {
-					$(inputMarge).val(pricevalue).hide();	/* We set value then hide field */
-				}
-				if (linevalue == 'inputprice') {
-					$(inputMarge).show();
-				}
-				if (linevalue == 'pmpprice') {
-					$(inputMarge).val(pricevalue);
-					$(inputMarge).hide();
-				}
+    	      		$(selectedElt).change(function() {
+    	      			/* Hide field buying_price according to choice into list (if 'inputprice' or not) */
+    					var linevalue=$(this).find('option:selected').val();
+    	        		var pricevalue = $(this).find('option:selected').attr("price");
+    	        		if (linevalue != 'inputprice' && linevalue != 'pmpprice') {
+    	          			$(inputMarge).val(pricevalue).hide();	/* We set value then hide field */
+    	        		}
+    	        		if (linevalue == 'inputprice') {
+    		          		$(inputMarge).show();
+    	        		}
+    	        		if (linevalue == 'pmpprice') {
+    	        			$(inputMarge).val(pricevalue);
+    		          		$(inputMarge).hide();
+    	        		}
 
                     $(inputMarge).trigger('change');
-				});
+    				});
                         }
                     },
                     'json');
@@ -291,7 +305,7 @@ HEREDOC;
 
        var totalProduct = priceProduct*qtyProduct*((100-reducProduct)/100);
 
-       $(this).parents('tr').find('td.product-price-total').text(Math.round(totalProduct * 100)/100);
+       $(this).parents('tr').find('td.product-price-total').text(parseFloat(totalProduct).toFixed(2));
         e.stopPropagation();
    });74
 
@@ -334,17 +348,7 @@ HEREDOC;
         $('#tablelinesouvrage td.product-price-total').each(function(){
            totalOuvrage += parseFloat($(this).text().replace(',','.').replace(' ',''));
         }).promise().done( function(){
-
-
-			//////////
-			//////////
-			/// To DO : Récupérer la variable globale de paramétrage
-			////////
-			////////
-
-
-
-            $('#tablelinesouvrage td.ouvrage-price-total').text(totalOuvrage.toFixed(2));
+            $('#tablelinesouvrage td.ouvrage-price-total').text(totalOuvrage);
         } );
 
 
@@ -379,25 +383,26 @@ HEREDOC;
     }
 
     /**
-     * 	Return action of hook
-     * 	@param		object			Linked object
+     *    Return action of hook
+     * @param object            Linked object
      */
-    function doActions($parameters=false, &$object, &$action='')
+    function doActions($parameters = false, &$object, &$action = '')
     {
-        global $conf,$user,$langs;
+        global $conf, $user, $langs;
 
         $langs->load("ouvrage@ouvrage");
 
         dol_include_once('/ouvrage/class/ouvrage.class.php');
         dol_include_once('/product/class/product.class.php');
         if (GETPOST('ouvrage') && $action == 'addline') {
-            $error=0;
+            $error = 0;
 
             $ouvrage_post = GETPOST('ouvrage');
 
+            // Open DSI -- Begin
             ksort($ouvrage_post['product']);
+            // Open DSI -- End
             $products = $ouvrage_post['product'];
-
             $tot = 0;
             foreach ($products as $product) {
                 $tot += $product['qty'];
@@ -408,70 +413,194 @@ HEREDOC;
                 $ouvrage->fetch($ouvrage_post['id']);
 
 
-
                 // Clean parameters
-                $label			= trim($ouvrage->label);
-                $description	= trim($ouvrage->description) != '' ? trim($ouvrage->description) : $label ;
-                $product_type	= 9;
-                $special_code	= $this->special_code;
+                $label = trim($ouvrage->label);
+                $description = trim($ouvrage->description) != '' ? trim($ouvrage->description) : "";
+                $product_type = 9;
+                $special_code = $this->special_code;
                 $ouvrage_qty = $ouvrage_post['qty'];
-                $ouvrage_price = $ouvrage_post['price'] /*/ $ouvrage_post['qty']*/;
+                $ouvrage_fk_product = $ouvrage_post['fk_product'];
+                $ouvrage_price = $ouvrage_post['price'] /*/ $ouvrage_post['qty']*/
+                ;
                 //$ouvrage_price = 100 * $ouvrage_price / 100 - $ouvrage_post['reduc'];
-                $ouvrage_remise	= $ouvrage_post['reduc'];
-                $ouvrage_buy_price	= isset($ouvrage_post['marge']) ? $ouvrage_post['marge'] : 0;
+                $ouvrage_unit = $ouvrage_post['unit'];
+                $ouvrage_remise = $ouvrage_post['reduc'];
+                $ouvrage_buy_price = isset($ouvrage_post['marge']) ? $ouvrage_post['marge'] : 0;
                 $tva = GETPOST('tva_tx_ouvrage', 'alpha');
-                $rangtouse = $object->line_max()+1;
-
+                $rangtouse = $object->line_max() + 1;
+                $situation = "";
                 // TODO uniformiser
-                if ($object->element == 'propal') $fields = array($description,$ouvrage_price,$ouvrage_qty,$tva,0,0,0,$ouvrage_remise,"HT",0,0,$product_type,$rangtouse,$special_code,0,0,$ouvrage_buy_price,$label);
-                if ($object->element == 'commande') $fields = array($description,$ouvrage_price,$ouvrage_qty,$tva,0,0,0,$ouvrage_remise,0,0,'HT',0,null,null,$product_type,$rangtouse,$special_code,0,null,$ouvrage_buy_price,$label);
-                if ($object->element == 'facture') $fields = array($description,$ouvrage_price,$ouvrage_qty,$tva,0,0,0,$ouvrage_remise,null,null,0,0,0,'HT',0,$product_type,$rangtouse,$special_code,'',0,0,null,$ouvrage_buy_price,$label);
+    //              addline($desc, $pu_ht, $qty, $txtva, $txlocaltax1 = 0.0, $txlocaltax2 = 0.0, $fk_product = 0, $remise_percent = 0.0, $price_base_type = 'HT', $pu_ttc = 0.0, $info_bits = 0, $type = 0, $rang = -1, $special_code = 0, $fk_parent_line = 0, $fk_fournprice = 0, $pa_ht = 0, $label = '', $date_start = '', $date_end = '', $array_options = 0, $fk_unit = null, $origin = '', $origin_id = 0, $pu_ht_devise = 0, $fk_remise_except = 0)
 
-                $result_ouvrage = $object->addline($fields[0],$fields[1],$fields[2],$fields[3],$fields[4],$fields[5],$fields[6],$fields[7],$fields[8],$fields[9],$fields[10],$fields[11],$fields[12],$fields[13],$fields[14],$fields[15],$fields[16],$fields[17],$fields[18],$fields[19],$fields[20],$fields[21],$fields[22],$fields[23]);
+                if ($object->element == 'propal') {
+                    $fields = array($description, $ouvrage_price, $ouvrage_qty, $tva, 0, 0, $ouvrage_fk_product, $ouvrage_remise, "HT", 0, 0, $product_type, $rangtouse, $special_code, 0, 0, $ouvrage_buy_price, $label, '', '', 0, $ouvrage_unit);
+                }
+                if ($object->element == 'commande') {
+                    $fields = array($description, $ouvrage_price, $ouvrage_qty, $tva, 0, 0, $ouvrage_fk_product, $ouvrage_remise, 0, 0, 'HT', 0, null, null, $product_type, $rangtouse, $special_code, 0, null, $ouvrage_buy_price, $label, '', '', 0, $ouvrage_unit);
+                }
+                //    public function addline($desc, $pu_ht, $qty, $txtva, $txlocaltax1 = 0, $txlocaltax2 = 0, $fk_product = 0, $remise_percent = 0, $date_start = '', $date_end = '', $ventil = 0, $info_bits = 0, $fk_remise_except = '', $price_base_type = 'HT', $pu_ttc = 0, $type = self::TYPE_STANDARD, $rang = -1, $special_code = 0, $origin = '', $origin_id = 0, $fk_parent_line = 0, $fk_fournprice = null, $pa_ht = 0, $label = '', $array_options = 0, $situation_percent = 100, $fk_prev_id = 0, $fk_unit = null, $pu_ht_devise = 0)
+                if ($object->element == 'facture') {
+                    $fields = array($description, $ouvrage_price, $ouvrage_qty, $tva, 0, 0, $ouvrage_fk_product, $ouvrage_remise, null, null, 0, 0, 0, 'HT', 0, $product_type, $rangtouse, $special_code, '', 0, 0, null, $ouvrage_buy_price, $label, 0, $situation, 0, $ouvrage_unit);
+                }
 
+                $result_ouvrage = $object->addline($fields[0], $fields[1], $fields[2], $fields[3], $fields[4], $fields[5], $fields[6], $fields[7], $fields[8], $fields[9], $fields[10], $fields[11], $fields[12], $fields[13], $fields[14], $fields[15], $fields[16], $fields[17], $fields[18], $fields[19], $fields[20], $fields[21], $fields[22], $fields[23], $fields[24], $fields[25], $fields[26], $fields[27], $fields[28]);
 
-                $rangproduit = $rangtouse+1;
+                $rangproduit = $rangtouse + 1;
 
-                if ($result < 0) {
-
-                } else {
-                    foreach ($products as $product_id=>$p) {
-                        if ($p['qty'] > 0) {
-                            $product = new Product($this->db);
-                            $product->fetch($product_id);
-                            $label = trim($product->label);
-                            $description	= trim($product->description);
-                            $product_type	= $product->type;
-                            $product_price	= $p['price_ht'];
-                            $product_remise	= $p['reduc'];
-                            $product_buy_price	= isset($p['marge']) ? $p['marge'] : 0;
-                            $qty = $p['qty'];
-                            $special_code = 0;
-                            //$result_ouvrage = 0;
-
-
-
-                            // TODO uniformiser
-                            if ($object->element == 'propal') $fields = array($description,$product_price,$qty,$tva,0,0,$product_id,$product_remise,"HT",0,0,$product_type,$rangproduit++,$special_code,$result_ouvrage,0,$product_buy_price,$label);
-                            if ($object->element == 'commande') $fields = array($description,$product_price,$qty,$tva,0,0,$product_id,$product_remise,0,0,'HT',0,null,null,$product_type,$rangproduit++,$special_code,$result_ouvrage,null,$product_buy_price,$label);
-                            if ($object->element == 'facture') $fields = array($description,$product_price,$qty,$tva,0,0,$product_id,$product_remise,null,null,0,0, '', 'HT',0,$product_type,$rangproduit++,$special_code,'',0,$result_ouvrage,0,$product_buy_price,$label);
-
-                            //
-                            $result = $object->addline($fields[0],$fields[1],$fields[2],$fields[3],$fields[4],$fields[5],$fields[6],$fields[7],$fields[8],$fields[9],$fields[10],$fields[11],$fields[12],$fields[13],$fields[14],$fields[15],$fields[16],$fields[17],$fields[18],$fields[19],$fields[20],$fields[21],$fields[22],$fields[23]);
+                foreach ($products as $product_id => $p) {
+                    $p = $products[$product_id];
+                    if ($p['qty'] > 0) {
+                        $product = new Product($this->db);
+                        $product->fetch($product_id);
+                        $label = trim($product->label);
+                        $description = trim($product->description);
+                        $product_type = $product->type;
+                        $product_price = $p['price_ht'];
+                        $product_remise = $p['reduc'];
+                        $product_buy_price = isset($p['marge']) ? $p['marge'] : 0;
+                        $qty = $p['qty'];
+                        $special_code = 0;
+                        $unit = "";
+                        if ($p['unit'] != "none") {
+                            $unit = $p['unit'];
                         }
-                    }
-                    $object->update_price(1);
+                        //$result_ouvrage = 0;
 
 
-                    if ($object->element == 'facture') {
-                        Header ('Location: '.$_SERVER["PHP_SELF"].'?facid='.$object->id);
-                    } else {
-                        Header ('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
+                        // TODO uniformiser
+                        if ($object->element == 'propal') {
+                            $fields = array(
+                            $description,
+                            $product_price,
+                            $qty,
+                            $tva,
+                            0,
+                            0,
+                            $product_id,
+                            $product_remise,
+                            "HT",
+                            0,
+                            0,
+                            $product_type,
+                            $rangproduit++,
+                            $special_code,
+                            $result_ouvrage,
+                            0,
+                            $product_buy_price,
+                            $label,
+                            '',
+                            '',
+                            0,
+                            $unit
+                            );
+                        }
+                        if ($object->element == 'commande') {
+                            $fields = array(
+                            $description,
+                            $product_price,
+                            $qty,
+                            $tva,
+                            0,
+                            0,
+                            $product_id,
+                            $product_remise,
+                            0,
+                            0,
+                            'HT',
+                            0,
+                            null,
+                            null,
+                            $product_type,
+                            $rangproduit++,
+                            $special_code,
+                            $result_ouvrage,
+                            null,
+                            $product_buy_price,
+                            $label,
+                            '',
+                            '',
+                            0,
+                            $unit
+                            );
+                        }
+                        if ($object->element == 'facture') {
+                            $fields = array(
+                            $description,
+                            $product_price,
+                            $qty,
+                            $tva,
+                            0,
+                            0,
+                            $product_id,
+                            $product_remise,
+                            null,
+                            null,
+                            0,
+                            0,
+                            '',
+                            'HT',
+                            0,
+                            $product_type,
+                            $rangproduit++,
+                            $special_code,
+                            '',
+                            0,
+                            $result_ouvrage,
+                            0,
+                            $product_buy_price,
+                            $label,
+                            0,
+                            $situation,
+                            0,
+                            $unit
+                            );
+                        }
+
+                        //  public function addline($desc, $pu_ht, $qty, $txtva, $txlocaltax1 = 0, $txlocaltax2 = 0, $fk_product = 0, $remise_percent = 0, $date_start = '', $date_end = '', $ventil = 0, $info_bits = 0, $fk_remise_except = '', $price_base_type = 'HT', $pu_ttc = 0, $type = self::TYPE_STANDARD, $rang = -1, $special_code = 0, $origin = '', $origin_id = 0, $fk_parent_line = 0, $fk_fournprice = null, $pa_ht = 0, $label = '', $array_options = 0, $situation_percent = 100, $fk_prev_id = 0, $fk_unit = null, $pu_ht_devise = 0)
+                        $result = $object->addline(
+                            $fields[0],
+                            $fields[1],
+                            $fields[2],
+                            $fields[3],
+                            $fields[4],
+                            $fields[5],
+                            $fields[6],
+                            $fields[7],
+                            $fields[8],
+                            $fields[9],
+                            $fields[10],
+                            $fields[11],
+                            $fields[12],
+                            $fields[13],
+                            $fields[14],
+                            $fields[15],
+                            $fields[16],
+                            $fields[17],
+                            $fields[18],
+                            $fields[19],
+                            $fields[20],
+                            $fields[21],
+                            $fields[22],
+                            $fields[23],
+                            $fields[24],
+                            $fields[25],
+                            $fields[26],
+                            $fields[27],
+                            $fields[28]
+                        );
                     }
+                    // }
+                }
+
+                $object->update_price(1);
+
+
+                if ($object->element == 'facture') {
+                    Header('Location: ' . $_SERVER["PHP_SELF"] . '?facid=' . $object->id);
+                } else {
+                    Header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
                 }
             }
-
-
         }
 
         /**
@@ -479,57 +608,69 @@ HEREDOC;
          */
 
 
-
-
         if ($action == 'confirm_deleteline' && GETPOST('confirm') == 'yes') {
-            $error=0;
+            $error = 0;
             $lineid = GETPOST('lineid', 'int');
             //$this->db->begin();
 
             //var_dump($lineid);exit;
 
             // on recherche la ligne à supprimer
-            foreach($object->lines as $line) {
+            foreach ($object->lines as $line) {
                 if ($line->rowid == $lineid) {
                     $lineToDelete = $line;
                 }
             }
+
             if ($lineToDelete->special_code == $this->special_code) {
                 // Call trigger
                 include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
-                $interface=new Interfaces($this->db);
-                $result=$interface->run_triggers('OUVRAGE_DELETE',$lineToDelete,$user,$langs,$conf);
-                if ($result < 0) $error++;
+                $interface = new Interfaces($this->db);
+                $result = $interface->run_triggers('OUVRAGE_DELETE', $lineToDelete, $user, $langs, $conf);
+                if ($result < 0) {
+                    $error++;
+                }
                 // End call triggers
             }
         }
-
-
 
         /**
          * Mise à jour
          */
         if (($action == 'updateligne' || $action == 'updateline') && GETPOST('ouvrage_update') == 1) {
-
             $lineid = GETPOST('lineid', 'int');
 
             // on recherche la ligne modifiée
-            foreach($object->lines as $line) {
+            foreach ($object->lines as $line) {
                 if ($line->rowid == $lineid) {
                     $lineUpdate = $line;
                 }
             }
 
+            // extrafields
+            if ($lineUpdate != null) {
+                require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+                $extrafieldsline = new ExtraFields($this->db);
+                $extralabelsline = $extrafieldsline->fetch_name_optionals_label($object->table_element_line);
+                $array_options = $extrafieldsline->getOptionalsFromPost($extralabelsline);
+                if (is_array($array_options) && count($array_options) > 0) {
+                    $lineUpdate->array_options = $array_options;
+                }
+            }
+
             include_once DOL_DOCUMENT_ROOT . '/core/class/interfaces.class.php';
-            $interface=new Interfaces($this->db);
-            $result=$interface->run_triggers('OUVRAGE_UPDATE',$lineUpdate,$user,$langs,$conf);
-            if ($result < 0) $error++;
+            $interface = new Interfaces($this->db);
+            $result = $interface->run_triggers('OUVRAGE_UPDATE', $lineUpdate, $user, $langs, $conf);
+            if ($result < 0) {
+                $error++;
+            }
             unset($_POST['action']);
             return 1;
             if ($object->element == 'facture') {
-                Header ('Location: '.$_SERVER["PHP_SELF"].'?facid='.$object->id);
+                Header('Location: ' . $_SERVER["PHP_SELF"] . '?facid=' . $object->id);
             }
-            Header ('Location: '.$_SERVER["PHP_SELF"].'?id='.$object->id);
+
+            Header('Location: ' . $_SERVER["PHP_SELF"] . '?id=' . $object->id);
         }
 
         if ($action == 'builddoc') {
@@ -538,46 +679,108 @@ HEREDOC;
             $_SESSION['OUVRAGE_HIDE_MONTANT'] = GETPOST('OUVRAGE_HIDE_MONTANT');
         }
 
+        if ($action == "add") {
+            $selectedLines = GETPOST('toselect', 'array');
+            global $origin;
+            global $originid;
+            if (!empty($origin) && !empty($originid)) {
+                // Parse element/subelement (ex: project_task)
+                $element = $subelement = $origin;
+                $regs = array();
+                if (preg_match('/^([^_]+)_([^_]+)/i', $origin, $regs)) {
+                    $element = $regs [1];
+                    $subelement = $regs [2];
+                }
+
+                // For compatibility
+                if ($element == 'order') {
+                    $element = $subelement = 'commande';
+                }
+                if ($element == 'propal') {
+                    $element = 'comm/propal';
+                    $subelement = 'propal';
+                }
+                if ($element == 'contract') {
+                    $element = $subelement = 'contrat';
+                }
+                dol_include_once('/'.$element.'/class/'.$subelement.'.class.php');
+
+                $classname = ucfirst($subelement);
+                $srcobject = new $classname($this->db);
+                $srcobject->fetch($originid);
+                $srcobject->fetch_lines();
+                $selectedLinesToAdd = array();
+                $mainLineIdsManagedByThisModule = array();
+                foreach ($srcobject->lines as $line) {
+                    if ($line->special_code == $this->special_code) {
+                        $mainLineIdsManagedByThisModule[] = $line->id;
+                    }
+                }
+                foreach ($srcobject->lines as $line) {
+                    if (in_array($line->fk_parent_line, $mainLineIdsManagedByThisModule) && in_array($line->fk_parent_line, $selectedLines) && !in_array($line->id, $selectedLines)) {
+                        $selectedLinesToAdd[] = $line->id;
+                    }
+                }
+                $selectedLines = array_unique(array_merge($selectedLines, $selectedLinesToAdd));
+                $_GET['toselect'] = $selectedLines;
+                $_POST['toselect'] = $selectedLines ;
+            }
+        }
     }
 
-    function printObjectLine($parameters=false, &$object, &$action='viewline') {
-        global $conf,$langs,$user,$hookmanager;
-        global $form,$bc,$bcnd;
+    function printObjectLine($parameters = false, &$object, &$action = 'viewline')
+    {
+        global $conf, $langs, $user, $hookmanager;
+        global $form, $bc, $bcnd;
 
         $element = $object->element;
-        if ($element == 'propal') $element = 'propale';
+        if ($element == 'propal') {
+            $element = 'propale';
+        }
 
         $lineid = GETPOST('lineid', 'int');
 
         if ($action == 'editline') {
             //On recherche la ligne à modifier
-            foreach($object->lines as $line) {
+            foreach ($object->lines as $line) {
                 if ($line->rowid == $lineid) {
                     $lineToUpdate = $line;
                 }
             }
 
             if ($lineToUpdate->special_code == $this->special_code) {
-                echo '<input type="hidden" name="special_code" value="'.$this->special_code.'" />';
-                echo '<input type="hidden" name="label" value="'.$lineToUpdate->label.'" />';
+                echo '<input type="hidden" name="special_code" value="' . $this->special_code . '" />';
+                echo '<input type="hidden" name="label" value="' . $lineToUpdate->label . '"/>';
                 echo '<input type="hidden" name="ouvrage_update" value="1" />';
 
-                $textHelp = $form->textwithpicto('',$langs->trans($conf->global->OUVRAGE_TYPE."OUVRAGE_IMPOSSIBLEUPDATE"));
+                $textHelp = $form->textwithpicto('', $langs->trans($conf->global->OUVRAGE_TYPE . "OUVRAGE_IMPOSSIBLEUPDATE"));
+                $textHelp = preg_replace('/\'/', '\\\'', $textHelp);
 
-                echo '<script>';
-                echo "setTimeout(function(){ $('#price_ht, #buying_price').attr('disabled', 'disabled'); $('#price_ht').attr('size', 4); $('#price_ht').after('".$textHelp."')}, 1);";
-                echo '</script>';
+                print "<script>
+                    $(function() {
+                        setTimeout(function(){
+                            $('#price_ht').prop('disabled', true);
+                            $('#buying_price').prop('disabled', true);
+                            $('#price_ht').attr('size', '4');
+                            if (! ($('#price_ht').next().val() !== undefined)) {
+                                $('#price_ht').after('" . $textHelp . "');
+                            }
+                            $('#product_desc').before('" . (img_object('', 'product', 'class="paddingright classfortooltip"', 0, 0, '' ? 0 : 1)) . $lineToUpdate->label . "');
+                        }, 1);
+                    });
+                </script>";
             }
 
-            if(!is_null ($lineToUpdate->fk_parent_line) && $lineToUpdate->fk_parent_line > 0) {
+            if (!is_null($lineToUpdate->fk_parent_line) && $lineToUpdate->fk_parent_line > 0) {
                 // On vérifie si la ligne supprimée appartient à un ouvrage
-                foreach($object->lines as $line) {
+                foreach ($object->lines as $line) {
                     if ($line->rowid == $lineToUpdate->fk_parent_line) {
                         $parentLineToUpdate = $line;
                     }
                 }
+
                 if ($parentLineToUpdate->special_code == $this->special_code) {
-                    echo '<input type="hidden" name="fk_parent_line" value="'.$lineToUpdate->fk_parent_line.'" />';
+                    echo '<input type="hidden" name="fk_parent_line" value="' . $lineToUpdate->fk_parent_line . '" />';
                     echo '<input type="hidden" name="ouvrage_update" value="1" />';
                 }
             }
@@ -585,30 +788,30 @@ HEREDOC;
     }
 
     /**
-     * 	Return HTML form for builddoc bloc
+     *    Return HTML form for builddoc bloc
      */
-    function formBuilddocOptions($parameters=false)
+    function formBuilddocOptions($parameters = false)
     {
         global $conf, $langs;
         global $bc, $var;
 
         $langs->load('ouvrage@ouvrage');
 
-        $out='';
+        $out = '';
 
         $checkedHideDetails = (!isset($_SESSION['OUVRAGE_HIDE_PRODUCT_DETAIL']) && $conf->global->OUVRAGE_HIDE_PRODUCT_DETAIL == 1) || (isset($_SESSION['OUVRAGE_HIDE_PRODUCT_DETAIL']) && $_SESSION['OUVRAGE_HIDE_PRODUCT_DETAIL'] == 1) ? 'checked="checked"' : '';
         $checkedHideDesc = (!isset($_SESSION['OUVRAGE_HIDE_PRODUCT_DESCRIPTION']) && $conf->global->OUVRAGE_HIDE_PRODUCT_DESCRIPTION == 1) || (isset($_SESSION['OUVRAGE_HIDE_PRODUCT_DESCRIPTION']) && $_SESSION['OUVRAGE_HIDE_PRODUCT_DESCRIPTION'] == 1) ? 'checked="checked"' : '';
         $checkedHideAmount = (!isset($_SESSION['OUVRAGE_HIDE_MONTANT']) && $conf->global->OUVRAGE_HIDE_MONTANT == 1) || (isset($_SESSION['OUVRAGE_HIDE_MONTANT']) && $_SESSION['OUVRAGE_HIDE_MONTANT'] == 1) ? 'checked="checked"' : '';
 
-        $out.= '<tr '.$bc[$var].'>';
-        $out.= '<td colspan="4"><input type="checkbox" name="OUVRAGE_HIDE_PRODUCT_DETAIL" value="1"' . $checkedHideDetails . ' /> '.$langs->trans('OUVRAGE_HIDE_PRODUCT_DETAIL').'</td>';
-        $out.= '</tr>';
-        $out.= '<tr '.$bc[$var].'>';
-        $out.= '<td colspan="4"><input type="checkbox" name="OUVRAGE_HIDE_PRODUCT_DESCRIPTION" value="1"' . $checkedHideDesc . ' /> '.$langs->trans('OUVRAGE_HIDE_PRODUCT_DESCRIPTION').'</td>';
-        $out.= '</tr>';
-        $out.= '<tr '.$bc[$var].'>';
-        $out.= '<td colspan="4"><input type="checkbox" name="OUVRAGE_HIDE_MONTANT" value="1"' . $checkedHideAmount . ' /> '.$langs->trans('OUVRAGE_HIDE_MONTANT').'</td>';
-        $out.= '</tr>';
+        $out .= '<tr ' . $bc[$var] . '>';
+        $out .= '<td colspan="4"><input type="checkbox" name="OUVRAGE_HIDE_PRODUCT_DETAIL" value="1"' . $checkedHideDetails . ' /> ' . $langs->trans('OUVRAGE_HIDE_PRODUCT_DETAIL') . '</td>';
+        $out .= '</tr>';
+        $out .= '<tr ' . $bc[$var] . '>';
+        $out .= '<td colspan="4"><input type="checkbox" name="OUVRAGE_HIDE_PRODUCT_DESCRIPTION" value="1"' . $checkedHideDesc . ' /> ' . $langs->trans('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') . '</td>';
+        $out .= '</tr>';
+        $out .= '<tr ' . $bc[$var] . '>';
+        $out .= '<td colspan="4"><input type="checkbox" name="OUVRAGE_HIDE_MONTANT" value="1"' . $checkedHideAmount . ' /> ' . $langs->trans('OUVRAGE_HIDE_MONTANT') . '</td>';
+        $out .= '</tr>';
 
         $out .= <<<HEREDOC
                         <script>
@@ -639,56 +842,53 @@ HEREDOC;
 
 
     /**
-     *	Return line description translated in outputlangs and encoded in UTF8
+     *    Return line description translated in outputlangs and encoded in UTF8
      *
-     *	@param		array	$parameters		Extra parameters
-     *	@param		object	$object			Object
-     *	@param    	string	$action			Type of action
-     *	@return		void
+     * @param array $parameters Extra parameters
+     * @param object $object Object
+     * @param string $action Type of action
+     * @return        void
      */
-    function pdf_writelinedesc($parameters=false, &$object, &$action='') {
+    function pdf_writelinedesc($parameters = false, &$object, &$action = '')
+    {
         global $conf;
 
         $conf->global->MAIN_PDF_DASH_BETWEEN_LINES = $this->dash;
 
-        if (is_array($parameters) && ! empty($parameters)) {
-            foreach($parameters as $key=>$value)
-            {
-                $$key=$value;
+        if (is_array($parameters) && !empty($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $$key = $value;
             }
         }
+        $backgroundcolor = array('230', '230', '230');
+        $pdf->SetFillColor($backgroundcolor[0], $backgroundcolor[1], $backgroundcolor[2]);
+        $pdf->SetXY($posx, $posy);
 
         $return = 0;
 
         if ($object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
-            $backgroundcolor = array('230','230','230');
+            $object->lines[$i]->rowid = (!empty($object->lines[$i]->rowid) ? $object->lines[$i]->rowid : $object->lines[$i]->id);
 
-            $object->lines[$i]->rowid = (!empty($object->lines[$i]->rowid)?$object->lines[$i]->rowid:$object->lines[$i]->id);
+            $pdf->SetFillColor($backgroundcolor[0], $backgroundcolor[1], $backgroundcolor[2]);
+            $pdf->MultiCell($pdf->page_largeur - $posx - $pdf->marge_droite, 5, '', 0, '', 1);
+            $pdf->SetFont('', 'B', 9);
+            $pdf->writeHTMLCell($w, $h, $posx, $posy, $outputlangs->convToOutputCharset($object->lines[$i]->label), 0, 1);
 
-            $pdf->SetXY ($posx, $posy-1);
-            $pdf->SetFillColor($backgroundcolor[0],$backgroundcolor[1],$backgroundcolor[2]);
-            $pdf->MultiCell($pdf->page_largeur-$posx-$pdf->marge_droite, $h+4.5, '', 0, '', 1);
-
-            $posy = $pdf->GetY();
-            $pdf->SetFont('', 'B', 8);
-            $pdf->writeHTMLCell($w, $h+4.5, $posx, $posy-$h-5, $outputlangs->convToOutputCharset($object->lines[$i]->label), 0, 1);
-            $nexy = $pdf->GetY();
-
-
+            $Y = $pdf->GetY();
             $description = dol_htmlentitiesbr($object->lines[$i]->desc, 1);
-            if (! empty($description))
-            {
+            if (!empty($description)) {
                 $pdf->SetFont('', 'I', 7);
-                $pdf->writeHTMLCell($w, $h, $posx, $nexy-4.5, $outputlangs->convToOutputCharset($description), 0, 1);
+                $pdf->writeHTMLCell(0, 0, $posx, $Y + 3, $outputlangs->convToOutputCharset($description), 0, 1);
             }
 
             $pdf->SetFont('', '', 9);
 
             $conf->global->MAIN_PDF_DASH_BETWEEN_LINES = 0;
 
+
             $return++;
         } elseif (isset($object->lines[$i]->fk_parent_line)) {
-
+            $Y = $pdf->GetY();
             $parent_line = $object->lines[$i]->fk_parent_line;
 
             // Vérifie que la ligne appartient à un ouvrage
@@ -698,6 +898,7 @@ HEREDOC;
                 if ($parent_line == $object->lines[$k]->rowid && $object->lines[$k]->product_type == 9 && $object->lines[$k]->special_code == $this->special_code) {
                     $inOuvrage = true;
                 }
+
                 if ($parent_line == $object->lines[$k]->fk_parent_line) {
                     $listProductOuvrage[] = $k;
                 }
@@ -707,41 +908,50 @@ HEREDOC;
             if ($inOuvrage) {
                 if (GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1) {
                     $conf->global->MAIN_PDF_DASH_BETWEEN_LINES = $this->dash;
+                    if (end($listProductOuvrage) == $i) {
+                        $pdf->SetFont('', '', 2);
+                        $pdf->writeHTMLCell($w, 1, $posx, $Y, '', 0, 1);
+                    }
+
+
                     return 1;
                 }
-                $pdf->SetXY ($posx, $posy-1);
-                $nexy = $pdf->GetY();
+
                 //$pdf->SetLineStyle(array('width' => 0.1, 'cap' => 'butt', 'join' => 'miter', 'dash' => 4, 'color' => array(255, 255, 255)));
                 //$pdf->SetFillColor(230, 230, 230);
-                $pdf->writeHTMLCell($w, $h, $posx, $nexy, ' - ' . $outputlangs->convToOutputCharset($object->lines[$i]->product_label), 0, 1);
+                $text = $object->lines[$i]->product_label;
+                if (!empty($object->lines[$i]->desc)) {
+                    $text .= "<br />" . $object->lines[$i]->desc;
+                }
+                $pdf->writeHTMLCell($w, $h, $posx, $Y, ' - ' . $outputlangs->convToOutputCharset($text), 0, 1);
                 if (end($listProductOuvrage) != $i) {
                     $conf->global->MAIN_PDF_DASH_BETWEEN_LINES = 0;
                 }
+
                 $return++;
             }
         } elseif (GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1) {
             $conf->global->MAIN_PDF_DASH_BETWEEN_LINES = $this->dash;
-            return;
+            return 0;
         }
-        //$pdf->writeHTMLCell($w, $h, $posx, $nexy+1, $outputlangs->convToOutputCharset($object->lines[$i]->label), 0, 0);
+
+        // $nexy = $pdf->GetY();
+        //$pdf->SetXY($posx, $nexy);
 
         return $return;
-
     }
 
     /**
-     * 	Return line vat rate
-     * 	@param		object				Object
-     * 	@param		$i					Current line number
-     *  @param    	outputlang			Object lang for output0
+     *    Return line vat rate
+     * @param object                Object
+     * @param        $i                    Current line number
+     * @param outputlang            Object lang for output0
      */
-    function pdf_getlinevatrate($parameters=false,$object,$action='')
+    function pdf_getlinevatrate($parameters = false, $object, $action = '')
     {
-        if (is_array($parameters) && ! empty($parameters))
-        {
-            foreach($parameters as $key=>$value)
-            {
-                $$key=$value;
+        if (is_array($parameters) && !empty($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $$key = $value;
             }
         }
 
@@ -751,10 +961,9 @@ HEREDOC;
             if (GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
                 $out = '';
             } else {
-                $out = vatrate($object->lines[$i]->tva_tx,1,$object->lines[$i]->info_bits);
+                $out = vatrate($object->lines[$i]->tva_tx, 1, $object->lines[$i]->info_bits);
             }
         } elseif (isset($object->lines[$i]->fk_parent_line)) {
-
             // Vérifie que la ligne appartient à un ouvrage
             $parent_line = $object->lines[$i]->fk_parent_line;
             $inOuvrage = false;
@@ -763,6 +972,7 @@ HEREDOC;
                 if ($parent_line == $object->lines[$k]->rowid && $object->lines[$k]->product_type == 9 && $object->lines[$k]->special_code == $this->special_code) {
                     $inOuvrage = true;
                 }
+
                 if ($parent_line == $object->lines[$k]->fk_parent_line) {
                     $listProductOuvrage[] = $k;
                 }
@@ -770,35 +980,32 @@ HEREDOC;
 
             if ($inOuvrage) {
                 if ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
-                    $out ='';
+                    $out = '';
                 } elseif ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && $object->lines[$i]->product_type != 9) {
                     $out = '';
                 } elseif (GETPOST('OUVRAGE_HIDE_MONTANT') == 1 && $object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
                     $out = '';
                 } else {
-                    $out = vatrate($object->lines[$i]->tva_tx,1,$object->lines[$i]->info_bits);
+                    $out = vatrate($object->lines[$i]->tva_tx, 1, $object->lines[$i]->info_bits);
                 }
             }
-
         } else {
-            return;
+            return 0;
         }
 
         $this->resprints = $out;
         return 1;
     }
 
-    function pdf_getlineupexcltax($parameters=false,$object,$action='')
+    function pdf_getlineupexcltax($parameters = false, $object, $action = '')
     {
-        if (is_array($parameters) && ! empty($parameters))
-        {
-            foreach($parameters as $key=>$value)
-            {
-                $$key=$value;
+        if (is_array($parameters) && !empty($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $$key = $value;
             }
         }
 
-        $out='';
+        $out = '';
 
         // si c'est un ouvrage
 
@@ -809,7 +1016,6 @@ HEREDOC;
                 $out = price($object->lines[$i]->subprice);
             }
         } elseif (isset($object->lines[$i]->fk_parent_line)) {
-
             // Vérifie que la ligne appartient à un ouvrage
             $parent_line = $object->lines[$i]->fk_parent_line;
             $inOuvrage = false;
@@ -818,6 +1024,7 @@ HEREDOC;
                 if ($parent_line == $object->lines[$k]->rowid && $object->lines[$k]->product_type == 9 && $object->lines[$k]->special_code == $this->special_code) {
                     $inOuvrage = true;
                 }
+
                 if ($parent_line == $object->lines[$k]->fk_parent_line) {
                     $listProductOuvrage[] = $k;
                 }
@@ -825,7 +1032,7 @@ HEREDOC;
 
             if ($inOuvrage) {
                 if ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
-                    $out ='';
+                    $out = '';
                 } elseif ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && $object->lines[$i]->product_type != 9) {
                     $out = '';
                 } elseif (GETPOST('OUVRAGE_HIDE_MONTANT') == 1 && $object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
@@ -834,22 +1041,19 @@ HEREDOC;
                     $out = price($object->lines[$i]->subprice);
                 }
             }
-
         } else {
-            return;
+            return 0;
         }
 
         $this->resprints = $out;
         return 1;
     }
 
-    function pdf_getlineqty($parameters=false,$object,$action='')
+    function pdf_getlineqty($parameters = false, $object, $action = '')
     {
-        if (is_array($parameters) && ! empty($parameters))
-        {
-            foreach($parameters as $key=>$value)
-            {
-                $$key=$value;
+        if (is_array($parameters) && !empty($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $$key = $value;
             }
         }
 
@@ -862,7 +1066,6 @@ HEREDOC;
                 $out = $object->lines[$i]->qty;
             }
         } elseif (isset($object->lines[$i]->fk_parent_line)) {
-
             // Vérifie que la ligne appartient à un ouvrage
             $parent_line = $object->lines[$i]->fk_parent_line;
             $inOuvrage = false;
@@ -871,6 +1074,7 @@ HEREDOC;
                 if ($parent_line == $object->lines[$k]->rowid && $object->lines[$k]->product_type == 9 && $object->lines[$k]->special_code == $this->special_code) {
                     $inOuvrage = true;
                 }
+
                 if ($parent_line == $object->lines[$k]->fk_parent_line) {
                     $listProductOuvrage[] = $k;
                 }
@@ -878,7 +1082,7 @@ HEREDOC;
 
             if ($inOuvrage) {
                 if ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
-                    $out ='';
+                    $out = '';
                 } elseif ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && $object->lines[$i]->product_type != 9) {
                     $out = '';
                 } elseif (GETPOST('OUVRAGE_HIDE_MONTANT') == 1 && $object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
@@ -887,9 +1091,8 @@ HEREDOC;
                     $out = $object->lines[$i]->qty;
                 }
             }
-
         } else {
-            return;
+            return 0;
         }
 
         $this->resprints = $out;
@@ -897,22 +1100,20 @@ HEREDOC;
     }
 
     /**
-     * 	Return line remise percent
-     * 	@param		object				Object
-     * 	@param		$i					Current line number
-     *  @param    	outputlang			Object lang for output
+     *    Return line remise percent
+     * @param object                Object
+     * @param        $i                    Current line number
+     * @param outputlang            Object lang for output
      */
-    function pdf_getlineremisepercent($parameters=false,$object,$action='')
+    function pdf_getlineremisepercent($parameters = false, $object, $action = '')
     {
-        if (is_array($parameters) && ! empty($parameters))
-        {
-            foreach($parameters as $key=>$value)
-            {
-                $$key=$value;
+        if (is_array($parameters) && !empty($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $$key = $value;
             }
         }
 
-        $out='';
+        $out = '';
 
         // si c'est un ouvrage
 
@@ -920,10 +1121,9 @@ HEREDOC;
             if (GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
                 $out = '';
             } else {
-                $out = dol_print_reduction($object->lines[$i]->remise_percent,$outputlangs);
+                $out = dol_print_reduction($object->lines[$i]->remise_percent, $outputlangs);
             }
         } elseif (isset($object->lines[$i]->fk_parent_line)) {
-
             // Vérifie que la ligne appartient à un ouvrage
             $parent_line = $object->lines[$i]->fk_parent_line;
             $inOuvrage = false;
@@ -932,6 +1132,7 @@ HEREDOC;
                 if ($parent_line == $object->lines[$k]->rowid && $object->lines[$k]->product_type == 9 && $object->lines[$k]->special_code == $this->special_code) {
                     $inOuvrage = true;
                 }
+
                 if ($parent_line == $object->lines[$k]->fk_parent_line) {
                     $listProductOuvrage[] = $k;
                 }
@@ -939,38 +1140,34 @@ HEREDOC;
 
             if ($inOuvrage) {
                 if ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
-                    $out ='';
+                    $out = '';
                 } elseif ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && $object->lines[$i]->product_type != 9) {
                     $out = '';
                 } elseif (GETPOST('OUVRAGE_HIDE_MONTANT') == 1 && $object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
                     $out = '';
                 } else {
-                    $out = dol_print_reduction($object->lines[$i]->remise_percent,$outputlangs);
+                    $out = dol_print_reduction($object->lines[$i]->remise_percent, $outputlangs);
                 }
             }
-
         } else {
-            return;
+            return 0;
         }
 
         $this->resprints = $out;
         return 1;
-
     }
 
     /**
-     * 	Return line total including tax
-     * 	@param		object				Object
-     * 	@param		$i					Current line number
-     *  @param    	outputlang			Object lang for output
+     *    Return line total including tax
+     * @param object                Object
+     * @param        $i                    Current line number
+     * @param outputlang            Object lang for output
      */
-    function pdf_getlinetotalexcltax($parameters=false,$object,$action='')
+    function pdf_getlinetotalexcltax($parameters = false, $object, $action = '')
     {
-        if (is_array($parameters) && ! empty($parameters))
-        {
-            foreach($parameters as $key=>$value)
-            {
-                $$key=$value;
+        if (is_array($parameters) && !empty($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $$key = $value;
             }
         }
 
@@ -983,7 +1180,6 @@ HEREDOC;
                 $out = price($object->lines[$i]->total_ht);
             }
         } elseif (isset($object->lines[$i]->fk_parent_line)) {
-
             // Vérifie que la ligne appartient à un ouvrage
             $parent_line = $object->lines[$i]->fk_parent_line;
             $inOuvrage = false;
@@ -992,6 +1188,7 @@ HEREDOC;
                 if ($parent_line == $object->lines[$k]->rowid && $object->lines[$k]->product_type == 9 && $object->lines[$k]->special_code == $this->special_code) {
                     $inOuvrage = true;
                 }
+
                 if ($parent_line == $object->lines[$k]->fk_parent_line) {
                     $listProductOuvrage[] = $k;
                 }
@@ -999,7 +1196,7 @@ HEREDOC;
 
             if ($inOuvrage) {
                 if ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
-                    $out ='';
+                    $out = '';
                 } elseif ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && $object->lines[$i]->product_type != 9) {
                     $out = '';
                 } elseif (GETPOST('OUVRAGE_HIDE_MONTANT') == 1 && $object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
@@ -1008,11 +1205,165 @@ HEREDOC;
                     $out = price($object->lines[$i]->total_ht);
                 }
             }
-
         } else {
-            return;
+            return 0;
         }
-        $this->resprints = $out ;
+
+        $this->resprints = $out;
         return 1;
+    }
+
+    /**
+     *    Return line unit
+     *
+     * @param Object $object Object
+     * @param int $i Current line number
+     * @param Translate $outputlangs Object langs for output
+     * @param int $hidedetails Hide details (0=no, 1=yes, 2=just special lines)
+     * @param HookManager $hookmanager Hook manager instance
+     * @return    string                            Value for unit cell
+     */
+    function pdf_getlineunit($parameters = false, $object, $action = '')
+    {
+        global $langs;
+        if (is_array($parameters) && !empty($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $$key = $value;
+            }
+        }
+
+        // si c'est un ouvrage
+
+        if ($object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
+            if (GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
+                $out = '';
+            } else {
+                $out = $langs->transnoentitiesnoconv($object->lines[$i]->getLabelOfUnit('short'));
+            }
+        } elseif (isset($object->lines[$i]->fk_parent_line)) {
+            // Vérifie que la ligne appartient à un ouvrage
+            $parent_line = $object->lines[$i]->fk_parent_line;
+            $inOuvrage = false;
+            $listProductOuvrage = array();
+            foreach ($object->lines as $k => $v) {
+                if ($parent_line == $object->lines[$k]->rowid && $object->lines[$k]->product_type == 9 && $object->lines[$k]->special_code == $this->special_code) {
+                    $inOuvrage = true;
+                }
+
+                if ($parent_line == $object->lines[$k]->fk_parent_line) {
+                    $listProductOuvrage[] = $k;
+                }
+            }
+
+            if ($inOuvrage) {
+                if ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
+                    $out = '';
+                } elseif ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && $object->lines[$i]->product_type != 9) {
+                    $out = '';
+                } elseif (GETPOST('OUVRAGE_HIDE_MONTANT') == 1 && $object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
+                    $out = '';
+                } else {
+                    $out = $langs->transnoentitiesnoconv($object->lines[$i]->getLabelOfUnit('short'));
+                }
+            }
+        } else {
+            return 0;
+        }
+
+        $this->resprints = $out;
+        return 1;
+    }
+
+    /**
+     * Return line percent
+     *
+     * @param Object $object Object
+     * @param int $i Current line number
+     * @param Translate $outputlangs Object langs for output
+     * @param int $hidedetails Hide details (0=no, 1=yes, 2=just special lines)
+     * @param HookManager $hookmanager Hook manager instance
+     * @return string
+     */
+    function pdf_getlineprogress($parameters = false, $object, $action = '')
+    {
+        global $langs, $conf;
+        if (is_array($parameters) && !empty($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $$key = $value;
+            }
+        }
+
+        // si c'est un ouvrage
+
+        if ($object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
+            if (GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
+                $out = '';
+            } else {
+                if ($conf->global->SITUATION_DISPLAY_DIFF_ON_PDF) {
+                    $prev_progress = 0;
+                    if (method_exists($object, 'get_prev_progress')) {
+                        $prev_progress = $object->lines[$i]->get_prev_progress($object->id);
+                    }
+                    $out = ($object->lines[$i]->situation_percent - $prev_progress) . '%';
+                } else {
+                    $out = $object->lines[$i]->situation_percent . '%';
+                }
+            }
+        } elseif (isset($object->lines[$i]->fk_parent_line)) {
+            // Vérifie que la ligne appartient à un ouvrage
+            $parent_line = $object->lines[$i]->fk_parent_line;
+            $inOuvrage = false;
+            $listProductOuvrage = array();
+            foreach ($object->lines as $k => $v) {
+                if ($parent_line == $object->lines[$k]->rowid && $object->lines[$k]->product_type == 9 && $object->lines[$k]->special_code == $this->special_code) {
+                    $inOuvrage = true;
+                }
+
+                if ($parent_line == $object->lines[$k]->fk_parent_line) {
+                    $listProductOuvrage[] = $k;
+                }
+            }
+
+            if ($inOuvrage) {
+                if ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && GETPOST('OUVRAGE_HIDE_MONTANT') == 1) {
+                    $out = '';
+                } elseif ((GETPOST('OUVRAGE_HIDE_PRODUCT_DETAIL') == 1 || GETPOST('OUVRAGE_HIDE_PRODUCT_DESCRIPTION') == 1) && $object->lines[$i]->product_type != 9) {
+                    $out = '';
+                } elseif (GETPOST('OUVRAGE_HIDE_MONTANT') == 1 && $object->lines[$i]->product_type == 9 && $object->lines[$i]->special_code == $this->special_code) {
+                    $out = '';
+                } else {
+                    if ($conf->global->SITUATION_DISPLAY_DIFF_ON_PDF) {
+                        $prev_progress = 0;
+                        if (method_exists($object, 'get_prev_progress')) {
+                            $prev_progress = $object->lines[$i]->get_prev_progress($object->id);
+                        }
+                        $out = ($object->lines[$i]->situation_percent - $prev_progress) . '%';
+                    } else {
+                        $out = $object->lines[$i]->situation_percent . '%';
+                    }
+                }
+            }
+        } else {
+            return 0;
+        }
+
+        $this->resprints = $out;
+        return 1;
+    }
+
+    /**
+     * Display only main custom elements
+     * @param array $parameters
+     * @param CommonObject $object  Object
+     * @param string $action
+     * @param HookManager $hookmanager to call another hook
+     * */
+    public function printOriginObjectLine($parameters, $object, $action, $hookmanager)
+    {
+        global $selectedLines;
+        $line = $parameters['line'];
+        if ($line->special_code == $this->special_code) {
+            $object->printOriginLine($line, '', '', '/core/tpl', $selectedLines);
+        }
     }
 }

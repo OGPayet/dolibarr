@@ -1,0 +1,129 @@
+# Ouvrage  
+# Copyright (C) 2017       Inovea-conseil.com     <info@inovea-conseil.com>
+#
+
+#
+# Générique
+#
+
+Module432406Name = Paquetes
+Module432406Desc = Crea e garda paquetes/feixes de produtos/servizos no seu catálogo para usalos no orzamento/pedimento/factura a clientes
+
+#
+# Page d'administration
+#
+Settings = Configuracións
+ouvrageSetup = Configuración do módulo
+
+PDFOptions = Opcións por defecto para xeracións de PDF
+
+OUVRAGE_HIDE_PRODUCT_DETAIL = Amosar só o paquete (non os produtos/servizos)
+OUVRAGE_HIDE_PRODUCT_DESCRIPTION = Ocultar os detalles dos produtos/servizos
+OUVRAGE_HIDE_MONTANT = Ocultar o prezo do paquete
+
+OUVRAGE_QUANTITY_STEP=Paso para a cantidade
+OUVRAGE_QUANTITY_STEP_Tooltip=Escolla aquí canto desexa aumentar ou diminuír as cantidades de produtos/servizos presentes nos seus libros/paquetes. Indique 1 para pasar de 1 a 2 durante un aumento - indique 0,5 para pasar de 1 a 1,5 - ...)
+
+BTP_CHOICE = Construción (paquete "traballo de construción")
+SERVICE_CHOICE = Servizo (paquete "feixe")
+PDFouvragefactdesc= Modelo PDF para facturas usando paquetes
+PDFOuvragecomDescription= Modelo PDF para pedimentos usando paquetes
+PDFOuvragepropalDescription = Modelo PDF para orzamentos usando paquetes
+
+#
+# Menu Ouvrage
+#
+SERVICE_OUVRAGES = Paquetes
+SERVICE_OUVRAGE = Paquete
+SERVICE_NEW_OUVRAGE = Novo paquete
+SERVICE_LISTE_OUVRAGE = Listaxe
+SERVICE_ = Paquetes
+BTP_OUVRAGES = Paquetes
+BTP_OUVRAGE = Paquete
+BTP_NEW_OUVRAGE = Novo paquete
+BTP_LISTE_OUVRAGE = Listaxe
+BTP_ = Paquetes
+OUVRAGES = Paquetes
+NEW_OUVRAGE = Novo paquete
+LISTE_OUVRAGES = Listaxe
+
+#
+# Ouvrage Ajax
+#
+OUVRAGE_NO_PRODUCT_FOUND=Non se atoparon produtos
+OUVRAGE_NO_PARENT_ID_WAS_PASSED=Non foi enviado ningún id principal do produto
+OUVRAGE_NO_PRODUCT_REF_WAS_PASSED=Non foi enviada ningunha referencia do produto
+Modify=Modificar
+OUVRAGE_PRODUCT_ALREADY_IN=Produto xa utilizado no paquete
+OUVRAGE_SERVER_ERROR=Erro do servidor
+
+#
+# Ouvrage card
+#
+AddProduct = Axuntar un produto
+AddService = Axuntar un servizo
+OUVRAGE_VERIFY_INFORMATIONS=Comprobe a súa información
+OUVRAGE_SERVER_ERROR=Erro do servidor
+
+#
+# Liste Ouvrage
+#
+BTP_LISTINGOUVRAGE = Listaxe de paquetes
+SERVICE_LISTINGOUVRAGE = Listaxe de paquete
+ProductAndService = Produtos e servizos
+
+#
+# Fiche Ouvrage
+#
+BTP_FICHEOUVRAGE = Tarxeta do paquete
+SERVICE_FICHEOUVRAGE = Tarxeta do paquete
+
+#
+# Edit ouvrage
+#
+BTP_EDITOUVRAGE = Modificar paquete
+SERVICE_EDITOUVRAGE = Modificar paquete
+
+#
+# Suppression ouvrage
+#
+BTP_DeleteOuvrage = Eliminar paquete
+SERVICE_DeleteOuvrage = Eliminar paquete
+BTP_DeleteOuvrageConfirmation = Está certo de queres eliminar este paquete?
+SERVICE_DeleteOuvrageConfirmation = Está certo de queres eliminar este paquete?
+BTP_OUVRAGEDELETED = Paquete eliminado
+SERVICE_OUVRAGEDELETED = Paquete eliminado
+
+#
+# Ajout ouvrage 
+#
+SERVICE_ADDOUVRAGE = Axuntar paquete
+BTP_ADDOUVRAGE = Axuntar paquete
+SERVICE_OUVRAGE_IMPOSSIBLEUPDATE = Non pode modificar o prezo do paquete (Este prezo depende dos produtos e servizos incluidos)
+BTP_OUVRAGE_IMPOSSIBLEUPDATE = Non pode modificar o prezo do paquete (Este prezo depende dos produtos e servizos incluidos)
+SERVICE_ErrorOuvrageAlreadyExists = Un paquete coa mesma referencia xa existe
+BTP_ErrorOuvrageAlreadyExists = Un paquete coa mesma referencia xa existe
+
+#
+# Cloner ouvrage
+#
+SERVICE_Clone = Clonar paquete
+SERVICE_ConfirmClone = Está certo de querer clonar este paquete?
+BTP_Clone = Clonar paquete
+BTP_ConfirmClone = Está certo de querer clonar este paquete?
+
+# Droits utilisateurs
+RightsO1 = Amosar paquetes
+RightsO11 = ler
+RightsO2 = Axuntar/Eliminar paquetes
+RightsO21 = escribir
+
+
+# Droits utilisateurs
+RightsO1=Ver paquetes
+RightsO2=Crear/Modificar paquetes
+RightsO3=Eliminar paquetes
+
+Extrafield = Campos adicionais (Extrafields)
+Work = Paquete
+Works = Paquetes

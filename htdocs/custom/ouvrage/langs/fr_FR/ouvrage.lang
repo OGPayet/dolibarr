@@ -1,101 +1,122 @@
-# Ouvrage
-# Copyright (C) 2017       Inovea-conseil.com     <info@inovea-conseil.com>
+# Ouvrage  
+# Copyright (C) 2017    Inovea-conseil.com  <info@inovea-conseil.com>
 #
 
 #
 # Générique
 #
-
-Module432406Name = Ouvrages/Forfaits
-Module432406Desc = Créer et enregistrer des forfaits/ouvrages composés des produits/services de votre catalogue (avec quantité définie pour chacun)
+ 
+Module432406Name=Ouvrages/Forfaits
+Module432406Desc=Créer et enregistrer des forfaits/ouvrages composés des produits/services de votre catalogue (avec quantité définie pour chacun)
 
 #
 # Page d'administration
 #
-Settings = Réglages
-ouvrageSetup = Paramètrage du module
+Settings=Réglages
+ouvrageSetup=Paramètrage du module
 
-PDFOptions = Options de génération de PDF par défaut
+PDFOptions=Options de génération de PDF par défaut
 
-OUVRAGE_HIDE_PRODUCT_DETAIL = Afficher uniquement l'ouvrage/forfait
-OUVRAGE_HIDE_PRODUCT_DESCRIPTION = Cacher les détails des produits/services
-OUVRAGE_HIDE_MONTANT = Cacher le montant des ouvrages/forfaits
+OUVRAGE_HIDE_PRODUCT_DETAIL=Afficher uniquement l'ouvrage/forfait
+OUVRAGE_HIDE_PRODUCT_DESCRIPTION=Cacher les détails tarifaires des produits/services
+OUVRAGE_HIDE_MONTANT=Cacher le montant des ouvrages/forfaits
 
-BTP_CHOICE = BTP (ouvrage)
-SERVICE_CHOICE = Service (forfait)
+OUVRAGE_QUANTITY_STEP=Intervalle d'augmentation des quantités
+OUVRAGE_QUANTITY_STEP_Tooltip=Choisissez ici de combien vous souhaitez augmenter ou diminuer les quantités des produits/services présents dans vos ouvrages/forfaits lors de l'ajout dans un devis, une commande, une facture. Indiquez 1 pour passer de 1 à 2 lors d'une augmentation - indiquez 0.5 pour passer de 1 à 1,5 - ...)
+
+BTP_CHOICE=BTP (ouvrage)
+SERVICE_CHOICE=Service (forfait)
+PDFouvragefactdesc= Modèle PDF pour les factures utilisant des ouvrages/forfaits
+PDFOuvragecomDescription= Modèle PDF pour les commandes utilisant des ouvrages/forfaits
+PDFOuvragepropalDescription = Modèle PDF pour les devis utilisant des ouvrages/forfaits
 
 #
 # Menu Ouvrage
 #
-SERVICE_OUVRAGES = Forfaits
-SERVICE_OUVRAGE = Forfait
-SERVICE_NEW_OUVRAGE = Nouveau forfait
-SERVICE_LISTE_OUVRAGE = Liste
-SERVICE_ = Forfaits
-BTP_OUVRAGES = Ouvrages
-BTP_OUVRAGE = Ouvrage
-BTP_NEW_OUVRAGE = Nouvel ouvrage
-BTP_LISTE_OUVRAGE = Liste
-BTP_ = Ouvrages
-OUVRAGES = Ouvrages
-NEW_OUVRAGE = Nouvel ouvrage
-LISTE_OUVRAGES = Liste
+SERVICE_OUVRAGES=Forfaits
+SERVICE_OUVRAGE=Forfait
+SERVICE_NEW_OUVRAGE=Nouveau forfait
+SERVICE_LISTE_OUVRAGE=Liste
+SERVICE_=Forfaits
+BTP_OUVRAGES=Ouvrages
+BTP_OUVRAGE=Ouvrage
+BTP_NEW_OUVRAGE=Nouvel ouvrage
+BTP_LISTE_OUVRAGE=Liste
+BTP_=Ouvrages
+OUVRAGES=Ouvrages
+NEW_OUVRAGE=Nouvel ouvrage
+LISTE_OUVRAGES=Liste
+
+#
+# Ouvrage Ajax
+#
+OUVRAGE_NO_PRODUCT_FOUND=Aucun produit trouvé
+OUVRAGE_NO_PARENT_ID_WAS_PASSED=Aucun id de produit parent envoyé
+OUVRAGE_NO_PRODUCT_REF_WAS_PASSED=Aucune référence produit envoyé
+Modify=Modifier
+OUVRAGE_PRODUCT_ALREADY_IN=Le produit séléctionné est déjà présent dans l'ouvrage
+OUVRAGE_SERVER_ERROR=Erreur serveur
 
 #
 # Ouvrage card
 #
-AddProduct = Ajouter un produit
-AddService = Ajouter un service
+AddProduct=Ajouter un produit
+AddService=Ajouter un service
+OUVRAGE_VERIFY_INFORMATIONS=Vérifiez vos informations
+OUVRAGE_SERVER_ERROR=Erreur serveur
 
 #
 # Liste Ouvrage
 #
-BTP_LISTINGOUVRAGE = Liste ouvrages
-SERVICE_LISTINGOUVRAGE = Liste forfaits
-ProductAndService = Produits et services
+BTP_LISTINGOUVRAGE=Liste ouvrages
+SERVICE_LISTINGOUVRAGE=Liste forfaits
+ProductAndService=Produits et services
 
 #
 # Fiche Ouvrage
 #
-BTP_FICHEOUVRAGE = Fiche ouvrage
-SERVICE_FICHEOUVRAGE = Fiche forfait
+BTP_FICHEOUVRAGE=Fiche ouvrage
+SERVICE_FICHEOUVRAGE=Fiche forfait
 
 #
 # Edit ouvrage
 #
-BTP_EDITOUVRAGE = Modifier ouvrage
-SERVICE_EDITOUVRAGE = Modifier forfait
+BTP_EDITOUVRAGE=Modifier ouvrage
+SERVICE_EDITOUVRAGE=Modifier forfait
 
 #
 # Suppression ouvrage
 #
-BTP_DeleteOuvrage = Suppression ouvrage
-SERVICE_DeleteOuvrage = Suppression forfait
-BTP_DeleteOuvrageConfirmation = Voulez-vous vraiment supprimer cet ouvrage ?
-SERVICE_DeleteOuvrageConfirmation = Voulez-vous vraiment supprimer ce forfait ?
-BTP_OUVRAGEDELETED = L'ouvrage a bien été supprimé
-SERVICE_OUVRAGEDELETED = Le forfait a bien été supprimé
+BTP_DeleteOuvrage=Suppression ouvrage
+SERVICE_DeleteOuvrage=Suppression forfait
+BTP_DeleteOuvrageConfirmation=Voulez-vous vraiment supprimer cet ouvrage ?
+SERVICE_DeleteOuvrageConfirmation=Voulez-vous vraiment supprimer ce forfait ?
+BTP_OUVRAGEDELETED=L'ouvrage a bien été supprimé
+SERVICE_OUVRAGEDELETED=Le forfait a bien été supprimé
 
 #
-# Ajout ouvrage
+# Ajout ouvrage 
 #
-SERVICE_ADDOUVRAGE = Ajouter un forfait
-BTP_ADDOUVRAGE = Ajouter un ouvrage
-SERVICE_OUVRAGE_IMPOSSIBLEUPDATE = Impossible de modifier le prix du forfait (Ce prix dépend des produits composant le forfait)
-BTP_OUVRAGE_IMPOSSIBLEUPDATE = Impossible de modifier le prix de l'ouvrage (Ce prix dépend des produits composant l'ouvrage)
-SERVICE_ErrorOuvrageAlreadyExists = Un forfait avec la même référence existe déjà
-BTP_ErrorOuvrageAlreadyExists = Un ouvrage avec la même référence existe déjà
+SERVICE_ADDOUVRAGE=Ajouter un forfait
+BTP_ADDOUVRAGE=Ajouter un ouvrage
+SERVICE_OUVRAGE_IMPOSSIBLEUPDATE=Impossible de modifier le prix du forfait (Ce prix dépend des produits composant le forfait)
+BTP_OUVRAGE_IMPOSSIBLEUPDATE=Impossible de modifier le prix de l'ouvrage (Ce prix dépend des produits composant l'ouvrage)
+SERVICE_ErrorOuvrageAlreadyExists=Un forfait avec la même référence existe déjà
+BTP_ErrorOuvrageAlreadyExists=Un ouvrage avec la même référence existe déjà
 
 #
 # Cloner ouvrage
 #
-SERVICE_Clone = Cloner forfait
-SERVICE_ConfirmClone = Voulez-vous vraiment cloner ce forfait ?
-BTP_Clone = Cloner ouvrage
-BTP_ConfirmClone = Voulez-vous vraiment cloner cet ouvrage ?
+SERVICE_Clone=Cloner forfait
+SERVICE_ConfirmClone=Voulez-vous vraiment cloner ce forfait ?
+BTP_Clone=Cloner ouvrage
+BTP_ConfirmClone=Voulez-vous vraiment cloner cet ouvrage ?
 
 # Droits utilisateurs
-RightsO1 = Affichage des ouvrages/forfaits
-RightsO11 = Afficher
-RightsO2 = Ajout/Suppression ouvrage/forfait
-RightsO21 = Ecrire
+RightsO1=Voir les ouvrages/forfaits
+RightsO2=Créer/modifier des ouvrages/forfaits
+RightsO3=Supprimer des ouvrages/forfaits
+
+Extrafield = Champs supplémentaires
+Work = Ouvrage/Forfait
+Works = Ouvrages/Forfaits
