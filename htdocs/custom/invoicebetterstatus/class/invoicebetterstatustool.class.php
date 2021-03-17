@@ -21,58 +21,111 @@
  * \brief       This file is a CRUD class file for Test (Create/Read/Update/Delete)
  */
 
-class InvoiceBetterStatusTool {
-	public static $invoiceStatusLabel = array(
-		0=>'InvoiceBetterStatusDraft',
-		1=>'InvoiceBetterStatusDraft',
-		2=>'Paid',
-		3=>'Abandonned');
+class InvoiceBetterStatusTool
+{
+    /**
+     * Status
+     */
+    const STATUS_DRAFT = 100;
+    const STATUS_WAITING_PAYMENT = 100;
+    const STATUS_WAITING_PAYMENT_PARTIAL_PAID = 101;
+    const STATUS_LATE_PAYMENT = 102;
+    const STATUS_CONTENTIOUS_PAYMENT = 103;
+    const STATUS_ABANDONED_PAYMENT = 104;
+    const STATUS_PARTIAL_ABANDONED_PAYMENT = 105;
+    const STATUS_PAID_OR_CONVERTED = 106;
+    const STATUS_CONVERTED = 107;
+    const STATUS_PAID = 108;
+    const STATUS_UNKNOWN = -1;
 
-		public function test() {
-					// phpcs:enable
-		global $langs;
-		$langs->load('bills');
+    /**
+     * Status (long) translation key label
+     */
+    public static $statusLabel = array(
+        self::STATUS_UNKNOWN => 'InvoiceBetterStatusUnknown',
+        self::STATUS_DRAFT => 'InvoiceBetterStatusDraft',
+        self::STATUS_WAITING_PAYMENT => 'InvoiceBetterStatusWaitingPayment',
+        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'InvoiceBetterStatusWaintingPaymentStartToBePaid',
+        self::STATUS_LATE_PAYMENT => 'InvoiceBetterStatusLatePayment',
+        self::STATUS_CONTENTIOUS_PAYMENT => 'InvoiceBetterStatusContentiousPayment',
+        self::STATUS_ABANDONED_PAYMENT => 'InvoiceBetterStatusAbandonedPayment',
+        self::STATUS_PARTIAL_ABANDONED_PAYMENT => 'InvoiceBetterStatusPartialAbandonedPayment',
+        self::STATUS_PAID_OR_CONVERTED=>'InvoiceBetterStatusPaidOrConverted',
+        self::STATUS_CONVERTED => 'InvoiceBetterStatusConverted',
+        self::STATUS_PAID => 'InvoiceBetterStatusPaid'
+    );
 
-		if ($type == -1) $type = $this->type;
+    /**
+     * Status short translation key label
+     */
+    public static $statusLabelShort = array(
+        self::STATUS_UNKNOWN => 'InvoiceBetterStatusUnknownShort',
+        self::STATUS_DRAFT => 'InvoiceBetterStatusDraftShort',
+        self::STATUS_WAITING_PAYMENT => 'InvoiceBetterStatusWaitingPaymentShort',
+        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'InvoiceBetterStatusWaintingPaymentStartToBePaidShort',
+        self::STATUS_LATE_PAYMENT => 'InvoiceBetterStatusLatePaymentShort',
+        self::STATUS_CONTENTIOUS_PAYMENT => 'InvoiceBetterStatusContentiousPaymentShort',
+        self::STATUS_ABANDONED_PAYMENT => 'InvoiceBetterStatusAbandonedPaymentShort',
+        self::STATUS_PARTIAL_ABANDONED_PAYMENT => 'InvoiceBetterStatusPartialAbandonedPaymentShort',
+        self::STATUS_PAID_OR_CONVERTED=>'InvoiceBetterStatusPaidOrConvertedShort',
+        self::STATUS_CONVERTED => 'InvoiceBetterStatusConvertedShort',
+        self::STATUS_PAID => 'InvoiceBetterStatusPaidShort'
+    );
 
-		$statusType = 'status0';
-		$prefix = 'Short';
-		if (!$paye) {
-			if ($status == 0) {
-				$labelStatus = $langs->transnoentitiesnoconv('BillStatusDraft');
-				$labelStatusShort = $langs->transnoentitiesnoconv('Bill'.$prefix.'StatusDraft');
-			} elseif (($status == 3 || $status == 2) && $alreadypaid <= 0) {
-				$labelStatus = $langs->transnoentitiesnoconv('BillStatusClosedUnpaid');
-				$labelStatusShort = $langs->transnoentitiesnoconv('Bill'.$prefix.'StatusClosedUnpaid');
-				$statusType = 'status5';
-			} elseif (($status == 3 || $status == 2) && $alreadypaid > 0) {
-				$labelStatus = $langs->transnoentitiesnoconv('BillStatusClosedPaidPartially');
-				$labelStatusShort = $langs->transnoentitiesnoconv('Bill'.$prefix.'StatusClosedPaidPartially');
-				$statusType = 'status9';
-			} elseif ($alreadypaid == 0) {
-				$labelStatus = $langs->transnoentitiesnoconv('BillStatusNotPaid');
-				$labelStatusShort = $langs->transnoentitiesnoconv('Bill'.$prefix.'StatusNotPaid');
-				$statusType = 'status1';
-			} else {
-				$labelStatus = $langs->transnoentitiesnoconv('BillStatusStarted');
-				$labelStatusShort = $langs->transnoentitiesnoconv('Bill'.$prefix.'StatusStarted');
-				$statusType = 'status3';
-			}
-		} else {
-			$statusType = 'status6';
-
-			if ($type == self::TYPE_CREDIT_NOTE) {
-				$labelStatus = $langs->transnoentitiesnoconv('BillStatusPaidBackOrConverted'); // credit note
-				$labelStatusShort = $langs->transnoentitiesnoconv('Bill'.$prefix.'StatusPaidBackOrConverted'); // credit note
-			} elseif ($type == self::TYPE_DEPOSIT) {
-				$labelStatus = $langs->transnoentitiesnoconv('BillStatusConverted'); // deposit invoice
-				$labelStatusShort = $langs->transnoentitiesnoconv('Bill'.$prefix.'StatusConverted'); // deposit invoice
-			} else {
-				$labelStatus = $langs->transnoentitiesnoconv('BillStatusPaid');
-				$labelStatusShort = $langs->transnoentitiesnoconv('Bill'.$prefix.'StatusPaid');
-			}
-		}
-
-		return dolGetStatus($labelStatus, $labelStatusShort, '', $statusType, $mode);
-		}
+    /**
+     * Status type picto
+     */
+    public static $statusPicto = array(
+        self::STATUS_UNKNOWN => 'status0',
+        self::STATUS_DRAFT => 'status0',
+        self::STATUS_WAITING_PAYMENT => 'status1',
+        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'status1',
+        self::STATUS_LATE_PAYMENT => 'status7',
+        self::STATUS_CONTENTIOUS_PAYMENT => 'status8',
+        self::STATUS_ABANDONED_PAYMENT => 'status5',
+        self::STATUS_PARTIAL_ABANDONED_PAYMENT => 'status9',
+        self::STATUS_PAID_OR_CONVERTED=>'status6',
+        self::STATUS_CONVERTED => 'status6',
+        self::STATUS_PAID => 'status6'
+    );
+    /**
+     * Function to get current advanced status value
+     * @param Facture $invoice
+     * @return int
+     */
+    public static function getCurrentStatus($invoice)
+    {
+        if (!$invoice->paye) {
+            if ($invoice->status == 0) {
+                $result = self::STATUS_DRAFT;
+            } elseif (($invoice->status == 3 || $invoice->status == 2) && $invoice->alreadypaid <= 0) {
+                $result = self::STATUS_ABANDONED_PAYMENT;
+            } elseif (($invoice->status == 3 || $invoice->status == 2) && $invoice->alreadypaid > 0) {
+                $result = self::STATUS_PARTIAL_ABANDONED_PAYMENT;
+            } else {
+                if ($invoice->date_lim_reglement <= dol_now()) {
+                    if ($invoice->alreadypaid == 0) {
+                        $result = self::STATUS_WAITING_PAYMENT;
+                    } else {
+                        $result = self::STATUS_WAITING_PAYMENT_PARTIAL_PAID;
+                    }
+                } else {
+                    if ($invoice->array_options['options_classify_as_contentious']) {
+                        $result = self::STATUS_CONTENTIOUS_PAYMENT;
+                    } else {
+                        $result = self::STATUS_LATE_PAYMENT;
+                    }
+                }
+            }
+        } else {
+            if ($invoice->type == $invoice::TYPE_CREDIT_NOTE) {
+                $result = self::STATUS_PAID_OR_CONVERTED;
+            } elseif ($invoice->type == $invoice::TYPE_DEPOSIT) {
+                $result = self::STATUS_CONVERTED;
+            } else {
+                $result = self::STATUS_PAID;
+            }
+        }
+        return $result;
+    }
 }
