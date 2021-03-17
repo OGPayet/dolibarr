@@ -1685,6 +1685,10 @@ class ActionsMulticompany
 			}
 		}*/
 
+		if (in_array('thirdpartycard', $currentcontext)) {
+            print '<a class="butAction" href="'.DOL_URL_ROOT.'/fichinter/card.php?&action=create&socid='.$object->id.'" title="'.dol_escape_htmltag($langs->trans("NewIntervention")).'">'.$langs->trans("NewIntervention").'</a>';
+        }
+
 		return 0;
 	}
 
