@@ -579,19 +579,18 @@ if (!$sall)
 	if (!empty($extrafields->attributes[$object->table_element]['label'])) {
 		foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val) $sql .= ($extrafields->attributes[$object->table_element]['type'][$key] != 'separate' ? ", ef.".$key : '');
 	}
+	// Add GroupBy from hooks
+	$parameters = array('all' => $all, 'fieldstosearchall' => $fieldstosearchall);
+	$reshook = $hookmanager->executeHooks('printFieldListGroupBy', $parameters, $object); // Note that $action and $object may have been modified by hook
+	$sql .= $hookmanager->resPrint;
 } else {
 	$sql .= natural_search(array_keys($fieldstosearchall), $sall);
 }
 
-// Add GroupBy from hooks
-$parameters = array('all' => $all, 'fieldstosearchall' => $fieldstosearchall);
-$reshook = $hookmanager->executeHooks('printFieldListGroupBy', $parameters, $object); // Note that $action and $object may have been modified by hook
-$sql .= $hookmanager->resPrint;
-
 // Add HAVING from hooks
 $parameters = array();
 $reshook = $hookmanager->executeHooks('printFieldListHaving', $parameters, $object); // Note that $action and $object may have been modified by hook
-$sql .= $hookmanager->resPrint;
+$sql .= !empty($hookmanager->resPrint) ? (' HAVING 1=1 AND ' . $hookmanager->resPrint) : '';
 
 $sql .= ' ORDER BY ';
 $listfield = explode(',', $sortfield);
