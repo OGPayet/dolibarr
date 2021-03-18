@@ -43,14 +43,14 @@ class InvoiceBetterStatusTool
      */
     public static $sqlSearchInvoiceList = array(
         self::STATUS_DRAFT => 'f.fk_statut = 0',
-        self::STATUS_WAITING_PAYMENT => 'InvoiceBetterStatusWaitingPayment',
-        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'InvoiceBetterStatusWaintingPaymentStartToBePaid',
-        self::STATUS_LATE_PAYMENT => 'InvoiceBetterStatusLatePayment',
-        self::STATUS_CONTENTIOUS_PAYMENT => 'InvoiceBetterStatusContentiousPayment',
-        self::STATUS_ABANDONED_PAYMENT => 'f.fk_statut IN (2,3) AND alreadypaid <= 0',
-        self::STATUS_PARTIAL_ABANDONED_PAYMENT => 'InvoiceBetterStatusPartialAbandonedPayment',
-        self::STATUS_PAID_OR_CONVERTED=> 'f.paye = 1 AND f.type != ' . Facture::TYPE_CREDIT_NOTE,
-        self::STATUS_CONVERTED => 'f.paye = 1 AND f.type != ' . Facture::TYPE_DEPOSIT,
+        self::STATUS_WAITING_PAYMENT => 'f.paye = 0 AND f.fk_statut = 1 AND f.date_lim_reglement > NOW() AND (SUM(pf.amount) IS NULL OR SUM(pf.amount) = 0)',
+        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'f.paye = 0 AND f.fk_statut = 1 AND f.date_lim_reglement > NOW() AND (SUM(pf.amount) IS NOT NULL AND SUM(pf.amount) != 0)',
+        self::STATUS_LATE_PAYMENT => 'f.paye = 0 AND f.fk_statut = 1 AND f.date_lim_reglement < NOW() AND (ef.classified_as_contentious LIKE 0 OR ef.classified_as_contentious IS NULL OR ef.classified_as_contentious IS FALSE)',
+        self::STATUS_CONTENTIOUS_PAYMENT => 'f.fk_statut = 1 AND f.date_lim_reglement < NOW() AND (ef.classified_as_contentious LIKE 1 OR ef.classified_as_contentious IS TRUE)',
+        self::STATUS_ABANDONED_PAYMENT => 'f.paye = 0 AND f.fk_statut IN (2,3) AND SUM(pf.amount) <= 0',
+        self::STATUS_PARTIAL_ABANDONED_PAYMENT => 'f.paye = 0 AND f.fk_statut IN (2,3) AND SUM(pf.amount) > 0',
+        self::STATUS_PAID_OR_CONVERTED=> 'f.paye = 1 AND f.type = ' . Facture::TYPE_CREDIT_NOTE,
+        self::STATUS_CONVERTED => 'f.paye = 1 AND f.type = ' . Facture::TYPE_DEPOSIT,
         self::STATUS_PAID => 'f.paye = 1 AND f.type != ' . Facture::TYPE_CREDIT_NOTE . ' AND f.type != ' . Facture::TYPE_DEPOSIT
     );
 
@@ -129,7 +129,7 @@ class InvoiceBetterStatusTool
                         $result = self::STATUS_WAITING_PAYMENT_PARTIAL_PAID;
                     }
                 } else {
-                    if ($invoice->array_options['options_classify_as_contentious']) {
+                    if ($invoice->array_options['options_classified_as_contentious']) {
                         $result = self::STATUS_CONTENTIOUS_PAYMENT;
                     } else {
                         $result = self::STATUS_LATE_PAYMENT;

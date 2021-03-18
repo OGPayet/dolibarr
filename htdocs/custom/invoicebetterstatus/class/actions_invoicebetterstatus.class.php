@@ -122,10 +122,14 @@ class ActionsInvoiceBetterStatus
 	{
 		$contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
-			$searchedStatus = GETPOST(self::SEARCH_FORM_HTML_NAME, 'array');
-            if (!empty($searchedStatus)) {
-				$this->resprints = ', SUM(pf.amount) as alreadypaid, SUM(pf.multicurrency_amount) as multicurrency_alreadypaid';
+			$result = ', SUM(pf.amount) as alreadypaid, SUM(pf.multicurrency_amount) as multicurrency_alreadypaid';
+			$sql = 'CASE';
+			foreach(InvoiceBetterStatusTool::$sqlSearchInvoiceList as $status => $sqlValue) {
+				$sql .= ' WHEN (' . $sqlValue . ') THEN "' . $status . '"';
 			}
+			$sql.= ' ELSE NULL END';
+			$result .= ',(' . $sql . ') as invoicebetterstatus';
+			$this->resprints = $result;
 		}
 	}
 
@@ -145,11 +149,7 @@ class ActionsInvoiceBetterStatus
         if (in_array('invoicelist', $contexts)) {
             $searchedStatus = GETPOST(self::SEARCH_FORM_HTML_NAME, 'array');
             if (!empty($searchedStatus)) {
-                $sqlWhereRequest = array();
-                foreach ($searchedStatus as $status) {
-                    $sqlWhereRequest[] = InvoiceBetterStatusTool::$sqlSearchInvoiceList[$status];
-                }
-                $this->resprints  = ' AND ( (' . implode(' ) OR ( ', $sqlWhereRequest) . ') )';
+                $this->resprints  = ' AND invoicebetterstatus IN (' . implode(',', $searchedStatus) . ')';
             }
         }
         return 0;
@@ -170,7 +170,7 @@ class ActionsInvoiceBetterStatus
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
             global $arrayfields, $langs;
-            if ($arrayfields['f.invoicebetterstatus']['checked']) {
+            if ($arrayfields['invoicebetterstatus']['checked']) {
                 $labelStatus = InvoiceBetterStatusTool::getStatusArrayTranslatedForSearch($langs);
                 $searchForm = $this->form->multiselectarray(self::SEARCH_FORM_HTML_NAME, $labelStatus, GETPOST(self::SEARCH_FORM_HTML_NAME, 'array'));
                 print '<td class="liste_titre right">' . $searchForm . '</td>';
@@ -193,12 +193,12 @@ class ActionsInvoiceBetterStatus
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
             global $arrayfields;
-            if ($arrayfields['f.invoicebetterstatus']['checked']) {
+            if ($arrayfields['invoicebetterstatus']['checked']) {
                 $arrayfields = $parameters['arrayfields'];
                 $param = $parameters['param'];
                 $sortfield = $parameters['sortfield'];
                 $sortorder = $parameters['sortorder'];
-                print_liste_field_titre($arrayfields['f.invoicebetterstatus']['label'], $_SERVER['PHP_SELF'], 'f.invoicebetterstatus', '', $param, 'class="right"', $sortfield, $sortorder);
+                print_liste_field_titre($arrayfields['invoicebetterstatus']['label'], $_SERVER['PHP_SELF'], 'invoicebetterstatus', '', $param, 'class="right"', $sortfield, $sortorder);
             }
         }
     }
@@ -218,7 +218,7 @@ class ActionsInvoiceBetterStatus
         //We add the ability to the field to be checked
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
-            $arrayfields['f.invoicebetterstatus'] = array('label'=>"InvoiceBetterStatusLabel", 'checked'=>1, 'position'=>1000);
+            $arrayfields['invoicebetterstatus'] = array('label'=>"InvoiceBetterStatusLabel", 'checked'=>1, 'position'=>1000);
         }
     }
 
@@ -236,7 +236,9 @@ class ActionsInvoiceBetterStatus
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
             global $facturestatic, $arrayfields;
-            if ($arrayfields['f.invoicebetterstatus']['checked']) {
+			$obj = $parameters['obj'];
+			$facturestatic->array_options['options_classified_as_contentious'] = $obj->options_classified_as_contentious;
+            if ($arrayfields['invoicebetterstatus']['checked']) {
                 print '<td class="nowrap right">' . InvoiceBetterStatusTool::getLibStatus($facturestatic, 5) . '</td>';
             }
         }
@@ -259,21 +261,21 @@ class ActionsInvoiceBetterStatus
             if ($action == self::SET_AS_CONTENTIOUS_ACTION_NAME && InvoiceBetterStatusTool::getCurrentStatus($object) == InvoiceBetterStatusTool::STATUS_LATE_PAYMENT) {
                 //Save as contentious
                 $object->fetch_optionals();
-                $object->array_options['options_classify_as_contentious'] = true;
+                $object->array_options['options_classified_as_contentious'] = 1;
                 if ($object->insertExtraFields('', $user) > 0) {
                     setEventMessages($langs->trans("InvoiceBetterStatusSucessfullySetAsContentious"), array());
                 } else {
-                    setEventMessages($langs->trans("InvoiceBetterStatusErrorWhileSettingAsContentious"), array(), 'errors');
+                    setEventMessages($langs->trans("InvoiceBetterStatusErrorWhileSettingAsContentious"), $object->errors, 'errors');
                 }
             }
             if ($action == self::SET_AS_NOT_ANYMORE_CONTENTIOUS_ACTION_NAME && InvoiceBetterStatusTool::getCurrentStatus($object) == InvoiceBetterStatusTool::STATUS_CONTENTIOUS_PAYMENT) {
                 //Save as not anymore contentious
                 $object->fetch_optionals();
-                $object->array_options['options_classify_as_contentious'] = false;
+                $object->array_options['options_classified_as_contentious'] = 0;
                 if ($object->insertExtraFields('', $user) > 0) {
                     setEventMessages($langs->trans("InvoiceBetterStatusSucessfullySetAsNotAnymoreContentious"), array());
                 } else {
-                    setEventMessages($langs->trans("InvoiceBetterStatusErrorWhileSettingNotAnymoreAsContentious"), array(), 'errors');
+                    setEventMessages($langs->trans("InvoiceBetterStatusErrorWhileSettingNotAnymoreAsContentious"), $object->errors, 'errors');
                 }
             }
         }
@@ -330,6 +332,7 @@ class ActionsInvoiceBetterStatus
     {
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicecard', $contexts)) {
+			$object->alreadypaid = $object->getSommePaiement();
             $statusContent = InvoiceBetterStatusTool::getLibStatus($object, 6);
             if (empty($statusContent)) {
                 $statusContent = InvoiceBetterStatusTool::getLibStatus($object, 4);

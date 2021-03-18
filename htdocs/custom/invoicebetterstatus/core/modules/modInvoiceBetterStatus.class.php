@@ -211,6 +211,30 @@ class modInvoiceBetterStatus extends DolibarrModules
 		if ($result < 0) return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
 		// Permissions
 		$this->remove($options);
+		//We add classified_as_contentious invoice extrafields
+		$extrafields = new ExtraFields($this->db);
+		$extrafields->addExtraField(
+			'classified_as_contentious',
+			'InvoiceBetterStatusClassifiedAsContentiousExtrafieldsLabelName',
+			'boolean',
+			'10000',
+			'',
+			'facture',
+			0,
+			0,
+			'',
+			'',
+			1,
+			'$user->rights->invoicebetterstatus->invoicebetterstatus->setascontentious',
+			0,
+			'',
+			'',
+			$conf->entity,
+			'invoicebetterstatus@invoicebetterstatus',
+			'$conf->invoicebetterstatus->enabled',
+			0,
+			0
+			);
 		$sql = array();
 		return $this->_init($sql, $options);
 	}
