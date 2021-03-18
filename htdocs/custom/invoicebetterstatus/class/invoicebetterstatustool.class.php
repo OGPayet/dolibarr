@@ -47,7 +47,7 @@ class InvoiceBetterStatusTool
         self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'InvoiceBetterStatusWaintingPaymentStartToBePaid',
         self::STATUS_LATE_PAYMENT => 'InvoiceBetterStatusLatePayment',
         self::STATUS_CONTENTIOUS_PAYMENT => 'InvoiceBetterStatusContentiousPayment',
-        self::STATUS_ABANDONED_PAYMENT => 'f.fk_statut IN (2,3) AND SUM(pf.amount) <= 0',
+        self::STATUS_ABANDONED_PAYMENT => 'f.fk_statut IN (2,3) AND alreadypaid <= 0',
         self::STATUS_PARTIAL_ABANDONED_PAYMENT => 'InvoiceBetterStatusPartialAbandonedPayment',
         self::STATUS_PAID_OR_CONVERTED=> 'f.paye = 1 AND f.type != ' . Facture::TYPE_CREDIT_NOTE,
         self::STATUS_CONVERTED => 'f.paye = 1 AND f.type != ' . Facture::TYPE_DEPOSIT,

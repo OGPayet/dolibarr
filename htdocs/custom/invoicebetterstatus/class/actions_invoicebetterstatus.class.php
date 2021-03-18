@@ -138,7 +138,7 @@ class ActionsInvoiceBetterStatus
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-    public function printFieldListWhere($parameters, &$object, &$action, $hookmanager)
+    public function printFieldListHaving($parameters, &$object, &$action, $hookmanager)
     {
         //We add filter to sql list request
         $contexts = explode(':', $parameters['context']);
