@@ -109,6 +109,25 @@ class ActionsInvoiceBetterStatus
         }
         return 0;
     }
+    /**
+     * Overloading the printFieldListSelect function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	public function printFieldListSelect($parameters, &$object, &$action, $hookmanager)
+	{
+		$contexts = explode(':', $parameters['context']);
+        if (in_array('invoicelist', $contexts)) {
+			$searchedStatus = GETPOST(self::SEARCH_FORM_HTML_NAME, 'array');
+            if (!empty($searchedStatus)) {
+				$this->resprints = ', SUM(pf.amount) as alreadypaid, SUM(pf.multicurrency_amount) as multicurrency_alreadypaid';
+			}
+		}
+	}
 
     /**
      * Overloading the printFieldListWhere function : replacing the parent's function with the one below
@@ -128,7 +147,7 @@ class ActionsInvoiceBetterStatus
             if (!empty($searchedStatus)) {
                 $sqlWhereRequest = array();
                 foreach ($searchedStatus as $status) {
-					$sqlWhereRequest[] = InvoiceBetterStatusTool::$sqlSearchInvoiceList[$status];
+                    $sqlWhereRequest[] = InvoiceBetterStatusTool::$sqlSearchInvoiceList[$status];
                 }
                 $this->resprints  = ' AND ( (' . implode(' ) OR ( ', $sqlWhereRequest) . ') )';
             }
