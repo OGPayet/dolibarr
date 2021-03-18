@@ -184,6 +184,11 @@ class modInvoiceBetterStatus extends DolibarrModules
 		$this->rights[$r][4] = 'invoicebetterstatus'; // In php code, permission will be checked by test if ($user->rights->invoicebetterstatus->level1->level2)
 		$this->rights[$r][5] = 'read'; // In php code, permission will be checked by test if ($user->rights->invoicebetterstatus->level1->level2)
 		$r++;
+		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
+		$this->rights[$r][1] = 'Allow to set an invoice as contentious'; // Permission label
+		$this->rights[$r][4] = 'invoicebetterstatus'; // In php code, permission will be checked by test if ($user->rights->invoicebetterstatus->level1->level2)
+		$this->rights[$r][5] = 'setascontentious'; // In php code, permission will be checked by test if ($user->rights->invoicebetterstatus->level1->level2)
+		$r++;
 		/* END MODULEBUILDER PERMISSIONS */
 
 		// Main menu entries to add
