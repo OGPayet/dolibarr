@@ -99,12 +99,13 @@ class ActionsInvoiceBetterStatus
      */
     public function getNomUrl($parameters, &$object, &$action)
     {
-        if ($object->element == 'facture') {
+		global $user;
+        if ($object->element == 'facture' && $user->rights->invoicebetterstatus->invoicebetterstatus->read) {
             $notooltip = $parameters['notooltip'];
             $addlinktonotes = $parameters['addlinktonotes'];
             $save_lastsearch_value = $parameters['save_lastsearch_value'];
             $target = $parameters['target'];
-			if($object->alreadypaid === null) {
+			if($object->alreadypaid === null && method_exists($object, "getSommePaiement")) {
 				$alreadypaid = $object->getSommePaiement();
 				$object->alreadypaid = $alreadypaid ? $alreadypaid : 0;
 			}
@@ -218,11 +219,11 @@ class ActionsInvoiceBetterStatus
      */
     public function printFieldPreListTitle($parameters, &$object, &$action, $hookmanager)
     {
-        global $arrayfields;
+        global $arrayfields, $user;
         //We add the ability to the field to be checked
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
-            $arrayfields['invoicebetterstatus'] = array('label'=>"InvoiceBetterStatusLabel", 'checked'=>1, 'position'=>1000);
+            $arrayfields['invoicebetterstatus'] = array('label'=>"InvoiceBetterStatusLabel", 'checked'=>1, 'position'=>1000, 'enabled' => !empty($user->rights->invoicebetterstatus->invoicebetterstatus->read));
         }
     }
 
@@ -243,7 +244,7 @@ class ActionsInvoiceBetterStatus
 			$obj = $parameters['obj'];
 			$facturestatic->array_options['options_classified_as_contentious'] = $obj->options_classified_as_contentious;
             if ($arrayfields['invoicebetterstatus']['checked']) {
-				if($facturestatic->alreadypaid === null) {
+				if($facturestatic->alreadypaid === null && method_exists($object, "getSommePaiement")) {
 					$alreadypaid = $facturestatic->getSommePaiement();
 					$facturestatic->alreadypaid = $alreadypaid ? $alreadypaid : 0;
 				}
@@ -264,7 +265,7 @@ class ActionsInvoiceBetterStatus
     {
         //We use to set invoice as in a contentious state
         global $user, $langs;
-        $contexts = explode(':', $parameters['context']);
+        $contexts = explode(':', $parameters['context'] && $user->rights->invoicebetterstatus->invoicebetterstatus->read);
         if (in_array('invoicecard', $contexts) && $user->rights->invoicebetterstatus->invoicebetterstatus->setascontentious) {
             if ($action == self::SET_AS_CONTENTIOUS_ACTION_NAME && InvoiceBetterStatusTool::getCurrentStatus($object) == InvoiceBetterStatusTool::STATUS_LATE_PAYMENT) {
                 //Save as contentious
@@ -303,7 +304,7 @@ class ActionsInvoiceBetterStatus
         //We use to display setAsContentious and setAsNotAnymoreContentious buttons
         global $user, $langs;
         $contexts = explode(':', $parameters['context']);
-        if (in_array('invoicecard', $contexts)) {
+        if (in_array('invoicecard', $contexts) && $user->rights->invoicebetterstatus->invoicebetterstatus->read) {
             if (InvoiceBetterStatusTool::getCurrentStatus($object) == InvoiceBetterStatusTool::STATUS_CONTENTIOUS_PAYMENT) {
                 //display button to set back invoice
                 print '<div class="inline-block divButAction">';
@@ -339,8 +340,9 @@ class ActionsInvoiceBetterStatus
     public function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
         $contexts = explode(':', $parameters['context']);
-        if (in_array('invoicecard', $contexts)) {
-			if($object->alreadypaid === null) {
+		global $user;
+        if (in_array('invoicecard', $contexts) && $user->rights->invoicebetterstatus->invoicebetterstatus->read) {
+			if($object->alreadypaid === null && method_exists($object, "getSommePaiement")) {
 				$alreadypaid = $object->getSommePaiement();
 				$object->alreadypaid = $alreadypaid ? $alreadypaid : 0;
 			}
@@ -364,13 +366,14 @@ class ActionsInvoiceBetterStatus
      */
 	public function showLinkedObjectBlock($parameters, &$object, &$action, $hookmanager)
 	{
-		if ($object && $object->linkedObjects && $object->linkedObjects['facture']) {
+		global $user;
+		if ($object && $object->linkedObjects && $object->linkedObjects['facture'] && $user->rights->invoicebetterstatus->invoicebetterstatus->read) {
 			$linkedInvoice = $object->linkedObjects['facture'];
 			if(!empty($linkedInvoice)) {
 				//We will update display status by jquery
 				$resprint = "<script>$(document).ready(function(){";
 					foreach($linkedInvoice as $invoice) {
-						if($invoice->alreadypaid === null) {
+						if($invoice->alreadypaid === null && method_exists($object, "getSommePaiement")) {
 							$alreadypaid = $invoice->getSommePaiement();
 							$invoice->alreadypaid = $alreadypaid ? $alreadypaid : 0;
 						}
