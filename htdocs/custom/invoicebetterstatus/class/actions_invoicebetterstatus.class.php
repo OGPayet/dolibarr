@@ -85,6 +85,8 @@ class ActionsInvoiceBetterStatus
     {
         $this->db = $db;
         $this->form = new Form($this->db);
+		global $langs;
+		$langs->load('invoicebetterstatus@invoicebetterstatus');
     }
 
     /**
@@ -174,9 +176,9 @@ class ActionsInvoiceBetterStatus
         //We add search form
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
-            global $arrayfields, $langs;
+            global $arrayfields;
             if ($arrayfields['invoicebetterstatus']['checked']) {
-                $labelStatus = InvoiceBetterStatusTool::getStatusArrayTranslatedForSearch($langs);
+                $labelStatus = InvoiceBetterStatusTool::getStatusArrayTranslatedForSearch();
                 $searchForm = $this->form->multiselectarray(self::SEARCH_FORM_HTML_NAME, $labelStatus, GETPOST(self::SEARCH_FORM_HTML_NAME, 'array'));
                 print '<td class="liste_titre right">' . $searchForm . '</td>';
             }
@@ -265,7 +267,7 @@ class ActionsInvoiceBetterStatus
     {
         //We use to set invoice as in a contentious state
         global $user, $langs;
-        $contexts = explode(':', $parameters['context'] && $user->rights->invoicebetterstatus->invoicebetterstatus->read);
+        $contexts = explode(':', $parameters['context']);
         if (in_array('invoicecard', $contexts) && $user->rights->invoicebetterstatus->invoicebetterstatus->setascontentious) {
             if ($action == self::SET_AS_CONTENTIOUS_ACTION_NAME && InvoiceBetterStatusTool::getCurrentStatus($object) == InvoiceBetterStatusTool::STATUS_LATE_PAYMENT) {
                 //Save as contentious

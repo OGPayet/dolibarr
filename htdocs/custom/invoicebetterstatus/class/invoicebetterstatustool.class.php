@@ -61,7 +61,7 @@ class InvoiceBetterStatusTool
         self::STATUS_UNKNOWN => 'InvoiceBetterStatusUnknown',
         self::STATUS_DRAFT => 'InvoiceBetterStatusDraft',
         self::STATUS_WAITING_PAYMENT => 'InvoiceBetterStatusWaitingPayment',
-        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'InvoiceBetterStatusWaintingPaymentStartToBePaid',
+        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'InvoiceBetterStatusWaitingPaymentStartToBePaid',
         self::STATUS_LATE_PAYMENT => 'InvoiceBetterStatusLatePayment',
         self::STATUS_CONTENTIOUS_PAYMENT => 'InvoiceBetterStatusContentiousPayment',
         self::STATUS_ABANDONED_PAYMENT => 'InvoiceBetterStatusAbandonedPayment',
@@ -71,6 +71,11 @@ class InvoiceBetterStatusTool
         self::STATUS_PAID => 'InvoiceBetterStatusPaid'
     );
 
+	 /**
+     * Status (long) translated label
+     */
+    public static $cacheTranslatedStatusLabel = array();
+
     /**
      * Status short translation key label
      */
@@ -78,7 +83,7 @@ class InvoiceBetterStatusTool
         self::STATUS_UNKNOWN => 'InvoiceBetterStatusUnknownShort',
         self::STATUS_DRAFT => 'InvoiceBetterStatusDraftShort',
         self::STATUS_WAITING_PAYMENT => 'InvoiceBetterStatusWaitingPaymentShort',
-        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'InvoiceBetterStatusWaintingPaymentStartToBePaidShort',
+        self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'InvoiceBetterStatusWaitingPaymentStartToBePaidShort',
         self::STATUS_LATE_PAYMENT => 'InvoiceBetterStatusLatePaymentShort',
         self::STATUS_CONTENTIOUS_PAYMENT => 'InvoiceBetterStatusContentiousPaymentShort',
         self::STATUS_ABANDONED_PAYMENT => 'InvoiceBetterStatusAbandonedPaymentShort',
@@ -88,6 +93,11 @@ class InvoiceBetterStatusTool
         self::STATUS_PAID => 'InvoiceBetterStatusPaidShort'
     );
 
+	/**
+     * Status (long) translated label
+     */
+    public static $cacheTranslatedStatusLabelShort = array();
+
     /**
      * Status type picto
      */
@@ -96,9 +106,9 @@ class InvoiceBetterStatusTool
         self::STATUS_DRAFT => 'status0',
         self::STATUS_WAITING_PAYMENT => 'status1',
         self::STATUS_WAITING_PAYMENT_PARTIAL_PAID => 'status1',
-        self::STATUS_LATE_PAYMENT => 'status7',
+        self::STATUS_LATE_PAYMENT => 'status8',
         self::STATUS_CONTENTIOUS_PAYMENT => 'status8',
-        self::STATUS_ABANDONED_PAYMENT => 'status5',
+        self::STATUS_ABANDONED_PAYMENT => 'status9',
         self::STATUS_PARTIAL_ABANDONED_PAYMENT => 'status9',
         self::STATUS_PAID_OR_CONVERTED=>'status6',
         self::STATUS_CONVERTED => 'status6',
@@ -156,7 +166,7 @@ class InvoiceBetterStatusTool
     public static function getLibStatus($invoice, $mode = 0)
     {
         $status = self::getCurrentStatus($invoice);
-        return dolGetStatus(self::$statusLabel[$status], self::$statusLabelShort[$status], '', self::$statusPicto[$status], $mode);
+        return dolGetStatus(self::getStatusLabelArrayTranslated()[$status], self::getStatusLabelShortArrayTranslated()[$status], '', self::$statusPicto[$status], $mode);
     }
 
     /**
@@ -318,15 +328,58 @@ class InvoiceBetterStatusTool
      * @param Facture $invoice
      * @return int
      */
-    public static function getStatusArrayTranslatedForSearch($langs)
+    public static function getStatusArrayTranslatedForSearch()
     {
-        $result = array();
-        foreach (self::$statusLabelShort as $value => $translateKey) {
-            $result[$value] = $translateKey;
-            if (method_exists($langs, "trans")) {
-                $result[$value] = $langs->trans($translateKey);
-            }
-        }
+		$result = self::getStatusLabelArrayTranslated();
+		unset($result[self::STATUS_UNKNOWN]);
         return $result;
     }
+
+	/**
+     * Function to get translated status
+     * @param Facture $invoice
+     * @return int
+     */
+    public static function getStatusLabelArrayTranslated()
+    {
+        if(empty(self::$cacheTranslatedStatusLabel)) {
+			global $langs;
+			self::loadTranslatedStatus($langs);
+		}
+		return self::$cacheTranslatedStatusLabel;
+    }
+
+	/**
+     * Function to get translated status
+     * @param Facture $invoice
+     * @return int
+     */
+    public static function getStatusLabelShortArrayTranslated()
+    {
+        if(empty(self::$cacheTranslatedStatusLabelShort)) {
+			global $langs;
+			self::loadTranslatedStatus($langs);
+		}
+		return self::$cacheTranslatedStatusLabelShort;
+    }
+
+	/**
+	 * Function to load translated status
+	 * @return void
+	 */
+	public static function loadTranslatedStatus($langs)
+	{
+		foreach (self::$statusLabelShort as $value => $translateKey) {
+            self::$cacheTranslatedStatusLabelShort[$value] = $translateKey;
+            if (method_exists($langs, "trans")) {
+                self::$cacheTranslatedStatusLabelShort[$value] = $langs->trans($translateKey);
+            }
+        }
+		foreach (self::$statusLabel as $value => $translateKey) {
+            self::$cacheTranslatedStatusLabel[$value] = $translateKey;
+            if (method_exists($langs, "trans")) {
+                self::$cacheTranslatedStatusLabel[$value] = $langs->trans($translateKey);
+            }
+        }
+	}
 }

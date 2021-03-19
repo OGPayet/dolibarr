@@ -18,17 +18,47 @@
 #
 
 # Module label 'ModuleInvoiceBetterStatusName'
-ModuleInvoiceBetterStatusName = InvoiceBetterStatus
+ModuleInvoiceBetterStatusName = Invoice Better Status
 # Module description 'ModuleInvoiceBetterStatusDesc'
-ModuleInvoiceBetterStatusDesc = Permet de gérer des status de facture de manière avancée
-Permission468955 = Accès aux status avancés sur les factures
+ModuleInvoiceBetterStatusDesc = Permet de gérer des statuts de facture de manière avancée
+Permission468955 = Accès aux statuts avancés sur les factures
+Permission468956 = Permet de marquer/démarquer une facture en contentieux
 
-#
-# Page d'administration
-#
-InvoiceBetterStatusSetup = Configuration du module Invoice Better Status
-Settings = Réglages
-InvoiceBetterStatusSetupPage = Page de configuration du module Invoice Better Status
+# Status des factures
+InvoiceBetterStatusUnknown = Status inconnu
+InvoiceBetterStatusDraft = Brouillon
+InvoiceBetterStatusWaitingPayment = En attente de paiement
+InvoiceBetterStatusWaitingPaymentStartToBePaid = En attente de paiement (règlement commencé)
+InvoiceBetterStatusLatePayment = En retard de paiement (relances)
+InvoiceBetterStatusContentiousPayment = Phase contentieuse
+InvoiceBetterStatusAbandonedPayment = Paiement abandonné
+InvoiceBetterStatusPartialAbandonedPayment = Paiement partiellement abandonné
+InvoiceBetterStatusPaidOrConverted = Facture Avoir remboursée ou marqué en crédit disponible
+InvoiceBetterStatusConverted = Payée (facture d'accompte)
+InvoiceBetterStatusPaid = Payé
+
+InvoiceBetterStatusUnknownShort = Status inconnu
+InvoiceBetterStatusDraftShort = Brouillon
+InvoiceBetterStatusWaitingPaymentShort = Attente du paiement
+InvoiceBetterStatusWaitingPaymentStartToBePaidShort = Attente du solde
+InvoiceBetterStatusLatePaymentShort = En retard (relances)
+InvoiceBetterStatusContentiousPaymentShort = En contentieux
+InvoiceBetterStatusAbandonedPaymentShort = Abandonné
+InvoiceBetterStatusPartialAbandonedPaymentShort = Partiellement Abandonné
+InvoiceBetterStatusPaidOrConvertedShort = Remboursée / en crédit
+InvoiceBetterStatusConvertedShort = Payée (facture d'accompte)
+InvoiceBetterStatusPaidShort = Payé
+
+#Colonne dans facture
+InvoiceBetterStatusLabel = Etat avancé
+
+#Gestion du contentieux
+InvoiceBetterStatusSetAsNotContentiousAnymore = Déclasser des contentieux
+InvoiceBetterStatusSetAsContentious = Marqué comme contentieux
+InvoiceBetterStatusSucessfullySetAsContentious = Marqué comme contentieux avec succès
+InvoiceBetterStatusErrorWhileSettingAsContentious = Erreur lors du marquage en contentieux
+InvoiceBetterStatusSucessfullySetAsNotAnymoreContentious = Déclassé avec succès des contentieux
+InvoiceBetterStatusErrorWhileSettingNotAnymoreAsContentious = Erreur lors du déclassage des contentieux
 
 #
 # Page À propos
