@@ -179,7 +179,7 @@ class ActionsInvoiceBetterStatus
             global $arrayfields;
             if ($arrayfields['invoicebetterstatus']['checked']) {
                 $labelStatus = InvoiceBetterStatusTool::getStatusArrayTranslatedForSearch();
-                $searchForm = $this->form->multiselectarray(self::SEARCH_FORM_HTML_NAME, $labelStatus, $this->getSelectedStatus());
+                $searchForm = $this->form->multiselectarray(self::SEARCH_FORM_HTML_NAME, $labelStatus, $this->getSelectedStatus(), 0, 0, 'maxwidth200');
                 print '<td class="liste_titre right">' . $searchForm . '</td>';
             }
         }
