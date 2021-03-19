@@ -64,7 +64,7 @@ class ActionsInvoiceBetterStatus
      * @var string const to define name of search by status form
      */
 
-     const SEARCH_FORM_HTML_NAME = "invoicebetterstatus_search";
+     const SEARCH_FORM_HTML_NAME = "search_invoicebetterstatus";
 
      /**
       * @var string const to define set as contentious action name
@@ -85,8 +85,8 @@ class ActionsInvoiceBetterStatus
     {
         $this->db = $db;
         $this->form = new Form($this->db);
-		global $langs;
-		$langs->load('invoicebetterstatus@invoicebetterstatus');
+        global $langs;
+        $langs->load('invoicebetterstatus@invoicebetterstatus');
     }
 
     /**
@@ -101,16 +101,16 @@ class ActionsInvoiceBetterStatus
      */
     public function getNomUrl($parameters, &$object, &$action)
     {
-		global $user;
+        global $user;
         if ($object->element == 'facture' && $user->rights->invoicebetterstatus->invoicebetterstatus->read) {
             $notooltip = $parameters['notooltip'];
             $addlinktonotes = $parameters['addlinktonotes'];
             $save_lastsearch_value = $parameters['save_lastsearch_value'];
             $target = $parameters['target'];
-			if($object->alreadypaid === null && method_exists($object, "getSommePaiement")) {
-				$alreadypaid = $object->getSommePaiement();
-				$object->alreadypaid = $alreadypaid ? $alreadypaid : 0;
-			}
+            if ($object->alreadypaid === null && method_exists($object, "getSommePaiement")) {
+                $alreadypaid = $object->getSommePaiement();
+                $object->alreadypaid = $alreadypaid ? $alreadypaid : 0;
+            }
             $this->resprints = InvoiceBetterStatusTool::getNomUrl($object, 1, '', 0, 0, '', $notooltip, $addlinktonotes, $save_lastsearch_value, $target);
             return 1;
         }
@@ -125,20 +125,20 @@ class ActionsInvoiceBetterStatus
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-	public function printFieldListSelect($parameters, &$object, &$action, $hookmanager)
-	{
-		$contexts = explode(':', $parameters['context']);
+    public function printFieldListSelect($parameters, &$object, &$action, $hookmanager)
+    {
+        $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
-			$result = ', SUM(pf.amount) as alreadypaid, SUM(pf.multicurrency_amount) as multicurrency_alreadypaid';
-			$sql = 'CASE';
-			foreach(InvoiceBetterStatusTool::$sqlSearchInvoiceList as $status => $sqlValue) {
-				$sql .= ' WHEN (' . $sqlValue . ') THEN "' . $status . '"';
-			}
-			$sql.= ' ELSE NULL END';
-			$result .= ',(' . $sql . ') as invoicebetterstatus';
-			$this->resprints = $result;
-		}
-	}
+            $result = ', SUM(pf.amount) as alreadypaid, SUM(pf.multicurrency_amount) as multicurrency_alreadypaid';
+            $sql = 'CASE';
+            foreach (InvoiceBetterStatusTool::$sqlSearchInvoiceList as $status => $sqlValue) {
+                $sql .= ' WHEN (' . $sqlValue . ') THEN "' . $status . '"';
+            }
+            $sql.= ' ELSE NULL END';
+            $result .= ',(' . $sql . ') as invoicebetterstatus';
+            $this->resprints = $result;
+        }
+    }
 
     /**
      * Overloading the printFieldListWhere function : replacing the parent's function with the one below
@@ -154,7 +154,7 @@ class ActionsInvoiceBetterStatus
         //We add filter to sql list request
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
-            $searchedStatus = GETPOST(self::SEARCH_FORM_HTML_NAME, 'array');
+            $searchedStatus = $this->getSelectedStatus();
             if (!empty($searchedStatus)) {
                 $this->resprints  = ' AND invoicebetterstatus IN (' . implode(',', $searchedStatus) . ')';
             }
@@ -179,7 +179,7 @@ class ActionsInvoiceBetterStatus
             global $arrayfields;
             if ($arrayfields['invoicebetterstatus']['checked']) {
                 $labelStatus = InvoiceBetterStatusTool::getStatusArrayTranslatedForSearch();
-                $searchForm = $this->form->multiselectarray(self::SEARCH_FORM_HTML_NAME, $labelStatus, GETPOST(self::SEARCH_FORM_HTML_NAME, 'array'));
+                $searchForm = $this->form->multiselectarray(self::SEARCH_FORM_HTML_NAME, $labelStatus, $this->getSelectedStatus());
                 print '<td class="liste_titre right">' . $searchForm . '</td>';
             }
         }
@@ -243,16 +243,40 @@ class ActionsInvoiceBetterStatus
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicelist', $contexts)) {
             global $facturestatic, $arrayfields;
-			$obj = $parameters['obj'];
-			$facturestatic->array_options['options_classified_as_contentious'] = $obj->options_classified_as_contentious;
+            $obj = $parameters['obj'];
+            $facturestatic->array_options['options_classified_as_contentious'] = $obj->options_classified_as_contentious;
             if ($arrayfields['invoicebetterstatus']['checked']) {
-				if($facturestatic->alreadypaid === null && method_exists($object, "getSommePaiement")) {
-					$alreadypaid = $facturestatic->getSommePaiement();
-					$facturestatic->alreadypaid = $alreadypaid ? $alreadypaid : 0;
-				}
+                if ($facturestatic->alreadypaid === null && method_exists($object, "getSommePaiement")) {
+                    $alreadypaid = $facturestatic->getSommePaiement();
+                    $facturestatic->alreadypaid = $alreadypaid ? $alreadypaid : 0;
+                }
                 print '<td class="nowrap right">' . InvoiceBetterStatusTool::getLibStatus($facturestatic, 5) . '</td>';
             }
         }
+    }
+
+	/**
+     * Overloading the printFieldListSearchParam function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+    public function printFieldListSearchParam($parameters, &$object, &$action, $hookmanager)
+    {
+        $contexts = explode(':', $parameters['context']);
+        if (in_array('invoicelist', $contexts)) {
+            $searchedStatus = $this->getSelectedStatus();
+			$result = "";
+			foreach($searchedStatus as $statusId)
+			{
+				$result .= '&' . self::SEARCH_FORM_HTML_NAME . '[]=' . $statusId;
+			}
+			$this->resprints = $result;
+        }
+        return 0;
     }
     /**
      * Overloading the doActions function : replacing the parent's function with the one below
@@ -342,12 +366,12 @@ class ActionsInvoiceBetterStatus
     public function formObjectOptions($parameters, &$object, &$action, $hookmanager)
     {
         $contexts = explode(':', $parameters['context']);
-		global $user;
+        global $user;
         if (in_array('invoicecard', $contexts) && $user->rights->invoicebetterstatus->invoicebetterstatus->read) {
-			if($object->alreadypaid === null && method_exists($object, "getSommePaiement")) {
-				$alreadypaid = $object->getSommePaiement();
-				$object->alreadypaid = $alreadypaid ? $alreadypaid : 0;
-			}
+            if ($object->alreadypaid === null && method_exists($object, "getSommePaiement")) {
+                $alreadypaid = $object->getSommePaiement();
+                $object->alreadypaid = $alreadypaid ? $alreadypaid : 0;
+            }
             $statusContent = InvoiceBetterStatusTool::getLibStatus($object, 6);
             if (empty($statusContent)) {
                 $statusContent = InvoiceBetterStatusTool::getLibStatus($object, 4);
@@ -366,26 +390,35 @@ class ActionsInvoiceBetterStatus
      * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
      * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
      */
-	public function showLinkedObjectBlock($parameters, &$object, &$action, $hookmanager)
-	{
-		global $user;
-		if ($object && $object->linkedObjects && $object->linkedObjects['facture'] && $user->rights->invoicebetterstatus->invoicebetterstatus->read) {
-			$linkedInvoice = $object->linkedObjects['facture'];
-			if(!empty($linkedInvoice)) {
-				//We will update display status by jquery
-				$resprint = "<script>$(document).ready(function(){";
-					foreach($linkedInvoice as $invoice) {
-						if($invoice->alreadypaid === null && method_exists($object, "getSommePaiement")) {
-							$alreadypaid = $invoice->getSommePaiement();
-							$invoice->alreadypaid = $alreadypaid ? $alreadypaid : 0;
-						}
-						$displayedContent = InvoiceBetterStatusTool::getLibStatus($invoice, 3);
-						$displayedContent = dol_escape_js($displayedContent);
-						$resprint .= '$("tr[data-element=\'facture\'][data-id=' . $invoice->id . ']").find("td.linkedcol-statut").html("' . $displayedContent . '");';
-					}
-				$resprint .= "}); </script>";
-				print $resprint;
-			}
+    public function showLinkedObjectBlock($parameters, &$object, &$action, $hookmanager)
+    {
+        global $user;
+        if ($object && $object->linkedObjects && $object->linkedObjects['facture'] && $user->rights->invoicebetterstatus->invoicebetterstatus->read) {
+            $linkedInvoice = $object->linkedObjects['facture'];
+            if (!empty($linkedInvoice)) {
+                //We will update display status by jquery
+                $resprint = "<script>$(document).ready(function(){";
+                foreach ($linkedInvoice as $invoice) {
+                    if ($invoice->alreadypaid === null && method_exists($object, "getSommePaiement")) {
+                        $alreadypaid = $invoice->getSommePaiement();
+                        $invoice->alreadypaid = $alreadypaid ? $alreadypaid : 0;
+                    }
+                    $displayedContent = InvoiceBetterStatusTool::getLibStatus($invoice, 3);
+                    $displayedContent = dol_escape_js($displayedContent);
+                    $resprint .= '$("tr[data-element=\'facture\'][data-id=' . $invoice->id . ']").find("td.linkedcol-statut").html("' . $displayedContent . '");';
+                }
+                $resprint .= "}); </script>";
+                print $resprint;
+            }
         }
-	}
+    }
+
+    /**
+     * Function to get current selected searched status
+     * @return  int[] $array of better status ids
+     */
+    private function getSelectedStatus()
+    {
+        return GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter', 'alpha') || GETPOST('button_removefilter.x', 'alpha') ? array() : GETPOST(self::SEARCH_FORM_HTML_NAME, 'array');
+    }
 }
