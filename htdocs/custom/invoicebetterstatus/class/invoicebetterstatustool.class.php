@@ -235,6 +235,7 @@ class InvoiceBetterStatusTool
             if ($invoice->type == $invoice::TYPE_SITUATION) {
                 $label = img_picto('', $picto).' <u class="paddingrightonly">'.$langs->transnoentitiesnoconv("InvoiceSituation").'</u>';
             }
+
             if (isset($invoice->statut) && isset($invoice->alreadypaid) && isset($invoice->date_lim_reglement)) {
                 $label .= ' ' . self::getLibStatus($invoice, 5);
             }

@@ -104,6 +104,10 @@ class ActionsInvoiceBetterStatus
             $addlinktonotes = $parameters['addlinktonotes'];
             $save_lastsearch_value = $parameters['save_lastsearch_value'];
             $target = $parameters['target'];
+			if($object->alreadypaid === null) {
+				$alreadypaid = $object->getSommePaiement();
+				$object->alreadypaid = $alreadypaid ? $alreadypaid : 0;
+			}
             $this->resprints = InvoiceBetterStatusTool::getNomUrl($object, 1, '', 0, 0, '', $notooltip, $addlinktonotes, $save_lastsearch_value, $target);
             return 1;
         }
@@ -239,6 +243,10 @@ class ActionsInvoiceBetterStatus
 			$obj = $parameters['obj'];
 			$facturestatic->array_options['options_classified_as_contentious'] = $obj->options_classified_as_contentious;
             if ($arrayfields['invoicebetterstatus']['checked']) {
+				if($facturestatic->alreadypaid === null) {
+					$alreadypaid = $facturestatic->getSommePaiement();
+					$facturestatic->alreadypaid = $alreadypaid ? $alreadypaid : 0;
+				}
                 print '<td class="nowrap right">' . InvoiceBetterStatusTool::getLibStatus($facturestatic, 5) . '</td>';
             }
         }
@@ -332,7 +340,10 @@ class ActionsInvoiceBetterStatus
     {
         $contexts = explode(':', $parameters['context']);
         if (in_array('invoicecard', $contexts)) {
-			$object->alreadypaid = $object->getSommePaiement();
+			if($object->alreadypaid === null) {
+				$alreadypaid = $object->getSommePaiement();
+				$object->alreadypaid = $alreadypaid ? $alreadypaid : 0;
+			}
             $statusContent = InvoiceBetterStatusTool::getLibStatus($object, 6);
             if (empty($statusContent)) {
                 $statusContent = InvoiceBetterStatusTool::getLibStatus($object, 4);
@@ -341,4 +352,35 @@ class ActionsInvoiceBetterStatus
             print '<script>$(".statusref").not(".statusrefbis").html("' . $statusContent . '")</script>';
         }
     }
+
+    /**
+     * Overloading the showLinkedObjectBlock function : replacing the parent's function with the one below
+     *
+     * @param   array           $parameters     Hook metadatas (context, etc...)
+     * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+     * @param   string          $action         Current action (if set). Generally create or edit or null
+     * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+     * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+     */
+	public function showLinkedObjectBlock($parameters, &$object, &$action, $hookmanager)
+	{
+		if ($object && $object->linkedObjects && $object->linkedObjects['facture']) {
+			$linkedInvoice = $object->linkedObjects['facture'];
+			if(!empty($linkedInvoice)) {
+				//We will update display status by jquery
+				$resprint = "<script>$(document).ready(function(){";
+					foreach($linkedInvoice as $invoice) {
+						if($invoice->alreadypaid === null) {
+							$alreadypaid = $invoice->getSommePaiement();
+							$invoice->alreadypaid = $alreadypaid ? $alreadypaid : 0;
+						}
+						$displayedContent = InvoiceBetterStatusTool::getLibStatus($invoice, 3);
+						$displayedContent = dol_escape_js($displayedContent);
+						$resprint .= '$("tr[data-element=\'facture\'][data-id=' . $invoice->id . ']").find("td.linkedcol-statut").html("' . $displayedContent . '");';
+					}
+				$resprint .= "}); </script>";
+				print $resprint;
+			}
+        }
+	}
 }
