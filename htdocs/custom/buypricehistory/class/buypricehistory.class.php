@@ -22,7 +22,7 @@
  * \brief       This file is a CRUD class file for BuyPriceHistory (Create/Read/Update/Delete)
  */
 
-require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.product.class.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/productfournisseurprice.class.php';
 
 /**
  * Class for BuyPriceHistory
@@ -125,7 +125,7 @@ class BuyPriceHistory extends CommonObject
         'barcode' => array('type'=>'varchar(180)', 'label'=>'Barcode', 'enabled'=>'1', 'position'=>170, 'notnull'=>0, 'visible'=>-1,),
         'fk_barcode_type' => array('type'=>'integer', 'label'=>'Fkbarcodetype', 'enabled'=>'1', 'position'=>175, 'notnull'=>0, 'visible'=>-1,),
         'packaging' => array('type'=>'varchar(64)', 'label'=>'Packaging', 'enabled'=>'1', 'position'=>180, 'notnull'=>0, 'visible'=>-1,),
-		'fk_object' => array('type'=>'integer:ProductFournisseur:fourn/class/fournisseur.product.class.php', 'label'=>'Linked Supplier price', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0),
+		'fk_object' => array('type'=>'integer:ProductFournisseurPrice:product/class/productfournisseurprice.class.php', 'label'=>'Linked Supplier price', 'enabled'=>'1', 'position'=>10, 'notnull'=>0, 'visible'=>0),
 		'begin_date' => array('type'=>'datetime', 'label'=>'BuyPriceHistoryStartDate', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
         'end_date' => array('type'=>'datetime', 'label'=>'BuyPriceHistoryEndDate', 'enabled'=>'1', 'position'=>25, 'notnull'=>0, 'visible'=>-1,),
         'original_datec' => array('type'=>'datetime', 'label'=>'OriginalDateCreation', 'enabled'=>'1', 'position'=>20, 'notnull'=>0, 'visible'=>-1,),
@@ -307,7 +307,7 @@ class BuyPriceHistory extends CommonObject
 
     /**
      * Log a supplier price not anymore valid from instance
-     * @param ProductFournisseur $productPrice
+     * @param ProductFournisseurPrice $productPrice
      * @return bool
      */
     public function logOldPriceFromInstance($productPrice)
@@ -339,8 +339,8 @@ class BuyPriceHistory extends CommonObject
         return empty($errors);
     }
     /**
-     * Log a supplier price thanks to a ProductFournisseur instance
-     * @param ProductFournisseur $productPrice
+     * Log a supplier price thanks to a ProductFournisseurPrice instance
+     * @param ProductFournisseurPrice $productPrice
      * @return BuyPriceHistory|null instance of the history created
      */
     public function logNewPriceFromInstance($productPrice)
@@ -415,9 +415,9 @@ class BuyPriceHistory extends CommonObject
         $supplierPriceInstanceToArchive = array();
         $result = array();
         if (!empty($supplierPriceIdToArchive)) {
-            $productFournisseur = new ProductFournisseur($this->db);
-            $supplierPriceInstanceToArchive = $productFournisseur->fetchAll('', '', 0, 0, array('rowid'=>implode(',', $supplierPriceIdToArchive)));
-            $this->errors = array_merge($this->errors, $productFournisseur->errors);
+            $productFournisseurPrice = new ProductFournisseurPrice($this->db);
+            $supplierPriceInstanceToArchive = $productFournisseurPrice->fetchAll('', '', 0, 0, array('rowid'=>implode(',', $supplierPriceIdToArchive)));
+            $this->errors = array_merge($this->errors, $productFournisseurPrice->errors);
         }
         if (is_array($supplierPriceInstanceToArchive)) {
             foreach ($supplierPriceInstanceToArchive as $supplierPrice) {
@@ -431,8 +431,8 @@ class BuyPriceHistory extends CommonObject
     }
 
     /**
-     * Function to get starting price valid date from ProductFournisseur instance
-     * @param ProductFournisseur $productPrice
+     * Function to get starting price valid date from ProductFournisseurPrice instance
+     * @param ProductFournisseurPrice $productPrice
      * @return Date|null
      */
     public static function getPriceValidityStartDate($productPrice)
