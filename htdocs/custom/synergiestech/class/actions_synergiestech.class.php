@@ -552,7 +552,15 @@ class ActionsSynergiesTech
 						$langs->trans("SynergiesTechValidateWithoutCheck") . '</a></div>';
 				}
 			}
-		}
+		} else if (in_array('thirdpartycard', $contexts)) {
+            // Add intervention
+			$langs->load("interventions");
+			if ($user->rights->ficheinter->creer) {
+				print '<div class="inline-block divButAction"><a class="butAction" href="' . DOL_URL_ROOT . '/fichinter/card.php?action=create&socid=' . $object->id . '" title="'.dol_escape_htmltag($langs->trans("AddIntervention")).'">' . $langs->trans("AddIntervention") . '</a></div>';
+			} else {
+				print '<div class="inline-block divButAction"><a class="butActionRefused" title="' . dol_escape_js($langs->trans("NotAllowed")) . '" href="#">' . $langs->trans("AddIntervention") . '</a></div>';
+			}
+        }
 
 		return 0;
 	}
