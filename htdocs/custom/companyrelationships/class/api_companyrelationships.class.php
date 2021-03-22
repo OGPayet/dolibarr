@@ -5838,7 +5838,11 @@ class CompanyRelationshipsApi extends DolibarrApi
 
 		$upload_dir = dol_sanitizePathName($upload_dir);
 
-		$destfile = $upload_dir . $original_file;
+		if ($modulepart == "fichinter") {
+			$destfile = $upload_dir . '/' . $original_file;
+		} else {
+			$destfile = $upload_dir . $original_file;
+		}
 		$destfiletmp = DOL_DATA_ROOT . '/admin/temp/' . $original_file;
 		dol_delete_file($destfiletmp);
 		//var_dump($original_file);exit;
