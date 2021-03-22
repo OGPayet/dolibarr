@@ -5877,13 +5877,13 @@ class CompanyRelationshipsApi extends DolibarrApi
 		}
 
 		if ($islogo) {
-			$original_file_array = explode(".", $original_file);
+			$pathinfo = pathinfo($destfile);
 			
-			if (pathinfo($destfile, PATHINFO_EXTENSION) != 'png') {
-				$new_file_name = implode(".", $original_file_array);
-				imagepng(imagecreatefromstring(file_get_contents($destfile)), $upload_dir . $new_file_name . ".png");
+			if ($pathinfo['extension'] != 'png') {
+				$new_path = $pathinfo['dirname'] . '/' . $pathinfo['filename'] . ".png";
+				imagepng(imagecreatefromstring(file_get_contents($destfile)), $new_path);
 				dol_delete_file($destfile);
-				$destfile = $upload_dir . $new_file_name . ".png";
+				$destfile = $new_path;
 			}
 		}
 
