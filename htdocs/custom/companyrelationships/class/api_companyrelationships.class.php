@@ -5878,9 +5878,8 @@ class CompanyRelationshipsApi extends DolibarrApi
 
 		if ($islogo) {
 			$original_file_array = explode(".", $original_file);
-			$original_file_extension = array_pop($original_file_array);
-
-			if ($original_file_extension != 'png') {
+			
+			if (pathinfo($destfile, PATHINFO_EXTENSION) != 'png') {
 				$new_file_name = implode(".", $original_file_array);
 				imagepng(imagecreatefromstring(file_get_contents($destfile)), $upload_dir . $new_file_name . ".png");
 				dol_delete_file($destfile);
