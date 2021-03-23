@@ -503,9 +503,11 @@ if ($action=="") {
 
 		// ensuite on boucle sur les lignes de commandes
 		foreach ($CmdeFourn[1] as $lgnCmdeFourn) {
+			$savedValue = $conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY;
+			$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = true;
 			// on cree la commande fournisseur
 			$result=$objectcf->addline(
-							'', 0,
+							'', '',
 							$lgnCmdeFourn[1],	// $qty
 							$lgnCmdeFourn[3],	// TxTVA
 							0, 0,
@@ -515,6 +517,7 @@ if ($action=="") {
 							'HT',				// $price_base_type
 							0, 0				// type
 			);
+			$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = $savedValue;
 		}
 		// on interface cette commande fournisseur avec la commande client
 		// Add object linked

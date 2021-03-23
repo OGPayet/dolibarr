@@ -555,9 +555,10 @@ if ($action == "") {
 			$restockcmde_static->fetchdet($lgnCmdeFourn[0], $lgnCmdeFourn[1]);
 
 			//var_dump($lgnCmdeFourn);
-
+			$savedValue = $conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY;
+			$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = true;
 			$result=$objectcf->addline(
-							'', 0,
+							'', '',
 							$lgnCmdeFourn[1],					// $qty
 							$lgnCmdeFourn[3],					// TxTVA
 							0, 0,
@@ -568,6 +569,7 @@ if ($action == "") {
 							'HT',								// $price_base_type
 							0, 0								// type
 			);
+			$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = $savedValue;
 
 			// r�cup de l'id de la que l'on vient de cr�er
 			$sql = 'SELECT rowid FROM '.MAIN_DB_PREFIX.'commande_fournisseurdet';

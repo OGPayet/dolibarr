@@ -631,9 +631,11 @@ if ($action == 'direct') {
 
 				// si pas de ligne existante ou cr�ation d'une ligne � chaque fois
 				if ($idlgnFourn == 0 || $conf->global->RESTOCK_FILL_ORDER_DRAFT <= 2) {
+					$savedValue = $conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY;
+					$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = true;
 					// on cree la commande fournisseur
 					$result=$objectcf->addline(
-									'', 0,
+									'', '',
 									$lgnCmdeFourn[1],	// $qty
 									$lgnCmdeFourn[3],	// TxTVA
 									0, 0,
@@ -644,6 +646,8 @@ if ($action == 'direct') {
 									'HT',				// $price_base_type
 									0, 0				// type
 					);
+					$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = $savedValue;
+
 
 					// r�cup de l'id de la que l'on vient de cr�er
 					$sql = 'SELECT rowid from '.MAIN_DB_PREFIX.'commande_fournisseurdet';
@@ -1179,8 +1183,10 @@ if ($action=="") {
 			// si pas de ligne existante ou cr�ation d'une ligne � chaque fois
 			if ($idlgnFourn == 0 || $conf->global->RESTOCK_FILL_ORDER_DRAFT <= 2) {
 				// on cree la commande fournisseur
+				$savedValue = $conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY;
+				$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = true;
 				$result=$objectcf->addline(
-								'', 0,
+								'', '',
 								$lgnCmdeFourn[1],	// $qty
 								$lgnCmdeFourn[3],	// TxTVA
 								0, 0,
@@ -1191,7 +1197,7 @@ if ($action=="") {
 								'HT',				// $price_base_type
 								0, 0				// type
 				);
-
+				$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = $savedValue;
 				// r�cup de l'id de la que l'on vient de cr�er
 				$sql = 'SELECT rowid from '.MAIN_DB_PREFIX.'commande_fournisseurdet';
 				$sql.= ' WHERE fk_commande = '.$idCmdFourn;

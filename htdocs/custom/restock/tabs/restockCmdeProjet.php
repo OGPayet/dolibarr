@@ -716,8 +716,10 @@ if ($action == "") {
 			//var_dump($lgnCmdeFourn);
 			//$desc, $pu_ht, $qty, $txtva, $txlocaltax1=0, $txlocaltax2=0, $fk_product=0,
 			//$fk_prod_fourn_price=0, $fourn_ref='', $remise_percent=0, $price_base_type='HT', $pu_ttc=0, $type=0, $info_bits=0, $notrigger=false)
+			$savedValue = $conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY;
+			$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = true;
 			$result=$objectcf->addline(
-							'', 0,
+							'', '',
 							$lgnCmdeFourn[1],					// $qty
 							$lgnCmdeFourn[3],					// TxTVA
 							0, 0,
@@ -728,6 +730,8 @@ if ($action == "") {
 							'HT',								// $price_base_type
 							0, 0								// type
 			);
+			$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = $savedValue;
+
 
 			// r�cup de l'id de la que l'on vient de cr�er
 			$sql = 'SELECT rowid from '.MAIN_DB_PREFIX.'commande_fournisseurdet';

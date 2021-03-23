@@ -639,8 +639,10 @@ if ($action=="") {
 			// si pas de ligne existante ou cr�ation d'une ligne � chaque fois
 			if ($idlgnFourn == 0 && $conf->global->RESTOCK_FILL_ORDER_DRAFT <= 2) {
 				//var_dump($lgnCmdeFourn);
+				$savedValue = $conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY;
+				$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = true;
 				$result=$objectcf->addline(
-								'', 0,
+								'', '',
 								$lgnCmdeFourn[1],	// $qty
 								$lgnCmdeFourn[3],	// TxTVA
 								0, 0,
@@ -651,6 +653,7 @@ if ($action=="") {
 								'HT',				// $price_base_type
 								0, 0				// type
 				);
+				$conf->global->SUPPLIER_ORDER_WITH_PREDEFINED_PRICES_ONLY = $savedValue;
 			} else {
 				$tmpcmdeligncmdefourn= new CommandeFournisseurLigne($db);
 				$tmpcmdeligncmdefourn->fetch($idlgnFourn);
