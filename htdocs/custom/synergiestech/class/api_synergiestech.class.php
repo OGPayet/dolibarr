@@ -119,11 +119,11 @@ class SynergiesTechApi extends DolibarrApi
 	            $obj = $db->fetch_object($result);
 	            $user_static = new User($db);
 	            if($user_static->fetch($obj->rowid)) {
-
+					$user_static->getrights("synergiestech");
 					$finalItem = $this->_cleanObjectDatas($user_static);
 
 						$resultObj=array();
-						$temp=array("id","firstname","lastname","email","statut");
+						$temp=array("id","firstname","lastname","email","statut","rights","photo");
 						foreach($temp as $tempkey){$resultObj[$tempkey]=$finalItem->$tempkey;}
                     $obj_ret[] = $resultObj;
 	            }
