@@ -439,8 +439,8 @@ class modSynergiesTech extends DolibarrModules
 		$this->rights[$r][0] = 500130;
 		$this->rights[$r][1] = $langs->trans('Permission500130');
 		$this->rights[$r][3] = 0;
-		$this->rights[$r][4] = $langs->trans('Permission500130Level1');
-		$this->rights[$r][5] = $langs->trans('Permission500130Level2');
+		$this->rights[$r][4] = 'opsyOnSite';
+		$this->rights[$r][5] = 'admin';
 		$r++;
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
