@@ -434,6 +434,13 @@ class modSynergiesTech extends DolibarrModules
 		$this->rights[$r][4] = 'documents';
 		$this->rights[$r][5] = 'thirdparty';
 		$r++;
+
+		$this->rights[$r][0] = 500130;
+		$this->rights[$r][1] = "Admin rights for Opsy On Site";
+		$this->rights[$r][3] = 0;
+		$this->rights[$r][4] = 'opsyonsite';
+		$this->rights[$r][5] = 'admin';
+		$r++;
 		// Add here list of permission defined by an id, a label, a boolean and two constant strings.
 		// Example:
 		// $this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
