@@ -2261,7 +2261,7 @@ class InvoicesContractTools
 				if ($result > 0) {
 					$contract->fetch_thirdparty();
 
-					$contract->cloture($user);
+					$contract->closeAll($user);
 
 					$label = $langs->trans('STCContractTerminateEventLabel', $contract->ref);
 					$message = $langs->trans('Author') . ' : ' . $user->login;
