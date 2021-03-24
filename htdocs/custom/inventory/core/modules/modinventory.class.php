@@ -58,7 +58,7 @@ class modinventory extends DolibarrModules
 		// Module description, used if translation string 'ModuleXXXDesc' not found (where XXX is value of numeric property 'numero' of module)
 		$this->description = "Description of module inventory";
 		// Possible values for version are: 'development', 'experimental', 'dolibarr' or version
-		$this->version = '1.7.0';
+		$this->version = '1.11.2';
 		// Key used in llx_const table to save module status enabled/disabled (where MYMODULE is value of property name of module in uppercase)
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		// Where to store the module in setup page (0=common,1=interface,2=others,3=very specific)
@@ -82,7 +82,7 @@ class modinventory extends DolibarrModules
 		//							'barcode' => 0,                                  	// Set this to 1 if module has its own barcode directory (core/modules/barcode)
 		//							'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 		//							'css' => array('/inventory/css/inventory.css.php'),	// Set this to relative path of css file if module has its own css file
-		//							'js' => array('/inventory/js/inventory.js'),          // Set this to relative path of js file if module must load a js on all pages
+	 	//							'js' => array('/inventory/js/inventory.js'),          // Set this to relative path of js file if module must load a js on all pages
 		//							'hooks' => array('hookcontext1','hookcontext2')  	// Set here all hooks context managed by module
 		//							'dir' => array('output' => 'othermodulename'),      // To force the default directories names
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@inventory')) // Set here all workflow context managed by module
@@ -141,8 +141,8 @@ class modinventory extends DolibarrModules
         // Dictionaries
 	    if (! isset($conf->inventory->enabled))
         {
-		$conf->inventory=new stdClass();
-		$conf->inventory->enabled=0;
+        	$conf->inventory=new stdClass();
+        	$conf->inventory->enabled=0;
         }
 		$this->dictionaries=array();
         /* Example:
@@ -184,7 +184,7 @@ class modinventory extends DolibarrModules
 
 		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
 		$this->rights[$r][1] = 'inventoryReadPermission';	// Permission label
-		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
+		$this->rights[$r][3] = 0; 					// Permission by default for new user (0/1)
 		$this->rights[$r][4] = 'read';			// In php code, permission will be checked by test if ($user->rights->permkey->level1->level2)
 		$r++;
 

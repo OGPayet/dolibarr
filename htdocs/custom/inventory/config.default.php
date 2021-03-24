@@ -1,5 +1,5 @@
 <?php
-
+	
 	if(is_file('../main.inc.php'))$dir = '../';
 	else  if(is_file('../../../main.inc.php'))$dir = '../../../';
 	else $dir = '../../';
@@ -26,3 +26,6 @@
 		print $langs->trans('AbricotNotFound'). ' : <a href="http://wiki.atm-consulting.fr/index.php/Accueil#Abricot" target="_blank">Abricot</a>';
 		exit;
 	}
+
+	$module_helpurl='http://wiki.atm-consulting.fr/index.php/Inventaire/Documentation_utilisateur';
+

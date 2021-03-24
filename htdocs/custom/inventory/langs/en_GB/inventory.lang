@@ -30,7 +30,7 @@ inventoryWarningProductAlreadyExists=The product already exists in the list
 INVENTORY_GEN_PDF=Generate the document inventory in PDF (requires the presence of LibreOffice Writer on the server)
 SelectCategory=Select Category
 SelectFournisseur=Select Supplier
-inventoryOnDate=Inventory on
+inventoryOnDate=Inventory on 
 INVENTORY_DISABLE_VIRTUAL=Usefull if you don't want to unstock children product from virtual product in inventory
 INVENTORY_USE_MIN_PA_IF_NO_LAST_PA=Giving the valuation with the current purchase price on last PA zero
 INVENTORY_USE_INVENTORY_DATE_FROM_DATEMVT=Date Inventory Movements as of Inventory Date
@@ -41,6 +41,9 @@ OnlyProdsInStock=Do not include products that do not have stock in the selected 
 IncludeProdWithCurrentStockValue=Integrate products with their current stock and PMP
 INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL=Use the last purchase price or the minimum for PMP in case of no MPP
 UsePAifnull=Uses the purchase price if null
+
+INVENTORY_PERF_TWEAKS=Improve performance when many products exist (more than 1000)
+INVENTORY_PERF_TWEAKS_HELP=Pages will display much faster when creating or viewing inventories. The tradeoff is that detailed tooltips will be disabled when hovering the mouse cursor over a product ref.
 
 Numero=Ref
 Entrepot=Warehouse

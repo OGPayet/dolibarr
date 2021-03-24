@@ -29,7 +29,33 @@ class TInventory extends TObjetStd
 
 	function sort_det()
 	{
-		usort($this->TInventorydet, array('TInventory', 'customSort'));
+//		usort($this->TInventorydet, array('TInventory', 'customSort'));
+        usort($this->TInventorydet, array('TInventory', 'orderSort'));
+        // FIX TK11812 : PR https://github.com/ATM-Consulting/dolibarr_module_inventory/pull/37
+		if ($this->per_batch && !empty($this->TInventorydet))
+		{
+			$tmpTab = array();
+			foreach ($this->TInventorydet as $invDet)
+			{
+				if (!array_key_exists($invDet->fk_product, $tmpTab))
+				{
+					$tmpTab[$invDet->fk_product] = array();
+				}
+
+				if (empty($invDet->lot)) $tmpTab[$invDet->fk_product][0] = $invDet;
+				else if (empty($tmpTab[$invDet->fk_product])) $tmpTab[$invDet->fk_product][1] = $invDet;
+				else $tmpTab[$invDet->fk_product][] = $invDet;
+			}
+
+			$this->TInventorydet = array();
+			foreach ($tmpTab as $produitId => $lines)
+			{
+				ksort($lines);
+				$count = count($lines);
+				for( $i = 0; $i < $count; $i++) $this->TInventorydet[] = $lines[$i];
+			}
+		}
+
 	}
 
 	function load(&$PDOdb, $id,$annexe = true)
@@ -61,6 +87,87 @@ class TInventory extends TObjetStd
 
 		return $r;
 	}
+
+    function orderSort(&$objA, &$objB){
+
+	    //champs à trier
+       $sortfield = GETPOST('sortfield','alpha');
+
+       $TFieldparts =  explode('.', $sortfield, 2);
+       $fieldtype = $TFieldparts[0];
+       $fieldname = $TFieldparts[1];
+
+        if(GETPOST('sortorder','alpha') == 'desc') {    //tri decroissant
+
+            if($fieldtype == 'ef')      //extrafield
+            {
+                $r = strcmp(strtoupper(trim($objA->product->array_options['options_'.$fieldname])), strtoupper(trim($objB->product->array_options['options_'.$fieldname])));
+
+                if ($r > 0) $r = -1;
+                elseif ($r < 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+
+            }
+            else if ($fieldtype == 'd')
+			{
+				$r = strcmp(strtoupper(trim($objA->$fieldname)), strtoupper(trim($objB->$fieldname)));
+
+				if ($r > 0) $r = -1;
+				elseif ($r < 0) $r = 1;
+				else $r = 0;
+
+				return $r;
+            }
+            else
+            {
+
+                $r = strcmp(strtoupper(trim($objA->product->$fieldname)), strtoupper(trim($objB->product->$fieldname)));
+
+                if ($r > 0) $r = -1;
+                elseif ($r < 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+            }
+
+        } elseif (GETPOST('sortorder','alpha') == 'asc') {      //tri croissant
+
+            if($fieldtype == 'ef')      //extrafield
+            {
+                $r = strcmp(strtoupper(trim($objA->product->array_options['options_'.$fieldname])), strtoupper(trim($objB->product->array_options['options_'.$fieldname])));
+
+                if ($r < 0) $r = -1;
+                elseif ($r > 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+
+            }
+			else if ($fieldtype == 'd')
+			{
+				$r = strcmp(strtoupper(trim($objA->$fieldname)), strtoupper(trim($objB->$fieldname)));
+
+				if ($r < 0) $r = -1;
+				elseif ($r > 0) $r = 1;
+				else $r = 0;
+
+				return $r;
+			}
+            else
+            {
+                $r = strcmp(strtoupper(trim($objA->product->$fieldname)), strtoupper(trim($objB->product->$fieldname)));
+
+                if ($r < 0) $r = -1;
+                elseif ($r > 0) $r = 1;
+                else $r = 0;
+
+                return $r;
+            }
+        }
+
+    }
 
 	function changePMP(&$PDOdb) {
 
@@ -139,7 +246,7 @@ class TInventory extends TObjetStd
     }
 
     function add_product(&$PDOdb, $fk_product, $fk_entrepot='', $addWithCurrentDetails = false) {
-	global $langs;
+  	global $langs;
 	if(empty($fk_product)) {
 		setEventMessages($langs->trans('ErrorNoSelectedProductToAdd'), 'errors');
 		return false;
@@ -155,9 +262,9 @@ class TInventory extends TObjetStd
         $det->load_product();
 
         if($addWithCurrentDetails) {
-		$det->product->load_stock();
-		$det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
-		$det->new_pmp= $det->product->pmp;
+        	$det->product->load_stock();
+        	$det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
+        	$det->new_pmp= $det->product->pmp;
         }
 
         $date = $this->get_date('date_inventory', 'Y-m-d');
@@ -210,31 +317,33 @@ class TInventory extends TObjetStd
         }
 
         $total_qty = 0;
-        foreach ($detailLot as $lot => $detail)
-        {
+        if (!empty($detailLot)){
+			foreach ($detailLot as $lot => $detail)
+			{
 //             var_dump($lot, $detail);exit;
-            $k = $this->addChild($PDOdb, 'TInventorydet');
-            $det =  &$this->TInventorydet[$k];
+				$k = $this->addChild($PDOdb, 'TInventorydet');
+				$det =  &$this->TInventorydet[$k];
 
-            $det->fk_inventory = $this->getId();
-            $det->fk_product = $fk_product;
-            $det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
-            //        var_dump($det);exit;
-            $det->load_product();
-            $det->lot = $lot;
-            $det->qty_stock = $detail->qty;
-            $total_qty += $detail->qty;
+				$det->fk_inventory = $this->getId();
+				$det->fk_product = $fk_product;
+				$det->fk_warehouse = empty($fk_entrepot) ? $this->fk_warehouse : $fk_entrepot;
+				//        var_dump($det);exit;
+				$det->load_product();
+				$det->lot = $lot;
+				$det->qty_stock = $detail->qty;
+				$total_qty += $detail->qty;
 
-            if($addWithCurrentDetails) {
-                $det->product->load_stock();
-                $det->qty_view = $det->product->stock_warehouse[$fk_entrepot]->real;
-                $det->new_pmp= $det->product->pmp;
-            }
+				if($addWithCurrentDetails) {
+					$det->product->load_stock();
+					$det->qty_view = $detail->qty;
+					$det->new_pmp= $det->product->pmp;
+				}
 
-            $date = $this->get_date('date_inventory', 'Y-m-d');
-            if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d');
+				$date = $this->get_date('date_inventory', 'Y-m-d');
+				if(empty($date))$date = $this->get_date('date_cre', 'Y-m-d');
 //             $det->setStockDate($PDOdb, $date , $fk_entrepot);
-        }
+			}
+		}
 //         var_dump((float) $total_qty, (float) $prod->stock_warehouse[$fk_entrepot]->real); exit;
         if ((float) $total_qty !== (float) $prod->stock_warehouse[$fk_entrepot]->real)
         {
@@ -335,10 +444,10 @@ class TInventory extends TObjetStd
 				$href = dol_buildpath('/inventory/inventory.php?id='.$this->getId().'&action=view', 1);
 
 				if (! $this->per_batch || !$product->hasbatch()) {
-				if(empty($this->title))
-					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
-				else
-					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
+    				if(empty($this->title))
+    					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStock', $href, $this->getId()));
+    				else
+    					$this->correct_stock($product->id, $TInventorydet->fk_warehouse, $nbpiece, $movement, $langs->trans('inventoryMvtStockWithNomInventaire', $href, $this->title));
 				}
 				else {
 				    if($TInventorydet->lot !== '')
@@ -382,7 +491,7 @@ class TInventorydet extends TObjetStd
 		global $conf;
 
 		$this->set_table(MAIN_DB_PREFIX.'inventorydet');
-	$this->TChamps = array();
+    	$this->TChamps = array();
 		$this->add_champs('fk_inventory,fk_warehouse,fk_product,entity', 'type=entier;');
 		$this->add_champs('qty_view,qty_stock,qty_regulated,pmp,pa,new_pmp', 'type=float;');
 		$this->add_champs('lot', 'type=text;');
@@ -399,7 +508,17 @@ class TInventorydet extends TObjetStd
 
 	}
 
-	function load(&$PDOdb, $id, $loadChild = true)
+    function save(&$PDOdb)
+    {
+        global $conf;
+
+        if (!empty($conf->global->INVENTORY_USE_ONLY_INTEGER)) $this->qty_view = (int) $this->qty_view;
+
+        return parent::save($PDOdb); // TODO: Change the autogenerated stub
+    }
+
+
+    function load(&$PDOdb, $id, $loadChild = true)
 	{
 		global $conf;
 
@@ -497,7 +616,7 @@ class TInventorydet extends TObjetStd
 			if($last_stock_value < 0) $last_stock_value = 0;
 
 			//if($last_stock_value<0 || $laststock<0) null;
-			$lastpmp = ($laststock != 0) ? $last_stock_value / $laststock : $lastpmp; // S'il y a un stock, alors son PMP est sa valeur totale / nombre de pièce
+			$lastpmp = (round($laststock, 4) != 0) ? $last_stock_value / $laststock : $lastpmp; // S'il y a un stock, alors son PMP est sa valeur totale / nombre de pièce
 
 		}
 

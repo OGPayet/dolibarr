@@ -1,7 +1,6 @@
 <?php
 
-/* Copyright (C) 2018      Alexis LAURIER             <alexis@alexislaurier.fr>
- * Copyright (C) 2018      Synergies-Tech             <infra@synergies-france.fr>
+/* Copyright (C) 2018      Alexis LAURIER              <alexis@alexislaurier.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,11 +36,17 @@ if(!$user->rights->inventory->read) accessforbidden();
 
 $langs->load("inventory@inventory");
 
+$contextpage = 'inventoryatmcard';
+
+include DOL_DOCUMENT_ROOT.'/core/actions_changeselectedfields.inc.php';
+
+$hookmanager->initHooks(array('inventoryatmcard'));
+
 _action();
 
 function _action()
 {
-	global $user, $db, $conf, $langs;
+	global $user, $db, $conf, $langs, $hookmanager;
 	$PDOdb=new TPDOdb;
 	//$PDOdb->debug=true;
 
@@ -77,41 +82,54 @@ function _action()
 			$inventory->set_values($_REQUEST);
 
             $fk_inventory = $inventory->save($PDOdb);
-            $fk_category = (int)GETPOST('fk_category');
-            $fk_supplier = (int)GETPOST('fk_supplier');
-            $fk_warehouse = (int)GETPOST('fk_warehouse');
-			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock');
-			$inventoryWithBatchDetail = (int)GETPOST('inventoryWithBatchDetail');
+            $fk_category = GETPOST('fk_category', 'array');
+            $fk_supplier = (int)GETPOST('fk_supplier','int');
+            $fk_warehouse = (int)GETPOST('fk_warehouse','int');
+			$only_prods_in_stock = (int)GETPOST('OnlyProdsInStock','int');
+			$inventoryWithBatchDetail = (int)GETPOST('inventoryWithBatchDetail','int');
 			$inventory->per_batch = $inventoryWithBatchDetail;
+
 
 			$e = new Entrepot($db);
 			$e->fetch($fk_warehouse);
 			$TChildWarehouses = array($fk_warehouse);
 			if(method_exists($e, 'get_children_warehouses')) $e->get_children_warehouses($fk_warehouse, $TChildWarehouses);
 
-			$sql = 'SELECT ps.fk_product, ps.fk_entrepot
-			     FROM '.MAIN_DB_PREFIX.'product_stock ps
-			     INNER JOIN '.MAIN_DB_PREFIX.'product p ON (p.rowid = ps.fk_product)
-                 LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)
-				 LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)
-			     WHERE ps.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
+			$sql = 'SELECT p.rowid AS fk_product, sm.fk_entrepot, SUM(sm.value) AS qty';
 
-            if($fk_category>0) $sql.= " AND cp.fk_categorie=".$fk_category;
-			if($fk_supplier>0) $sql.= " AND pfp.fk_soc=".$fk_supplier;
-			if($only_prods_in_stock>0) $sql.= ' AND ps.reel > 0';
+			// Add fields from hooks
+			$parameters=array();
+			$reshook=$hookmanager->executeHooks('printFieldListSelect',$parameters);    // Note that $action and $object may have been modified by hook
+			$sql.=$hookmanager->resPrint;
 
-			$sql.=' GROUP BY ps.fk_product, ps.fk_entrepot
-					ORDER BY p.ref ASC,p.label ASC';
+			$sql.= ' FROM '.MAIN_DB_PREFIX.'product p';
+			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_stock ps ON (p.rowid = ps.fk_product)';
+			$sql.= ' INNER JOIN '.MAIN_DB_PREFIX.'stock_mouvement sm ON (p.rowid = sm.fk_product)';
+			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'categorie_product cp ON (cp.fk_product = p.rowid)';
+			$sql.= ' LEFT JOIN '.MAIN_DB_PREFIX.'product_fournisseur_price pfp ON (pfp.fk_product = p.rowid)';
+			$sql.= ' WHERE sm.fk_entrepot IN ('.implode(', ', $TChildWarehouses).')';
+			if (is_array($fk_category) && !empty($fk_category)) $sql.= ' AND cp.fk_categorie IN ('.implode(',',$fk_category).')';
+			if ($fk_supplier > 0) $sql.= ' AND pfp.fk_soc = '.$fk_supplier;
 
+			$parameters=array('fk_category'=>$fk_category, 'fk_supplier' => $fk_supplier, 'only_prods_in_stock' => $only_prods_in_stock);
+			$reshook=$hookmanager->executeHooks('printFieldListWhere',$parameters,$inventory,$action);    // Note that $action and $object may have been modified by some hooks
+			if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+			else $sql.=$hookmanager->resPrint;
+
+			$sql.= ' GROUP BY p.rowid, sm.fk_entrepot';
+
+			if ($only_prods_in_stock > 0) $sql.= ' HAVING qty > 0';
+
+			$sql.= ' ORDER BY p.ref ASC, p.label ASC';
 
 			$Tab = $PDOdb->ExecuteAsArray($sql);
 
 			foreach($Tab as &$row) {
 
-                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP')!='' );
+                $inventory->add_product($PDOdb, $row->fk_product, $row->fk_entrepot, GETPOST('includeWithStockPMP','alpha')!='' );
                 $product = new Product($db);
                 $product->fetch($row->fk_product);
-                if($inventoryWithBatchDetail && $product->hasbatch()) $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP')!='' );
+                if($inventoryWithBatchDetail && $product->hasbatch()) $inventory->add_batch($PDOdb, $row->fk_product, $row->fk_entrepot, $inventory->get_date('date_inventory', 'Y-m-d'), GETPOST('includeWithStockPMP','alpha')!='' );
 			}
 
 			$inventory->save($PDOdb);
@@ -311,10 +329,10 @@ function _action()
 			$inventory = new TInventory;
 			$inventory->load($PDOdb, $id);
 
-			exportCSV($inventory);
+            exportCSV($inventory);
+            exit;
 
-			exit;
-			break;
+            break;
 
 		default:
 			//Rien
@@ -325,8 +343,8 @@ function _action()
 
 function _liste(&$user, &$db, &$conf, &$langs)
 {
-	global $dol_version;
-	llxHeader('',$langs->trans('inventoryListTitle'),'','');
+	global $dol_version, $module_helpurl;
+	llxHeader('',$langs->trans('inventoryListTitle'),$module_helpurl,'');
 
 	$form=new TFormCore;
 
@@ -338,7 +356,7 @@ function _liste(&$user, &$db, &$conf, &$langs)
 		  LEFT JOIN ".MAIN_DB_PREFIX."entrepot e ON (e.rowid = i.fk_warehouse)
 		  WHERE i.entity=".(int) $conf->entity;
 
-	if (!__get('TListTBS', 0, 'int')) $sql .= " ORDER BY i.rowid DESC";
+ 	if (!__get('TListTBS', 0, 'int')) $sql .= " ORDER BY i.rowid DESC";
 	$hide = $dol_version >= 7 ? 'ref' : 'label';
 	$THide = array($hide);
 
@@ -403,9 +421,10 @@ function _liste(&$user, &$db, &$conf, &$langs)
 
 function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 {
+	global $module_helpurl;
 	dol_include_once('/categories/class/categorie.class.php');
 
-	llxHeader('',$langs->trans('inventorySelectWarehouse'),'','');
+	llxHeader('',$langs->trans('inventorySelectWarehouse'),$module_helpurl,'');
 	print dol_get_fiche_head(inventoryPrepareHead($inventory));
 
 	$form=new TFormCore('inventory.php', 'confirmCreate');
@@ -433,7 +452,7 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
         <tr>
             <td><?php echo $langs->trans('SelectCategory') ?></td>
-            <td><?php echo $formDoli->select_all_categories(0,'', 'fk_category') ?></td>
+            <td><?php echo $formDoli->select_all_categories(0,'', 'fk_category[]') ?></td>
         </tr>
         <tr>
             <td><?php echo $langs->trans('SelectFournisseur') ?></td>
@@ -463,16 +482,50 @@ function _fiche_warehouse(&$PDOdb, &$user, &$db, &$conf, $langs, $inventory)
 
 	print $form->end_form();
 	llxFooter('');
+    ?>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('select[name*="fk_category"]').attr("multiple", 'multiple').select2().val('').change();//Pour vider le multiselect car select_all_categories est ...
+        });
+    </script>
+    <?php
 }
 
 function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit')
 {
-	llxHeader('',$langs->trans('inventoryEdit'),'','');
+    global $module_helpurl, $arrayfields, $extrafields, $hookmanager, $parameters, $extrafieldsobjectkey;
+
+	llxHeader('',$langs->trans('inventoryEdit'),$module_helpurl,'');
+
+    $action = GETPOST('action','alphanohtml');
+    $reshook=$hookmanager->executeHooks('doActions', $parameters,$inventory,$action);
 
 	$warehouse = new Entrepot($db);
 	$warehouse->fetch($inventory->fk_warehouse);
 
 	print dol_get_fiche_head(inventoryPrepareHead($inventory, $langs->trans('inventoryOfWarehouse', $warehouse->libelle), '&action='.$mode));
+
+	//Récupération du tableau des champs extrafields que l'on peut ajouter en tant que colonne
+    $arrayfields = array();
+    $extrafields = new ExtraFields($db);
+
+    $product = new Product($db);
+
+    $extrafields->fetch_name_optionals_label('product');
+    $extrafields->getOptionalsFromPost($product->table_element,'','ef_');
+
+    if (is_array($extrafields->attributes[$product->table_element]['label']) && count($extrafields->attributes[$product->table_element]['label']))
+    {
+        foreach($extrafields->attributes[$product->table_element]['label'] as $key => $val)
+        {
+            if (! empty($extrafields->attributes[$product->table_element]['list'][$key]))
+                $arrayfields["ef.".$key]=array('label'=>$extrafields->attributes[$product->table_element]['label'][$key], 'checked'=>0, 'position'=>$extrafields->attributes[$product->table_element]['pos'][$key], 'enabled'=>(abs($extrafields->attributes[$product->table_element]['list'][$key])!=3 && $extrafields->attributes[$product->table_element]['perms'][$key]));
+        }
+    }
+
+    $extrafieldsobjectkey = 'product';
+
+    $arrayfields = dol_sort_array($arrayfields, 'position');
 
 	$form=new TFormCore();
 	$form->Set_typeaff($mode);
@@ -515,14 +568,15 @@ function _fiche(&$PDOdb, &$user, &$db, &$conf, &$langs, &$inventory, $mode='edit
 	);
 
 	include './tpl/inventory.tpl.php';
-
+	$reshook = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $inventory, $action);
 	llxFooter('');
 }
 
 
 function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, $mode)
 {
-	global $db,$conf;
+	global $db,$conf, $extrafieldsobjectkey;
+
 	$inventory->amount_actual = 0;
 
 	$TCacheEntrepot = array();
@@ -530,37 +584,26 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
 
-		$e = new Entrepot($db);
-		if(!empty($TCacheEntrepot[$TInventorydet->fk_warehouse])) $e = $TCacheEntrepot[$TInventorydet->fk_warehouse];
-		elseif($e->fetch($TInventorydet->fk_warehouse) > 0) $TCacheEntrepot[$e->id] = $e;
-		$inventory->TInventorydet[$k]->entrepotlabel = $e->label;
-
-	}
-
-	usort($inventory->TInventorydet,function ($a,$b){return strnatcasecmp($a->entrepotlabel,$b->entrepotlabel);});
-
-	foreach ($inventory->TInventorydet as $k => $TInventorydet)
-	{
         $product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
 
 		if ($inventory->per_batch && $product->hasbatch())
 		{
-		$product->load_stock();
-		$lotstotal = 0;
-		if (count($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch))
-		{
-		    foreach ($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch as $lot => $details)
-		    {
-		        $lotstotal += $details->qty;
-		    }
-		}
+    		$product->load_stock();
+    		$lotstotal = 0;
+    		if (!empty($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch) && is_array($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch))
+    		{
+    		    foreach ($product->stock_warehouse[$inventory->fk_warehouse]->detail_batch as $lot => $details)
+    		    {
+    		        $lotstotal += $details->qty;
+    		    }
+    		}
 
-		$lotparent = '';
-		if ((float) $lotstotal !== (float) $stock)
-		{
-		    $lotparent = img_picto('Stock à corriger', 'error');
-		}
+    		$lotparent = '';
+    		if ((float) $lotstotal !== (float) $stock)
+    		{
+    		    $lotparent = img_picto('Stock à corriger', 'error');
+    		}
     // 		var_dump($lotstotal, $stock); exit;
 		}
 
@@ -583,7 +626,7 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 
 		    if ($TInventorydet->lot == '') $lastprodline = $k;
 
-		    $TInventory[]=array(
+		    $inventoryItem = array(
 // 		        'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
 // 		        ,'entrepot'=>$e->getNomUrl(1)
 // 		        ,'barcode' => $product->barcode
@@ -625,44 +668,49 @@ function _fiche_ligne(&$db, &$user, &$langs, &$inventory, &$TInventory, &$form, 
 		        ,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
 		        ,'k'=>$k
 		        ,'id'=>$TInventorydet->getId()
+                ,'fk_product'=>$product->id
 		    );
-
 
 
 		    //var_dump($product->stock_warehouse[$e->id]->detail_batch); exit;
 
 		} else {
-		    $TInventory[]=array(
-			'produit' => $product->getNomUrl(1).'&nbsp;-&nbsp;'.$product->label
-			,'entrepot'=>$e->getNomUrl(1)
-			,'barcode' => $product->barcode
-			,'qty' => ($form->type_aff!='view' ? '<a id="a_save_qty_minus_-'.$k.'" href="javascript:save_qty_minus('.$k.')">'.img_picto('Enlever', 'minus16@inventory').'</a>' : '' ).
+			$inventoryItem = array(
+				'produit' => _productGetNomUrl($product).'&nbsp;-&nbsp;'.$product->label
+				,'entrepot'=>_entrepotGetNomUrl($e)
+    			,'barcode' => $product->barcode
+    			,'qty' => ($form->type_aff!='view' ? '<a id="a_save_qty_minus_-'.$k.'" href="javascript:save_qty_minus('.$k.')">'.img_picto('Enlever', 'minus16@inventory').'</a>' : '' ).
 			($form->texte('', 'qty_to_add['.$k.']', (isset($_REQUEST['qty_to_add'][$k]) ? $_REQUEST['qty_to_add'][$k] : 0), 8, 0, "style='text-align:center;'"))
                         .($form->type_aff!='view' ? '<a id="a_save_qty_'.$k.'" href="javascript:save_qty('.$k.')">'.img_picto('Ajouter', 'plus16@inventory').'</a>' : '')
-			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-			,'qty_stock' => $stock
-			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
-			,'pmp_stock'=>round($pmp_actual,2)
+    			,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+    			,'qty_stock' => $stock
+    			,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+    			,'action' => $user->rights->inventory->write ? '<a onclick="if (!confirm(\'Confirmez-vous la suppression de la ligne ?\')) return false;" href="'.dol_buildpath('inventory/inventory.php?id='.$inventory->getId().'&action=delete_line&rowid='.$TInventorydet->getId(), 1).'">'.img_picto($langs->trans('inventoryDeleteLine'), 'delete').'</a>' : ''
+    			,'pmp_stock'=>round($pmp_actual,2)
                 ,'pmp_actual'=> round($pmp * $TInventorydet->qty_view,2)
-			,'pmp_new'=>(!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
+    			,'pmp_new'=>(!empty($user->rights->inventory->changePMP) ?  $form->texte('', 'new_pmp['.$k.']',$TInventorydet->new_pmp, 8, 0, "style='text-align:right;'")
                             .($form->type_aff!='view' ? '<a id="a_save_new_pmp_'.$k.'" href="javascript:save_pmp('.$k.')">'.img_picto($langs->trans('Save'), 'bt-save.png@inventory').'</a>' : '') : '' )
                 ,'pa_stock'=>round($last_pa * $stock,2)
                 ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-			,'current_pa_stock'=>round($current_pa * $stock,2)
-			,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
+    			,'current_pa_stock'=>round($current_pa * $stock,2)
+    			,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
 
                 ,'k'=>$k
                 ,'id'=>$TInventorydet->getId()
-		);
+                ,'fk_product'=>$product->id
+    		);
 		}
 
+
+		$inventoryItem['fk_warehouse'] = $e->id;
+
+		$TInventory[] = $inventoryItem;
 	}
 
 }
 
 function exportCSV(&$inventory) {
-	global $conf;
+	global $conf, $db, $hookmanager;
 
 	header('Content-Type: application/octet-stream');
     header('Content-disposition: attachment; filename=inventory-'. $inventory->getId().'-'.date('Ymd-His').'.csv');
@@ -670,16 +718,27 @@ function exportCSV(&$inventory) {
     header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
     header('Expires: 0');
 
-	echo 'Ref;Label;barcode;qty theorique;PMP;dernier PA;';
+	echo 'Ref;Label;';
+	if($inventory->per_batch) echo 'Lot;';
+	echo 'barcode;qty theorique;PMP;dernier PA;';
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
 	echo 'qty réelle;PMP;dernier PA;';
 	if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) echo 'PA courant;';
-	echo 'qty regulée;'."\r\n";
+	echo 'qty regulée;';
+
+    // Add fields from hooks
+    $parameters=array();
+    $reshook=$hookmanager->executeHooks('printExportColumnTitle',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
+    if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
+	else print $hookmanager->resPrint;
+
+	echo "\r\n";
 
 	foreach ($inventory->TInventorydet as $k => $TInventorydet)
 	{
 		$product = & $TInventorydet->product;
 		$stock = $TInventorydet->qty_stock;
+		$lot = $TInventorydet->lot;
 
         $pmp = $TInventorydet->pmp;
 		$pmp_actual = $pmp * $stock;
@@ -694,43 +753,77 @@ function exportCSV(&$inventory) {
 	}
 
 		if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) {
-			$row=array(
-				'produit' => $product->ref
-				,'label'=>$product->label
-				,'barcode' => $product->barcode
-				,'qty_stock' => $stock
-				,'pmp_stock'=>round($pmp_actual,2)
-				,'pa_stock'=>round($last_pa * $stock,2)
-				,'current_pa_stock'=>round($current_pa * $stock,2)
-				,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
-				,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-			,'current_pa_actual'=>round($current_pa * $TInventorydet->qty_view,2)
-				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-
-			);
-
+			if($inventory->per_batch) {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'lot' => $lot
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'current_pa_stock' => round($current_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+					, 'current_pa_actual' => round($current_pa * $TInventorydet->qty_view, 2)
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+				);
+			} else {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'current_pa_stock' => round($current_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+					, 'current_pa_actual' => round($current_pa * $TInventorydet->qty_view, 2)
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+				);
+			}
 		}
 		else{
-			$row=array(
-				'produit' => $product->ref
-				,'label'=>$product->label
-				,'barcode' => $product->barcode
-				,'qty_stock' => $stock
-				,'pmp_stock'=>round($pmp_actual,2)
-	            ,'pa_stock'=>round($last_pa * $stock,2)
-	            ,'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
-				,'pmp_actual'=>round($pmp * $TInventorydet->qty_view,2)
-	            ,'pa_actual'=>round($last_pa * $TInventorydet->qty_view,2)
-
-				,'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
-
-		);
+			if($inventory->per_batch) {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'lot' => $lot
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+				);
+			} else {
+				$row = array(
+					'produit' => $product->ref
+					, 'label' => $product->label
+					, 'barcode' => $product->barcode
+					, 'qty_stock' => $stock
+					, 'pmp_stock' => round($pmp_actual, 2)
+					, 'pa_stock' => round($last_pa * $stock, 2)
+					, 'qty_view' => $TInventorydet->qty_view ? $TInventorydet->qty_view : 0
+					, 'pmp_actual' => round($pmp * $TInventorydet->qty_view, 2)
+					, 'pa_actual' => round($last_pa * $TInventorydet->qty_view, 2)
+					, 'qty_regulated' => $TInventorydet->qty_regulated ? $TInventorydet->qty_regulated : 0
+				);
+			}
 
 		}
 
+        // Add fields from hooks
+        $parameters=array('row'=>&$row, 'TInventorydet'=>$TInventorydet);
+        $reshook=$hookmanager->executeHooks('printExportColumnContent',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
+        if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
 
-		echo '"'.implode('";"', $row).'"'."\r\n";
+        echo '"'.implode('";"', $row).'"'."\r\n";
 
 	}
 
@@ -739,6 +832,7 @@ function exportCSV(&$inventory) {
 
 function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 {
+    global $hookmanager;
 	$TBS=new TTemplateTBS();
 
 	$TInventoryPrint = array(); // Tableau envoyé à la fonction render contenant les informations concernant l'inventaire
@@ -751,8 +845,14 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 
 		$TInventoryPrint[] = array(
 			'product' => $prod->ref.' - '.$prod->label
+			, 'lot' => isset($v->lot) ? $v->lot : ''
 			, 'qty_view' => $v->qty_view
 		);
+
+		// Add fields from hooks
+        $parameters=array('TInventoryPrint'=>&$TInventoryPrint, 'TInventorydet'=> $v);
+        $reshook=$hookmanager->executeHooks('printODTColumn',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
+        if ($reshook < 0) dol_print_error($db, $hookmanager->error, $hookmanager->errors);
 	}
 
 	$warehouse = new Entrepot($db);
@@ -763,10 +863,10 @@ function generateODT(&$PDOdb, &$db, &$conf, &$langs, &$inventory)
 
 	@mkdir($dir, 0777, true);
 
-	$template = "templateINVENTORY.odt";
+	$inventory->per_batch ? $template = "templateINVENTORY_lot.odt" : $template = "templateINVENTORY.odt";
 	//$template = "templateOF.doc";
 
-	$file_gen = $TBS->render(dol_buildpath('inventory/exempleTemplate/'.$template)
+	$file_gen = $TBS->render(dol_buildpath('inventory/exempleTemplate/'. $template)
 		,array(
 			'TInventoryPrint'=>$TInventoryPrint
 		)
@@ -818,26 +918,26 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
 					<th align="center">&nbsp;</td>
 			<?php } ?>
 			<?php if($view['per_batch']) {?>
-				<th align="center">&nbsp;</th>
+    				<th align="center">&nbsp;</th>
 			<?php } ?>
             <th align="right" nowrap="nowrap"><?php echo price($total_pmp) ?></th>
             <th align="right" nowrap="nowrap"><?php echo price($total_pa) ?></th>
             <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-				echo '<th align="right">'.price($total_current_pa).'</th>';
+	              		echo '<th align="right">'.price($total_current_pa).'</th>';
 					 }
 			?>
             <th>&nbsp;</th>
             <th align="right" nowrap="nowrap"><?php echo price($total_pmp_actual) ?></th>
             <?php
             if(!empty($user->rights->inventory->changePMP)) {
-		echo '<th>&nbsp;</th>';
+               	echo '<th>&nbsp;</th>';
 			}
 			?>
             <th align="right" nowrap="nowrap"><?php echo price($total_pa_actual) ?></th>
             <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-				echo '<th align="right" nowrap="nowrap">'.price($total_current_pa_actual).'</th>';
+	              		echo '<th align="right" nowrap="nowrap">'.price($total_current_pa_actual).'</th>';
 					 }
 			?>
 
@@ -849,12 +949,28 @@ function _footerList($view,$total_pmp,$total_pmp_actual,$total_pa,$total_pa_actu
         <?php }
 }
 function _headerList($view) {
-    global $conf,$user,$langs;
+    global $conf,$user,$langs, $db, $selectedfields, $arrayfields, $extrafields, $extrafieldsobjectkey, $hookmanager, $inventory;
+
+    //tri croissant/décroissant des colonnes
+    $sortfield = GETPOST("sortfield", 'alpha');             //nom du champs à trier
+    $sortorder = GETPOST("sortorder", 'alpha');             //ordre de tri
+    $id_inventory = GETPOST("id",'int');
+
+    if (! $sortfield) $sortfield="p.ref";
+    if (! $sortorder ) $sortorder = 'asc';
+
+
+    $param = "&contextpage=inventorylist&id=".$id_inventory."&action=".GETPOST('action','alphanohtml'); //paramètres supplémentaires du lien lorsqu'on souhaite trier la colonne
+
+    //champs à cocher du hamburger
+    $form = new Form($db);
+    $selectedfields=$form->multiSelectArrayWithCheckbox('selectedfields', $arrayfields, "inventoryatmcard");
 
 	?>
-			<tr style="background-color:#dedede;">
-				<th align="left" width="20%">&nbsp;&nbsp;Produit</th>
-				<th align="center">Entrepôt</td>
+			<tr style="background-color:#dedede !important;">
+                <?php print_liste_field_titre("Produit", $_SERVER["PHP_SELF"],"p.ref", "", $param, "", $sortfield, $sortorder, "", ""); ?>
+                <?php print_liste_field_titre("Entrepôt", $_SERVER["PHP_SELF"],"d.fk_warehouse", "", $param, "", $sortfield, $sortorder, "", ""); ?>
+<!--				<th align="center" class="warehouse">Entrepôt</td>-->
 				<?php if (! empty($conf->barcode->enabled)) { ?>
 					<th align="center">Code-barre</td>
 				<?php } ?>
@@ -865,10 +981,10 @@ function _headerList($view) {
 					<th align="center" width="20%">Quantité théorique</th>
 					<?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-				echo '<th align="center" width="20%" colspan="3">Valeur théorique</th>';
+	              		echo '<th align="center" width="20%" colspan="3">Valeur théorique</th>';
 					 }
 					 else {
-						echo '<th align="center" width="20%" colspan="2">Valeur théorique</th>';
+					 	echo '<th align="center" width="20%" colspan="2">Valeur théorique</th>';
 					 }
 
 					?>
@@ -882,51 +998,124 @@ function _headerList($view) {
 				     $colspan = 2;
 					 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
 				     if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)) $colspan++;
+				     if(empty($user->rights->inventory->changePMP)) $colspan --;
 
 	                 echo '<th align="center" width="20%" colspan="'.$colspan.'">Valeur réelle</th>';
 
 					?>
 
 					<th align="center" width="15%">Quantité régulée</th>
-				<?php } ?>
-				<?php if ($view['is_already_validate'] != 1) { ?>
+				<?php }
+
+				// Hook fields
+				$parameters=array(
+						'arrayfields'=>$arrayfields,
+						'selectedfields' => $selectedfields,
+						'sortfield' => $sortfield,
+						'sortorder' => $sortorder,
+						'baseUrl' => $_SERVER["PHP_SELF"] . '?id=1&action=view'
+				);
+				$reshook=$hookmanager->executeHooks('printFieldListTitle',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
+				print $hookmanager->resPrint;
+
+				if ($view['is_already_validate'] != 1) { ?>
 					<th align="center" width="5%">#</th>
-				<?php } ?>
-				<th align="center" width="5%"></th>
+				<?php }
+				//titres des extrafields cochés dans le hamburger
+				if(intval(DOL_VERSION) > 6 ){
+                	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_title.tpl.php';
+					echo '<th>&nbsp;</th>';
+					echo '<th align="center" width="5%"></th>';
+
+					//menu hamburger
+					print_liste_field_titre($selectedfields, $_SERVER["PHP_SELF"] . '?id=1&action=view', "", '', '', '', $sortfield, $sortorder, 'center maxwidthsearch ');
+				}
+                ?>
 			</tr>
 			<?php if ($view['can_validate'] == 1) { ?>
-		<tr style="background-color:#dedede;">
-			<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
-			<?php if(!empty($conf->productbatch->enabled)) $colspan++;  ?>
-		    <th colspan="<?php echo $colspan;  ?>">&nbsp;</th>
-		    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
-		    <th>Dernier PA</th>
-		    <?php
+	    	<tr style="background-color:#dedede !important;">
+	    		<?php $colspan = empty($conf->barcode->enabled) ? 3 : 4;  ?>
+	    		<?php if(!empty($conf->productbatch->enabled)) $colspan++;  ?>
+	    	    <th class = "firstcolspan" colspan="<?php echo $colspan;  ?>">&nbsp;</th>
+	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
+	    	    <th>Dernier PA</th>
+	    	    <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-				echo '<th>PA courant</th>';
+	              		echo '<th>PA courant</th>';
 					 }
 
 				?>
-		    <th>&nbsp;</th>
-		    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
-		    <?php
-		    if(!empty($user->rights->inventory->changePMP)) {
-			echo '<th rel="newPMP">'.$langs->trans('ColumnNewPMP').'</th>';
-		    }
-		    ?>
+	    	    <th>&nbsp;</th>
+	    	    <th>PMP<?php if(!empty($conf->global->INVENTORY_USE_MIN_PA_OR_LAST_PA_MIN_PMP_IS_NULL)) echo img_info($langs->trans('UsePAifnull')); ?></th>
+	    	    <?php
+	    	    if(!empty($user->rights->inventory->changePMP)) {
+	    	    	echo '<th rel="newPMP">'.$langs->trans('ColumnNewPMP').'</th>';
+	    	    }
+	    	    ?>
 	            <th>Dernier PA</th>
 	            <?php
 	                 if(!empty($conf->global->INVENTORY_USE_MIN_PA_IF_NO_LAST_PA)){
-				echo '<th>PA courant</th>';
+	              		echo '<th>PA courant</th>';
 					 }
 
 				?>
 	            <th>&nbsp;</th>
-	            <?php if ($view['is_already_validate'] != 1) { ?>
-	            <th>&nbsp;</th>
-	            <?php } ?>
-		</tr>
-		<?php
+	            <?php
+
+				// Fields from hook
+				$parameters=array(
+						'arrayfields'=>$arrayfields,
+						'selectedfields' => $selectedfields,
+						'sortfield' => $sortfield,
+						'sortorder' => $sortorder,
+						'baseUrl' => $_SERVER["PHP_SELF"] . '?id=1&action=view'
+				);
+				$reshook=$hookmanager->executeHooks('printFieldListOption',$parameters, $inventory);    // Note that $action and $object may have been modified by hook
+				print $hookmanager->resPrint;
+
+				if ($view['is_already_validate'] != 1) { print '<th>&nbsp;</th>'; }
+
+				if(intval(DOL_VERSION) > 6 ) {
+					foreach ($arrayfields as $field) {
+						if ($field['checked'] == 1) echo '<th data-label="' . $field['label'] . '">&nbsp;</th>';          //espaces deuxième ligne de titre pour s'adapter à la première en fonction des extrafields
+					}
+					echo '<th>&nbsp;</th>';
+					echo '<th>&nbsp;</th>';
+				}
+				?>
+	    	</tr>
+	    	<?php
 	}
 
+}
+
+/**
+ * Performance-enhancing function: when getNomUrl() is called 6000 times, it weighs on performance; since there is only
+ * about one call per product, caching won't help much but simplifying is effective.
+ * @param Product $product
+ * @return string
+ */
+function _productGetNomUrl($product) {
+	global $conf;
+	if ($conf->global->INVENTORY_PERF_TWEAKS) {
+		return '<a href="' . DOL_URL_ROOT.'/product/card.php?id='.$product->id . '">' . $product->ref . '</a>';
+	} else {
+		return $product->getNomUrl(1);
+	}
+}
+
+/**
+ * Performance-enhancing function: when getNomUrl() is called 6000 times, it weighs on performance; since it is
+ * mostly called on the same entrepot, caching may be effective, though tests don't show anything significant
+ * @param Entrepot $entrepot
+ * @return string
+ */
+function _entrepotGetNomUrl($entrepot) {
+	// static variables keep their value across calls; this assignment will never be run (it is resolved at compile time)
+	static $CACHE_Entrepot_GetNomUrl = array();
+
+	if (!array_key_exists($entrepot->id, $CACHE_Entrepot_GetNomUrl)) {
+		$CACHE_Entrepot_GetNomUrl[$entrepot->id] = $entrepot->getNomUrl(1);
+	}
+	return $CACHE_Entrepot_GetNomUrl[$entrepot->id];
 }

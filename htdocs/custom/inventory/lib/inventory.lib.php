@@ -66,24 +66,24 @@ function inventoryPrepareHead(&$inventory, $title='Inventaire', $get='')
 function inventorySelectProducts(&$PDOdb, &$inventory)
 {
 	global $conf,$db;
-
+	
 	$except_product_id = array();
-
+	
 	foreach ($inventory->TInventorydet as $TInventorydet)
 	{
 		$except_product_id[] = $TInventorydet->fk_product;
 	}
-
+	
 	ob_start();
 	$form = new Form($db);
 	$form->select_produits(-1, 'fk_product', 0, (int) $conf->global->INVENTORY_NB_PRODUCT_IN_SELECT,0,-1);
-
+	
 	// Il nous faut impérativement une liste custom car il ne faut que les entrepôts de la famille de celui qu'on inventorie
 	$TChildWarehouses = array($inventory->fk_warehouse);
 	$e = new Entrepot($db);
 	$e->fetch($inventory->fk_warehouse);
 	if(method_exists($e, 'get_children_warehouses')) $e->get_children_warehouses($e->id, $TChildWarehouses);
-
+	
 	$Tab = array();
 	$sql = 'SELECT rowid, '.((float)DOL_VERSION >= 7 ? 'ref' : 'label').'
 			FROM '.MAIN_DB_PREFIX.'entrepot WHERE rowid IN('.implode(', ', $TChildWarehouses).')';
@@ -94,26 +94,26 @@ function inventorySelectProducts(&$PDOdb, &$inventory)
 	}
 	print '&nbsp;&nbsp;&nbsp;';
 	print 'Entrepôt : '.$form::selectarray('fk_warehouse', $Tab);
-
+	
 	$select_html = ob_get_clean();
-
+	
 	/*
-
+	
 	$sql = 'SELECT rowid, ref, label FROM '.MAIN_DB_PREFIX.'product WHERE fk_product_type = 0 AND rowid NOT IN ('.implode(',', $except_product_id).') ORDER BY ref, label';
 	$PDOdb->Execute($sql);
-
+	
 	if (! empty($conf->use_javascript_ajax) && ! empty($conf->global->PRODUIT_USE_SEARCH_TO_SELECT))
 	{
 		$urloption='htmlname=fk_product&outjson=1&price_level=0&type=0&mode=1&status=1&finished=2';
-
+		
 		print ajaxAutocompleter('', 'fk_product', DOL_URL_ROOT.'/product/ajax/products.php', $urloption, $conf->global->PRODUIT_USE_SEARCH_TO_SELECT, 0, array());
-
+		
 		$select_html = '<input type="text" size="20" name="fk_product" id="search_fk_product" value="" />';
 	}
-	else
+	else 
 	{
 		$select_html = '<select style="min-width:150px;background:#FFF;font-size:12px;" name="fk_product">';
-		while ($PDOdb->Get_line())
+		while ($PDOdb->Get_line()) 
 		{
 			$select_html.= '<option value="'.$PDOdb->Get_field('rowid').'">'.$PDOdb->Get_field('ref').' - '.$PDOdb->Get_field('label').'</option>';
 		}
@@ -152,37 +152,37 @@ function ajaxAutocompleter($selected, $htmlname, $url, $urloption='', $minLength
 	                            $("#search_'.$htmlname.'").val("");
 	                            $("#'.$htmlname.'").val("").trigger("change");
 	                            if (options.option_disabled) {
-								$("#" + options.option_disabled).removeAttr("disabled");
-							}
-							if (options.disabled) {
-								$.each(options.disabled, function(key, value) {
-									$("#" + value).removeAttr("disabled");
+	    							$("#" + options.option_disabled).removeAttr("disabled");
+	    						}
+	    						if (options.disabled) {
+	    							$.each(options.disabled, function(key, value) {
+	    								$("#" + value).removeAttr("disabled");
 									});
-							}
-							if (options.update) {
-								$.each(options.update, function(key, value) {
-									$("#" + key).val("").trigger("change");
+	    						}
+	    						if (options.update) {
+	    							$.each(options.update, function(key, value) {
+	    								$("#" + key).val("").trigger("change");
 									});
 								}
 								if (options.show) {
-								$.each(options.show, function(key, value) {
-									$("#" + value).hide().trigger("hide");
+	    							$.each(options.show, function(key, value) {
+	    								$("#" + value).hide().trigger("hide");
 									});
 								}
 								if (options.update_textarea) {
-								$.each(options.update_textarea, function(key, value) {
-									if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && CKEDITOR.instances[key] != "undefined") {
-										CKEDITOR.instances[key].setData("");
-									} else {
-										$("#" + key).html("");
+	    							$.each(options.update_textarea, function(key, value) {
+	    								if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && CKEDITOR.instances[key] != "undefined") {
+	    									CKEDITOR.instances[key].setData("");
+	    								} else {
+	    									$("#" + key).html("");
 										}
-								});
-							}
+	    							});
+	    						}
 						    }
                     });
-				$("input#search_'.$htmlname.'").autocomplete({
-					source: function( request, response ) {
-						$.get("'.$url.($urloption?'?'.$urloption:'').'", { '.$htmlname.': request.term }, function(data){
+    				$("input#search_'.$htmlname.'").autocomplete({
+    					source: function( request, response ) {
+    						$.get("'.$url.($urloption?'?'.$urloption:'').'", { '.$htmlname.': request.term }, function(data){
 								response($.map( data, function( item ) {
 									if (autoselect == 1 && data.length == 1) {
 										$("#search_'.$htmlname.'").val(item.value);
@@ -206,54 +206,54 @@ function ajaxAutocompleter($selected, $htmlname, $url, $urloption='', $minLength
 							}, "json");
 						},
 						dataType: "json",
-					minLength: '.$minLength.',
-					select: function( event, ui ) {		// Function ran when new value is selected into javascript combo
+    					minLength: '.$minLength.',
+    					select: function( event, ui ) {		// Function ran when new value is selected into javascript combo
 							//console.log(\'set value of id with \'+ui.item.id);
-						$("#'.$htmlname.'").val(ui.item.id).trigger("change");	// Select new value
-						// Disable an element
-						if (options.option_disabled) {
-							if (ui.item.disabled) {
-								$("#" + options.option_disabled).attr("disabled", "disabled");
-								if (options.error) {
-									$.jnotify(options.error, "error", true);		// Output with jnotify the error message
-								}
-								if (options.warning) {
-									$.jnotify(options.warning, "warning", false);		// Output with jnotify the warning message
-								}
+    						$("#'.$htmlname.'").val(ui.item.id).trigger("change");	// Select new value
+    						// Disable an element
+    						if (options.option_disabled) {
+    							if (ui.item.disabled) {
+    								$("#" + options.option_disabled).attr("disabled", "disabled");
+    								if (options.error) {
+    									$.jnotify(options.error, "error", true);		// Output with jnotify the error message
+    								}
+    								if (options.warning) {
+    									$.jnotify(options.warning, "warning", false);		// Output with jnotify the warning message
+    								}
 							} else {
-								$("#" + options.option_disabled).removeAttr("disabled");
-							}
-						}
-						if (options.disabled) {
-							$.each(options.disabled, function(key, value) {
-								$("#" + value).attr("disabled", "disabled");
-							});
-						}
-						if (options.show) {
-							$.each(options.show, function(key, value) {
-								$("#" + value).show().trigger("show");
-							});
-						}
-						// Update an input
-						if (ui.item.update) {
-							// loop on each "update" fields
-							$.each(ui.item.update, function(key, value) {
-								$("#" + key).val(value).trigger("change");
-							});
-						}
-						if (ui.item.textarea) {
-							$.each(ui.item.textarea, function(key, value) {
-								if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && CKEDITOR.instances[key] != "undefined") {
-									CKEDITOR.instances[key].setData(value);
-									CKEDITOR.instances[key].focus();
-								} else {
-									$("#" + key).html(value);
-									$("#" + key).focus();
+    								$("#" + options.option_disabled).removeAttr("disabled");
+    							}
+    						}
+    						if (options.disabled) {
+    							$.each(options.disabled, function(key, value) {
+    								$("#" + value).attr("disabled", "disabled");
+    							});
+    						}
+    						if (options.show) {
+    							$.each(options.show, function(key, value) {
+    								$("#" + value).show().trigger("show");
+    							});
+    						}
+    						// Update an input
+    						if (ui.item.update) {
+    							// loop on each "update" fields
+    							$.each(ui.item.update, function(key, value) {
+    								$("#" + key).val(value).trigger("change");
+    							});
+    						}
+    						if (ui.item.textarea) {
+    							$.each(ui.item.textarea, function(key, value) {
+    								if (typeof CKEDITOR == "object" && typeof CKEDITOR.instances != "undefined" && CKEDITOR.instances[key] != "undefined") {
+    									CKEDITOR.instances[key].setData(value);
+    									CKEDITOR.instances[key].focus();
+    								} else {
+    									$("#" + key).html(value);
+    									$("#" + key).focus();
 									}
-							});
-						}
-						$("#search_'.$htmlname.'").trigger("change");	// To tell that input text field was modified
-					}
+    							});
+    						}
+    						$("#search_'.$htmlname.'").trigger("change");	// To tell that input text field was modified
+    					}
 					}).data( "autocomplete" )._renderItem = function( ul, item ) {
 						return $( "<li></li>" )
 						.data( "item.autocomplete", item )
@@ -261,7 +261,7 @@ function ajaxAutocompleter($selected, $htmlname, $url, $urloption='', $minLength
 						.appendTo(ul);
 					};
 
-				});';
+  				});';
 	$script.= '</script>';
 
 	return $script;

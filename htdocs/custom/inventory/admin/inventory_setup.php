@@ -23,10 +23,7 @@
  * 				Put some comments here
  */
 // Dolibarr environment
-$res = @include("../../main.inc.php"); // From htdocs directory
-if (! $res) {
-    $res = @include("../../../main.inc.php"); // From "custom" directory
-}
+require_once '../config.php';
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
@@ -49,7 +46,7 @@ $action = GETPOST('action', 'alpha');
 if (preg_match('/set_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
-	if (dolibarr_set_const($db, $code, GETPOST($code), 'chaine', 0, '', $conf->entity) > 0)
+	if (dolibarr_set_const($db, $code, GETPOST($code,'none'), 'chaine', 0, '', $conf->entity) > 0)
 	{
 		header("Location: ".$_SERVER["PHP_SELF"]);
 		exit;
@@ -59,7 +56,7 @@ if (preg_match('/set_(.*)/',$action,$reg))
 		dol_print_error($db);
 	}
 }
-
+	
 if (preg_match('/del_(.*)/',$action,$reg))
 {
 	$code=$reg[1];
@@ -78,7 +75,7 @@ if (preg_match('/del_(.*)/',$action,$reg))
  * View
  */
 $page_name = "inventorySetup";
-llxHeader('', $langs->trans($page_name));
+llxHeader('', $langs->trans($page_name), $module_helpurl);
 
 // Subheader
 $linkback = '<a href="' . DOL_URL_ROOT . '/admin/modules.php">'
@@ -91,7 +88,7 @@ dol_fiche_head(
     $head,
     'settings',
     $langs->trans("Module104420Name"),
-    0,
+    -1,
     "inventory@inventory"
 );
 
@@ -188,7 +185,28 @@ print '<input type="submit" class="button" value="'.$langs->trans("Modify").'">'
 print '</form>';
 print '</td></tr>';
 
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'.$langs->trans('INVENTORY_USE_ONLY_INTEGER').'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print ajax_constantonoff('INVENTORY_USE_ONLY_INTEGER');
+print '</td></tr>';
+
+$var=!$var;
+print '<tr '.$bc[$var].'>';
+print '<td>'
+	  .$langs->trans('INVENTORY_PERF_TWEAKS')
+	  .'<br><small>' . $langs->trans('INVENTORY_PERF_TWEAKS_HELP') . '</small>'
+	  .'</td>';
+print '<td align="center" width="20">&nbsp;</td>';
+print '<td align="right" width="300">';
+print ajax_constantonoff('INVENTORY_PERF_TWEAKS');
+print '</td></tr>';
+
 print '</table>';
+
+dol_fiche_end(-1);
 
 llxFooter();
 
