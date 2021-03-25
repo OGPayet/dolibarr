@@ -21,6 +21,7 @@
 ModuleDigitalSignatureManagerName = Digital Signature Manager
 # Module description 'ModuleDigitalSignatureManagerDesc'
 ModuleDigitalSignatureManagerDesc = Ce module permet de gérer, depuis dolibarr, la gestion de processus de signature electronique complexe de documents quelconque auprès d'un prestataire tiers (Universign)
+ShareDigitalsignaturerequest = Activer le Partage des signatures électroniques
 #
 # Menu Principal
 #
