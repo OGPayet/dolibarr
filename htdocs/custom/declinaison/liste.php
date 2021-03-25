@@ -135,7 +135,6 @@ if($action=='create_declinaison' && ($user->rights->produit->creer || $user->rig
 		{
 			$error++;
 			setEventMessage($declinaison->errors, 'errors');
-			setEventMessage($declinaison->db->lasterror(), 'errors');
 		}
 	}
 	// Création d'une déclinaison avec un produit enfant déjà existant
