@@ -1,0 +1,48 @@
+# Copyright (C) 2021 SuperAdmin
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#
+# Générique
+#
+
+# Module label 'ModuleInvoiceListColumnsExtensionName'
+ModuleInvoiceListColumnsExtensionName = InvoiceListColumnsExtension
+# Module description 'ModuleInvoiceListColumnsExtensionDesc'
+ModuleInvoiceListColumnsExtensionDesc = Permet d'ajouter des colonnes à la liste des factures
+
+#
+# Page d'administration
+#
+InvoiceListColumnsExtensionSetup = Configuration du module InvoiceListColumnsExtension
+Settings = Réglages
+InvoiceListColumnsExtensionSetupPage = Page de configuration du module InvoiceListColumnsExtension
+
+#
+# Page À propos
+#
+About = À propos
+InvoiceListColumnsExtensionAbout = À propos de InvoiceListColumnsExtension
+InvoiceListColumnsExtensionAboutPage = Page à propos de InvoiceListColumnsExtension
+
+#
+# Page d'exemple
+#
+MyPageName = Nom de ma page
+
+#
+# Box d'exemple
+#
+MyWidget = Mon widget
+MyWidgetDescription = Description de mon widget

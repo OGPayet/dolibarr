@@ -101,7 +101,7 @@ class PaiementFourn extends Paiement
 		if ($id > 0)
 			$sql .= ' AND p.rowid = '.$id;
 		elseif ($ref)
-			$sql .= ' AND p.rowid = '.$ref;
+			$sql .= ' AND p.ref = '.$ref;
 		elseif ($fk_bank)
 			$sql .= ' AND p.fk_bank = '.$fk_bank;
 		//print $sql;
