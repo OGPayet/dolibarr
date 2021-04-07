@@ -658,13 +658,13 @@ class ActionsCompanyRelationships
         $langs = &$parameters['outputlangs'];
         $commonObject = &$parameters['object'];
         if (!empty($commonObject->array_options["options_companyrelationships_fk_soc_benefactor"])) {
-            // if (!$commonObject->cr_thirdparty_benefactor) {
-            //     require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-            //     $societe = new Societe($this->db);
-            //     if ($societe->fetch($commonObject->array_options['options_companyrelationships_fk_soc_benefactor']) > 0) {
-            //         $commonObject->cr_thirdparty_benefactor = $societe;
-            //     }
-            // }
+            if (!$commonObject->cr_thirdparty_benefactor) {
+                require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
+                $societe = new Societe($this->db);
+                if ($societe->fetch($commonObject->array_options['options_companyrelationships_fk_soc_benefactor']) > 0) {
+                    $commonObject->cr_thirdparty_benefactor = $societe;
+                }
+            }
             $benefactorSubstitutionArray = $this->thirdpartysubstitutionarray($this->db, $commonObject->cr_thirdparty_benefactor, $langs);
             $substitutionarray = array_merge($substitutionarray, $benefactorSubstitutionArray);
         }
