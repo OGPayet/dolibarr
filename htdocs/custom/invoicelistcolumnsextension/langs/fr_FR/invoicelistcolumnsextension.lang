@@ -1,4 +1,4 @@
-# Copyright (C) 2021 SuperAdmin
+# Copyright (C) 2021 Synergies-Tech  <infra@synergies-france.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,28 +21,3 @@
 ModuleInvoiceListColumnsExtensionName = InvoiceListColumnsExtension
 # Module description 'ModuleInvoiceListColumnsExtensionDesc'
 ModuleInvoiceListColumnsExtensionDesc = Permet d'ajouter des colonnes à la liste des factures
-
-#
-# Page d'administration
-#
-InvoiceListColumnsExtensionSetup = Configuration du module InvoiceListColumnsExtension
-Settings = Réglages
-InvoiceListColumnsExtensionSetupPage = Page de configuration du module InvoiceListColumnsExtension
-
-#
-# Page À propos
-#
-About = À propos
-InvoiceListColumnsExtensionAbout = À propos de InvoiceListColumnsExtension
-InvoiceListColumnsExtensionAboutPage = Page à propos de InvoiceListColumnsExtension
-
-#
-# Page d'exemple
-#
-MyPageName = Nom de ma page
-
-#
-# Box d'exemple
-#
-MyWidget = Mon widget
-MyWidgetDescription = Description de mon widget

@@ -2,7 +2,7 @@
 /* Copyright (C) 2004-2018  Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2018-2019  Nicolas ZABOURI         <info@inovea-conseil.com>
  * Copyright (C) 2019-2020  Frédéric France         <frederic.france@netlogic.fr>
- * Copyright (C) 2021 SuperAdmin
+ * Copyright (C) 2021 Synergies-Tech  <infra@synergies-france.fr>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -127,7 +127,7 @@ class modInvoiceListColumnsExtension extends DolibarrModules
 		$this->dirs = array("/invoicelistcolumnsextension/temp");
 
 		// Config pages. Put here list of php page, stored into invoicelistcolumnsextension/admin directory, to use to setup module.
-		$this->config_page_url = array("setup.php@invoicelistcolumnsextension");
+		//$this->config_page_url = array("setup.php@invoicelistcolumnsextension");
 
 		// Dependencies
 		// A condition to hide module
@@ -260,88 +260,11 @@ class modInvoiceListColumnsExtension extends DolibarrModules
 		$this->rights = array();
 		$r = 0;
 		// Add here entries to declare new permissions
-		/* BEGIN MODULEBUILDER PERMISSIONS */
-		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
-		$this->rights[$r][1] = 'Read objects of InvoiceListColumnsExtension'; // Permission label
-		$this->rights[$r][4] = 'myobject'; // In php code, permission will be checked by test if ($user->rights->invoicelistcolumnsextension->level1->level2)
-		$this->rights[$r][5] = 'read'; // In php code, permission will be checked by test if ($user->rights->invoicelistcolumnsextension->level1->level2)
-		$r++;
-		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
-		$this->rights[$r][1] = 'Create/Update objects of InvoiceListColumnsExtension'; // Permission label
-		$this->rights[$r][4] = 'myobject'; // In php code, permission will be checked by test if ($user->rights->invoicelistcolumnsextension->level1->level2)
-		$this->rights[$r][5] = 'write'; // In php code, permission will be checked by test if ($user->rights->invoicelistcolumnsextension->level1->level2)
-		$r++;
-		$this->rights[$r][0] = $this->numero + $r; // Permission id (must not be already used)
-		$this->rights[$r][1] = 'Delete objects of InvoiceListColumnsExtension'; // Permission label
-		$this->rights[$r][4] = 'myobject'; // In php code, permission will be checked by test if ($user->rights->invoicelistcolumnsextension->level1->level2)
-		$this->rights[$r][5] = 'delete'; // In php code, permission will be checked by test if ($user->rights->invoicelistcolumnsextension->level1->level2)
-		$r++;
-		/* END MODULEBUILDER PERMISSIONS */
 
 		// Main menu entries to add
 		$this->menu = array();
 		$r = 0;
 		// Add here entries to declare new menus
-		/* BEGIN MODULEBUILDER TOPMENU */
-		$this->menu[$r++] = array(
-			'fk_menu'=>'', // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-			'type'=>'top', // This is a Top menu entry
-			'titre'=>'ModuleInvoiceListColumnsExtensionName',
-			'mainmenu'=>'invoicelistcolumnsextension',
-			'leftmenu'=>'',
-			'url'=>'/invoicelistcolumnsextension/invoicelistcolumnsextensionindex.php',
-			'langs'=>'invoicelistcolumnsextension@invoicelistcolumnsextension', // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-			'position'=>1000 + $r,
-			'enabled'=>'$conf->invoicelistcolumnsextension->enabled', // Define condition to show or hide menu entry. Use '$conf->invoicelistcolumnsextension->enabled' if entry must be visible if module is enabled.
-			'perms'=>'1', // Use 'perms'=>'$user->rights->invoicelistcolumnsextension->myobject->read' if you want your menu with a permission rules
-			'target'=>'',
-			'user'=>2, // 0=Menu for internal users, 1=external users, 2=both
-		);
-		/* END MODULEBUILDER TOPMENU */
-		/* BEGIN MODULEBUILDER LEFTMENU MYOBJECT
-		$this->menu[$r++]=array(
-			'fk_menu'=>'fk_mainmenu=invoicelistcolumnsextension',      // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-			'type'=>'left',                          // This is a Top menu entry
-			'titre'=>'MyObject',
-			'mainmenu'=>'invoicelistcolumnsextension',
-			'leftmenu'=>'myobject',
-			'url'=>'/invoicelistcolumnsextension/invoicelistcolumnsextensionindex.php',
-			'langs'=>'invoicelistcolumnsextension@invoicelistcolumnsextension',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-			'position'=>1000+$r,
-			'enabled'=>'$conf->invoicelistcolumnsextension->enabled',  // Define condition to show or hide menu entry. Use '$conf->invoicelistcolumnsextension->enabled' if entry must be visible if module is enabled.
-			'perms'=>'$user->rights->invoicelistcolumnsextension->myobject->read',			                // Use 'perms'=>'$user->rights->invoicelistcolumnsextension->level1->level2' if you want your menu with a permission rules
-			'target'=>'',
-			'user'=>2,				                // 0=Menu for internal users, 1=external users, 2=both
-		);
-		$this->menu[$r++]=array(
-			'fk_menu'=>'fk_mainmenu=invoicelistcolumnsextension,fk_leftmenu=myobject',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-			'type'=>'left',			                // This is a Left menu entry
-			'titre'=>'List_MyObject',
-			'mainmenu'=>'invoicelistcolumnsextension',
-			'leftmenu'=>'invoicelistcolumnsextension_myobject_list',
-			'url'=>'/invoicelistcolumnsextension/myobject_list.php',
-			'langs'=>'invoicelistcolumnsextension@invoicelistcolumnsextension',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-			'position'=>1000+$r,
-			'enabled'=>'$conf->invoicelistcolumnsextension->enabled',  // Define condition to show or hide menu entry. Use '$conf->invoicelistcolumnsextension->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'perms'=>'$user->rights->invoicelistcolumnsextension->myobject->read',			                // Use 'perms'=>'$user->rights->invoicelistcolumnsextension->level1->level2' if you want your menu with a permission rules
-			'target'=>'',
-			'user'=>2,				                // 0=Menu for internal users, 1=external users, 2=both
-		);
-		$this->menu[$r++]=array(
-			'fk_menu'=>'fk_mainmenu=invoicelistcolumnsextension,fk_leftmenu=myobject',	    // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
-			'type'=>'left',			                // This is a Left menu entry
-			'titre'=>'New_MyObject',
-			'mainmenu'=>'invoicelistcolumnsextension',
-			'leftmenu'=>'invoicelistcolumnsextension_myobject_new',
-			'url'=>'/invoicelistcolumnsextension/myobject_card.php?action=create',
-			'langs'=>'invoicelistcolumnsextension@invoicelistcolumnsextension',	        // Lang file to use (without .lang) by module. File must be in langs/code_CODE/ directory.
-			'position'=>1000+$r,
-			'enabled'=>'$conf->invoicelistcolumnsextension->enabled',  // Define condition to show or hide menu entry. Use '$conf->invoicelistcolumnsextension->enabled' if entry must be visible if module is enabled. Use '$leftmenu==\'system\'' to show if leftmenu system is selected.
-			'perms'=>'$user->rights->invoicelistcolumnsextension->myobject->write',			                // Use 'perms'=>'$user->rights->invoicelistcolumnsextension->level1->level2' if you want your menu with a permission rules
-			'target'=>'',
-			'user'=>2,				                // 0=Menu for internal users, 1=external users, 2=both
-		);
-		END MODULEBUILDER LEFTMENU MYOBJECT */
 		// Exports profiles provided by this module
 		$r = 1;
 		/* BEGIN MODULEBUILDER EXPORT MYOBJECT */
@@ -409,53 +332,10 @@ class modInvoiceListColumnsExtension extends DolibarrModules
 		$result = $this->_load_tables('/invoicelistcolumnsextension/sql/');
 		if ($result < 0) return -1; // Do not activate module if error 'not allowed' returned when loading module SQL queries (the _load_table run sql with run_sql with the error allowed parameter set to 'default')
 
-		// Create extrafields during init
-		//include_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
-		//$extrafields = new ExtraFields($this->db);
-		//$result1=$extrafields->addExtraField('invoicelistcolumnsextension_myattr1', "New Attr 1 label", 'boolean', 1,  3, 'thirdparty',   0, 0, '', '', 1, '', 0, 0, '', '', 'invoicelistcolumnsextension@invoicelistcolumnsextension', '$conf->invoicelistcolumnsextension->enabled');
-		//$result2=$extrafields->addExtraField('invoicelistcolumnsextension_myattr2', "New Attr 2 label", 'varchar', 1, 10, 'project',      0, 0, '', '', 1, '', 0, 0, '', '', 'invoicelistcolumnsextension@invoicelistcolumnsextension', '$conf->invoicelistcolumnsextension->enabled');
-		//$result3=$extrafields->addExtraField('invoicelistcolumnsextension_myattr3', "New Attr 3 label", 'varchar', 1, 10, 'bank_account', 0, 0, '', '', 1, '', 0, 0, '', '', 'invoicelistcolumnsextension@invoicelistcolumnsextension', '$conf->invoicelistcolumnsextension->enabled');
-		//$result4=$extrafields->addExtraField('invoicelistcolumnsextension_myattr4', "New Attr 4 label", 'select',  1,  3, 'thirdparty',   0, 1, '', array('options'=>array('code1'=>'Val1','code2'=>'Val2','code3'=>'Val3')), 1,'', 0, 0, '', '', 'invoicelistcolumnsextension@invoicelistcolumnsextension', '$conf->invoicelistcolumnsextension->enabled');
-		//$result5=$extrafields->addExtraField('invoicelistcolumnsextension_myattr5', "New Attr 5 label", 'text',    1, 10, 'user',         0, 0, '', '', 1, '', 0, 0, '', '', 'invoicelistcolumnsextension@invoicelistcolumnsextension', '$conf->invoicelistcolumnsextension->enabled');
-
 		// Permissions
 		$this->remove($options);
 
 		$sql = array();
-
-		// Document templates
-		$moduledir = 'invoicelistcolumnsextension';
-		$myTmpObjects = array();
-		$myTmpObjects['MyObject'] = array('includerefgeneration'=>0, 'includedocgeneration'=>0);
-
-		foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
-			if ($myTmpObjectKey == 'MyObject') continue;
-			if ($myTmpObjectArray['includerefgeneration']) {
-				$src = DOL_DOCUMENT_ROOT.'/install/doctemplates/invoicelistcolumnsextension/template_myobjects.odt';
-				$dirodt = DOL_DATA_ROOT.'/doctemplates/invoicelistcolumnsextension';
-				$dest = $dirodt.'/template_myobjects.odt';
-
-				if (file_exists($src) && !file_exists($dest))
-				{
-					require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-					dol_mkdir($dirodt);
-					$result = dol_copy($src, $dest, 0, 0);
-					if ($result < 0)
-					{
-						$langs->load("errors");
-						$this->error = $langs->trans('ErrorFailToCopyFile', $src, $dest);
-						return 0;
-					}
-				}
-
-				$sql = array_merge($sql, array(
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'standard_".strtolower($myTmpObjectKey)."' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('standard_".strtolower($myTmpObjectKey)."','".strtolower($myTmpObjectKey)."',".$conf->entity.")",
-					"DELETE FROM ".MAIN_DB_PREFIX."document_model WHERE nom = 'generic_".strtolower($myTmpObjectKey)."_odt' AND type = '".strtolower($myTmpObjectKey)."' AND entity = ".$conf->entity,
-					"INSERT INTO ".MAIN_DB_PREFIX."document_model (nom, type, entity) VALUES('generic_".strtolower($myTmpObjectKey)."_odt', '".strtolower($myTmpObjectKey)."', ".$conf->entity.")"
-				));
-			}
-		}
 
 		return $this->_init($sql, $options);
 	}
