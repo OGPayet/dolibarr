@@ -27,16 +27,18 @@ SUBTOTAL_ALLOW_ADD_BLOCK=Autoriser l'ajout d'un titre et sous-total
 SUBTOTAL_ALLOW_EDIT_BLOCK=Autoriser l'edition d'un titre ou sous-total
 SUBTOTAL_ALLOW_REMOVE_BLOCK=Autoriser la suppression d'un titre ou sous-total
 SUBTOTAL_ALLOW_DUPLICATE_BLOCK=Autoriser la duplication d'un bloc
+SUBTOTAL_ALLOW_DUPLICATE_LINE=Autoriser la duplication d'une ligne
 SUBTOTAL_ALLOW_ADD_LINE_UNDER_TITLE=Permettre l'ajout d'une ligne libre et/ou produit directement sous un titre
 subtotal_title_to_add_under_title=Ajouter sous
 SUBTOTAL_TEXT_FOR_TITLE_ORDETSTOINVOICE=Texte des titres lors de la facturation via onglet client -> bouton "Facturer commandes"
 SUBTOTAL_TEXT_FOR_TITLE_ORDETSTOINVOICE_info=Clés de remplacement :<br /><b>__REFORDER__</b> = Référence de la commande<br /><b>__REFCUSTOMER__</b> = Référence client de la commande
 subtotal_add_title_bloc_from_orderstoinvoice=Ajouter un bloc titre et sous-total entre chaque commande
-SUBTOTAL_ADD_LINE_UNDER_TITLE_AT_END_BLOCK=L'ajout sous un titre se fera en fin de section
+SUBTOTAL_ADD_LINE_UNDER_TITLE_AT_END_BLOCK=L'ajout sous un titre se fera en fin de section 
 SUBTOTAL_TITLE_STYLE=Style des titres (B = gras, U = souligné, I = italique)
 SUBTOTAL_SUBTOTAL_STYLE=Style des sous-totaux (B = gras, U = souligné, I = italique)
 SUBTOTAL_ONE_LINE_IF_HIDE_INNERLINES=Avoir une seule ligne de titre + total si l'option "%s" est utilisée (expérimental)
 SUBTOTAL_REPLACE_WITH_VAT_IF_HIDE_INNERLINES=Remplacer par le détail des TVA si l'option "%s" est utilisée (expérimental)
+SUBTOTAL_HIDE_PRICE_DEFAULT_CHECKED=Par defaut, cocher la case "Cacher le prix des lignes des ensembles" lors de la génération des PDF
 Duplicate=Dupliquer
 subtotal_duplicate_success=%d lignes dupliquées
 subtotal_duplicate_lineid_not_found=Impossible de dupliquer le bloc, l'identifiant du titre est introuvable
@@ -74,4 +76,11 @@ subtotalLabelForFreeText=Texte prédéfini :
 subtotalFreeTextOrDesc=ou saisir une description...
 showExtrafields=Editer les attributs complémentaires
 hideExtrafields=Masquer les attributs complémentaires
+AmountBeforeTaxesSubjectToVATX%=Montant HT soumis à %s (%s %%)
 MoveTitleBlock=Déplacer le bloc titre complet
+ShowTotalHTOnSubtotalBlock=Afficher le Prix Unitaire HT du sous-total
+ShowReducOnSubtotalBlock=Afficher la réduction sur la ligne de sous-total
+SUBTOTAL_NONCOMPRIS_UPDATE_PA_HT=La gestion des non-compris vide aussi le prix de revient
+SUBTOTAL_NONCOMPRIS_UPDATE_PA_HT_info=Attention, si vous rendez de nouveau la ligne comprise, il faudra de nouveau saisir le prix de revient
+addLineTitle_in_order_shippable=Ajouter les lignes Titre , total , libre aux commandes expédiables (il faudra supprimer les lignes de sous-total à la main si le besoin s'en fait sentir )
+addLineTitle_in_order_shippable_TITLE=Paramétrage de l'option gestion des lignes  du module subTotal pour les commandes expédiables

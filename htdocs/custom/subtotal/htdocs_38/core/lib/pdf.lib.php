@@ -1275,7 +1275,7 @@ function pdf_getlinevatrate($object,$i,$outputlangs,$hidedetails=0)
 		$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 		$action='';
 		$reshook = $hookmanager->executeHooks('pdf_getlinevatrate',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+		
 		if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 		else return $reshook;
 	}
@@ -1308,7 +1308,7 @@ function pdf_getlineupexcltax($object,$i,$outputlangs,$hidedetails=0)
 		$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 		$action='';
 		$reshook = $hookmanager->executeHooks('pdf_getlineupexcltax',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+		
 		if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 		else return $reshook;
 	}
@@ -1368,10 +1368,10 @@ function pdf_getlineqty($object,$i,$outputlangs,$hidedetails=0)
 			$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 			$action='';
 			$reshook = $hookmanager->executeHooks('pdf_getlineqty',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+			
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
-
+			
 		}
 		else
 		{
@@ -1402,7 +1402,7 @@ function pdf_getlineqty_asked($object,$i,$outputlangs,$hidedetails=0)
 			$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 			$action='';
 			$reshook = $hookmanager->executeHooks('pdf_getlineqty_asked',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+		
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
 		}
@@ -1435,7 +1435,7 @@ function pdf_getlineqty_shipped($object,$i,$outputlangs,$hidedetails=0)
 			$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 			$action='';
 			$reshook = $hookmanager->executeHooks('pdf_getlineqty_shipped',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+			
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
 		}
@@ -1468,7 +1468,7 @@ function pdf_getlineqty_keeptoship($object,$i,$outputlangs,$hidedetails=0)
 			$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 			$action='';
 			$reshook = $hookmanager->executeHooks('pdf_getlineqty_keeptoship',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+			
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
 		}
@@ -1507,10 +1507,10 @@ function pdf_getlineunit($object, $i, $outputlangs, $hidedetails = 0, $hookmanag
 			$action = '';
 			$reshook = $hookmanager->executeHooks('pdf_getlineunit', $parameters, $object,
 				$action);    // Note that $action and $object may have been modified by some hooks
-
+				
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
-
+				
 		} else {
 			if (empty($hidedetails) || $hidedetails > 1) {
 				return $langs->transnoentitiesnoconv($object->lines[$i]->getLabelOfUnit('short'));
@@ -1544,7 +1544,7 @@ function pdf_getlineremisepercent($object,$i,$outputlangs,$hidedetails=0)
 			$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 			$action='';
 			$reshook = $hookmanager->executeHooks('pdf_getlineremisepercent',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+			
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
 		}
@@ -1568,7 +1568,7 @@ function pdf_getlineremisepercent($object,$i,$outputlangs,$hidedetails=0)
 function pdf_getlineprogress($object, $i, $outputlangs, $hidedetails = 0, $hookmanager = null)
 {
 	global $hookmanager;
-
+	
 	if ($object->lines[$i]->special_code != 3) {
 		if (is_object($hookmanager) && (($object->lines[$i]->product_type == 9 && !empty($object->lines[$i]->special_code)) || !empty($object->lines[$i]->fk_parent_line))) {
 			$special_code = $object->lines[$i]->special_code;
@@ -1576,7 +1576,7 @@ function pdf_getlineprogress($object, $i, $outputlangs, $hidedetails = 0, $hookm
 			$parameters = array('i' => $i, 'outputlangs' => $outputlangs, 'hidedetails' => $hidedetails, 'special_code' => $special_code);
 			$action = '';
 			$reshook = $hookmanager->executeHooks('pdf_getlineprogress', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
-
+			
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
 		} else {
@@ -1614,7 +1614,7 @@ function pdf_getlinetotalexcltax($object,$i,$outputlangs,$hidedetails=0)
 			$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 			$action='';
 			$reshook = $hookmanager->executeHooks('pdf_getlinetotalexcltax',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+			
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
 		}
@@ -1652,7 +1652,7 @@ function pdf_getlinetotalwithtax($object,$i,$outputlangs,$hidedetails=0)
 			$parameters = array('i'=>$i,'outputlangs'=>$outputlangs,'hidedetails'=>$hidedetails,'special_code'=>$special_code);
 			$action='';
 			$reshook = $hookmanager->executeHooks('pdf_getlinetotalwithtax',$parameters,$object,$action);    // Note that $action and $object may have been modified by some hooks
-
+			
 			if(!empty($hookmanager->resPrint)) return $hookmanager->resPrint;
 			else return $reshook;
 		}
@@ -1728,7 +1728,7 @@ function pdf_getLinkedObjects($object,$outputlangs)
 		if ($objecttype == 'propal')
 		{
 			$outputlangs->load('propal');
-
+			
 			foreach($objects as $elementobject)
 			{
 				$linkedobjects[$objecttype]['ref_title'] = $outputlangs->transnoentities("RefProposal");
@@ -1830,3 +1830,4 @@ function pdf_getSizeForImage($realpath)
 	}
 	return array('width'=>$width,'height'=>$height);
 }
+

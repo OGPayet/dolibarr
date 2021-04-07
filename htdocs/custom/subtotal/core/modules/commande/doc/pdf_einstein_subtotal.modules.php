@@ -304,7 +304,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 				$iniY = $tab_top + 7;
 				$curY = $tab_top + 7;
 				$nexY = $tab_top + 7;
-
+				
 				$inPackage = false;
 				$TPackageInfos = array();
 				$TChilds = array();
@@ -316,24 +316,24 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 				{
 					$package_qty = $TStack[count($TStack) - 1]['package_qty'];
 					$inPackage = count($TStack) > 0;
-
+					
 					// Ligne de titre
 					if ($object->lines[$i]->product_type == 9 && $object->lines[$i]->qty < 97 && $object->lines[$i]->fk_product > 0) {
 						$inPackage = true;
-
+						
 						if ($conf->global->SUBTOTAL_SHOW_QTY_ON_TITLES) {
 							if (!empty($object->lines[$i]->fk_product)) {
 								$product = new Product($db);
 								$product->fetch($object->lines[$i]->fk_product);
-
+								
 								$TChilds = $product->getChildsArbo($product->id);
-
+								
 								$TStack[count($TStack)] = array(
 									'childs' => $TChilds,
 									'package' => array(),
 									'package_qty' => 0
 								);
-
+								
 								// Si on se trouvait déjà dans un package, on rajoute ce produit à la liste des produits
 								// du précédent package
 								if (count($TStack) > 1) {
@@ -342,39 +342,39 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 							}
 						}
 					}
-
+					
 					if ($conf->global->SUBTOTAL_SHOW_QTY_ON_TITLES) {
 						if ($inPackage && $object->lines[$i]->product_type != 9 && $object->lines[$i]->fk_product > 0) {
 							$TStack[count($TStack) - 1]['package'][$object->lines[$i]->fk_product] += $object->lines[$i]->qty;
 						}
 					}
-
+					
 					// Ligne de sous-total
 					if ($inPackage && $object->lines[$i]->product_type == 9 && $object->lines[$i]->qty >= 97) {
 						if (count($TStack) <= 1) {
 							$inPackage = false;
 						}
-
+						
 						if ($conf->global->SUBTOTAL_SHOW_QTY_ON_TITLES) {
 							// Comparaison pour déterminer la quantité de package
 							$TProducts = array_keys($TStack[count($TStack) - 1]['package']);
 							$TProductsChilds = array_keys($TStack[count($TStack) - 1]['childs']);
-
+							
 							if ($TProductsChilds == $TProducts) {
 								// Il s'agit d'un package
 								// On récupére la quantité
 								$first_child_id = $TProducts[0];
 								$document_qty = $TStack[count($TStack) - 1]['package'][$first_child_id];
 								$base_qty = $TStack[count($TStack) - 1]['childs'][$first_child_id][1];
-
+								
 								$TStack[count($TStack) - 1]['package_qty'] = $document_qty / $base_qty;
 								$package_qty = $TStack[count($TStack) - 1]['package_qty'];
 							}
-
+							
 							array_pop($TStack);
 						}
 					}
-
+					
 					$curY = $nexY;
 					$pdf->SetFont('','', $default_font_size - 1);   // Into loop to work with multipage
 					$pdf->SetTextColor(0,0,0);
@@ -460,7 +460,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 
 					// Booléen pour déterminer s'il s'agit d'une ligne de titre ou non
 					$isTitle = false;
-
+					
 					// Quantity
 					// Récupération de la quantité à afficher
 					if ($conf->global->SUBTOTAL_IF_HIDE_PRICES_SHOW_QTY) {
@@ -476,7 +476,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 							$qty = pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
 						}
 					}
-
+					
 					$pdf->SetXY($this->posxqty, $curY);
 					$pdf->MultiCell($this->posxdiscount-$this->posxqty-0.8, 3, $qty, 0, 'R');	// Enough for 6 chars
 
@@ -499,7 +499,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 					$pdf->MultiCell($this->page_largeur-$this->marge_droite-$this->postotalht, 3, $total_excl_tax, 0, 'R', 0);
 
 					// Collecte des totaux par valeur de tva dans $this->tva["taux"]=total_tva
-					$tvaligne=$object->lines[$i]->total_tva;
+					$tvaligne=doubleval($object->lines[$i]->total_tva);
 
 					$localtax1ligne=$object->lines[$i]->total_localtax1;
 					$localtax2ligne=$object->lines[$i]->total_localtax2;
@@ -513,7 +513,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 					if ($object->remise_percent) $localtax2ligne-=($localtax2ligne*$object->remise_percent)/100;
 
 					$vatrate=(string) $object->lines[$i]->tva_tx;
-
+					
 					// Retrieve type from database for backward compatibility with old records
 					if ((! isset($localtax1_type) || $localtax1_type=='' || ! isset($localtax2_type) || $localtax2_type=='') // if tax type not defined
 					&& (! empty($localtax1_rate) || ! empty($localtax2_rate))) // and there is local tax
@@ -530,8 +530,8 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 						$this->localtax2[$localtax2_type][$localtax2_rate]+=$localtax2ligne;
 
 					if (($object->lines[$i]->info_bits & 0x01) == 0x01) $vatrate.='*';
-					if (! isset($this->tva[$vatrate])) 				$this->tva[$vatrate]='';
-
+					if (! isset($this->tva[$vatrate])) 				$this->tva[$vatrate]=0;
+					
 					if (!empty($object->lines[$i]->TTotal_tva))
 					{
 						foreach ($object->lines[$i]->TTotal_tva as $vatrate => $tvaligne)
@@ -541,7 +541,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 					}
 					else {
 						// standard
-						$this->tva[$vatrate] += $tvaligne;
+                        if(!empty($tvaligne)) $this->tva[$vatrate] += $tvaligne;
 					}
 
 					// Add line
@@ -716,8 +716,8 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
         // Check a payment mode is defined
         /* Not used with orders
 		if (empty($object->mode_reglement_code)
-		&& ! $conf->global->FACTURE_CHQ_NUMBER
-		&& ! $conf->global->FACTURE_RIB_NUMBER)
+        	&& ! $conf->global->FACTURE_CHQ_NUMBER
+        	&& ! $conf->global->FACTURE_RIB_NUMBER)
 		{
             $pdf->SetXY($this->marge_gauche, $posy);
             $pdf->SetTextColor(200,0,0);
@@ -771,11 +771,11 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 			$posy=$pdf->GetY()+1;
 		}
 
-	// Show payment mode
+      	// Show payment mode
         if ($object->mode_reglement_code
-		 && $object->mode_reglement_code != 'CHQ'
-		 && $object->mode_reglement_code != 'VIR')
-		 {
+        	 && $object->mode_reglement_code != 'CHQ'
+           	 && $object->mode_reglement_code != 'VIR')
+           	 {
 	            $pdf->SetFont('','B', $default_font_size - 2);
 	            $pdf->SetXY($this->marge_gauche, $posy);
 	            $titre = $outputlangs->transnoentities("PaymentMode").':';
@@ -787,12 +787,12 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 	            $pdf->MultiCell(80, 5, $lib_mode_reg,0,'L');
 
 	            $posy=$pdf->GetY()+2;
-		 }
+           	 }
 
 		// Show payment mode CHQ
         if (empty($object->mode_reglement_code) || $object->mode_reglement_code == 'CHQ')
         {
-		// Si mode reglement non force ou si force a CHQ
+        	// Si mode reglement non force ou si force a CHQ
 	        if (! empty($conf->global->FACTURE_CHQ_NUMBER))
 	        {
 	            if ($conf->global->FACTURE_CHQ_NUMBER > 0)
@@ -834,7 +834,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
         // If payment mode not forced or forced to VIR, show payment with BAN
         if (empty($object->mode_reglement_code) || $object->mode_reglement_code == 'VIR')
         {
-		if (! empty($object->fk_bank) || ! empty($conf->global->FACTURE_RIB_NUMBER))
+        	if (! empty($object->fk_bank) || ! empty($conf->global->FACTURE_RIB_NUMBER))
 			{
 				$bankid=(empty($object->fk_bank)?$conf->global->FACTURE_RIB_NUMBER:$object->fk_bank);
 				$account = new Account($this->db);
@@ -935,7 +935,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 							}
 						}
 					}
-			//}
+	      		//}
 				//Local tax 2 before VAT
 				//if (! empty($conf->global->FACTURE_LOCAL_TAX2_OPTION) && $conf->global->FACTURE_LOCAL_TAX2_OPTION=='localtax2on')
 				//{
@@ -1026,7 +1026,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 							}
 						}
 					}
-			//}
+	      		//}
 				//Local tax 2 after VAT
 				//if (! empty($conf->global->FACTURE_LOCAL_TAX2_OPTION) && $conf->global->FACTURE_LOCAL_TAX2_OPTION=='localtax2on')
 				//{
@@ -1080,7 +1080,7 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 		//$creditnoteamount=$object->getSumCreditNotesUsed();
 		//$depositsamount=$object->getSumDepositsUsed();
 		//print "x".$creditnoteamount."-".$depositsamount;exit;
-		$resteapayer = price2num($object->total_ttc - $deja_regle - $creditnoteamount - $depositsamount, 'MT');
+		$resteapayer = price2num(doubleval($object->total_ttc) - doubleval($deja_regle) - $creditnoteamount - $depositsamount, 'MT');
 		if (! empty($object->paye)) $resteapayer=0;
 
 		if ($deja_regle > 0)
@@ -1401,3 +1401,4 @@ class pdf_einstein_subtotal extends ModelePDFCommandes
 	}
 
 }
+

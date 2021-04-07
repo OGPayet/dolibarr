@@ -63,7 +63,7 @@ class modSubtotal extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Module permettant l'ajout de sous-totaux et sous-totaux intermédiaires et le déplacement d'une ligne aisée de l'un dans l'autre";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '3.0.0';
+        $this->version = '3.6.0';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -96,9 +96,34 @@ class modSubtotal extends DolibarrModules
             // Set this to relative path of css if module has its own css file
             //'css' => '/titre/css/mycss.css.php',
             // Set here all hooks context managed by module
-            'hooks' => array('invoicecard','propalcard','ordercard','odtgeneration','orderstoinvoice','admin','invoicereccard')
+            'hooks' => array(
+                'invoicecard'
+                ,'invoicesuppliercard'
+                ,'propalcard'
+                ,'supplier_proposalcard'
+                ,'ordercard'
+                ,'ordersuppliercard'
+                ,'odtgeneration'
+                ,'orderstoinvoice'
+                ,'orderstoinvoicesupplier'
+                ,'admin'
+                ,'invoicereccard'
+                ,'consumptionthirdparty'
+            	,'ordershipmentcard'
+            	,'expeditioncard'
+				,'deliverycard'
+				,'paiementcard'
+				,'referencelettersinstacecard'
+                ,'shippableorderlist'
+				,'propallist'
+				,'orderlist'
+				,'invoicelist'
+				,'supplierorderlist'
+				,'supplierinvoicelist'
+            ),
             // Set here all workflow context managed by module
-            //'workflow' => array('order' => array('WORKFLOW_ORDER_AUTOCREATE_INVOICE'))
+            //'workflow' => array('order' => array('WORKFLOW_ORDER_AUTOCREATE_INVOICE')),
+            'tpl' => 1
         );
 
         // Data directories to create when module is enabled.
@@ -126,13 +151,13 @@ class modSubtotal extends DolibarrModules
         // (key, 'chaine', value, desc, visible, 'current' or 'allentities', deleteonunactive)
         // Example:
         $this->const = array(
-		0=>array(
-			'SUBTOTAL_STYLE_TITRES_SI_LIGNES_CACHEES',
-			'chaine',
-			'I',
-			'Définit le style (B : gras, I : Italique, U : Souligné) des sous titres lorsque le détail des lignes et des ensembles est caché',
-			1
-		)
+            	0=>array(
+            		'SUBTOTAL_STYLE_TITRES_SI_LIGNES_CACHEES',
+            		'chaine',
+            		'I',
+            		'Définit le style (B : gras, I : Italique, U : Souligné) des sous titres lorsque le détail des lignes et des ensembles est caché',
+            		1
+            	)
 				,1=>array('SUBTOTAL_ALLOW_ADD_BLOCK', 'chaine', '1', 'Permet l\'ajout de titres et sous-totaux')
 				,2=>array('SUBTOTAL_ALLOW_EDIT_BLOCK', 'chaine', '1', 'Permet de modifier titres et sous-totaux')
 				,3=>array('SUBTOTAL_ALLOW_REMOVE_BLOCK', 'chaine', '1', 'Permet de supprimer les titres et sous-totaux')
@@ -452,7 +477,7 @@ class modSubtotal extends DolibarrModules
      */
     public function init($options = '')
     {
-		global $conf;
+	  	global $conf, $db;
 
 
 /*		if($conf->milestone->enabled) {
@@ -462,7 +487,14 @@ class modSubtotal extends DolibarrModules
 	    $sql = array();
 
         $result = $this->loadTables();
+        dol_include_once('/core/class/extrafields.class.php');
 
+        $extra = new ExtraFields($db); // propaldet, commandedet, facturedet
+        $TElementType = array('propaldet', 'commandedet', 'facturedet', 'supplier_proposaldet', 'commande_fournisseurdet', 'facture_fourn_det');
+        foreach($TElementType as $element_type) {
+            $extra->addExtraField('show_total_ht', 'Afficher le Total HT sur le sous-total', 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+            $extra->addExtraField('show_reduc', 'Afficher la réduction sur le sous-total', 'int', 0, 10, $element_type, 0, 0, '', unserialize('a:1:{s:7:"options";a:1:{s:0:"";N;}}'), 0, '', 0, 1);
+        }
 
         return $this->_init($sql, $options);
     }
