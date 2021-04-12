@@ -414,7 +414,7 @@ class ActionsInvoiceBetterStatus
     }
 
 	/**
-     * Overloading the showLinkedObjectBlock function : replacing the parent's function with the one below
+     * Overloading the printFieldListFrom function : replacing the parent's function with the one below
      *
      * @param   array           $parameters     Hook metadatas (context, etc...)
      * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
