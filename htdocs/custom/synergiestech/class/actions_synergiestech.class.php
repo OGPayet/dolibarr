@@ -1940,12 +1940,11 @@ SCRIPT;
 				} else {
 					setEventMessage($msg_error, 'errors');
 				}
-			} elseif ($action == 'setcontract') {
-				if ($conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER && $object->statut > 0) {
+			} elseif ($action == 'setcontract' && $conf->global->SYNERGIESTECH_FICHINTER_PROTECTVALIDATEFICHINTER) {
 					//We check that user can validate this fichinter
 					dol_include_once('synergiestech/class/extendedInterventionValidation.class.php');
 					$InterventionValidationCheck = new ExtendedInterventionValidation($object, $this->db);
-					if (!$InterventionValidationCheck->canThisNewContractBeLinkedToThisFichinter($user, GETPOST('contratid', 'int'))) {
+					if ($object->statut > 0 && !$InterventionValidationCheck->canThisNewContractBeLinkedToThisFichinter($user, GETPOST('contratid', 'int'))) {
 						$this->errors[] = $langs->trans("SynergiesTechNewContractCantBeChoosed");
 						$action = "contrat";
 					} else if(!$user->rights->contrat->creer) {
@@ -1953,7 +1952,6 @@ SCRIPT;
 						$this->errors[] =$object->error;
 						return $result;
 					}
-				}
 			} elseif ($action == 'confirm_validateWithoutCheck' && $confirm == 'yes') {
 				if ($user->rights->synergiestech->intervention->validateWithoutCheck) {
 					$object->noValidationCheck = true;
