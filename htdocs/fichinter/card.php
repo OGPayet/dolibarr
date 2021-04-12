@@ -946,7 +946,18 @@ if ($action == 'create')
 			$contractList = synergiestech_fetch_contract($soc->id, $company_benefactor_id, $msg_error);
 			$contract_ids_match = !empty($contract_ids) ? array_intersect($contract_ids, array_keys($contractList)) : array_keys($contractList);
 			if (!in_array($contratid, $contract_ids_match) && $contratid != -1) {
-				$contratid = count($contract_ids_match) > 0 ? $contract_ids_match[0] : '';
+				if(count($contract_ids_match) > 0) {
+					foreach($contract_ids_match as $id) {
+						$contract = $contractList[$id];
+						if($contract->nbofservicesopened > 0 && $contract->statut == 1) {
+							$contratid = $id;
+							break;
+						}
+					}
+				}
+				if(!$contratid) {
+					$contratid = $contract_ids_match[0];
+				}
 			}
 			$contractListArray = array();
 			foreach ($contractList as $c) {
