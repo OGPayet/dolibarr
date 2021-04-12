@@ -2331,7 +2331,8 @@ SCRIPT;
     });
 </script>
 SCRIPT;
-		} elseif (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) {
+		}
+		if (in_array('ordersuppliercard', $contexts) && !empty($conf->global->SYNERGIESTECH_DISABLEDCLASSIFIEDBILLED_SUPPLIERORDER)) {
 			//We hide classify done button
 			$buttonContent = dol_string_nohtmltag($langs->trans("ClassifyBilled"));
 			print <<<SCRIPT
@@ -2353,6 +2354,24 @@ SCRIPT;
 			$formconfirm = $formsynergiestech->formconfirm($_SERVER['PHP_SELF'], $langs->trans('SynergiesTechProductsOffFormula'), $langs->trans('SynergiesTechConfirmProductsOffFormula'), 'confirm_synergiestech_add', '', 0, 1, 200, 500, 'crea_commande');
 			// Create the confirm form
 			print '<tr><td colspan="2">' . $formconfirm . '</tr></td>';
+		}
+
+		if(in_array('interventioncard', $contexts) && $action == 'create') {
+			$selectedSourceLine = GETPOST('toselect', 'array');
+			$selectedSourceLine = '[' . implode(',', $selectedSourceLine) . ']';
+			print <<<SCRIPT
+<script type="text/javascript">
+$(document).ready(function() {
+	let lines = $('.checkforselect');
+	let selectedLineIds = $selectedSourceLine;
+	lines.each(function() {
+		if(!selectedLineIds.includes($(this).prop('value'))) {
+			$(this).attr("checked", false );
+		}
+	});
+});
+</script>
+SCRIPT;
 		}
 
 		return 0;
