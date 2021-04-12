@@ -1948,6 +1948,10 @@ SCRIPT;
 					if (!$InterventionValidationCheck->canThisNewContractBeLinkedToThisFichinter($user, GETPOST('contratid', 'int'))) {
 						$this->errors[] = $langs->trans("SynergiesTechNewContractCantBeChoosed");
 						$action = "contrat";
+					} else if(!$user->rights->contrat->creer) {
+						$result = $object->set_contrat($user, GETPOST('contratid', 'int'));
+						$this->errors[] =$object->error;
+						return $result;
 					}
 				}
 			} elseif ($action == 'confirm_validateWithoutCheck' && $confirm == 'yes') {
