@@ -294,7 +294,7 @@ class ExtendedInterventionQuota
             if (isset($end_date)) {
                 $end_date->setTime(0, 0);
                 $last_end_date = $end_date->copy()->subDay();
-            } else {
+            } elseif (empty($tacit_renewal)) {
                 $end_date = $begin_date->copy()->addMonths($duration)->subDay();
             }
 
