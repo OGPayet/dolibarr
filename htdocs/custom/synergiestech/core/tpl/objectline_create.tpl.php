@@ -483,7 +483,7 @@ if ($nolinesbefore) {
 	<?php  if ($user->rights->synergiestech->product_line_price->creer)  { ?>
     <input type="text" size="5" name="price_ht" id="price_ht" class="flat right" value="<?php echo (isset($_POST["price_ht"])?GETPOST("price_ht",'alpha',2):''); ?>">
   <?php } else {
-     echo '<input type="hidden" name="price_ht" id="price_ht" value="">';
+     echo '<input type="hidden" name="price_ht" id="price_ht" value="0">';
   } ?></td>
 
 	<?php
