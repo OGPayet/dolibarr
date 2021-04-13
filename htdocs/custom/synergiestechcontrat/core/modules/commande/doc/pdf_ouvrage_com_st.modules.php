@@ -624,7 +624,7 @@ class pdf_ouvrage_com_st extends ModelePDFCommandes
 
 					if (($object->lines[$i]->info_bits & 0x01) == 0x01) $vatrate.='*';
 					if (! isset($this->tva[$vatrate])) 				$this->tva[$vatrate]=0;
-                    $this->tva[$vatrate] += $tvaligne;
+                    if ($object->lines[$i]->product_type != 9 && $object->lines[$i]->special_code != 501028) $this->tva[$vatrate] += $tvaligne;
 
                     if ($posYAfterImage > $posYAfterDescription) $nexY=$posYAfterImage;
 
