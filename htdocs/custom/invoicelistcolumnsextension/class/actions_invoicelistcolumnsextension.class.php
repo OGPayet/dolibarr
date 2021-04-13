@@ -87,7 +87,7 @@ class ActionsInvoiceListColumnsExtension
 			$arrayfields['pm.datep'] = array('label'=>$langs->trans("InvoiceListDateOfPayment"), 'checked'=>1, 'position'=>1010);
 			$arrayfields['pm.ref'] = array('label'=>$langs->trans("InvoiceListRefOfPayment"), 'checked'=>1, 'position'=>1020);
 		} else if (in_array('invoicelist', $contexts)) {
-			$arrayfields['paiement.datep'] = array('label'=>$langs->trans("InvoiceListDateOfPayment"), 'checked'=>1, 'position'=>2010);
+			$arrayfields['paiement.datep'] = array('label'=>$langs->trans("InvoiceListDateOfPayment"), 'checked'=>1, 'position'=>1010);
 			$arrayfields['paiement.ref'] = array('label'=>$langs->trans("InvoiceListRefOfPayment"), 'checked'=>1, 'position'=>1020);
 		}
 	}
@@ -258,48 +258,42 @@ class ActionsInvoiceListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('supplierinvoicelist', $contexts)) {
-			$out = '';
-
 			if (!empty($parameters['arrayfields']['pm.datep']['checked'])) {
-				$out .= '<td class="liste_titre center">';
-				$out .= '<div class="nowrap">';
-				$out .= $form->selectDate($this->getSelectedPaymentStartDate() ? $this->getSelectedPaymentStartDate() : -1, 'search_payment_date_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
-				$out .= '</div>';
-				$out .= '<div class="nowrap">';
-				$out .= $form->selectDate($this->getSelectedPaymentEndDate() ? $this->getSelectedPaymentEndDate() : -1, 'search_payment_date_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
-				$out .= '</div>';
-				$out .= '</td>';
+				print '<td class="liste_titre center">';
+				print '<div class="nowrap">';
+				print $form->selectDate($this->getSelectedPaymentStartDate() ? $this->getSelectedPaymentStartDate() : -1, 'search_payment_date_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
+				print '</div>';
+				print '<div class="nowrap">';
+				print $form->selectDate($this->getSelectedPaymentEndDate() ? $this->getSelectedPaymentEndDate() : -1, 'search_payment_date_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
+				print '</div>';
+				print '</td>';
 			}
 
 			if (!empty($parameters['arrayfields']['pm.ref']['checked'])) {
-				$out .= '<td class="liste_titre left">';
-				$out .= '<input class="flat maxwidth50" type="text" name="search_payment_ref" value="'.$this->getSelectedPaymentRef().'">';
-				$out .= '</td>';
+				print '<td class="liste_titre center">';
+				print '<input class="flat maxwidth50" type="text" name="search_payment_ref" value="'.$this->getSelectedPaymentRef().'">';
+				print '</td>';
 			}
 
-			$this->resprints = $out;
 			return 1;
 		} else if (in_array('invoicelist', $contexts)) {
-			$out = '';
-
 			if (!empty($parameters['arrayfields']['paiement.datep']['checked'])) {
-				$out .= '<td class="liste_titre center">';
-				$out .= '<div class="nowrap">';
-				$out .= $form->selectDate($this->getSelectedPaymentStartDate() ? $this->getSelectedPaymentStartDate() : -1, 'search_payment_date_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
-				$out .= '</div>';
-				$out .= '<div class="nowrap">';
-				$out .= $form->selectDate($this->getSelectedPaymentEndDate() ? $this->getSelectedPaymentEndDate() : -1, 'search_payment_date_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
-				$out .= '</div>';
-				$out .= '</td>';
+				print '<td class="liste_titre center">';
+				print '<div class="nowrap">';
+				print $form->selectDate($this->getSelectedPaymentStartDate() ? $this->getSelectedPaymentStartDate() : -1, 'search_payment_date_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
+				print '</div>';
+				print '<div class="nowrap">';
+				print $form->selectDate($this->getSelectedPaymentEndDate() ? $this->getSelectedPaymentEndDate() : -1, 'search_payment_date_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
+				print '</div>';
+				print '</td>';
 			}
 
 			if (!empty($parameters['arrayfields']['paiement.ref']['checked'])) {
-				$out .= '<td class="liste_titre left">';
-				$out .= '<input class="flat maxwidth50" type="text" name="search_payment_ref" value="'.$this->getSelectedPaymentRef().'">';
-				$out .= '</td>';
+				print '<td class="liste_titre center">';
+				print '<input class="flat maxwidth50" type="text" name="search_payment_ref" value="'.$this->getSelectedPaymentRef().'">';
+				print '</td>';
 			}
 
-			$this->resprints = $out;
 			return 1;
 		}
 
@@ -321,25 +315,23 @@ class ActionsInvoiceListColumnsExtension
 
         if (in_array('supplierinvoicelist', $contexts)) {
 			if (!empty($parameters['arrayfields']['pm.datep']['checked'])) {
-				$out = print_liste_field_titre($parameters['arrayfields']['pm.datep']['label'], $_SERVER['PHP_SELF'], 'pm.datep', '', $parameters['param'], 'align="center"', $parameters['sortfield'], $parameters['sortorder']);
+				print_liste_field_titre($parameters['arrayfields']['pm.datep']['label'], $_SERVER['PHP_SELF'], 'pm.datep', '', $parameters['param'], 'align="center"', $parameters['sortfield'], $parameters['sortorder']);
 			}
 
 			if (!empty($parameters['arrayfields']['pm.ref']['checked'])) {
-				$out = print_liste_field_titre($parameters['arrayfields']['pm.ref']['label'], $_SERVER['PHP_SELF'], 'pm.ref', '', $parameters['param'], 'align="center"', $parameters['sortfield'], $parameters['sortorder']);
+				print_liste_field_titre($parameters['arrayfields']['pm.ref']['label'], $_SERVER['PHP_SELF'], 'pm.ref', '', $parameters['param'], 'align="center"', $parameters['sortfield'], $parameters['sortorder']);
 			}
 
-			$this->resprints = $out;
 			return 1;
 		} else if (in_array('invoicelist', $contexts)) {
 			if (!empty($parameters['arrayfields']['paiement.datep']['checked'])) {
-				$out = print_liste_field_titre($parameters['arrayfields']['paiement.datep']['label'], $_SERVER['PHP_SELF'], 'paiement.datep', '', $parameters['param'], 'align="center"', $parameters['sortfield'], $parameters['sortorder']);
+				print_liste_field_titre($parameters['arrayfields']['paiement.datep']['label'], $_SERVER['PHP_SELF'], 'paiement.datep', '', $parameters['param'], 'align="center"', $parameters['sortfield'], $parameters['sortorder']);
 			}
 
 			if (!empty($parameters['arrayfields']['paiement.ref']['checked'])) {
-				$out = print_liste_field_titre($parameters['arrayfields']['paiement.ref']['label'], $_SERVER['PHP_SELF'], 'paiement.ref', '', $parameters['param'], 'align="center"', $parameters['sortfield'], $parameters['sortorder']);
+				print_liste_field_titre($parameters['arrayfields']['paiement.ref']['label'], $_SERVER['PHP_SELF'], 'paiement.ref', '', $parameters['param'], 'align="center"', $parameters['sortfield'], $parameters['sortorder']);
 			}
 
-			$this->resprints = $out;
 			return 1;
 		}
 
@@ -362,12 +354,10 @@ class ActionsInvoiceListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('supplierinvoicelist', $contexts)) {
-			$out = '';
-
 			if (!empty($parameters['arrayfields']['pm.datep']['checked'])) {     
-                $out .= '<td align="center" class="nowrap">';
-                $out .= dol_print_date($db->jdate($parameters['obj']->dp), 'day');
-                $out .= '</td>';
+                print '<td align="center" class="nowrap">';
+                print dol_print_date($db->jdate($parameters['obj']->dp), 'day');
+                print '</td>';
 
                 if (!$parameters['i']) $parameters['totalarray']['nbfield']++;
 			}
@@ -376,24 +366,21 @@ class ActionsInvoiceListColumnsExtension
 				$payment = new PaiementFourn($db);
 				$paymentRef = "'" . $parameters['obj']->rp . "'";
   
-                $out .= '<td class="nowrap tdoverflowmax200">';
-				if ($payment->fetch(-1, $paymentRef)) {
-					$out .= $payment->getNomUrl(1, '', 0, 0, '', 0, -1, 1);
+                print '<td class="nowrap tdoverflowmax200">';
+				if ($paymentRef && $payment->fetch(-1, $paymentRef)) {
+					print $payment->getNomUrl(1, '', 0, 0, '', 0, -1, 1);
 				}
-                $out .= '</td>';
+                print '</td>';
 
                 if (!$parameters['i']) $parameters['totalarray']['nbfield']++;
 			}
 
-			$this->resprints = $out;
 			return 1;
 		} else if (in_array('invoicelist', $contexts)) {
-			$out = '';
-
 			if (!empty($parameters['arrayfields']['paiement.datep']['checked'])) {     
-                $out .= '<td align="center" class="nowrap">';
-                $out .= dol_print_date($db->jdate($parameters['obj']->dp), 'day');
-                $out .= '</td>';
+                print '<td align="center" class="nowrap">';
+                print dol_print_date($db->jdate($parameters['obj']->dp), 'day');
+                print '</td>';
 
                 if (!$parameters['i']) $parameters['totalarray']['nbfield']++;
 			}
@@ -402,16 +389,15 @@ class ActionsInvoiceListColumnsExtension
 				$payment = new Paiement($db);
 				$paymentRef = $parameters['obj']->rp;
 
-                $out .= '<td class="nowrap tdoverflowmax200">';
-				if ($payment->fetch(-1, $paymentRef)) {
-                	$out .= $payment->getNomUrl(1, '', 0, 0, '', 0, -1, 1);
+                print '<td align="center" class="nowrap">';
+				if ($paymentRef && $payment->fetch(-1, $paymentRef)) {
+                	print $payment->getNomUrl(1, '', '', 0);
 				}
-                $out .= '</td>';
+                print '</td>';
 
                 if (!$parameters['i']) $parameters['totalarray']['nbfield']++;
 			}
 
-			$this->resprints = $out;
 			return 1;
 		}
 
