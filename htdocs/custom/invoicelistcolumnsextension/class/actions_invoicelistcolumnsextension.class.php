@@ -400,7 +400,7 @@ class ActionsInvoiceListColumnsExtension
 
 			if (!empty($parameters['arrayfields']['paiement.ref']['checked'])) {     
 				$payment = new Paiement($db);
-				$paymentRef = "'" . $parameters['obj']->rp . "'";
+				$paymentRef = $parameters['obj']->rp;
 
                 $out .= '<td class="nowrap tdoverflowmax200">';
 				if ($payment->fetch(-1, $paymentRef)) {
