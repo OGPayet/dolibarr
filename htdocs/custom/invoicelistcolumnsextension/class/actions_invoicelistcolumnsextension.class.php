@@ -84,11 +84,11 @@ class ActionsInvoiceListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('supplierinvoicelist', $contexts)) {
-			$arrayfields['pm.datep'] = array('label'=>$langs->trans("PayementDate"), 'checked'=>1, 'position'=>1010);
-			$arrayfields['pm.ref'] = array('label'=>$langs->trans("PayementRef"), 'checked'=>1, 'position'=>1020);
+			$arrayfields['pm.datep'] = array('label'=>$langs->trans("InvoiceListDateOfPayment"), 'checked'=>1, 'position'=>1010);
+			$arrayfields['pm.ref'] = array('label'=>$langs->trans("InvoiceListRefOfPayment"), 'checked'=>1, 'position'=>1020);
 		} else if (in_array('invoicelist', $contexts)) {
-			$arrayfields['paiement.datep'] = array('label'=>$langs->trans("PayementDate"), 'checked'=>1, 'position'=>2010);
-			$arrayfields['paiement.ref'] = array('label'=>$langs->trans("PayementRef"), 'checked'=>1, 'position'=>1020);
+			$arrayfields['paiement.datep'] = array('label'=>$langs->trans("InvoiceListDateOfPayment"), 'checked'=>1, 'position'=>2010);
+			$arrayfields['paiement.ref'] = array('label'=>$langs->trans("InvoiceListRefOfPayment"), 'checked'=>1, 'position'=>1020);
 		}
 	}
 
@@ -253,7 +253,7 @@ class ActionsInvoiceListColumnsExtension
 	 */
 	function printFieldListOption(&$parameters, &$object, &$action, $hookmanager)
 	{
-		global $langs;
+		global $form, $langs;
 
 		$contexts = explode(':', $parameters['context']);
 
@@ -263,10 +263,10 @@ class ActionsInvoiceListColumnsExtension
 			if (!empty($parameters['arrayfields']['pm.datep']['checked'])) {
 				$out .= '<td class="liste_titre center">';
 				$out .= '<div class="nowrap">';
-				$out .= $parameters['form']->selectDate($this->getSelectedPaymentStartDate() ? $this->getSelectedPaymentStartDate() : -1, 'search_payment_date_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
+				$out .= $form->selectDate($this->getSelectedPaymentStartDate() ? $this->getSelectedPaymentStartDate() : -1, 'search_payment_date_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
 				$out .= '</div>';
 				$out .= '<div class="nowrap">';
-				$out .= $parameters['form']->selectDate($this->getSelectedPaymentEndDate() ? $this->getSelectedPaymentEndDate() : -1, 'search_payment_date_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
+				$out .= $form->selectDate($this->getSelectedPaymentEndDate() ? $this->getSelectedPaymentEndDate() : -1, 'search_payment_date_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
 				$out .= '</div>';
 				$out .= '</td>';
 			}
@@ -285,10 +285,10 @@ class ActionsInvoiceListColumnsExtension
 			if (!empty($parameters['arrayfields']['paiement.datep']['checked'])) {
 				$out .= '<td class="liste_titre center">';
 				$out .= '<div class="nowrap">';
-				$out .= $parameters['form']->selectDate($this->getSelectedPaymentStartDate() ? $this->getSelectedPaymentStartDate() : -1, 'search_payment_date_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
+				$out .= $form->selectDate($this->getSelectedPaymentStartDate() ? $this->getSelectedPaymentStartDate() : -1, 'search_payment_date_start', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('From'));
 				$out .= '</div>';
 				$out .= '<div class="nowrap">';
-				$out .= $parameters['form']->selectDate($this->getSelectedPaymentEndDate() ? $this->getSelectedPaymentEndDate() : -1, 'search_payment_date_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
+				$out .= $form->selectDate($this->getSelectedPaymentEndDate() ? $this->getSelectedPaymentEndDate() : -1, 'search_payment_date_end', 0, 0, 1, '', 1, 0, 0, '', '', '', '', 1, '', $langs->trans('to'));
 				$out .= '</div>';
 				$out .= '</td>';
 			}

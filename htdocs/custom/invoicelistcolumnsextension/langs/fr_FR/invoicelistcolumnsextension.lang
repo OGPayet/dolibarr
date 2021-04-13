@@ -21,3 +21,6 @@
 ModuleInvoiceListColumnsExtensionName = InvoiceListColumnsExtension
 # Module description 'ModuleInvoiceListColumnsExtensionDesc'
 ModuleInvoiceListColumnsExtensionDesc = Permet d'ajouter des colonnes à la liste des factures
+
+InvoiceListDateOfPayment=Date de payement
+InvoiceListRefOfPayment=Réf. du payement
