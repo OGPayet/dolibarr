@@ -3616,7 +3616,8 @@ SCRIPT;
 				$sql = 'SELECT fk_product FROM ' . MAIN_DB_PREFIX . 'equipement ';
 				$sql .= 'WHERE (fk_soc_fourn IN (' . implode(',', $extendedThirdPartyIds) . ')';
 				$sql .= ' OR (fk_soc_client IN (' . implode(',', $extendedThirdPartyIds) . '))';
-                $sql .= " AND entity IN (" . getEntity('equipement') . ') ';
+                $sql .= ' AND entity IN (' . getEntity('equipement') . ')) ';
+				$sql .= 'GROUP BY fk_product';
 				$linkedFkProductEquipement = array();
 				$resql = $this->db->query($sql);
 				if($resql) {
@@ -3636,15 +3637,15 @@ SCRIPT;
 						$numberOfMatchBetweenCustomerTypeAndProducts[$customerType] += $numberOfProductMatchingDictionaryEntry;
 					}
 				}
-				$customerType = null;
+				$customerTypeId = null;
 				if (!empty($numberOfMatchBetweenCustomerTypeAndProducts)) {
-					$customerType = array_search(
+					$customerTypeId = array_search(
 						max($numberOfMatchBetweenCustomerTypeAndProducts),
 						$numberOfMatchBetweenCustomerTypeAndProducts
 					);
 				}
-				if($customerType) {
-					$this->resprint = $customerType;
+				if($customerTypeId) {
+					$this->resprints = $customerTypeId;
 					return 1;
 				}
 			}

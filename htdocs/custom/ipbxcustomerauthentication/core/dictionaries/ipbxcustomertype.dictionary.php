@@ -174,7 +174,7 @@ class IpbxCustomerTypeDictionary extends Dictionary
      * )
      */
     public $indexes = array(
-        array('fields' => 'ipbxvalue', 'is_unique' => true)
+        array('fields' => array('ipbxvalue'), 'is_unique' => true)
     );
 
     /**

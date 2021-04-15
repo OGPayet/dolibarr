@@ -73,7 +73,9 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         $this->db = $db;
         $this->thirdparty = new ExtendedSociete($this->db);
         $this->contact = new ExtendedContact($this->db);
-    }
+		global $hookmanager;
+		$hookmanager->initHooks(array('globalapi', 'ipbxcustomerauthenticationapi'));
+	}
 
     /**
      * Get properties of a ipbxcustomerauthentication object
@@ -137,6 +139,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      */
     public function getCustomerType($customerId)
     {
+		global $hookmanager;
         if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->ipbxcustomerauthentication->getCustomerType) {
             throw new RestException(401);
         }
@@ -146,38 +149,41 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         }
 
         //We try to find a third party tag matching a dictionary entry
-        $thirdPartyCategoryIds = $this->thirdparty->getLinkedCategoryIds(IpbxCustomerTypeDictionary::$cache_thirdparty_tags);
+        $thirdPartyCategoryIds = $this->thirdparty->getLinkedCategoryIds(IpbxCustomerTypeDictionary::CATEGORY_TYPES);
         $dictionaryOfCustomerType = $this->getCustomerTypeDictionary();
         $numberOfMatchBetweenCustomerTypeAndCategories = array();
         foreach ($dictionaryOfCustomerType as $rowid => $customerType) {
-            if (!empty(array_intersect($customerType->tag_thirdparty, $thirdPartyCategoryIds))) {
+            $numberOfCommonTag = count(array_intersect($customerType->thirdparty_tag, $thirdPartyCategoryIds));
+            if ($numberOfCommonTag > 0) {
                 if (!$numberOfMatchBetweenCustomerTypeAndCategories[$rowid]) {
                     $numberOfMatchBetweenCustomerTypeAndCategories[$rowid] = 0;
                 }
-                $numberOfMatchBetweenCustomerTypeAndCategories[$rowid] += 1;
+                $numberOfMatchBetweenCustomerTypeAndCategories[$rowid] += $numberOfCommonTag;
             }
         }
-        $customerType = null;
+        $customerTypeId = null;
         if (!empty($numberOfMatchBetweenCustomerTypeAndCategories)) {
-            $customerType = array_search(
+            $customerTypeId = array_search(
                 max($numberOfMatchBetweenCustomerTypeAndCategories),
                 $numberOfMatchBetweenCustomerTypeAndCategories
             );
         }
 
         //We call a hook to check if some external module may modify effective market type
-        global $hookmanager;
         $parameters = array(
             'customerTypeDictionary' => &$dictionaryOfCustomerType,
-            'customerType' => &$customerType,
+            'customerTypeId' => &$customerTypeId,
             'numberOfMatchBetweenCustomerTypeAndCategories' => &$numberOfMatchBetweenCustomerTypeAndCategories,
             'customerId' => $customerId
         );
         $reshook = $hookmanager->executeHooks('getCustomerType', $parameters, $this->thirdparty);
         if ($reshook > 0) {
-            $customerType = $hookmanager->resPrint;
+            $customerTypeId = $hookmanager->resPrint;
         }
-        return $customerType;
+        if ($customerTypeId) {
+            $finalCustomerType = $dictionaryOfCustomerType[$customerTypeId];
+        }
+        return is_object($finalCustomerType) ? $finalCustomerType->ipbxvalue : null;
     }
 
     /**
@@ -258,7 +264,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         $phoneFieldOnContact = array('phone', 'phone_perso', 'phone_mobile', 'fax');
         $sqlFilterForPhone = array();
         foreach ($phoneFieldOnContact as $field) {
-			$sqlFilterForPhone[] = 'TRIM(' . $field . ') LIKE "%' . $truncatedPhoneNumber .'"';
+            $sqlFilterForPhone[] = 'TRIM(' . $field . ') LIKE "%' . $truncatedPhoneNumber .'"';
         }
         $sqlFilter[] = implode(' OR ', $sqlFilterForPhone);
         $sqlFilter[] = 'statut = 1';
@@ -296,7 +302,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      */
     private function loadCustomerTypeDictionary()
     {
-        $crudeData = Dictionary::getJSONDictionary($this->db, 'ipbxcustomerauthentication', 'customertype');
+        $crudeData = Dictionary::getJSONDictionary($this->db, 'ipbxcustomerauthentication', 'ipbxcustomertype');
         $dataPerRowId = array();
         foreach ($crudeData as &$data) {
             if (is_array($data)) {
