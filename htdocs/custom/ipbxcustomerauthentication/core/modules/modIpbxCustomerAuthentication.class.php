@@ -45,7 +45,7 @@ class modIpbxCustomerAuthentication extends DolibarrModules
 
         // Id for module (must be unique).
         // Use here a free id (See in Home -> System information -> Dolibarr for list of used modules id).
-        $this->numero = 468960; // TODO Go on page https://wiki.dolibarr.org/index.php/List_of_modules_id to reserve an id number for your module
+        $this->numero = 468970; // TODO Go on page https://wiki.dolibarr.org/index.php/List_of_modules_id to reserve an id number for your module
 
         // Key text used to identify module (for permissions, menus, etc...)
         $this->rights_class = 'ipbxcustomerauthentication';
@@ -217,7 +217,7 @@ class modIpbxCustomerAuthentication extends DolibarrModules
         $dictionaries = Dictionary::fetchAllDictionaries($this->db, 'ipbxcustomerauthentication');
         foreach ($dictionaries as $dictionary) {
             if ($dictionary->createTables() < 0) {
-                setEventMessage('Error create dictionary table: ' . $dictionary->errorsToString(), 'errors');
+                setEventMessages('Error create dictionary table: ' . $dictionary->errorsToString(), array(), 'errors');
 				return -1;
             }
         }

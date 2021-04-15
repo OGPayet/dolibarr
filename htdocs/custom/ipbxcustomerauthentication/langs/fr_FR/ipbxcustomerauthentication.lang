@@ -21,7 +21,8 @@
 ModuleIpbxCustomerAuthenticationName = Identification client pour IPBX
 # Module description 'ModuleIpbxCustomerAuthenticationDesc'
 ModuleIpbxCustomerAuthenticationDesc = Fourni des API basiques destinés à des IPBX afin de leur permettre d'identifier un client
-
+Permission468970 = Permet d'utiliser l'api getCustomerId
+Permission468971 = Permet d'utiliser l'api getCustomerType
 #
 # Page d'administration
 #

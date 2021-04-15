@@ -25,6 +25,13 @@ dol_include_once("/contact/class/contact.class.php");
  */
 
  class ExtendedContact extends Contact {
+
+	public function __construct($db)
+	{
+		parent::__construct($db);
+		$this->fields['fk_soc'] = array('type'=>'integer', 'label'=>'ThirdParty', 'enabled'=>1, 'visible'=>1, 'position'=>25, 'searchall'=>1);
+		unset($this->fields['fk_prospectlevel']);
+	}
 	 	/**
 	 * Load list of objects in memory from the database.
 	 *
@@ -98,5 +105,11 @@ dol_include_once("/contact/class/contact.class.php");
 
 			return -1;
 		}
+	}
+	protected function getFieldList() {
+		$fields = $this->fields;
+		$fields['fk_soc'] = array();
+		unset($fields['fk_prospectlevel']);
+		return implode(',', array_keys($fields));
 	}
  }

@@ -80,22 +80,22 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      *
      * Return an array with ipbxcustomerauthentication information
      *
-     * @param   int     $phoneNumber incoming phone number
-     * @param   int     $customerCodeWithOnlyDigits incoming given customer code from ipbx
+     * @param   string     $phoneNumber incoming phone number
+     * @param   string     $customerCode incoming given customer code from ipbx
      * @return  int|null
      *
-     * @url GET ipbxcustomerauthentications/getCustomerId
+     * @url GET getCustomerId
      *
      * @throws RestException 401 Not allowed
      * @throws RestException 404 Not found
      */
-    public function getCustomerId($phoneNumber, $customerCodeWithOnlyDigits)
+    public function getCustomerId($phoneNumber = null, $customerCode = null)
     {
-        if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->getCustomerId) {
+        if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->ipbxcustomerauthentication->getCustomerId) {
             throw new RestException(401);
         }
 
-        if (strlen($phoneNumber) < self::NUMBER_OF_PHONE_NUMBER_DIGITS && strlen($customerCodeWithOnlyDigits) < self::NUMBER_OF_CUSTOMER_CODE_DIGITS) {
+        if (strlen($phoneNumber) < self::NUMBER_OF_PHONE_NUMBER_DIGITS && strlen($customerCode) < self::NUMBER_OF_CUSTOMER_CODE_DIGITS) {
             throw new RestException(400);
         }
         $thirdpartyIds = array();
@@ -108,10 +108,10 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
             ));
         }
 
-        if (strlen($customerCodeWithOnlyDigits) >= self::NUMBER_OF_CUSTOMER_CODE_DIGITS) {
+        if (strlen($customerCode) >= self::NUMBER_OF_CUSTOMER_CODE_DIGITS) {
             $thirdpartyIds = array_merge(
                 $thirdpartyIds,
-                $this->getThirdpartyIdsByCustomerCode($customerCodeWithOnlyDigits)
+                $this->getThirdpartyIdsByCustomerCode($customerCode)
             );
         }
 
@@ -130,14 +130,14 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      * @param   int     $customerId ID of the customer (third party)
      * @return  string|null
      *
-     * @url GET ipbxcustomerauthentications/getCustomerType
+     * @url GET getCustomerType
      *
      * @throws RestException 401 Not allowed
      * @throws RestException 404 Not found
      */
     public function getCustomerType($customerId)
     {
-        if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->getCustomerType) {
+        if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->ipbxcustomerauthentication->getCustomerType) {
             throw new RestException(401);
         }
 
@@ -229,7 +229,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         $phoneFieldOnSociete = array('phone', 'fax');
         $sqlFilterForPhone = array();
         foreach ($phoneFieldOnSociete as $field) {
-            $sqlFilterForPhone[] = $field . ' LIKE % ' . $truncatedPhoneNumber;
+            $sqlFilterForPhone[] = 'TRIM(' . $field . ') LIKE "%' . $truncatedPhoneNumber .'"';
         }
         $sqlFilter[] = implode(' OR ', $sqlFilterForPhone);
         $sqlFilter[] = 'client = 1 OR fournisseur = 1';
@@ -258,7 +258,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         $phoneFieldOnContact = array('phone', 'phone_perso', 'phone_mobile', 'fax');
         $sqlFilterForPhone = array();
         foreach ($phoneFieldOnContact as $field) {
-            $sqlFilterForPhone[] = $field . ' LIKE % ' . $truncatedPhoneNumber;
+			$sqlFilterForPhone[] = 'TRIM(' . $field . ') LIKE "%' . $truncatedPhoneNumber .'"';
         }
         $sqlFilter[] = implode(' OR ', $sqlFilterForPhone);
         $sqlFilter[] = 'statut = 1';
@@ -282,7 +282,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      */
     private function getThirdpartyIdsByCustomerCode($customerCodeWithOnlyDigits)
     {
-        $possibleThirdparty = $this->thirdparty->fetchAll('DESC', 'rowid', 0, 0, array('customsql' => 'code_client LIKE %' . $customerCodeWithOnlyDigits));
+        $possibleThirdparty = $this->thirdparty->fetchAll('DESC', 'rowid', 0, 0, array('customsql' => 'code_client LIKE "%' . $customerCodeWithOnlyDigits . '"'));
         $thirdpartyMatchingClientCode = array();
         foreach ($possibleThirdparty as $thirdparty) {
             $thirdpartyMatchingClientCode[] = $thirdparty->id;
