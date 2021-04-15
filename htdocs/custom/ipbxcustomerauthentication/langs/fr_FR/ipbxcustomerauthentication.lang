@@ -1,0 +1,42 @@
+# Copyright (C) 2021 Infra 
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see .
+
+#
+# Générique
+#
+
+# Module label 'ModuleIpbxCustomerAuthenticationName'
+ModuleIpbxCustomerAuthenticationName = Identification client pour IPBX
+# Module description 'ModuleIpbxCustomerAuthenticationDesc'
+ModuleIpbxCustomerAuthenticationDesc = Fourni des API basiques destinés à des IPBX afin de leur permettre d'identifier un client
+Permission468970 = Permet d'utiliser l'api getCustomerId
+Permission468971 = Permet d'utiliser l'api getCustomerType
+#
+# Page d'administration
+#
+IpbxCustomerAuthenticationSetup = Configuration du module d'identification client pour IPBX
+Settings = Réglages
+IpbxCustomerAuthenticationSetupPage = Page de configuration du module d'identification client pour IPBX
+IpbxCustomerCustomerTypeDictionaryName = Type de client
+IpbxAuthenticationCustomerTypeDictionaryTabName = Type de client
+IpbxCustomerAuthenticationCustomerTypeLabel = Nom
+IpbxCustomerAuthenticationCustomerTypeIpbxValue = Valeur retournée à l'IPBX
+IpbxCustomerAuthenticationCustomerThirdpartyTag = Tag possédé par ce type de client
+#
+# Page À propos
+#
+About = À propos
+IpbxCustomerAuthenticationAbout = À propos de IpbxCustomerAuthentication
+IpbxCustomerAuthenticationAboutPage = Page à propos de IpbxCustomerAuthentication

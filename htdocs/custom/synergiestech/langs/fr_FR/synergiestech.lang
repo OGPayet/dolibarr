@@ -81,8 +81,10 @@ SynergiesTechSendMailToThirdpartyBenefactor = Envoyer le bordereau PDF d'interve
 SynergiesTechSendMailToThirdpartyBenefactorDescription = Activer l'envoi du bordereau PDF d'intervention par mail au tier bénéficiaire
 SynergiesTechSendMailToThirdpartyObserver = Envoyer le bordereau PDF d'intervention par mail au tier observateur
 SynergiesTechSendMailToThirdpartyObserverDescription = Activer l'envoi du bordereau PDF d'intervention par mail au tier observateur
-
-
+SynergiesTechEquipmentLinkedProductAndCustomerTypeTabName = Lien Type client - Equipement
+SynergiesTechEquipementProductCustomerTypeProductLabel = Produit associé à un équipement
+SynergiesTechEquipementProductCustomerTypeLabel = Type de client
+SynergiesTechEquipementLinkedProductAndCustomerType = Lien produit d'équipement / type de client
 SynergiesTechAutoActionsTabName = Evènement automatique créé par ce module
 Notify_PROPAL_CREATE = Créer un évènement lorsqu'une proposition commerciale est créée
 PROPAL_CREATEInDolibarr = Proposition Commerciale %s créé
