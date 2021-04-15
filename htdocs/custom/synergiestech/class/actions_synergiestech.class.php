@@ -3584,4 +3584,90 @@ SCRIPT;
 			return 0;
 		}
 	}
-}
+
+	/**
+	 * Overloading the getCustomerType function : replacing the parent's function with the one below
+	 *
+	 * @param   array           $parameters     Hook metadatas (context, etc...)
+	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
+	 * @param   string          $action         Current action (if set). Generally create or edit or null
+	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
+	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
+	 */
+	public function getCustomerType($parameters = array(), &$object, &$action = '', $hookmanager) {
+		$contexts = explode(':', $parameters['context']);
+		if(in_array('ipbxcustomerauthenticationapi', $contexts) && $object->element == "societe") {
+			//We build thirdparty Id of this customer requester, benefactor and watcher
+			dol_include_once("/companyrelationships/class/companyrelationships.class.php");
+			$staticCompanyRelationShips = new CompanyRelationships($this->db);
+			$extendedThirdPartyIds = array();
+			$relationTypes = array(CompanyRelationShips::RELATION_TYPE_PRINCIPAL, CompanyRelationShips::RELATION_TYPE_BENEFACTOR, CompanyRelationShips::RELATION_TYPE_WATCHER);
+			foreach($relationTypes as $relationType)
+			{
+				$companyIds = $staticCompanyRelationShips->getRelationshipsThirdparty($object->id, $relationType, 2, 0);
+				if(is_array($companyIds)) {
+					$extendedThirdPartyIds = array_merge($extendedThirdPartyIds, $companyIds);
+				}
+			}
+			$extendedThirdPartyIds = array_unique(array_filter($extendedThirdPartyIds));
+			//we try to find equipment owned or built by this array of extended thirdparty ids
+			if(!empty($extendedThirdPartyIds))
+			{
+				$sql = 'SELECT fk_product FROM ' . MAIN_DB_PREFIX . 'equipement ';
+				$sql .= 'WHERE (fk_soc_fourn IN (' . implode(',', $extendedThirdPartyIds) . ')';
+				$sql .= ' OR (fk_soc_client IN (' . implode(',', $extendedThirdPartyIds) . '))';
+                $sql .= " AND entity IN (" . getEntity('equipement') . ') ';
+				$linkedFkProductEquipement = array();
+				$resql = $this->db->query($sql);
+				if($resql) {
+					while ($obj = $this->db->fetch_object($resql)) {
+						$linkedFkProductEquipement[] = $obj->fk_product;
+					}
+				}
+				$linkedFkProductEquipement = array_unique(array_filter($linkedFkProductEquipement));
+				$dictionaryOfProductPerCustomerType = $this->getEquipmentProductAndCustomerTypeDictionary();
+				$numberOfMatchBetweenCustomerTypeAndProducts = array();
+				foreach ($dictionaryOfProductPerCustomerType as $customerType => $productIds) {
+					$numberOfProductMatchingDictionaryEntry = count(array_intersect($linkedFkProductEquipement, $productIds));
+					if ($numberOfProductMatchingDictionaryEntry) {
+						if (!$numberOfMatchBetweenCustomerTypeAndProducts[$customerType]) {
+							$numberOfMatchBetweenCustomerTypeAndProducts[$customerType] = 0;
+						}
+						$numberOfMatchBetweenCustomerTypeAndProducts[$customerType] += $numberOfProductMatchingDictionaryEntry;
+					}
+				}
+				$customerType = null;
+				if (!empty($numberOfMatchBetweenCustomerTypeAndProducts)) {
+					$customerType = array_search(
+						max($numberOfMatchBetweenCustomerTypeAndProducts),
+						$numberOfMatchBetweenCustomerTypeAndProducts
+					);
+				}
+				if($customerType) {
+					$this->resprint = $customerType;
+					return 1;
+				}
+			}
+		}
+		return 0;
+	}
+
+	/**
+     * get equipment product and customer type dictionary
+     */
+
+    private function getEquipmentProductAndCustomerTypeDictionary()
+    {
+		dol_include_once('/advancedictionaries/class/dictionary.class.php');
+		$rawData = Dictionary::getJSONDictionary($this->db, "synergiestech", "EquipmentLinkedProductAndCustomerType");
+		$result = array();
+		foreach($rawData as $entry) {
+			$entry = (object) $entry;
+			$customerType = $entry->customer_type;
+			if(!$result[$customerType]) {
+				$result[$customerType] = array();
+			}
+			$result[$customerType] = array_merge($result[$customerType], explode(',', $entry->fk_product));
+		}
+		return $result;
+    }}

@@ -172,6 +172,7 @@ class modSynergiesTech extends DolibarrModules
 			'group:-ldap::true',
 			'synergiestech_admin:+dictionary_synergiestechtimeslot:SynergiesTechTimeSlotDictionaryLabel:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=synergiestechtimeslot',
 			'synergiestech_admin:+dictionary_activedirectorygroupmapping:SynergiesTechActiveDirectoryGroupMappingTabName:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=activedirectorygroupmapping',
+			'synergiestech_admin:+dictionary_equipmentlinkedproductandcustomertype:SynergiesTechEquipmentLinkedProductAndCustomerTypeTabName:synergiestech@synergiestech:true:/synergiestech/admin/dictionaries.php?name=equipmentlinkedproductandcustomertype',
 			'synergiestech_admin:+autoactions:SynergiesTechAutoActionsTabName:synergiestech@synergiestech:true:/synergiestech/admin/agenda.php',
 			'thirdparty:-rm_request_list::true',
             'thirdparty:-rm_request_planning_list::true',
