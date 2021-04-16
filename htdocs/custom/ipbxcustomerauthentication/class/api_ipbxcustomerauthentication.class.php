@@ -62,6 +62,10 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
     const NUMBER_OF_CUSTOMER_CODE_DIGITS = 4;
 
     /**
+     * @var int Default value returned in case of error
+     */
+    const ERROR_VALUE_RETURNED = 0;
+    /**
      * Constructor
      *
      * @url     GET /
@@ -84,7 +88,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      *
      * @param   string     $phoneNumber incoming phone number
      * @param   string     $customerCode incoming given customer code from ipbx
-     * @return  int|null
+     * @return  int
      *
      * @url GET getCustomerId
      *
@@ -120,7 +124,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         if (!empty($thirdpartyIds)) {
             return array_pop(array_reverse($thirdpartyIds));
         } else {
-            return null;
+            return self::ERROR_VALUE_RETURNED;
         }
     }
 
@@ -130,7 +134,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      * Return an array with ipbxcustomerauthentication information
      *
      * @param   int     $customerId ID of the customer (third party)
-     * @return  string|null
+     * @return  string
      *
      * @url GET getCustomerType
      *
@@ -144,10 +148,12 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
             throw new RestException(401);
         }
 
-        if ($customerId <= 0 || $this->thirdparty->fetch($customerId) <= 0) {
-            throw new RestException(404, 'No thirdparty found with Id ' . $customerId);
+        if ($customerId <= 0) {
+            throw new RestException(404, 'Invalid thirdparty Id ' . $customerId);
         }
-
+        if($this->thirdparty->fetch($customerId) <= 0) {
+            return self::ERROR_VALUE_RETURNED;
+        }
         //We try to find a third party tag matching a dictionary entry
         $thirdPartyCategoryIds = $this->thirdparty->getLinkedCategoryIds(IpbxCustomerTypeDictionary::CATEGORY_TYPES);
         $dictionaryOfCustomerType = $this->getCustomerTypeDictionary();
@@ -183,7 +189,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         if ($customerTypeId) {
             $finalCustomerType = $dictionaryOfCustomerType[$customerTypeId];
         }
-        return is_object($finalCustomerType) ? $finalCustomerType->ipbxvalue : null;
+        return is_object($finalCustomerType) ? $finalCustomerType->ipbxvalue : self::ERROR_VALUE_RETURNED;
     }
 
     /**
