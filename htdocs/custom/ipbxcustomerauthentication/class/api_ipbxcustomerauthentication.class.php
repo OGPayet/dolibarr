@@ -62,10 +62,6 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
     const NUMBER_OF_CUSTOMER_CODE_DIGITS = 4;
 
     /**
-     * @var int Default value returned in case of error
-     */
-    const ERROR_VALUE_RETURNED = null;
-    /**
      * Constructor
      *
      * @url     GET /
