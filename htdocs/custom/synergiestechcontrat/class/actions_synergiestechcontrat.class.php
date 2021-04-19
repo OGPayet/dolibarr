@@ -211,42 +211,40 @@ class ActionsSynergiestechcontrat
         $contexts = explode(':', $parameters['context']);
 
         if (in_array('pdfgeneration', $contexts)) {
-            // Fetch linked objects to add commande and fichinter ref inside public note
-            $parameters['object']->fetchObjectLinked();
-            if ($parameters['object']->linkedObjectsIds) {
-                $notetoshow = '';
+            if ($object->element == "facture" && $object->model_pdf == "ouvrage_fact_st") {
+                // Fetch linked objects to add commande and fichinter ref inside public note
+                $object->fetchObjectLinked();
+                if ($object->linkedObjectsIds) {
+                    if ($object->linkedObjectsIds['commande']) {
+                        foreach($object->linkedObjectsIds['commande'] as $commandeId) {
+                            $commande = new Commande($db);
+                            
+                            $commande->fetch($commandeId);
+                            
+                            $object->note_public .= $parameters['outputlangs']->transnoentities("STCPurchaseOrderNumber") . ' : ' . $commande->ref . '<br />';
+                        }
+                    }
 
-                if ($parameters['object']->linkedObjectsIds['commande']) {
-                    foreach($parameters['object']->linkedObjectsIds['commande'] as $commandeId) {
-                        $commande = new Commande($db);
-                        
-                        $commande->fetch($commandeId);
-                        
-                        $notetoshow .= $parameters['outputlangs']->transnoentities("STCPurchaseOrderNumber") . ' : ' . $commande->ref . '<br />';
+                    if ($object->linkedObjectsIds['fichinter']) {
+                        foreach($object->linkedObjectsIds['fichinter'] as $fichinterId) {
+                            $fichinter = new Fichinter($db);
+                            
+                            $fichinter->fetch($fichinterId);
+                            
+                            $object->note_public .= $parameters['outputlangs']->transnoentities("STCFichinterNumber") .  ' : ' . $fichinter->ref . '<br />';
+                        }
                     }
                 }
 
-                if ($parameters['object']->linkedObjectsIds['fichinter']) {
-                    foreach($parameters['object']->linkedObjectsIds['fichinter'] as $fichinterId) {
-                        $fichinter = new Fichinter($db);
-                        
-                        $fichinter->fetch($fichinterId);
-                        
-                        $notetoshow .= $parameters['outputlangs']->transnoentities("STCFichinterNumber") .  ' : ' . $fichinter->ref . '<br />';
+                if ($object->array_options) {
+                    $customerPurchaseOrderNumber = $object->array_options['options_customer_purchase_order_number'];
+                    if ($customerPurchaseOrderNumber) {
+                        $object->note_public .= $parameters['outputlangs']->transnoentities("STCCustomerPurchaseOrderNumber") . ' : ' . $customerPurchaseOrderNumber . '<br />';
                     }
                 }
+
+                $ret = 1;
             }
-
-            if ($parameters['object']->array_options) {
-                $customerPurchaseOrderNumber = $parameters['object']->array_options['options_customer_purchase_order_number'];
-                if ($customerPurchaseOrderNumber) {
-                    $notetoshow .= $parameters['outputlangs']->transnoentities("STCCustomerPurchaseOrderNumber") . ' : ' . $customerPurchaseOrderNumber . '<br />';
-                }
-            }
-
-            $this->resprints = $notetoshow;
-
-            $ret = 1;
         }
 
         return $ret;

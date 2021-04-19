@@ -291,7 +291,6 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                 $parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
                 global $action;
                 $reshook    = $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action);    // Note that $action and $object may have been modified by some hooks
-                $notetoshow = $hookmanager->resPrint;
                 // Set nblignes with the new facture lines content after hook
                 $nblignes   = count($object->lines);
                 $nbpayments = count($object->getListOfPayments());
@@ -401,7 +400,7 @@ class pdf_ouvrage_fact_st extends ModelePDFFactures
                 }
 
                 // Affiche notes
-                $notetoshow .= empty($object->note_public) ? '' : $object->note_public;
+                $notetoshow = empty($object->note_public) ? '' : $object->note_public;
                 if (!empty($conf->global->MAIN_ADD_SALE_REP_SIGNATURE_IN_NOTE)) {
                     // Get first sale rep
                     if (is_object($object->thirdparty)) {
