@@ -62,10 +62,6 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
     const NUMBER_OF_CUSTOMER_CODE_DIGITS = 4;
 
     /**
-     * @var int Default value returned in case of error
-     */
-    const ERROR_VALUE_RETURNED = 0;
-    /**
      * Constructor
      *
      * @url     GET /
@@ -96,11 +92,11 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
     public function getCustomerId($phoneNumber = null, $customerCode = null)
     {
         if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->ipbxcustomerauthentication->getCustomerId) {
-            return self::ERROR_VALUE_RETURNED;
+            throw new RestException(401);
         }
 
         if (strlen($phoneNumber) < self::NUMBER_OF_PHONE_NUMBER_DIGITS && strlen($customerCode) < self::NUMBER_OF_CUSTOMER_CODE_DIGITS) {
-            return self::ERROR_VALUE_RETURNED;
+            throw new RestException(400, 'Bad Request, wrong value provided for phoneNumber or customerCode');
         }
         $thirdpartyIds = array();
         if (strlen($phoneNumber) >= self::NUMBER_OF_PHONE_NUMBER_DIGITS) {
@@ -122,7 +118,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         if (!empty($thirdpartyIds)) {
             return array_pop(array_reverse($thirdpartyIds));
         } else {
-            return self::ERROR_VALUE_RETURNED;
+            return null;
         }
     }
 
@@ -140,15 +136,15 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
     {
         global $hookmanager;
         if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->ipbxcustomerauthentication->getCustomerType) {
-            return self::ERROR_VALUE_RETURNED;
+            throw new RestException(401);
         }
 
         if ($customerId <= 0) {
-            return self::ERROR_VALUE_RETURNED;
+			throw new RestException(400, 'Bad request, parameter customerId in incorrect range');
         }
         if ($this->thirdparty->fetch($customerId) <= 0) {
-            return self::ERROR_VALUE_RETURNED;
-        }
+			throw new RestException(404, 'No thirdparty found with Id ' . $customerId);
+		}
         //We try to find a third party tag matching a dictionary entry
         $thirdPartyCategoryIds = $this->thirdparty->getLinkedCategoryIds(IpbxCustomerTypeDictionary::CATEGORY_TYPES);
         $dictionaryOfCustomerType = $this->getCustomerTypeDictionary();
@@ -184,7 +180,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         if ($customerTypeId) {
             $finalCustomerTypeDictionaryEntry = $dictionaryOfCustomerType[$customerTypeId];
         }
-        return is_object($finalCustomerTypeDictionaryEntry) ? $finalCustomerTypeDictionaryEntry->ipbxvalue : self::ERROR_VALUE_RETURNED;
+        return is_object($finalCustomerTypeDictionaryEntry) ? $finalCustomerTypeDictionaryEntry->ipbxvalue : null;
     }
 
     /**
