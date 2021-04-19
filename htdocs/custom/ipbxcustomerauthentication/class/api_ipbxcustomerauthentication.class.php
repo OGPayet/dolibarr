@@ -140,11 +140,11 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         }
 
         if ($customerId <= 0) {
-			throw new RestException(400, 'Bad request, parameter customerId in incorrect range');
+            throw new RestException(400, 'Bad request, parameter customerId in incorrect range');
         }
         if ($this->thirdparty->fetch($customerId) <= 0) {
-			throw new RestException(404, 'No thirdparty found with Id ' . $customerId);
-		}
+            throw new RestException(404, 'No thirdparty found with Id ' . $customerId);
+        }
         //We try to find a third party tag matching a dictionary entry
         $thirdPartyCategoryIds = $this->thirdparty->getLinkedCategoryIds(IpbxCustomerTypeDictionary::CATEGORY_TYPES);
         $dictionaryOfCustomerType = $this->getCustomerTypeDictionary();
@@ -180,11 +180,11 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         if ($customerTypeId) {
             $finalCustomerTypeDictionaryEntry = $dictionaryOfCustomerType[$customerTypeId];
         }
-		if(is_object($finalCustomerTypeDictionaryEntry)) {
-			return $finalCustomerTypeDictionaryEntry->ipbxvalue;
-		} else {
-			throw new RestException(404, 'No Customer type for this customer');
-		}
+        if (is_object($finalCustomerTypeDictionaryEntry)) {
+            return $finalCustomerTypeDictionaryEntry->ipbxvalue;
+        } else {
+            throw new RestException(404, 'No Customer type for this customer');
+        }
     }
 
     /**
@@ -199,6 +199,8 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
             return true;
         }
 
+        $phoneA = self::cleanPhoneNumber($phoneA);
+        $phoneB = self::cleanPhoneNumber($phoneB);
         // remove "0", "+" from the beginning of the numbers
         if ($phoneA[0] == '0' || $phoneB[0] == '0' ||
             $phoneA[0] == '+' || $phoneB[0] == '+'
@@ -225,6 +227,16 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
     }
 
     /**
+     * Function to clean phone number from unwanted characters
+     * @param string $phoneNumber phone number to clean
+     * @return string
+     */
+    private static function cleanPhoneNumber($phoneNumber)
+    {
+		return preg_replace('/[^0-9]/i', '', $phoneNumber);
+    }
+
+    /**
      * Function to get matching thirdparty Id according to a phone number
      * @param int $phoneNumber real phone number
      * @param int $truncatedPhoneNumber truncated phone number to reduce number of check done thanks to a more precise sql request
@@ -236,7 +248,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         $phoneFieldOnSociete = array('phone', 'fax');
         $sqlFilterForPhone = array();
         foreach ($phoneFieldOnSociete as $field) {
-            $sqlFilterForPhone[] = 'TRIM(' . $field . ') LIKE "%' . $truncatedPhoneNumber .'"';
+        	$sqlFilterForPhone[] = 'REGEXP_REPLACE(' . $field . ',"[^0-9]+", "")' . ' LIKE "%' . $truncatedPhoneNumber .'"';
         }
         $sqlFilter[] = implode(' OR ', $sqlFilterForPhone);
         $sqlFilter[] = 'client = 1 OR fournisseur = 1';
@@ -265,7 +277,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         $phoneFieldOnContact = array('phone', 'phone_perso', 'phone_mobile', 'fax');
         $sqlFilterForPhone = array();
         foreach ($phoneFieldOnContact as $field) {
-            $sqlFilterForPhone[] = 'TRIM(' . $field . ') LIKE "%' . $truncatedPhoneNumber .'"';
+        	$sqlFilterForPhone[] = 'REGEXP_REPLACE(' . $field . ',"[^0-9]+", "")' . ' LIKE "%' . $truncatedPhoneNumber .'"';
         }
         $sqlFilter[] = implode(' OR ', $sqlFilterForPhone);
         $sqlFilter[] = 'statut = 1';
