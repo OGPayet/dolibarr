@@ -26,6 +26,9 @@
 /**
  * Class Actionssynergiestechcontrat
  */
+require_once DOL_DOCUMENT_ROOT."/commande/class/commande.class.php";
+require_once DOL_DOCUMENT_ROOT.'/fichinter/class/fichinter.class.php';
+
 class ActionsSynergiestechcontrat
 {
     /**
@@ -188,4 +191,62 @@ class ActionsSynergiestechcontrat
 		}
         return 0;
 	}
+
+    /**
+     * Execute action
+     *
+     * @param	array	$parameters     Array of parameters
+     * @param   Object	$object		   	Object output on PDF
+     * @param   string	$action     	'add', 'update', 'view'
+     * @return  int 		        	<0 if KO,
+     *                          		=0 if OK but we want to process standard actions too,
+     *  	                            >0 if OK and we want to replace standard actions.
+     */
+    public function beforePDFCreation($parameters, &$object, &$action) {
+        global $db;
+
+        $ret=0; $deltemp=array();
+        dol_syslog(get_class($this).'::executeHooks action='.$action);
+
+        $contexts = explode(':', $parameters['context']);
+
+        if (in_array('pdfgeneration', $contexts)) {
+            if ($object->element == "facture" && $object->model_pdf == "ouvrage_fact_st") {
+                // Fetch linked objects to add commande and fichinter ref inside public note
+                $object->fetchObjectLinked();
+                if ($object->linkedObjectsIds) {
+                    if ($object->linkedObjectsIds['commande']) {
+                        foreach($object->linkedObjectsIds['commande'] as $commandeId) {
+                            $commande = new Commande($db);
+                            
+                            $commande->fetch($commandeId);
+                            
+                            $object->note_public .= $parameters['outputlangs']->transnoentities("STCPurchaseOrderNumber") . ' : ' . $commande->ref . '<br />';
+                        }
+                    }
+
+                    if ($object->linkedObjectsIds['fichinter']) {
+                        foreach($object->linkedObjectsIds['fichinter'] as $fichinterId) {
+                            $fichinter = new Fichinter($db);
+                            
+                            $fichinter->fetch($fichinterId);
+                            
+                            $object->note_public .= $parameters['outputlangs']->transnoentities("STCFichinterNumber") .  ' : ' . $fichinter->ref . '<br />';
+                        }
+                    }
+                }
+
+                if ($object->array_options) {
+                    $customerPurchaseOrderNumber = $object->array_options['options_customer_purchase_order_number'];
+                    if ($customerPurchaseOrderNumber) {
+                        $object->note_public .= $parameters['outputlangs']->transnoentities("STCCustomerPurchaseOrderNumber") . ' : ' . $customerPurchaseOrderNumber . '<br />';
+                    }
+                }
+
+                $ret = 1;
+            }
+        }
+
+        return $ret;
+    }
 }

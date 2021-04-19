@@ -286,3 +286,6 @@ STCBillingPeriodBeginShort  = Début de la période
 STCBillingPeriodEnd         = Fin de la période de facturation
 STCBillingPeriodEndShort    = Fin de la période
 STCContractLineExtraDesc    = Formule contrat de maintenance
+STCPurchaseOrderNumber         = Numéro du bon de commande
+STCFichinterNumber             = Numéro d'intervention
+STCCustomerPurchaseOrderNumber = Numéro du bon de commande client
