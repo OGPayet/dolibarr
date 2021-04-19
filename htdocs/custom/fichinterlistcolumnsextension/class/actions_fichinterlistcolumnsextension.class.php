@@ -103,7 +103,10 @@ class ActionsFichinterListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('interventionlist', $contexts)) {
-
+			$sql = ', co.ref as commande_ref';
+			
+			$this->resprints = $sql;
+			return 1;
 		}
 	}
 
@@ -121,8 +124,8 @@ class ActionsFichinterListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('interventionlist', $contexts)) {
-			$sql = " LEFT JOIN ".MAIN_DB_PREFIX."element_element as el on f.rowid = el.fk_target";
-			$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande as co on el.fk_source = co.rowid";
+			$sql = " LEFT JOIN (SELECT * FROM ".MAIN_DB_PREFIX."element_element WHERE (sourcetype = 'commande' AND targettype = 'fichinter') OR (sourcetype = 'fichinter' AND targettype = 'commande')) as el on (f.rowid = el.fk_source) OR (f.rowid = el.fk_target)";
+			$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande as co on (el.fk_source = co.rowid) OR (el.fk_target = co.rowid)";
 
 			$this->resprints = $sql;
 			return 1;
@@ -152,6 +155,9 @@ class ActionsFichinterListColumnsExtension
 			if ($this->getSelectedInterventionFramework()) {
 				$sql = " AND (c.ref = '" . $this->getSelectedInterventionFramework() . "'"; 
 				$sql .= " OR co.ref = '" . $this->getSelectedInterventionFramework() . "')";
+			} else if ($this->getInterventionFrameworkAlertCheckbox()) {
+				$sql = " AND c.ref is null"; 
+				$sql .= " AND co.ref is null";
 			}
 
 			$this->resprints = $sql;
@@ -202,7 +208,13 @@ class ActionsFichinterListColumnsExtension
 		if (in_array('interventionlist', $contexts)) {
 			if (!empty($parameters['arrayfields']['co.ref']['checked'])) {
 				print '<td class="liste_titre center">';
+				print '<div class="nowrap">';
+				print '<div class="nowrap inline-block">';
 				print '<input type="text" class="flat" name="search_intervention_framework" value="'.$this->getSelectedInterventionFramework().'" size="8">';
+				print '</div>';
+				print '<input type="checkbox" name="search_intervention_framework_alert" value="empty_intervention_framework">';
+				print 'Alerte';
+				print '</div>';
 				print '</td>';
 			}
 		}
@@ -265,9 +277,9 @@ class ActionsFichinterListColumnsExtension
 					$fichinter->fetch($parameters['obj']->rowid);
 					$fichinter->fetchObjectLinked();
 
+					$commandeId = null;
 					if ($fichinter->linkedObjectsIds) {
 						if ($fichinter->linkedObjectsIds['commande']) {
-							$commandeId = '';
 							foreach($fichinter->linkedObjectsIds['commande'] as $commId) {
 								$commandeId = $commId;
 							}
@@ -278,7 +290,9 @@ class ActionsFichinterListColumnsExtension
 							print $commande->getNomUrl(1, '');
 							print '</td>';
 						}
-					} else {
+					}
+
+					if (!$commandeId) {
 						print '<span class="fas fa-exclamation-triangle pictowarning pictowarning" title="' . $langs->trans("FichinterListAlertNoContractAndNoPurchaseOrder") . '"></span>';
 						print '</td>';
 					}
@@ -297,6 +311,14 @@ class ActionsFichinterListColumnsExtension
      */
     private function getSelectedInterventionFramework() {
 		return GETPOST('search_intervention_framework', 'alpha');
+	}
+
+	/**
+     * Function to get intervention framework alert checkbox
+     * @return  string
+     */
+    private function getInterventionFrameworkAlertCheckbox() {
+		return GETPOST('search_intervention_framework_alert', 'alpha');
 	}
 }
 ?>
