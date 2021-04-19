@@ -118,7 +118,7 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         if (!empty($thirdpartyIds)) {
             return array_pop(array_reverse($thirdpartyIds));
         } else {
-            return null;
+            throw new RestException(404, 'No Customer found with this phone number');
         }
     }
 
@@ -180,7 +180,11 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         if ($customerTypeId) {
             $finalCustomerTypeDictionaryEntry = $dictionaryOfCustomerType[$customerTypeId];
         }
-        return is_object($finalCustomerTypeDictionaryEntry) ? $finalCustomerTypeDictionaryEntry->ipbxvalue : null;
+		if(is_object($finalCustomerTypeDictionaryEntry)) {
+			return $finalCustomerTypeDictionaryEntry->ipbxvalue;
+		} else {
+			throw new RestException(404, 'No Customer type for this customer');
+		}
     }
 
     /**
