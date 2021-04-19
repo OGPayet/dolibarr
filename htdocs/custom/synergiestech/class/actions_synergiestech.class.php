@@ -3586,7 +3586,7 @@ SCRIPT;
 	}
 
 	/**
-	 * Overloading the getCustomerType function : replacing the parent's function with the one below
+	 * Overloading the buildCustomerTypeProbability function : replacing the parent's function with the one below
 	 *
 	 * @param   array           $parameters     Hook metadatas (context, etc...)
 	 * @param   CommonObject    $object         The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
@@ -3594,7 +3594,7 @@ SCRIPT;
 	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
 	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
 	 */
-	public function getCustomerType($parameters = array(), &$object, &$action = '', $hookmanager) {
+	public function buildCustomerTypeProbability(&$parameters = array(), &$object, &$action = '', $hookmanager) {
 		$contexts = explode(':', $parameters['context']);
 		if(in_array('ipbxcustomerauthenticationapi', $contexts) && $object->element == "societe") {
 			//We build thirdparty Id of this customer requester, benefactor and watcher
@@ -3609,6 +3609,7 @@ SCRIPT;
 					$extendedThirdPartyIds = array_merge($extendedThirdPartyIds, $companyIds);
 				}
 			}
+			$extendedThirdPartyIds[] = $object->id;
 			$extendedThirdPartyIds = array_unique(array_filter($extendedThirdPartyIds));
 			//we try to find equipment owned or built by this array of extended thirdparty ids
 			if(!empty($extendedThirdPartyIds))
@@ -3631,23 +3632,11 @@ SCRIPT;
 				foreach ($dictionaryOfProductPerCustomerType as $customerType => $productIds) {
 					$numberOfProductMatchingDictionaryEntry = count(array_intersect($linkedFkProductEquipement, $productIds));
 					if ($numberOfProductMatchingDictionaryEntry) {
-						if (!$numberOfMatchBetweenCustomerTypeAndProducts[$customerType]) {
-							$numberOfMatchBetweenCustomerTypeAndProducts[$customerType] = 0;
-						}
-						$numberOfMatchBetweenCustomerTypeAndProducts[$customerType] += $numberOfProductMatchingDictionaryEntry;
+						$numberOfMatchBetweenCustomerTypeAndProducts = array_pad($numberOfMatchBetweenCustomerTypeAndProducts, count($numberOfMatchBetweenCustomerTypeAndProducts) + $numberOfProductMatchingDictionaryEntry, $customerType);
 					}
 				}
-				$customerTypeId = null;
-				if (!empty($numberOfMatchBetweenCustomerTypeAndProducts)) {
-					$customerTypeId = array_search(
-						max($numberOfMatchBetweenCustomerTypeAndProducts),
-						$numberOfMatchBetweenCustomerTypeAndProducts
-					);
-				}
-				if($customerTypeId) {
-					$this->resprints = $customerTypeId;
-					return 1;
-				}
+				$this->results = $numberOfMatchBetweenCustomerTypeAndProducts;
+				return 0;
 			}
 		}
 		return 0;

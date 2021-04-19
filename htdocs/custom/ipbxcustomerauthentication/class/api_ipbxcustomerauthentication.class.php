@@ -77,9 +77,9 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
         $this->db = $db;
         $this->thirdparty = new ExtendedSociete($this->db);
         $this->contact = new ExtendedContact($this->db);
-		global $hookmanager;
-		$hookmanager->initHooks(array('globalapi', 'ipbxcustomerauthenticationapi'));
-	}
+        global $hookmanager;
+        $hookmanager->initHooks(array('globalapi', 'ipbxcustomerauthenticationapi'));
+    }
 
     /**
      * Get properties of a ipbxcustomerauthentication object
@@ -92,17 +92,15 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      *
      * @url GET getCustomerId
      *
-     * @throws RestException 401 Not allowed
-     * @throws RestException 404 Not found
      */
     public function getCustomerId($phoneNumber = null, $customerCode = null)
     {
         if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->ipbxcustomerauthentication->getCustomerId) {
-            throw new RestException(401);
+            return self::ERROR_VALUE_RETURNED;
         }
 
         if (strlen($phoneNumber) < self::NUMBER_OF_PHONE_NUMBER_DIGITS && strlen($customerCode) < self::NUMBER_OF_CUSTOMER_CODE_DIGITS) {
-            throw new RestException(400);
+            return self::ERROR_VALUE_RETURNED;
         }
         $thirdpartyIds = array();
         if (strlen($phoneNumber) >= self::NUMBER_OF_PHONE_NUMBER_DIGITS) {
@@ -137,59 +135,56 @@ class IpbxCustomerAuthenticationApi extends DolibarrApi
      * @return  string
      *
      * @url GET getCustomerType
-     *
-     * @throws RestException 401 Not allowed
-     * @throws RestException 404 Not found
      */
     public function getCustomerType($customerId)
     {
-		global $hookmanager;
+        global $hookmanager;
         if (!DolibarrApiAccess::$user->rights->ipbxcustomerauthentication->ipbxcustomerauthentication->getCustomerType) {
-            throw new RestException(401);
+            return self::ERROR_VALUE_RETURNED;
         }
 
         if ($customerId <= 0) {
-            throw new RestException(404, 'Invalid thirdparty Id ' . $customerId);
+            return self::ERROR_VALUE_RETURNED;
         }
-        if($this->thirdparty->fetch($customerId) <= 0) {
+        if ($this->thirdparty->fetch($customerId) <= 0) {
             return self::ERROR_VALUE_RETURNED;
         }
         //We try to find a third party tag matching a dictionary entry
         $thirdPartyCategoryIds = $this->thirdparty->getLinkedCategoryIds(IpbxCustomerTypeDictionary::CATEGORY_TYPES);
         $dictionaryOfCustomerType = $this->getCustomerTypeDictionary();
-        $numberOfMatchBetweenCustomerTypeAndCategories = array();
+        $numberOfMatchForCustomerType = array();
         foreach ($dictionaryOfCustomerType as $rowid => $customerType) {
             $numberOfCommonTag = count(array_intersect($customerType->thirdparty_tag, $thirdPartyCategoryIds));
             if ($numberOfCommonTag > 0) {
-                if (!$numberOfMatchBetweenCustomerTypeAndCategories[$rowid]) {
-                    $numberOfMatchBetweenCustomerTypeAndCategories[$rowid] = 0;
-                }
-                $numberOfMatchBetweenCustomerTypeAndCategories[$rowid] += $numberOfCommonTag;
+                $numberOfMatchForCustomerType = array_pad($numberOfMatchForCustomerType, count($numberOfMatchForCustomerType) + $numberOfCommonTag, $rowid);
             }
         }
-        $customerTypeId = null;
-        if (!empty($numberOfMatchBetweenCustomerTypeAndCategories)) {
-            $customerTypeId = array_search(
-                max($numberOfMatchBetweenCustomerTypeAndCategories),
-                $numberOfMatchBetweenCustomerTypeAndCategories
-            );
-        }
-
-        //We call a hook to check if some external module may modify effective market type
+        //We call a hook to check if some external module may modify effective market type probability array
         $parameters = array(
             'customerTypeDictionary' => &$dictionaryOfCustomerType,
-            'customerTypeId' => &$customerTypeId,
-            'numberOfMatchBetweenCustomerTypeAndCategories' => &$numberOfMatchBetweenCustomerTypeAndCategories,
+            'numberOfMatchForCustomerType' => &$numberOfMatchForCustomerType,
             'customerId' => $customerId
         );
-        $reshook = $hookmanager->executeHooks('getCustomerType', $parameters, $this->thirdparty);
-        if ($reshook > 0) {
-            $customerTypeId = $hookmanager->resPrint;
+        $reshook = $hookmanager->executeHooks('buildCustomerTypeProbability', $parameters, $this->thirdparty);
+        if ($reshook == 0) {
+            $numberOfMatchForCustomerType = array_merge($numberOfMatchForCustomerType, $hookmanager->resArray);
+        } elseif ($reshook > 0) {
+            $numberOfMatchForCustomerType = $hookmanager->resArray;
+        }
+
+        $frequencyOfEachCustomerType = array_count_values($numberOfMatchForCustomerType);
+
+        $customerTypeId = null;
+        if (!empty($frequencyOfEachCustomerType)) {
+            $customerTypeId = array_search(
+                max($frequencyOfEachCustomerType),
+                $frequencyOfEachCustomerType
+            );
         }
         if ($customerTypeId) {
-            $finalCustomerType = $dictionaryOfCustomerType[$customerTypeId];
+            $finalCustomerTypeDictionaryEntry = $dictionaryOfCustomerType[$customerTypeId];
         }
-        return is_object($finalCustomerType) ? $finalCustomerType->ipbxvalue : self::ERROR_VALUE_RETURNED;
+        return is_object($finalCustomerTypeDictionaryEntry) ? $finalCustomerTypeDictionaryEntry->ipbxvalue : self::ERROR_VALUE_RETURNED;
     }
 
     /**
