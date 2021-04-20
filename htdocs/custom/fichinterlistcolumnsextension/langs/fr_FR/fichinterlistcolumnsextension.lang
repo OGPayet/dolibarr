@@ -22,5 +22,5 @@ ModuleFichinterListColumnsExtensionName = FichinterListColumnsExtension
 # Module description 'ModuleFichinterListColumnsExtensionDesc'
 ModuleFichinterListColumnsExtensionDesc = Permet d'ajouter des colonnes à la liste des interventions
 
-FichinterListInterventionFramework = Cadre d'intervention
+FichinterListInterventionContext = Cadre d'intervention
 FichinterListAlertNoContractAndNoPurchaseOrder = Alerte - Aucun contrat ni bon de commande

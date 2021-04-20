@@ -85,7 +85,7 @@ class ActionsFichinterListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('interventionlist', $contexts)) {
-			$arrayfields['co.ref'] = array('label'=>$langs->trans("FichinterListInterventionFramework"), 'checked'=>1, 'position'=>1010);
+			$arrayfields['co.ref'] = array('label'=>$langs->trans("FichinterListInterventionContext"), 'checked'=>1, 'position'=>1010);
 		}
 	}
 
@@ -152,10 +152,10 @@ class ActionsFichinterListColumnsExtension
 		if (in_array('interventionlist', $contexts)) {
 			$sql = '';
 
-			if ($this->getSelectedInterventionFramework()) {
-				$sql = " AND (c.ref = '" . $this->getSelectedInterventionFramework() . "'"; 
-				$sql .= " OR co.ref = '" . $this->getSelectedInterventionFramework() . "')";
-			} else if ($this->getInterventionFrameworkAlertCheckbox()) {
+			if ($this->getSelectedInterventionContext()) {
+				$sql = " AND (c.ref = '" . $this->getSelectedInterventionContext() . "'"; 
+				$sql .= " OR co.ref = '" . $this->getSelectedInterventionContext() . "')";
+			} else if ($this->getInterventionContextAlertCheckbox()) {
 				$sql = " AND c.ref is null"; 
 				$sql .= " AND co.ref is null";
 			}
@@ -210,9 +210,9 @@ class ActionsFichinterListColumnsExtension
 				print '<td class="liste_titre center">';
 				print '<div class="nowrap">';
 				print '<div class="nowrap inline-block">';
-				print '<input type="text" class="flat" name="search_intervention_framework" value="'.$this->getSelectedInterventionFramework().'" size="8">';
+				print '<input type="text" class="flat" name="search_intervention_context" value="'.$this->getSelectedInterventionContext().'" size="8">';
 				print '</div>';
-				print '<input type="checkbox" name="search_intervention_framework_alert" value="empty_intervention_framework">';
+				print '<input type="checkbox" name="search_intervention_context_alert" value="empty_intervention_context">';
 				print 'Alerte';
 				print '</div>';
 				print '</td>';
@@ -306,19 +306,19 @@ class ActionsFichinterListColumnsExtension
 	}
 
 	/**
-     * Function to get current selected intervention framework ( = contract or commande ref)
+     * Function to get current selected intervention context ( = contract or commande ref)
      * @return  string
      */
-    private function getSelectedInterventionFramework() {
-		return GETPOST('search_intervention_framework', 'alpha');
+    private function getSelectedInterventionContext() {
+		return GETPOST('search_intervention_context', 'alpha');
 	}
 
 	/**
-     * Function to get intervention framework alert checkbox
+     * Function to get intervention context alert checkbox
      * @return  string
      */
-    private function getInterventionFrameworkAlertCheckbox() {
-		return GETPOST('search_intervention_framework_alert', 'alpha');
+    private function getInterventionContextAlertCheckbox() {
+		return GETPOST('search_intervention_context_alert', 'alpha');
 	}
 }
 ?>
