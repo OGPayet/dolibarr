@@ -124,8 +124,9 @@ class ActionsFichinterListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('interventionlist', $contexts)) {
-			$sql = " LEFT JOIN (SELECT * FROM ".MAIN_DB_PREFIX."element_element WHERE (sourcetype = 'commande' AND targettype = 'fichinter') OR (sourcetype = 'fichinter' AND targettype = 'commande')) as el on (f.rowid = el.fk_source) OR (f.rowid = el.fk_target)";
-			$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande as co on (el.fk_source = co.rowid) OR (el.fk_target = co.rowid)";
+			$sql = " LEFT JOIN (SELECT * FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'commande' AND targettype = 'fichinter') as el on f.rowid = el.fk_target";
+			$sql .= " LEFT JOIN (SELECT * FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'fichinter' AND targettype = 'commande') as el2 on f.rowid = el2.fk_source";
+			$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande as co on (el.fk_source = co.rowid) OR (el2.fk_target = co.rowid)";
 
 			$this->resprints = $sql;
 			return 1;
