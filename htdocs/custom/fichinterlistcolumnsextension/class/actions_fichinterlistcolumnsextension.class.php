@@ -85,7 +85,7 @@ class ActionsFichinterListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('interventionlist', $contexts)) {
-			$arrayfields['co.ref'] = array('label'=>$langs->trans("FichinterListInterventionFramework"), 'checked'=>1, 'position'=>1010);
+			$arrayfields['co.ref'] = array('label'=>$langs->trans("FichinterListInterventionContext"), 'checked'=>1, 'position'=>1010);
 		}
 	}
 
@@ -103,7 +103,10 @@ class ActionsFichinterListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('interventionlist', $contexts)) {
-
+			$sql = ', co.ref as commande_ref';
+			
+			$this->resprints = $sql;
+			return 1;
 		}
 	}
 
@@ -121,8 +124,9 @@ class ActionsFichinterListColumnsExtension
 		$contexts = explode(':', $parameters['context']);
 
 		if (in_array('interventionlist', $contexts)) {
-			$sql = " LEFT JOIN ".MAIN_DB_PREFIX."element_element as el on f.rowid = el.fk_target";
-			$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande as co on el.fk_source = co.rowid";
+			$sql = " LEFT JOIN (SELECT * FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'commande' AND targettype = 'fichinter') as el on f.rowid = el.fk_target";
+			$sql .= " LEFT JOIN (SELECT * FROM ".MAIN_DB_PREFIX."element_element WHERE sourcetype = 'fichinter' AND targettype = 'commande') as el2 on f.rowid = el2.fk_source";
+			$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commande as co on (el.fk_source = co.rowid) OR (el2.fk_target = co.rowid)";
 
 			$this->resprints = $sql;
 			return 1;
@@ -149,9 +153,12 @@ class ActionsFichinterListColumnsExtension
 		if (in_array('interventionlist', $contexts)) {
 			$sql = '';
 
-			if ($this->getSelectedInterventionFramework()) {
-				$sql = " AND (c.ref = '" . $this->getSelectedInterventionFramework() . "'"; 
-				$sql .= " OR co.ref = '" . $this->getSelectedInterventionFramework() . "')";
+			if ($this->getSelectedInterventionContext()) {
+				$sql = " AND (c.ref = '" . $this->getSelectedInterventionContext() . "'"; 
+				$sql .= " OR co.ref = '" . $this->getSelectedInterventionContext() . "')";
+			} else if ($this->getInterventionContextAlertCheckbox()) {
+				$sql = " AND c.ref is null"; 
+				$sql .= " AND co.ref is null";
 			}
 
 			$this->resprints = $sql;
@@ -202,7 +209,13 @@ class ActionsFichinterListColumnsExtension
 		if (in_array('interventionlist', $contexts)) {
 			if (!empty($parameters['arrayfields']['co.ref']['checked'])) {
 				print '<td class="liste_titre center">';
-				print '<input type="text" class="flat" name="search_intervention_framework" value="'.$this->getSelectedInterventionFramework().'" size="8">';
+				print '<div class="nowrap">';
+				print '<div class="nowrap inline-block">';
+				print '<input type="text" class="flat" name="search_intervention_context" value="'.$this->getSelectedInterventionContext().'" size="8">';
+				print '</div>';
+				print '<input type="checkbox" name="search_intervention_context_alert" value="empty_intervention_context">';
+				print 'Alerte';
+				print '</div>';
 				print '</td>';
 			}
 		}
@@ -265,9 +278,9 @@ class ActionsFichinterListColumnsExtension
 					$fichinter->fetch($parameters['obj']->rowid);
 					$fichinter->fetchObjectLinked();
 
+					$commandeId = null;
 					if ($fichinter->linkedObjectsIds) {
 						if ($fichinter->linkedObjectsIds['commande']) {
-							$commandeId = '';
 							foreach($fichinter->linkedObjectsIds['commande'] as $commId) {
 								$commandeId = $commId;
 							}
@@ -278,7 +291,9 @@ class ActionsFichinterListColumnsExtension
 							print $commande->getNomUrl(1, '');
 							print '</td>';
 						}
-					} else {
+					}
+
+					if (!$commandeId) {
 						print '<span class="fas fa-exclamation-triangle pictowarning pictowarning" title="' . $langs->trans("FichinterListAlertNoContractAndNoPurchaseOrder") . '"></span>';
 						print '</td>';
 					}
@@ -292,11 +307,19 @@ class ActionsFichinterListColumnsExtension
 	}
 
 	/**
-     * Function to get current selected intervention framework ( = contract or commande ref)
+     * Function to get current selected intervention context ( = contract or commande ref)
      * @return  string
      */
-    private function getSelectedInterventionFramework() {
-		return GETPOST('search_intervention_framework', 'alpha');
+    private function getSelectedInterventionContext() {
+		return GETPOST('search_intervention_context', 'alpha');
+	}
+
+	/**
+     * Function to get intervention context alert checkbox
+     * @return  string
+     */
+    private function getInterventionContextAlertCheckbox() {
+		return GETPOST('search_intervention_context_alert', 'alpha');
 	}
 }
 ?>
