@@ -564,14 +564,15 @@ class SepaMandat extends CommonObject
 	 *
 	 *	@param		User	$user     		User making status change
 	 *  @param		int		$notrigger		1=Does not execute triggers, 0= execute triggers
+	 *  @param		bool	$noStatusCheck  We do not check sepa mandate status
 	 *	@return  	int						<=0 if OK, 0=Nothing done, >0 if KO
 	 */
-	public function setToSign($user, $notrigger = 0)
+	public function setToSign($user, $notrigger = 0, $noStatusCheck = false)
 	{
 		require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 		global $conf;
 		// Protection
-		if ($this->status != self::STATUS_DRAFT) {
+		if (!$noStatusCheck && $this->status != self::STATUS_DRAFT) {
 			dol_syslog(get_class($this) . "::validate action abandonned: already validated", LOG_WARNING);
 			return 0;
 		}

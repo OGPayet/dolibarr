@@ -1461,7 +1461,18 @@ class DigitalSignatureRequest extends CommonObject
 		//Current process has been canceled. We clone it
 		$this->db->begin();
 		$cloneRequest = $this->createFromClone($user, $this->id);
-		if (is_object($cloneRequest) && $cloneRequest->validateAndCreateRequestOnTheProvider($user) > 0) {
+		if(is_object($cloneRequest)) {
+			//We call trigger on new object as this came from a reset process
+			if($cloneRequest->call_trigger("DIGITALSIGNATUREREQUEST_RESET", $user) >= 0) {
+				foreach($cloneRequest->documents as &$document) {
+					if($document->call_trigger("DIGITALSIGNATUREDOCUMENT_RESET", $user) < 0) {
+						$cloneRequest->errors = array_merge($cloneRequest->errors, $document->errors);
+						break;
+					}
+				}
+			}
+		}
+		if (is_object($cloneRequest) && empty($cloneRequest->errors) && $cloneRequest->validateAndCreateRequestOnTheProvider($user) > 0) {
 			$this->db->commit();
 			return $cloneRequest;
 		} else {

@@ -124,6 +124,11 @@ class InterfaceSepaMandatManagerDigitalSignatureDocumentSignedTriggers extends D
 					case 'DIGITALSIGNATUREDOCUMENT_DELETEDINPROVIDER':
 						$sepaMandateToUpdate->setCanceled($user);
 						break;
+					case 'DIGITALSIGNATUREDOCUMENT_RESET':
+						if($sepaMandateToUpdate->status != $sepaMandateToUpdate::STATUS_TOSIGN && $sepaMandateToUpdate->status != $sepaMandateToUpdate::STATUS_SIGNED) {
+							$sepaMandateToUpdate->setToSign($user, 0, true);
+						}
+						break;
 					default:
 						dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
 						break;

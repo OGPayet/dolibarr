@@ -106,6 +106,7 @@ class InterfaceDigitalSignatureManagerManageRequestWhenLinkedObjectChange extend
 		$errors = array();
 		switch ($action) {
 			case 'PROPAL_MODIFY':
+			case 'SEPAMANDAT_UNVALIDATE':
 				$digitalSignatureLinkedObject = new DigitalSignatureRequestLinkedObject($object);
 				foreach ($digitalSignatureLinkedObject->getInProgressDigitalSignatureRequests() as &$request) {
 					$request->cancelRequest($user);

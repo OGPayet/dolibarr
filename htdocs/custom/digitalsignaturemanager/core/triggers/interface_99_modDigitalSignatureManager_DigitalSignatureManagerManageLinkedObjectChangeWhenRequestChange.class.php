@@ -142,6 +142,9 @@ class InterfaceDigitalSignatureManagerManageLinkedObjectChangeWhenRequestChange 
 					break;
 				case 'DIGITALSIGNATUREREQUEST_DELETEDINPROVIDER':
 					break;
+				case 'DIGITALSIGNATUREREQUEST_RESET':
+					$this->managerResetLinkedSignature($object, $linkedObjectInDolibarr, $user);
+					break;
 				default:
 					dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
 					break;
@@ -201,6 +204,19 @@ class InterfaceDigitalSignatureManagerManageLinkedObjectChangeWhenRequestChange 
 		global $langs;
 		if ($linkedObject->element == 'propal') {
 			$linkedObject->cloture($user, $linkedObject::STATUS_NOTSIGNED, $langs->trans("DigitalSignatureRequestCanceledByOpsyDescription", $digitalSignatureRequest->ref));
+		}
+	}
+	/**
+	 * Function to change status of linked object on digital signature request when signature process is resetted
+	 * @param DigitalSignatureRequest $digitalSignatureRequest digital signature request which has just been successfully signed
+	 * @param CommonObject $linkedObject Dolibarr object instance on which we should change status
+	 * @param User $user User requesting action
+	 * @return bool
+	 */
+	private function managerResetLinkedSignature($digitalSignatureRequest, $linkedObject, $user)
+	{
+		if($linkedObject->element == 'propal' && $linkedObject->statut == $linkedObject::STATUS_NOTSIGNED) {
+			$linkedObject->reopen($user, $linkedObject::STATUS_VALIDATED);
 		}
 	}
 }
