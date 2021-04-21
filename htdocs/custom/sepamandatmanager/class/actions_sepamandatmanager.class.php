@@ -87,7 +87,10 @@ class ActionsSepaMandatManager
         $errors = array();
         $contexts = explode(':', $parameters['context']);
         if (in_array('thirdpartybancard', $contexts) && ($action == 'edit' || $action == 'delete' || $action == 'confirm_delete')) {
-            $id = GETPOST('id') ?? GETPOST('ribid');
+            $id = GETPOST('id');
+			if(empty($id)) {
+				$id = GETPOST('ribid');
+			}
             if (SepaMandatCompanyBankAccountLink::isAMandateLinkedToThisCompanyAccountId($this->db, $id)) {
                 $errors[] = $langs->trans('SepaMandateManagedByASepaMandate');
                 $action = null;
