@@ -148,10 +148,6 @@ class SynergiesTechApi extends DolibarrApi
     */
     function getUserPhoto() {
         global $conf;
-        
-        if (!DolibarrApiAccess::$user->rights->interventionsurvey->survey->readApi) {
-            throw new RestException(401);
-        }
 
         $info_user = clone DolibarrApiAccess::$user;
         if (empty($info_user)) {
