@@ -149,6 +149,10 @@ class SynergiesTechApi extends DolibarrApi
     function getUserPhoto() {
         global $conf;
 
+		if (!DolibarrApiAccess::$user->rights->synergiestech->user->lirerestreint) {
+			throw new RestException(401, "You are not allowed to read restricted infos of users");
+		}
+
         $info_user = clone DolibarrApiAccess::$user;
         if (empty($info_user)) {
             throw new RestException(404, 'User not found');
