@@ -255,6 +255,8 @@ DigitalSignatureDocumentTemplateOptions = Options de création de la signature �
 DigitalSignatureManagerCreateOnlyDraft = Ne pas envoyer maintenant la demande de signatur électronique, créer simplement un brouillon
 DigitalSignatureNoElementToDisplay = Aucun élément à afficher
 DigitalSignatureManagerStaledData = Cette demande de signature électronique a été générée depuis une pièce commerciale mais cette dernière a été modifiée depuis la génération. Ce processus de signature contient donc une pièce commerciale qui n'est plus d'actualité.
+DigitalSignatureManagerCancel = Annuler
+DigitalSignatureManagerNext = Suivant
 #
 # Status
 #
