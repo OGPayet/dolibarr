@@ -132,46 +132,42 @@ $html.= '</div>';
 
     $html.= '<br><br>';
 
-   
-
-
     $html.= '<div id="conditions">';
         $html.= '<div class="cnd">  '.$langs->trans('notes').':</div>';
         $html.= '<div class="txt_condition">  '.$item->notes.'</div>';
     $html.= '</div>';
 
-
     $html.= '<br>';
 
-    $html.= '<div class="cnd" > <span><b> &nbsp;'.$langs->trans("champs_add").':</span> </b></div>';
-    $html.= '<table  class="border_1" width="100%">';
-        $html.= '<tbody>';
-           if($extrafields->attributes[$object->table_element]['label'] && count($extrafields->attributes[$object->table_element]['label'])){
-                foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val){
-                    if($extrafields->attributes[$object->table_element]['list'][$key] != 2 && $extrafields->attributes[$object->table_element]['list'][$key] != 0){
-                        $html.= '<tr>';
-                            $html .= '<th align="left" ><span class="sp_td">'.$val.'</span> </th>';
-                            $html .= '<td> <span class="sp_td"> ';
-                                $tmpkey = 'options_'.$key;
-                                $value = $object->array_options['options_'.$key];
-                                // $html.= 'type::'.$extrafields->attributes[$object->table_element]['type'][$key];
-                                if( $extrafields->attributes[$object->table_element]['type'][$key] == 'boolean'){
-                                    if(!empty($value)){
-                                        $img = '<img height="10px" src="'.dol_buildpath("parcautomobile/img/checked.png").'">';
-                                    }else
-                                        $img = '<img height="10px" src="'.dol_buildpath("parcautomobile/img/nochecked.png").'">';
-                                    $html.= $img;
-                                }else{
-                                    $html .= $extrafields->showOutputField($key, $value, '', $object->table_element);
-                                }
-                            $html .= '</span></td>';
-                        $html.= '</tr>';
+    if($extrafields->attributes[$object->table_element]['label'] && count($extrafields->attributes[$object->table_element]['label'])){
+        $html.= '<div class="cnd" > <span><b> &nbsp;'.$langs->trans("champs_add").':</span> </b></div>';
+        $html.= '<table  class="border_1" width="100%">';
+            $html.= '<tbody>';
+                    foreach ($extrafields->attributes[$object->table_element]['label'] as $key => $val){
+                        if($extrafields->attributes[$object->table_element]['list'][$key] != 2 && $extrafields->attributes[$object->table_element]['list'][$key] != 0){
+                            $html.= '<tr>';
+                                $html .= '<th align="left" ><span class="sp_td">'.$val.'</span> </th>';
+                                $html .= '<td> <span class="sp_td"> ';
+                                    $tmpkey = 'options_'.$key;
+                                    $value = $object->array_options['options_'.$key];
+                                    // $html.= 'type::'.$extrafields->attributes[$object->table_element]['type'][$key];
+                                    if( $extrafields->attributes[$object->table_element]['type'][$key] == 'boolean'){
+                                        if(!empty($value)){
+                                            $img = '<img height="10px" src="'.dol_buildpath("parcautomobile/img/checked.png").'">';
+                                        }else
+                                            $img = '<img height="10px" src="'.dol_buildpath("parcautomobile/img/nochecked.png").'">';
+                                        $html.= $img;
+                                    }else{
+                                        $html .= $extrafields->showOutputField($key, $value, '', $object->table_element);
+                                    }
+                                $html .= '</span></td>';
+                            $html.= '</tr>';
+                        }
                     }
-                }
-            }
-        // $html.= $txt;
-        $html.= '</tbody>';
-    $html.= '</table>';
+            // $html.= $txt;
+            $html.= '</tbody>';
+        $html.= '</table>';
+    }
 
     $html.= '<br><br>';
 

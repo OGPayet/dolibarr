@@ -12,7 +12,7 @@ $title = isset($title) ? $title : 'Etat de Stock';
 $pdf   = new NCPDF('L', 'mm', 'A4', true, 'UTF-8', false, false);
 // set document information
 $pdf->SetCreator('intranet');
-$pdf->SetAuthor('NextConcept');
+$pdf->SetAuthor('NextGestion');
 $pdf->SetTitle($title);
 $pdf->SetSubject($title);
 $pdf->SetKeywords('');

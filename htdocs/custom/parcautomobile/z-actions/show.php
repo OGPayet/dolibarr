@@ -191,7 +191,7 @@ if( ($id && empty($action)) || $action == "delete" ){
                         print '<td >'.$user_->firstname.' '.$user_->lastname.'</td>';
                     print '</tr>';
                     print '<tr>';
-                        print '<td align="left" >'.$langs->trans('lieu').'</td>';
+                        print '<td align="left" >'.$langs->trans('Lieu_parc').'</td>';
                         print '<td >'.$item->lieu.'</td>';
                     print '</tr>';
                     print '<tr>';

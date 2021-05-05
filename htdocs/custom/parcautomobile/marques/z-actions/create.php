@@ -8,6 +8,7 @@
 
         $insert = array(
             'label'         =>  addslashes($label),
+            'entity'        =>  $conf->entity,
         );
         $avance = $marque->create(1,$insert);
         $marque->fetch($avance);

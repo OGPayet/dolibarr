@@ -53,6 +53,8 @@ if ($action == 'update' && $request_method === 'POST') {
         $kilometre = $max;
     }
 
+    $entity = GETPOST('entity')?GETPOST('entity'):$conf->entity;
+
     $data = array(
         'sendmail'              =>  $sendmail,
         'plaque'                =>  $plaque,
@@ -107,6 +109,7 @@ if ($action == 'update' && $request_method === 'POST') {
     $object->kilometrage           =  $kilometre;
     $object->value_residuelle      =  $value_residuelle;
     $object->sendmail              =  $sendmail;
+    $object->entity                =  $entity;
 
     $ret = $extrafields->setOptionalsFromPost(null, $object);
 
@@ -119,7 +122,7 @@ if ($action == 'update' && $request_method === 'POST') {
             $objkilom->vehicule = $id;
             $objkilom->kilometrage = $kilometre;
             $objkilom->date = date('Y-m-d');
-
+            $objkilom->entity = $conf->entity;
             $objkilom->create(1);
         }
         
@@ -137,11 +140,12 @@ if($action == "edit"){
 
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" enctype="multipart/form-data" class="card_parc">';
 
+    $parc->fetchAll('','',0,0,'AND rowid='.$id);
+    $item = $parc->rows[0];
     print '<input type="hidden" name="action" value="update" />';
     print '<input type="hidden" name="id" value="'.$id.'" />';
     print '<input type="hidden" name="page" value="'.$page.'" />';
-        $parc->fetchAll('','',0,0,'AND rowid='.$id);
-        $item = $parc->rows[0];
+    print '<input type="hidden" name="entity" value="'.$item->entity.'" />';
         $modeles->fetch($item->model);
         $marques->fetch($modeles->marque);
 
@@ -240,7 +244,7 @@ if($action == "edit"){
                                 print '</td>';
                             print '</tr>';
                             print '<tr>';
-                                print '<td align="left" >'.$langs->trans('lieu').'</td>';
+                                print '<td align="left" >'.$langs->trans('Lieu_parc').'</td>';
                                 print '<td ><input type="text" name="lieu" id="lieu" value="'.$item->lieu.'" ></td>';
                             print '</tr>';
                             print '<tr>';

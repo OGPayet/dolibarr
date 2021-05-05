@@ -32,6 +32,7 @@
             'kilometrage'       =>  $kilometre,
             'fournisseur'       =>  $fournisseur,
             'service_inclus'    =>  $services,
+            'entity' => $conf->entity,
         );
 
         $object->vehicule = $vehicule;
@@ -43,6 +44,7 @@
         $object->kilometrage = $kilometre;
         $object->fournisseur = $fournisseur;
         $object->service_inclus = $services;
+        $object->entity = $conf->entity;
         // print_r($object);die();
 
         if((GETPOST('datevalidate')) && !empty(GETPOST('datevalidate'))){
@@ -69,10 +71,8 @@
             $objectcost->id_intervention = $avance;
             $objectcost->date = $date;
             $objectcost->prix = $prix;
+            $objectcost->entity = $conf->entity;
 
-            // $extrafield_cout = new ExtraFields($db);
-            // $extrafield_cout->fetch_name_optionals_label($objectcost->table_element);
-            // $ret = $extrafield_cout->setOptionalsFromPost(null, $objectcost);
             $avance = $objectcost->create(1);
 
             // create kilometrage
@@ -82,14 +82,10 @@
                 $kilom->vehicule = $vehicule;
                 $kilom->kilometrage = $kilometre;
                 $kilom->date = $date;
+                $kilom->entity = $conf->entity;
 
-                // $extrafield_kilo = new ExtraFields($db);
-                // $extrafield_kilo->fetch_name_optionals_label($kilom->table_element);
-                // $ret_kilom = $extrafield_kilo->setOptionalsFromPost(null, $kilom);
                 $test = $kilom->create(1);
 
-                // $test=$kilometrage->create(1);
-                
                 if($test){
                     $max=$kilometrage->Max_kilometrage($vehicule);
                     $vehicl = new vehiculeparc($db);

@@ -19,6 +19,7 @@
         $object->prix = $prix;
         $object->date = $date;
         $object->notes = $notes;
+        $object->entity = $conf->entity;
 
         $ret = $extrafields->setOptionalsFromPost(null, $object);
         $avance = $object->create(1);

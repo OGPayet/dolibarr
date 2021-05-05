@@ -15,6 +15,7 @@
         $object->kilometrage = $kilometre;
         $object->unite = $unite;
         $object->date = $date;
+        $object->entity = $conf->entity;
         $ret = $extrafields->setOptionalsFromPost(null, $object);
         $avance = $object->create(1);
         

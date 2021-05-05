@@ -93,12 +93,13 @@ class etiquettes_parc extends Commonobject{
     
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '', $filtermode = 'AND')
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 		$sql = "SELECT * FROM ";
 		$sql .= MAIN_DB_PREFIX .get_class($this);
-
+		$sql .= ' WHERE entity='.$conf->entity;
 		if (!empty($filter)) {
-			$sql .= " WHERE 1>0 ".$filter;
+			$sql .= " ".$filter;
 		}
 		if (!empty($sortfield)) {
 			$sql .= $this->db->order($sortfield, $sortorder);
@@ -123,6 +124,7 @@ class etiquettes_parc extends Commonobject{
                 $line->rowid    		 =  $obj->rowid;
 				$line->label 		 =  $obj->label;
 				$line->color 		 =  $obj->color;
+				$line->entity 		 =  $obj->entity;
 				
                 // ....
 
@@ -142,9 +144,11 @@ class etiquettes_parc extends Commonobject{
 
 	public function fetch($id)
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
 		$sql = 'SELECT * FROM ' . MAIN_DB_PREFIX .get_class($this). ' WHERE rowid = ' . $id;
+		$sql .= ' AND entity='.$conf->entity;
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
@@ -155,6 +159,7 @@ class etiquettes_parc extends Commonobject{
                 $this->rowid      	  = $obj->rowid;
                 $this->label        	  = $obj->label;
                 $this->color        	  = $obj->color;
+                $this->entity        	  = $obj->entity;
                
                 // ....
 			}
@@ -185,6 +190,7 @@ class etiquettes_parc extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+		$sql .= " WHERE entity=".$conf->entity;
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
 
@@ -246,52 +252,12 @@ class etiquettes_parc extends Commonobject{
         return $result;
     }
 
-    public function getcountrows(){
-        $tot = 0;
-        $sql = "SELECT COUNT(rowid) as tot FROM ".MAIN_DB_PREFIX.get_class($this);
-        $resql = $this->db->query($sql);
-
-        if($resql){
-            while ($obj = $this->db->fetch_object($resql)) 
-            {
-                $tot = $obj->tot;
-            }
-        }
-        return $tot;
-    }
-
-    public function getdateformat($date,$time=true){
-        
-        $d = explode(' ', $date);
-        $date = explode('-', $d[0]);
-        $d2 = explode(':', $d[1]);
-        $result = $date[2]."/".$date[1]."/".$date[0];
-        if ($time) {
-            $result .= " ".$d2[0].":".$d2[1];
-        }
-        return $result;
-    }
-
     public function getYears($debut="debut")
     {
+    	global $conf;
         $sql = 'SELECT YEAR('.$debut.') as years FROM ' . MAIN_DB_PREFIX.get_class($this);
+        $sql .= " WHERE entity=".$conf->entity;
         $resql = $this->db->query($sql);
-        $years = array();
-        if ($resql) {
-            $num = $this->db->num_rows($resql);
-            while ($obj = $this->db->fetch_object($resql)) {
-                $years[$obj->years] = $obj->years;
-            }
-            $this->db->free($resql);
-        }
-
-        return $years;
-    }
-
-    public function getmonth($year)
-    {
-        $sql = 'SELECT MONTH(debut) as years FROM ' . MAIN_DB_PREFIX.get_class($this).' WHERE YEAR(debut) = '.$year;
-        $resql  = $this->db->query($sql);
         $years = array();
         if ($resql) {
             $num = $this->db->num_rows($resql);
@@ -305,8 +271,10 @@ class etiquettes_parc extends Commonobject{
     }
 
     public function getEtiquetteByRowid(){
+        global $conf;
         $tot = 0;
         $sql = "SELECT * FROM ".MAIN_DB_PREFIX.get_class($this);
+        $sql .= " WHERE entity=".$conf->entity;
         $resql = $this->db->query($sql);
         $results = array();
         if($resql){

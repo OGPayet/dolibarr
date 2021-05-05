@@ -29,10 +29,10 @@ class contrat_parc extends Commonobject{
 
 	public function create($echo_sql=0)
 	{
-
+		global $conf;
 		$sql  = "INSERT INTO " . MAIN_DB_PREFIX .get_class($this)." ( ";
 
-		$sql .= "vehicule, kilometrage, typecontrat, activation_couts, type_montant, montant_recurrent, date_facture, date_debut, date_fin, responsable, fournisseur, conducteur, ref_contrat, etat, `condition`, services_inclus, couts_recurrent)";
+		$sql .= "vehicule, kilometrage, typecontrat, activation_couts, type_montant, montant_recurrent, date_facture, date_debut, date_fin, responsable, fournisseur, conducteur, ref_contrat, etat, `condition`, services_inclus, couts_recurrent,entity)";
 		
 		$sql.= " VALUES (";
 		$sql.= ($this->vehicule>0?$this->vehicule:"null");	
@@ -52,6 +52,7 @@ class contrat_parc extends Commonobject{
 		$sql.= ", ".($this->condition?"'".$this->db->escape($this->condition)."'":"null");
 		$sql.= ", ".($this->services_inclus	?"'".$this->db->escape($this->services_inclus	)."'":"null");
 		$sql.= ", ".($this->couts_recurrent?"'".$this->db->escape($this->couts_recurrent)."'":"null ");
+		$sql.= ", ".$conf->entity;
 
 		$sql.= ")";
 		// die($sql);
@@ -97,6 +98,7 @@ class contrat_parc extends Commonobject{
 		$sql.= ", `condition` = ".($this->condition?"'".$this->db->escape($this->condition)."'":"null");
 		$sql.= ", services_inclus = ".($this->services_inclus	?"'".$this->db->escape($this->services_inclus	)."'":"null");
 		$sql.= ", couts_recurrent = ".($this->couts_recurrent ? "'".$this->db->escape($this->couts_recurrent)."' ":"null ");
+		$sql.= ", entity = ".$this->db->escape($this->entity)." ";
 
         
         $sql  = substr($sql, 0, -1);
@@ -277,6 +279,7 @@ class contrat_parc extends Commonobject{
 
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '',$join='')
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 		$sql = "SELECT ".MAIN_DB_PREFIX.$this->table_element.".* FROM ";
 		$sql .= MAIN_DB_PREFIX .$this->table_element;
@@ -284,9 +287,9 @@ class contrat_parc extends Commonobject{
 		if (!empty($join)) {
 			$sql .= " ".$join; 
 		}
-		
+		$sql .= " WHERE  ".MAIN_DB_PREFIX.$this->table_element.".entity=".$conf->entity;
 		if (!empty($filter)) {
-			$sql .= " WHERE 1>0 ".$filter;
+			$sql .= " ".$filter;
 		}
 		
 		if (!empty($sortfield)) {
@@ -328,6 +331,7 @@ class contrat_parc extends Commonobject{
 				$line->etat 		 =  $obj->etat;
 				$line->services_inclus 		 =  $obj->services_inclus;
 				$line->couts_recurrent 		 =  $obj->couts_recurrent;
+				$line->entity 		 =  $obj->entity;
                 // ....
 
 				$this->rows[] 	= $line;
@@ -347,9 +351,11 @@ class contrat_parc extends Commonobject{
 
 	public function fetch($id)
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
 		$sql = 'SELECT * FROM ' . MAIN_DB_PREFIX .get_class($this). ' WHERE rowid = ' . $id;
+		$sql .= ' AND entity='.$conf->entity;
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
@@ -375,6 +381,7 @@ class contrat_parc extends Commonobject{
 				$this->etat 		 =  $obj->etat;
 				$this->services_inclus 		 =  $obj->services_inclus;
 				$this->couts_recurrent 		 =  $obj->couts_recurrent;
+				$this->entity 		 =  $obj->entity;
 				$this->fetch_optionals();
                 
                 // ....
@@ -406,6 +413,7 @@ class contrat_parc extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+		$sql .= ' WHERE entity='.$conf->entity;
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
 
@@ -466,52 +474,10 @@ class contrat_parc extends Commonobject{
         return $result;
     }
 
-    public function getcountrows(){
-        $tot = 0;
-        $sql = "SELECT COUNT(rowid) as tot FROM ".MAIN_DB_PREFIX.get_class($this);
-        $resql = $this->db->query($sql);
-
-        if($resql){
-            while ($obj = $this->db->fetch_object($resql)) 
-            {
-                $tot = $obj->tot;
-            }
-        }
-        return $tot;
-    }
-
-    public function getdateformat($date,$time=true){
-        
-        $d = explode(' ', $date);
-        $date = explode('-', $d[0]);
-        $d2 = explode(':', $d[1]);
-        $result = $date[2]."/".$date[1]."/".$date[0];
-        if ($time) {
-            $result .= " ".$d2[0].":".$d2[1];
-        }
-        return $result;
-    }
-
     public function getYears($debut="debut")
     {
         $sql = 'SELECT YEAR('.$debut.') as years FROM ' . MAIN_DB_PREFIX.get_class($this);
         $resql = $this->db->query($sql);
-        $years = array();
-        if ($resql) {
-            $num = $this->db->num_rows($resql);
-            while ($obj = $this->db->fetch_object($resql)) {
-                $years[$obj->years] = $obj->years;
-            }
-            $this->db->free($resql);
-        }
-
-        return $years;
-    }
-
-    public function getmonth($year)
-    {
-        $sql = 'SELECT MONTH(debut) as years FROM ' . MAIN_DB_PREFIX.get_class($this).' WHERE YEAR(debut) = '.$year;
-        $resql  = $this->db->query($sql);
         $years = array();
         if ($resql) {
             $num = $this->db->num_rows($resql);
@@ -536,6 +502,7 @@ class contrat_parc extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+    	$sql .= ' WHERE entity IN(0,'.$conf->entity.')';
     	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -563,6 +530,7 @@ class contrat_parc extends Commonobject{
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
     	$sql = "SELECT rowid ,ref,entity,label FROM ".MAIN_DB_PREFIX."product WHERE fk_product_type = 0";
+    	$sql .= ' AND entity IN ('.getEntity('product').')';
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
     	$select.='<option value="0"></option>'; 

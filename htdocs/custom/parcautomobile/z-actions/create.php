@@ -96,8 +96,9 @@
         $object->statut                =  $etat;
         $object->unite                 =  $type_kilom;
         $object->kilometrage           =  $kilometre;
-        $object->sendmail           =  $sendmail;
+        $object->sendmail              =  $sendmail;
         $object->value_residuelle      =  $value_residuelle;
+        $object->entity                =  $conf->entity;
 
         $ret = $extrafields->setOptionalsFromPost(null, $object);
 
@@ -111,7 +112,7 @@
                 $objkilom->vehicule = $avance;
                 $objkilom->kilometrage = $kilometre;
                 $objkilom->date = date('Y-m-d');
-
+                $objkilom->entity = $conf->entity;
                 $objkilom->create(1);
             }
             
@@ -191,7 +192,7 @@
                                 print '</td>';
                             print '</tr>';
                             print '<tr>';
-                                print '<td align="left" >'.$langs->trans('lieu').'</td>';
+                                print '<td align="left" >'.$langs->trans('Lieu_parc').'</td>';
                                 print '<td ><input type="text" name="lieu" id="lieu" ></td>';
                             print '</tr>';
                             print '<tr>';

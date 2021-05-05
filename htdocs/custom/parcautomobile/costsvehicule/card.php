@@ -32,6 +32,17 @@ $form             = new Form($db);
 $extrafields->fetch_name_optionals_label($costs->table_element);
 
 
+if(!empty($id)){
+    $object = new costsvehicule($db);
+    $object->fetch($id);
+    if (!($object->rowid > 0))
+    {
+        $langs->load("errors");
+        print($langs->trans('ErrorRecordNotFound'));
+        exit;
+    }
+} 
+
 // Get parameters
 $request_method = $_SERVER['REQUEST_METHOD'];
 $action         = GETPOST('action', 'alpha');

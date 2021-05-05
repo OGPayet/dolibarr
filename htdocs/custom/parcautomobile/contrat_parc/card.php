@@ -43,6 +43,16 @@ $request_method = $_SERVER['REQUEST_METHOD'];
 $action         = GETPOST('action', 'alpha');
 $page           = GETPOST('page');
 $id             = (int) ( (!empty($_GET['id'])) ? $_GET['id'] : GETPOST('id') ) ;
+if(!empty($id)){
+    $object = new contrat_parc($db);
+    $object->fetch($id);
+    if (!($object->rowid > 0))
+    {
+        $langs->load("errors");
+        print($langs->trans('ErrorRecordNotFound'));
+        exit;
+    }
+} 
 
 
 $extrafields->fetch_name_optionals_label($contrat->table_element);
@@ -361,7 +371,7 @@ print '</div>';
             $('#add_lign_service').click(function(){
                 $id=$('#tr_services tr').length+1;
                 console.log($id);
-                $('#tr_services').append('<tr id="'+$id+'"><td class="type_service"><select name="services['+$id+'][type]" class="type_service"><?php echo $typeintervention->get_types();?></select></td><td class="note_service"><input type="text" name="services['+$id+'][note]" ></td> <td class="prix_service"><input type="number" onchange="total_services(this)" value="0" required name="services['+$id+'][prix]" step="0.001" min="0"><a style="cursor: pointer;" float="right" class=""  onclick="delete_tr(this)" ><img src="<?php echo dol_buildpath('/parcautomobile/img/delete.png',2) ?>"></a></td></tr>');
+                $('#tr_services').append('<tr id="'+$id+'"><td class="type_service"><select name="services['+$id+'][type]" class="type_service"><?php echo dol_escape_js($typeintervention->get_types());?></select></td><td class="note_service"><input type="text" name="services['+$id+'][note]" ></td> <td class="prix_service"><input type="number" onchange="total_services(this)" value="0" required name="services['+$id+'][prix]" step="0.001" min="0"><a style="cursor: pointer;" float="right" class=""  onclick="delete_tr(this)" ><img src="<?php echo dol_escape_js(dol_buildpath('/parcautomobile/img/delete.png',2)) ?>"></a></td></tr>');
                 $('select.type_service').select2();
 
             });
@@ -369,7 +379,7 @@ print '</div>';
              $('#add_lign_cout').click(function(){
 
                 $id=$('#tr_couts tr').length+1;
-                $('#tr_couts').append('<tr id="cout_'+$id+'"><td class="date_cout"><input type="text" class="datepickerparc" name="couts['+$id+'][date]" value="<?php echo date("d/m/Y"); ?>" ></td> <td class="prix_couts"><input type="number" value=""  onchange="total_couts(this)" required name="couts['+$id+'][prix]" step="0.001" min="0"><a  class="delete"  onclick="delete_tr(this)" ><img src="<?php echo dol_buildpath('/parcautomobile/img/delete.png',2) ?>"></a></td></tr>');
+                $('#tr_couts').append('<tr id="cout_'+$id+'"><td class="date_cout"><input type="text" class="datepickerparc" name="couts['+$id+'][date]" value="<?php echo dol_escape_js(date("d/m/Y")); ?>" ></td> <td class="prix_couts"><input type="number" value=""  onchange="total_couts(this)" required name="couts['+$id+'][prix]" step="0.001" min="0"><a  class="delete"  onclick="delete_tr(this)" ><img src="<?php echo dol_escape_js(dol_buildpath('/parcautomobile/img/delete.png',2)) ?>"></a></td></tr>');
                 $('.datepickerparc').datepicker({
                     dateFormat:'dd/mm/yy',
                 });
@@ -378,11 +388,19 @@ print '</div>';
         });
         function delete_tr(id) {
             $id=$(id).data('id');
-            $total=$('#total_services').find('input').val();
-            $prix=$(id).parent().find('input').val();
-            $total= parseFloat($total) - parseFloat($prix);
-              $('#total_services').find('input').val($total);
-              $('#total_services').find('strong').text($total);
+            if($(id).parent('td').hasClass('prix_service')){
+                $total=$('#total_services').find('input').val();
+                $prix=$(id).parent().find('input').val();
+                $total= parseFloat($total) - parseFloat($prix);
+                $('#total_services').find('input').val($total);
+                $('#total_services').find('strong').text($total);
+            }else if($(id).parent('td').hasClass('prix_couts')){
+                $total=$('#total_couts').find('input').val();
+                $prix=$(id).parent().find('input').val();
+                $total= parseFloat($total) - parseFloat($prix);
+                $('#total_couts').find('input').val($total);
+                $('#total_couts').find('strong').text($total);
+            }
 
             if($id){
               $element_delete = $('.element_delete').val();
@@ -407,14 +425,15 @@ print '</div>';
 
         }
         function total_couts(prix){
-            var $total=0;
+            var total=0;
             $('.prix_couts').each(function(){
-              var prix=$(this).find('input').val();
-              console.log($(this).find('input'));
-              $total = parseFloat($total) + parseFloat(prix);
-              $('#total_couts').find('input').val($total);
+                prix=$(this).find('input').val();
+                if(prix == ''){prix = 0;}
+
+                total = parseFloat(total)+parseFloat(prix);
+                $('#total_couts').find('input').val(total);
             });
-            $('#total_couts').find('strong').text($total);
+            $('#total_couts').find('strong').text(total);
         }
 
           

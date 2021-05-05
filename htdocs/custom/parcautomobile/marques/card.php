@@ -25,6 +25,18 @@ $action         = GETPOST('action', 'alpha');
 $page           = GETPOST('page');
 $id             = (int) ( (!empty($_GET['id'])) ? $_GET['id'] : GETPOST('id') ) ;
 
+
+if(!empty($id)){
+    $object = new marques($db);
+    $object->fetch($id);
+    if (!($object->rowid > 0))
+    {
+        $langs->load("errors");
+        print($langs->trans('ErrorRecordNotFound'));
+        exit;
+    }
+} 
+
 $error  = false;
 if (!$user->rights->parcautomobile->lire) {
     accessforbidden();

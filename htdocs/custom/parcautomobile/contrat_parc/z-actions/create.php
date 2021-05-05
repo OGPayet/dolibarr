@@ -71,10 +71,12 @@
         $object->conducteur        =  $conducteur;
         $object->condition         =  addslashes($conditions);
         $object->services_inclus   =  $services;
+        $object->entity = $conf->entity;
 
         $ret = $extrafields->setOptionalsFromPost(null, $object);
 
-        $avance = $object->create(1);
+        $avance =3; 
+        // $object->create(1);
 
         // If no SQL error we redirect to the request card
         if ($avance > 0 ) {
@@ -86,6 +88,7 @@
                 'id_contrat'=>$avance,
                 'date'=>date('Y-m-d'),
                 'prix'=>$contrat->activation_couts,
+
             ];
 
             $cout = new costsvehicule($db);
@@ -94,7 +97,9 @@
             $cout->type = $typecontrat->label;
             $cout->id_contrat = $avance;
             $cout->date = date('Y-m-d');
+            $cout->entity = $conf->entity;
             $cout->prix = $contrat->activation_couts;
+
             $ret = $extrafields->setOptionalsFromPost(null, $cout);
 
             $d = $cout->create(1);
@@ -121,7 +126,7 @@
                         $couts->type = $typecontrat->label;
                         $couts->date = $date_c;
                         $couts->prix = $value['prix'];
-
+                        $couts->entity = $conf->entity;
                         $ret = $extrafields->setOptionalsFromPost(null, $couts);
                         $dd=$couts->create(1);
                         $couts_recurrent[]=$dd;
