@@ -1,0 +1,59 @@
+# Copyright (C) 2018-2020 ksar <ksar.ksar@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#
+# Generic
+#
+
+# Module label 'ModuleremoveconfName'
+ModuleremoveconfName = Remove confirmation pop-up
+# Module description 'ModuleremoveconfDesc'
+ModuleremoveconfDesc = Allows admin to remove some confirmation pop-up for the users.
+
+#
+# About page
+#
+About = About
+removeconfAbout = About remove confirmation pop-up
+removeconfAboutPage = Module that allows admin to remove some confirmation pop-up.<br /> By default nothing is removed, needs to activate removal user permissions
+ForAnyQuestions = If you have any question please send an email to 
+
+#
+# Permissions
+#
+Permission2073001 = Delete Propal without confirmation
+Permission2073002 = Re-open Propal without confirmation
+Permission2073003 = Delete Propal Line without confirmation
+Permission2073004 = Delete Order  without confirmation
+Permission2073005 = Validate Order  without confirmation<br/> <b style="color: red">WARNING : If you use sevral warehouses it will show anyway the confirmation form</b>
+Permission2073006 = Modify validated Order without confirmation
+Permission2073007 = Shipp Order without confirmation
+Permission2073008 = Cancel Order without confirmation
+Permission2073009 = Delete Order Line without confirmation
+Permission20730010 = Delete Invoice without confirmation
+Permission20730011 = Valid Invoice without confirmation<br/> <b style="color: red">WARNING : If you use sevral warehouses it will show anyway the confirmation form</b>
+Permission20730012 = Modify validated Invoice without confirmation
+Permission20730013 = Shipp Invoice without confirmation
+Permission20730014 = Cancel Invoice without confirmation
+Permission20730015 = Delete Invoice Line without confirmation
+Permission20730016 = Delete Shipment without confirmation
+Permission20730017 = Validate Shipment without confirmation
+Permission20730018 = Cancel Shipment without confirmation
+Permission20730019 = Delete Inventory without confirmation
+Permission20730020 = Delete Warehouse without confirmation
+Permission20730021 = Delete Supplier proposal without confirmation
+Permission20730022 = Re-open Supplier proposal without confirmation
+Permission20730023 = Delete Propal Line without confirmation
+Permission20730024 = Delete WebsiteAccount without confirmation
