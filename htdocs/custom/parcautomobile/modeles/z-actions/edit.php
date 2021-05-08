@@ -10,11 +10,11 @@ if ($action == 'update' && $request_method === 'POST') {
   
     $label = GETPOST('label');
     $marque = GETPOST('marque');
-   
-
+    $entity = GETPOST('entity')?GETPOST('entity'):$conf->entity;
     $data = array(
         'label'           =>  addslashes($label),
         'marque'          =>  $marque,
+        'entity'          =>  $entity,
     );
 
     $isvalid = $modele->update($id, $data);
@@ -33,14 +33,15 @@ if ($action == 'update' && $request_method === 'POST') {
 if($action == "edit"){
 
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" enctype="multipart/form-data" >';
+    $modele->fetch($id);
+    $item = $modele;
 
     print '<input type="hidden" name="action" value="update" />';
     print '<input type="hidden" name="id" value="'.$id.'" />';
     print '<input type="hidden" name="page" value="'.$page.'" />';
+    print '<input type="hidden" name="entity" value="'.$item->entity.'" />';
     print '<table class="border nc_table_" width="100%">';
         print '<tbody>';
-            $modele->fetch($id);
-            $item = $modele;
             print '<tr>';
                 print '<td style="width:20%;">'.$langs->trans('label_model').'</td>';
                 print '<td style="width:80%;"><input type="text" class="" id="label" value="'.$item->label.'" style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';

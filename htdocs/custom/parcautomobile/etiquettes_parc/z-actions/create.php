@@ -10,6 +10,7 @@
         $insert = array(
             'label'     =>  trim(addslashes($label)),
             'color'     =>  $color,
+            'entity'    =>  $conf->entity,
         );
         $avance = $etiquette->create(1,$insert);
         $etiquette->fetch($avance);
@@ -37,7 +38,7 @@
 
             print '<tr>';
                 print '<td style="width:20%">'.$langs->trans('label_etiquette').'</td>';
-                print '<td style="width:20%"><input type="text" class="" id="label"  style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';
+                print '<td ><input type="text" class="" id="label"  style="padding:8px 0px 8px 8px; width:100%" name="label"  autocomplete="off"/>';
                 print '</td>';
             print '</tr>';
 

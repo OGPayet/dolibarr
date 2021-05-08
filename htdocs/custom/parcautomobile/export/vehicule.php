@@ -32,10 +32,10 @@ $html.='</style>';
         $html.= '<tbody>';
             $html.= '<tr>';
                 $html.= '<td rowspan="2" class="logo" style=" height:25px;">';
-                    
+                    $html.= '<br>';
                     $minifile = getImageFileNameForSize($marques->logo, '');
                     $urlfile = $conf->parcautomobile->dir_output.'/marques/'.$marques->rowid.'/'.$minifile;
-                    $html.= '<img alt="Photo" style="height:120px;" src="'.$urlfile.'" >';
+                    $html.= '<br><img alt="Photo" style="height:120px;" src="'.$urlfile.'" >';
                     
                 $html.= '</td>';
                 $html.= '<td class="info_vehicule">';
@@ -50,8 +50,9 @@ $html.='</style>';
                     $etiquet=explode(',', $item->etiquettes);
                     foreach ($etiquet as $key => $value) {
                         $etiquettes->fetch($value);
-                        $html.= '<span class="etiquette" style="background-color:'.$etiquettes->color.'"><b>'.$etiquettes->label.'</b></span>&nbsp;&nbsp;';
+                        $html.= '<span class="etiquette" style="background-color:'.$etiquettes->color.'; border-radius:5px"><b>  '.$etiquettes->label.'  </b></span>&nbsp;&nbsp;';
                     }
+                    $html.= '<br>';
                 $html.= '</td>';
             $html.= '</tr>';
         $html.= '</tbody>';
@@ -65,7 +66,7 @@ $html.='<div style="width:100% !important;">';
                     $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('conducteur').' :  </span></th>';
                     $user_->fetch($item->conducteur);
                     $html.= '<td ><span class="sp_td">'.$user_->firstname.' '.$user_->lastname.'</span></td>';
-                    $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('lieu').' :  </span></th>';
+                    $html.= '<th align="left" ><span class="sp_td">'.$langs->trans('Lieu_parc').' :  </span></th>';
                     $html.= '<td ><span class="sp_td">'.$item->lieu.'</span></td>';
                 $html.= '</tr>';
                 

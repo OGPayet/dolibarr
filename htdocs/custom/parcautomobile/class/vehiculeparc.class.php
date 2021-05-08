@@ -24,10 +24,10 @@ class vehiculeparc extends Commonobject{
 
 	public function create($echo_sql=0)
 	{
-
+		global $conf;
 		$sql  = "INSERT INTO " . MAIN_DB_PREFIX .get_class($this)." ( ";
 
-		$sql.= " plaque, logo, model, conducteur, lieu, date_immatriculation, date_contrat, num_chassi, statut, nb_porte, nb_place, kilometrage, unite, color, value_catalogue, value_residuelle, anne_model, transmission, type_carburant, emission_co2, nb_chevaux, tax, puissance, etiquettes, sendmail)";
+		$sql.= " plaque, logo, model, conducteur, lieu, date_immatriculation, date_contrat, num_chassi, statut, nb_porte, nb_place, kilometrage, unite, color, value_catalogue, value_residuelle, anne_model, transmission, type_carburant, emission_co2, nb_chevaux, tax, puissance, etiquettes, sendmail, entity)";
 		
 		$sql.= " VALUES (";
 			
@@ -57,6 +57,7 @@ class vehiculeparc extends Commonobject{
 			$sql.= ", ".($this->puissance>0?$this->puissance:"null");	
 			$sql.= ", ".($this->etiquettes?"'".$this->db->escape($this->etiquettes)."'":"null");
 			$sql.= ", ".($this->sendmail>0?$this->sendmail:"null");	
+			$sql.= ", ".$conf->entity;
 
 		$sql.= ")";
 
@@ -107,7 +108,8 @@ class vehiculeparc extends Commonobject{
 	   $sql .= "puissance=".($this->puissance>0?$this->db->escape($this->puissance):"null").', ';
 	   $sql .= "etiquettes=".($this->etiquettes ? "'".$this->db->escape($this->etiquettes)."'":"null").', ';
 	   $sql .= "parc=".($this->parc>0?$this->db->escape($this->parc):"null").', ';
-	   $sql .= "sendmail=".($this->sendmail>0?$this->db->escape($this->sendmail):"null ");
+	   $sql .= "sendmail=".($this->sendmail>0?$this->db->escape($this->sendmail):"null ").', ';
+	   $sql .= "entity=".$this->db->escape($this->entity)." ";
 
 	    // $sql  = substr($sql, 0, -1);
 	    $sql .= ' WHERE rowid = ' . $id;
@@ -309,6 +311,7 @@ class vehiculeparc extends Commonobject{
 
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '',$join='')
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 		$sql = "SELECT ".MAIN_DB_PREFIX.$this->table_element.".* FROM ";
 		$sql .= MAIN_DB_PREFIX .$this->table_element;
@@ -317,8 +320,9 @@ class vehiculeparc extends Commonobject{
 			$sql .= " ".$join; 
 		}
 		
+		$sql .= ' WHERE '.MAIN_DB_PREFIX.$this->table_element.'.entity ='.$conf->entity;
 		if (!empty($filter)) {
-			$sql .= " WHERE 1>0 ".$filter;
+			$sql .= " ".$filter;
 		}
 		
 		if (!empty($sortfield)) {
@@ -368,6 +372,7 @@ class vehiculeparc extends Commonobject{
 				$line->tax 			 =  $obj->tax;
 				$line->puissance 			 =  $obj->puissance;
 				$line->sendmail 			 =  $obj->sendmail;
+				$line->entity 			 =  $obj->entity;
 				// Retreive all extrafield
 				// fetch optionals attributes and labels
 
@@ -390,9 +395,11 @@ class vehiculeparc extends Commonobject{
 
 	public function fetch($id)
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
 		$sql = 'SELECT * FROM ' . MAIN_DB_PREFIX .get_class($this). ' WHERE rowid = ' . $id;
+		$sql .= ' AND entity ='.$conf->entity;
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
@@ -426,6 +433,7 @@ class vehiculeparc extends Commonobject{
 				$this->tax 			 =  $obj->tax;
 				$this->puissance 			 =  $obj->puissance;
 				$this->sendmail 			 =  $obj->sendmail;
+				$this->entity 			 =  $obj->entity;
 				$this->fetch_optionals();
 				
                 // ....
@@ -458,6 +466,7 @@ class vehiculeparc extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql = "SELECT * FROM ".MAIN_DB_PREFIX.get_class($this);
+		$sql .= ' WHERE entity ='.$conf->entity;
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
 		if ($resql) {
@@ -548,35 +557,11 @@ class vehiculeparc extends Commonobject{
         return $result;
     }
 
-    public function getcountrows(){
-        $tot = 0;
-        $sql = "SELECT COUNT(rowid) as tot FROM ".MAIN_DB_PREFIX.get_class($this);
-        $resql = $this->db->query($sql);
-
-        if($resql){
-            while ($obj = $this->db->fetch_object($resql)) 
-            {
-                $tot = $obj->tot;
-            }
-        }
-        return $tot;
-    }
-
-    public function getdateformat($date,$time=true){
-        
-        $d = explode(' ', $date);
-        $date = explode('-', $d[0]);
-        $d2 = explode(':', $d[1]);
-        $result = $date[2]."/".$date[1]."/".$date[0];
-        if ($time) {
-            $result .= " ".$d2[0].":".$d2[1];
-        }
-        return $result;
-    }
-
     public function getYears($debut="debut")
     {
+    	global $conf;
         $sql = 'SELECT YEAR('.$debut.') as years FROM ' . MAIN_DB_PREFIX.get_class($this);
+		$sql .= ' WHERE entity ='.$conf->entity;
         $resql = $this->db->query($sql);
         $years = array();
         if ($resql) {
@@ -589,23 +574,6 @@ class vehiculeparc extends Commonobject{
 
         return $years;
     }
-
-    public function getmonth($year)
-    {
-        $sql = 'SELECT MONTH(debut) as years FROM ' . MAIN_DB_PREFIX.get_class($this).' WHERE YEAR(debut) = '.$year;
-        $resql  = $this->db->query($sql);
-        $years = array();
-        if ($resql) {
-            $num = $this->db->num_rows($resql);
-            while ($obj = $this->db->fetch_object($resql)) {
-                $years[$obj->years] = $obj->years;
-            }
-            $this->db->free($resql);
-        }
-
-        return $years;
-    }
-
 
 	public function select_conducteur($selected=0,$name='conducteur',$showempty=1,$type="Internal"){
 	    global $conf;
@@ -617,9 +585,10 @@ class vehiculeparc extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+    	$sql .= ' WHERE entity IN (0,'.$conf->entity.')';
 
-    	if($type == 'Internal' || empty($type)) $sql .= ' WHERE fk_soc = 0 OR fk_soc IS NULL ';
-    	elseif($type == 'External') $sql .= ' WHERE fk_soc > 0';
+    	if($type == 'Internal' || empty($type)) $sql .= ' AND fk_soc = 0 OR fk_soc IS NULL ';
+    	elseif($type == 'External') $sql .= ' AND fk_soc > 0';
     	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -648,6 +617,7 @@ class vehiculeparc extends Commonobject{
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
     	$sql = "SELECT * FROM ".MAIN_DB_PREFIX."societe WHERE fournisseur = 1";
+		$sql .= ' AND entity IN ('.getEntity('societe').')';
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
     	$select.='<option value="0"></option>'; 
@@ -888,6 +858,479 @@ class vehiculeparc extends Commonobject{
 	    } else {
 	        @chmod($source, 0664);
 	    }
+	}
+
+
+	public function upgradeModulePrcAutmobil()
+    {
+        global $conf, $langs;
+        
+		dol_include_once('/parcautomobile/core/modules/modparcautomobile.class.php');
+
+        $modcore = new modparcautomobile($this->db);
+        
+        $lastversion    = $modcore->version;
+        $currentversion = dolibarr_get_const($this->db, 'PRCAUTMOBIL_LAST_VERSION_OF_MODULE', $conf->entity);
+        
+        if (!$currentversion || ($currentversion && $lastversion != $currentversion)){
+            $res = $this->InitPrcAutmobil();
+            if($res)
+                dolibarr_set_const($this->db, 'PRCAUTMOBIL_LAST_VERSION_OF_MODULE', $lastversion, 'chaine', 0, '', $conf->entity);
+            return 1;
+        }
+
+        return 0;
+    }
+
+	public function InitPrcAutmobil()
+	{
+		global $conf;
+
+
+		if (!dolibarr_get_const($this->db,'PARCAUTOMOBILE_CHECKINTERVENTIONSFORMAIL',$conf->entity))
+			dolibarr_set_const($this->db,'PARCAUTOMOBILE_CHECKINTERVENTIONSFORMAIL',0,'chaine',0,'',$conf->entity);
+		if (!dolibarr_get_const($this->db,'PARCAUTOMOBILE_NUMBEROFDAYSBEFORETOSENDMAIL',$conf->entity))
+			dolibarr_set_const($this->db,'PARCAUTOMOBILE_NUMBEROFDAYSBEFORETOSENDMAIL',0,'chaine',0,'',$conf->entity);
+
+		dol_include_once('/parcautomobile/core/modules/modparcautomobile.class.php');
+		$modlcore = new modparcautomobile($this->db);
+
+		$modlcore->cronjobs[0]['entity']  	= $conf->entity;
+        $modlcore->cronjobs[0]['label']  	= 'parcautomobilecheckInterventionsMails';
+        $modlcore->cronjobs[0]['jobtype']  	= 'method';
+        $modlcore->cronjobs[0]['class']  	= 'parcautomobile/class/interventions_parc.class.php';
+        $modlcore->cronjobs[0]['objectname']  = 'interventions_parc';
+        $modlcore->cronjobs[0]['method'] 	= 'checkInterventionsMails';
+        $modlcore->cronjobs[0]['frequency'] = 1;
+        $modlcore->cronjobs[0]['unitfrequency'] = 86400;
+        $modlcore->cronjobs[0]['priority'] 	= 10;
+        $modlcore->cronjobs[0]['datestart'] = date('Y-m-d H:i:s');
+        $modlcore->cronjobs[0]['status'] 	= 1;
+        $modlcore->cronjobs[0]['test'] 		= '$conf->global->PARCAUTOMOBILE_INTERVENTION_SEND_EMAIL';
+        $modlcore->cronjobs[0]['note'] 		= 'parcautomobilecheckInterventionsMails';
+
+
+        $modlcore->insert_cronjobs();
+
+
+
+        $sql2 = "UPDATE " . MAIN_DB_PREFIX. "cronjob SET status = 1 WHERE module_name = 'parcautomobile' AND classesname = 'parcautomobile/class/interventions_parc.class.php' AND objectname = 'interventions_parc' AND methodename = 'checkInterventionsMails'";
+        $resql = $this->db->query($sql2);
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."parc` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`label` varchar(255) NULL,
+		  	`adress` varchar(355) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."parc` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."parc` MODIFY label varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."parc` MODIFY adress varchar(355) NULL";
+		$resql = $this->db->query($sql);
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."vehiculeparc` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`plaque` varchar(255) NULL,
+		  	`logo` varchar(255) NULL,
+		  	`model`  int(11) NULL,
+		  	`conducteur` int(11) NULL,
+		  	`lieu` varchar(255) NULL,
+		  	`date_immatriculation` date NULL,
+		  	`date_contrat` date NULL,
+		  	`num_chassi` int(11) NULL,
+		  	`statut` varchar(255) NULL,
+		  	`nb_porte` int(11) NULL,
+		  	`nb_place` int(11) NULL,
+		  	`kilometrage` DECIMAL NULL,
+		  	`unite` varchar(255) NULL,
+		  	`color` varchar(255) NULL,
+		  	`value_catalogue` DECIMAL NULL,
+		  	`value_residuelle` DECIMAL NULL,
+		  	`anne_model` varchar(255) NULL,
+		  	`transmission` varchar(255) NULL,
+		  	`type_carburant` varchar(255) NULL,
+		  	`emission_co2` float NULL,
+		  	`nb_chevaux` DECIMAL NULL ,
+		  	`tax` float NULL,
+		  	`puissance` DECIMAL NULL,
+		  	`etiquettes` varchar(255) NULL,
+		  	`parc` int(11) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."vehiculeparc` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."vehiculeparc` ADD `etiquettes` varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+		$sql = "ALTER table `".MAIN_DB_PREFIX."vehiculeparc` add sendmail boolean NULL DEFAULT 0";
+		$resql = $this->db->query($sql);
+		
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."vehiculeparc` MODIFY plaque varchar(255) NULL,
+			MODIFY logo varchar(255) NULL,
+			MODIFY model  int(11) NULL, 
+			MODIFY conducteur int(11) NULL, 
+			MODIFY `lieu` varchar(255) NULL ,
+			MODIFY `date_immatriculation` date NULL,
+			MODIFY `date_contrat` date NULL,
+			MODIFY `num_chassi` int(11) NULL,
+			MODIFY `statut` varchar(255) NULL,
+			MODIFY `nb_porte` int(11) NULL,
+			MODIFY `nb_place` int(11) NULL,
+			MODIFY `kilometrage` DECIMAL NULL,
+			MODIFY `unite` varchar(255) NULL,
+			MODIFY `color` varchar(255) NULL,
+			MODIFY `value_catalogue` DECIMAL NULL,
+			MODIFY `value_residuelle` DECIMAL NULL,
+			MODIFY `anne_model` varchar(255) NULL,
+			MODIFY `transmission` varchar(255) NULL,
+			MODIFY `emission_co2` float NULL,
+			MODIFY `nb_chevaux` DECIMAL NULL,
+			MODIFY `tax` float NULL,
+			MODIFY `puissance` DECIMAL NULL,
+			MODIFY `etiquettes` varchar(255)` NULL,
+			MODIFY `parc` int(11) NULL";
+		$resql = $this->db->query($sql);
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."kilometrage` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`vehicule` int(11) NULL,
+		  	`kilometrage` DECIMAL NULL,
+		  	`unite` varchar(255) NULL,
+		  	`date` date NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."kilometrage` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+		
+		$resql = $this->db->query($sql);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."kilometrage` ADD `unite` varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."kilometrage` MODIFY `date` date NULL";
+		$resql = $this->db->query($sql);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."kilometrage` 
+			MODIFY `vehicule` int(11) NULL,
+			MODIFY `kilometrage` DECIMAL NULL,
+			MODIFY `unite` varchar(255) NULL,
+			MODIFY `date` date NULL";
+		$resql = $this->db->query($sql);
+
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."interventions_parc` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`typeintervention` int(11) NULL,
+		  	`vehicule` int(11) NULL,
+		  	`acheteur` int(11) NULL,
+		  	`kilometrage` DECIMAL NULL,
+		  	`fournisseur` int(11) NULL,
+		  	`ref_facture`  varchar(255) NULL,
+		  	`prix` DECIMAL NULL,
+		  	`date` date NULL,
+		  	`service_inclus` text NULL,
+		  	`notes` text NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."interventions_parc` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+
+		$sql = "ALTER table `".MAIN_DB_PREFIX."interventions_parc` add service_inclus text NULL";
+		$resql = $this->db->query($sql);
+		
+	
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."interventions_parc` 
+				MODIFY `typeintervention` int(11) NULL,
+				MODIFY `vehicule` int(11) NULL,
+				MODIFY `acheteur` int(11) NULL,
+				MODIFY `kilometrage` DECIMAL NULL,
+				MODIFY `fournisseur` int(11) NULL,
+				MODIFY `ref_facture` varchar(255) NULL,
+				MODIFY `prix` DECIMAL NULL,
+				MODIFY `date` date NULL,
+				MODIFY `service_inclus` text NULL,
+				MODIFY `notes` text NULL";
+		$resql = $this->db->query($sql);
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."costsvehicule` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`type` varchar(255) NULL,
+		  	`vehicule` int(11) NULL,
+		  	`id_contrat` int(11) NULL,
+		  	`id_intervention` int(11) NULL,
+		  	`id_suiviessence` int(11) NULL,
+		  	`prix` DECIMAL NULL,
+		  	`date` date NULL,
+		  	`notes` text NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."costsvehicule` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."costsvehicule` ADD `id_suiviessence` int(11) NULL";
+		$resql = $this->db->query($sql);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."costsvehicule`
+		MODIFY `type` varchar(255) NULL,
+		MODIFY `vehicule` int(11) NULL,
+		MODIFY `id_contrat` int(11) NULL,
+		MODIFY `id_intervention` int(11) NULL,
+		MODIFY `id_suiviessence` int(11) NULL,
+		MODIFY `prix` DECIMAL NULL,
+		MODIFY `date` date NULL,
+		MODIFY `notes` text NULL";
+		$resql = $this->db->query($sql);
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."typeintervention` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`label` varchar(255) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."typeintervention` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."typeintervention` MODIFY `label` varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."suivi_essence` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`vehicule` int(11) NULL,
+		  	`litre` float NULL,
+		  	`prix` float NULL,
+		  	`date` date NULL,
+		  	`acheteur` int(11) NULL,
+		  	`fournisseur` int(11) NULL,
+		  	`ref_facture` varchar(255) NULL,
+		  	`kilometrage` DECIMAL NULL,
+		  	`remarques` text NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."suivi_essence` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."suivi_essence` 
+				MODIFY `vehicule` int(11) NULL,
+				MODIFY `litre` float NULL,
+				MODIFY `prix` float NULL,
+				MODIFY `date` date NULL,
+				MODIFY `acheteur` int(11) NULL,
+				MODIFY `fournisseur` int(11) NULL,
+				MODIFY `ref_facture` varchar(255) NULL,
+				MODIFY `kilometrage` DECIMAL NULL,
+				MODIFY `remarques` text NULL";
+		$resql = $this->db->query($sql);
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."contrat_parc` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`vehicule` int(11) NULL,
+		  	`kilometrage` DECIMAL NULL,
+		  	`typecontrat` int(11) NULL,
+		  	`activation_couts` float NULL,
+		  	`type_montant`  varchar(255) NULL,
+		  	`montant_recurrent` float NULL,
+		  	`date_facture` date NULL,
+		  	`date_debut` date NULL,
+		  	`date_fin` date NULL,
+		  	`responsable` int(11) NULL,
+		  	`fournisseur` int(11) NULL,
+		  	`conducteur` int(11) NULL,
+		  	`ref_contrat` varchar(255) NULL,
+		  	`etat` varchar(255) NULL,
+		  	`condition` text NULL,
+		  	`services_inclus` text NULL,
+		  	`couts_recurrent` varchar(255) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."contrat_parc` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."contrat_parc` ADD `services_inclus` text NULL";
+		$resql = $this->db->query($sql);
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."contrat_parc` ADD `couts_recurrent` varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."contrat_parc` 
+				MODIFY `vehicule` int(11) NULL,
+				MODIFY `kilometrage` DECIMAL NULL,
+				MODIFY `typecontrat` int(11) NULL,
+				MODIFY `activation_couts` float NULL,
+				MODIFY `type_montant` varchar(255) NULL,
+				MODIFY `montant_recurrent` float NULL,
+				MODIFY `date_facture` date NULL,
+				MODIFY `date_debut` date NULL,
+				MODIFY `date_fin` date NULL,
+				MODIFY `responsable` int(11) NULL,
+				MODIFY `fournisseur` int(11) NULL,
+				MODIFY `conducteur` int(11) NULL,
+				MODIFY `ref_contrat` varchar(255) NULL,
+				MODIFY `etat` varchar(255) NULL,
+				MODIFY `condition` text NULL,
+				MODIFY `services_inclus` text NULL,
+				MODIFY `couts_recurrent` varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."typecontrat` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`label` varchar(255) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."typecontrat` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."typecontrat` MODIFY `label` varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."statut` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`label` varchar(255) NULL,
+		  	`color` varchar(255) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."statut` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."statut` ADD `color` varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+		$sql = "INSERT INTO `".MAIN_DB_PREFIX."statut` (`rowid`, `label`, `color`) VALUES
+		(1, 'annuler', '#DBE270'),
+		(2, 'active', '#F59A9A'),
+		(3, 'inshop', '#62B0F7'),
+		(4, 'inactive', '#FFB164'),
+		(5, 'sold', '#59D859');";
+		$resql = $this->db->query($sql);
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."etiquettes_parc` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`label` varchar(255) NULL,
+		  	`color` varchar(255) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."etiquettes_parc` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+		$sql = "INSERT INTO `".MAIN_DB_PREFIX."etiquettes_parc` (`rowid`, `label`, `color`, `entity`) VALUES
+		(1, 'Automobile', '#e62828'),
+		(2, '4x4', '#00d5d5', ".$conf->entity."),
+		(3, 'Toyota', '#cc0066', ".$conf->entity."),
+		(4, 'Pickup', '#caca39', ".$conf->entity."),
+		(5, 'Profilé', '#000000', ".$conf->entity."),
+		(6, 'Camion', '#004080', ".$conf->entity."),
+		(7, 'Remorque', '#ff8000', ".$conf->entity.");";
+		
+		$resql = $this->db->query($sql);
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."marques` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`label` varchar(255) NULL,
+		  	`logo` varchar(255) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."marques` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+		
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."marques` 
+				MODIFY `label` varchar(255) NULL,
+				MODIFY `logo` varchar(255) NULL";
+		$resql = $this->db->query($sql);
+
+
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."modeles` (
+		  	`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		  	`label` varchar(255) NULL,
+		  	`marque` int(11) NULL,
+		  	`entity` int(11) NOT NULL DEFAULT ".$conf->entity."
+		);";
+		$resql = $this->db->query($sql);
+		$resql = $this->db->query("ALTER TABLE `".MAIN_DB_PREFIX."modeles` ADD `entity` int(11) NOT NULL DEFAULT ".$conf->entity);
+
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."modeles` 
+				MODIFY `label` varchar(255) NULL,
+				MODIFY `marque` int(11) NULL";
+		$resql = $this->db->query($sql);
+
+
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."interventions_parc` ADD `datevalidate` date NULL";
+		$resql = $this->db->query($sql);
+		
+		$sql = "ALTER table  `".MAIN_DB_PREFIX."interventions_parc` ADD `checkmail` date NULL";
+		$resql = $this->db->query($sql);
+		
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."kilometrage_extrafields` (
+	  		`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		    `tms` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		    `fk_object` int(11) NOT NULL,
+		    `import_key` varchar(14) DEFAULT NULL
+		);";
+		$resql = $this->db->query($sql);
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."suivi_essence_extrafields` (
+	  		`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		    `tms` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		    `fk_object` int(11) NOT NULL,
+		    `import_key` varchar(14) DEFAULT NULL
+		);";
+		$resql = $this->db->query($sql);
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."contrat_parc_extrafields` (
+	  		`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		    `tms` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		    `fk_object` int(11) NOT NULL,
+		    `import_key` varchar(14) DEFAULT NULL
+		);";
+		$resql = $this->db->query($sql);
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."interventions_parc_extrafields` (
+	  		`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		    `tms` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		    `fk_object` int(11) NOT NULL,
+		    `import_key` varchar(14) DEFAULT NULL
+		);";
+		$resql = $this->db->query($sql);
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."costsvehicule_extrafields` (
+	  		`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		    `tms` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		    `fk_object` int(11) NOT NULL,
+		    `import_key` varchar(14) DEFAULT NULL
+		);";
+		$resql = $this->db->query($sql);
+
+		$sql = "CREATE TABLE IF NOT EXISTS `".MAIN_DB_PREFIX."vehiculeparc_extrafields` (
+	  		`rowid` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		    `tms` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		    `fk_object` int(11) NOT NULL,
+		    `import_key` varchar(14) DEFAULT NULL
+		);";
+		$resql = $this->db->query($sql);
+
+
+		return 1;
 	}
 	
 } 

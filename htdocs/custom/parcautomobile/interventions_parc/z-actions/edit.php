@@ -41,6 +41,7 @@ if ($action == 'update' && $request_method === 'POST') {
         'service_inclus'    =>  $services,
     );
 
+    $entity = GETPOST('entity')?GETPOST('entity'):$conf->entity;
 
     $object = new interventions_parc($db);
     $object->fetch($id);
@@ -56,7 +57,7 @@ if ($action == 'update' && $request_method === 'POST') {
     $object->fournisseur = $fournisseur;
     $object->kilometrage = $kilometre;
     $object->service_inclus = $services;
-
+    $object->entity = $entity;
     $ret = $extrafields->setOptionalsFromPost(null, $object);
 
 
@@ -92,10 +93,10 @@ if ($action == 'update' && $request_method === 'POST') {
         $cout->date = $date;
 
 
-        
         if($elem->rowid){
             $cout->update($elem->rowid);
         }else{
+            $cout->entity = $conf->entity;
             $cout->create(1);
         }
         // create kilometrage
@@ -105,6 +106,7 @@ if ($action == 'update' && $request_method === 'POST') {
             $kilo->vehicule = $vehicule;
             $kilo->kilometrage = $kilometre;
             $kilo->date = $date;
+            $kilo->entity = $conf->entity;
 
             $test=$kilo->create(1);
 
@@ -129,16 +131,16 @@ if ($action == 'update' && $request_method === 'POST') {
 if($action == "edit"){
 
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" enctype="multipart/form-data"  class="card_interv" >';
+        $intervention->fetch($id);
+        $item = $intervention;
 
         print '<input type="hidden" name="action" value="update" />';
         print '<input type="hidden" name="id" value="'.$id.'" />';
-        print '<input type="hidden" name="page" value="'.$page.'" />';
+        print '<input type="hidden" name="entity" value="'.$item->entity.'" />';
 
         print '<div class="title_div"> <span>'.$langs->trans("detail_inter").'</span> </div>';
         print '<table class="noborder" width="100%">';
             print '<tbody>';
-                $intervention->fetch($id);
-                $item = $intervention;
                 
                 $extrafields = new ExtraFields($db);
                 $object = new interventions_parc($db);

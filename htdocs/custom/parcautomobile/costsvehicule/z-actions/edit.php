@@ -17,7 +17,7 @@ if ($action == 'update' && $request_method === 'POST') {
         $date = $date[2].'-'.$date[1].'-'.$date[0];
     }
 
- 
+    $entity = GETPOST('entity')?GETPOST('entity'):$conf->entity;
     $object = new costsvehicule($db);
     $object->fetch($id);
 
@@ -26,6 +26,7 @@ if ($action == 'update' && $request_method === 'POST') {
     $object->prix = $prix;
     $object->date = $date;
     $object->notes = $notes;
+    $object->entity = $entity;
 
     $ret = $extrafields->setOptionalsFromPost(null, $object);
     $isvalid = $object->update($id);
@@ -48,14 +49,15 @@ if ($action == 'update' && $request_method === 'POST') {
 if($action == "edit"){
 
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" enctype="multipart/form-data" class="card_costvehicul" >';
+    $extrafields = new ExtraFields($db);
+    $object = new costsvehicule($db);
 
     print '<input type="hidden" name="action" value="update" />';
     print '<input type="hidden" name="id" value="'.$id.'" />';
     print '<input type="hidden" name="page" value="'.$page.'" />';
+    print '<input type="hidden" name="entity" value="'.$entity.'" />';
     print '<table class="noborder" width="100%">';
         print '<tbody>';
-            $extrafields = new ExtraFields($db);
-            $object = new costsvehicule($db);
 
             $object->fetch($id);
             $item = $object;

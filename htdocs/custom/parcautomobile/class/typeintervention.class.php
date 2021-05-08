@@ -94,12 +94,14 @@ class typeintervention extends Commonobject{
     
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '', $filtermode = 'AND')
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 		$sql = "SELECT * FROM ";
 		$sql .= MAIN_DB_PREFIX .get_class($this);
+		$sql .= ' WHERE entity ='.$conf->entity;
 
 		if (!empty($filter)) {
-			$sql .= " WHERE 1>0 ".$filter;
+			$sql .= " ".$filter;
 		}
 		if (!empty($sortfield)) {
 			$sql .= $this->db->order($sortfield, $sortorder);
@@ -123,6 +125,7 @@ class typeintervention extends Commonobject{
                 $line->id    		 =  $obj->rowid;
                 $line->rowid    		 =  $obj->rowid;
 				$line->label 		 =  $obj->label;
+				$line->entity 		 =  $obj->entity;
 				
                 // ....
 
@@ -142,9 +145,11 @@ class typeintervention extends Commonobject{
 
 	public function fetch($id)
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
 		$sql = 'SELECT * FROM ' . MAIN_DB_PREFIX .get_class($this). ' WHERE rowid = ' . $id;
+		$sql .= ' AND entity ='.$conf->entity;
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
@@ -154,6 +159,7 @@ class typeintervention extends Commonobject{
                 $this->id         	  = $obj->rowid;
                 $this->rowid      	  = $obj->rowid;
                 $this->label        	  = $obj->label;
+                $this->entity        	  = $obj->entity;
                
                 // ....
 			}
@@ -184,6 +190,7 @@ class typeintervention extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+		$sql .= ' WHERE entity ='.$conf->entity;
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
 
@@ -244,35 +251,11 @@ class typeintervention extends Commonobject{
         return $result;
     }
 
-    public function getcountrows(){
-        $tot = 0;
-        $sql = "SELECT COUNT(rowid) as tot FROM ".MAIN_DB_PREFIX.get_class($this);
-        $resql = $this->db->query($sql);
-
-        if($resql){
-            while ($obj = $this->db->fetch_object($resql)) 
-            {
-                $tot = $obj->tot;
-            }
-        }
-        return $tot;
-    }
-
-    public function getdateformat($date,$time=true){
-        
-        $d = explode(' ', $date);
-        $date = explode('-', $d[0]);
-        $d2 = explode(':', $d[1]);
-        $result = $date[2]."/".$date[1]."/".$date[0];
-        if ($time) {
-            $result .= " ".$d2[0].":".$d2[1];
-        }
-        return $result;
-    }
-
     public function getYears($debut="debut")
     {
+    	global $conf;
         $sql = 'SELECT YEAR('.$debut.') as years FROM ' . MAIN_DB_PREFIX.get_class($this);
+		$sql .= ' WHERE entity ='.$conf->entity;
         $resql = $this->db->query($sql);
         $years = array();
         if ($resql) {
@@ -285,134 +268,6 @@ class typeintervention extends Commonobject{
 
         return $years;
     }
-
-    public function getmonth($year)
-    {
-        $sql = 'SELECT MONTH(debut) as years FROM ' . MAIN_DB_PREFIX.get_class($this).' WHERE YEAR(debut) = '.$year;
-        $resql  = $this->db->query($sql);
-        $years = array();
-        if ($resql) {
-            $num = $this->db->num_rows($resql);
-            while ($obj = $this->db->fetch_object($resql)) {
-                $years[$obj->years] = $obj->years;
-            }
-            $this->db->free($resql);
-        }
-
-        return $years;
-    }
-
-
-	public function select_user($selected=0,$name='select_',$showempty=1,$val="rowid",$opt="label",$id=''){
-	    global $conf;
-	    $moreforfilter = '';
-	    $nodatarole = '';
-	    $id = (!empty($id)) ? $id : $name;
-	    
-	    $objet = "label";
-	    $moreforfilter.='<select class="flat" id="'.$id.'" name="'.$name.'" '.$nodatarole.'>';
-	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
-
-    	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
-    	$resql = $this->db->query($sql);
-		if ($resql) {
-			$num = $this->db->num_rows($resql);
-			
-			while ($obj = $this->db->fetch_object($resql)) {
-				$moreforfilter.='<option value="'.$obj->$val.'" data-ref="'.$obj->$opt.'"';
-	            if ($obj->$val == $selected) $moreforfilter.=' selected';
-	            $moreforfilter.='>'.$obj->lastname.' '.$obj->firstname.'</option>';
-			}
-			$this->db->free($resql);
-		}
-
-	    $moreforfilter.='</select>';
-	    $moreforfilter.='<style>#s2id_select_'.$name.'{ width: 100% !important;}</style>';
-	    return $moreforfilter;
-	}
-
-
-	public function select_product($selected=0,$name='product')
-	{
-	    $id = (!empty($id)) ? $id : $name;
-
-	    $select = '';
-		// $select.='<select class="flat" id="'.$id.'" name="'.$name.'" >';
-	    $select.='<option value="0">&nbsp;</option>';
-		global $conf;
-    	$sql = "SELECT rowid ,ref,entity,label FROM ".MAIN_DB_PREFIX."product WHERE fk_product_type = 0";
-		//echo $sql."<br>";
-    	$resql = $this->db->query($sql);
-    	$select.='<option value="0"></option>'; 
-		if ($resql) {
-			$num = $this->db->num_rows($resql);
-			while ($obj = $this->db->fetch_object($resql)) {
-				$select.='<option value="'.$obj->rowid.'"';
-	            if ($obj->rowid == $selected) $select.='selected';
-	            $select.='>'.$obj->label.'</option>';
-			}
-			$this->db->free($resql);
-		}
-
-		// $select.='</select>';
-		// $select.='<script>$(function(){$("#'.$id.'").select2()})</script>';
-	    return $select;
-	}
-
-
-	public function modifier_stock($prod,$qte,$id_entrepot,$movement)
-	{
-		global $user;
-		$msg='';
-        $mouvementstock = new MouvementStock($this->db);
-        $product = new Product($this->db);
-        $product->fetch($prod);
-        $q = $movement.trim($qte);
-        $type=0;
-        if($movement=="+"){
-        	$type=1;
-        }
-        
-        if($id_entrepot){
-            $t=$mouvementstock->_create($user,$prod,$id_entrepot,$q,$type,0,'','');
-        }
-        else{
-            $msg.='La quantité demandée de '.$product->label.' n\'est pas disponible <br>';
-        }
-        return $msg;
-	}
-
-	public function select_postes($selected=0,$name='postes')
-	{
-		global $conf;
-		$id = (!empty($id)) ? $id : $name;
-
-		$postes = $this->fetchAll();
-		$nb=count($this->rows);
-		$select = '<select class="flat" id="select_'.$id.'" name="'.$name.'" >';
-	    	$select.='<option value="0">&nbsp;</option>';
-			for ($i=0; $i < $nb; $i++) { 
-				$item=$this->rows[$i];
-				$select.='<option value="'.$item->rowid.'"';
-	            if ($item->rowid == $selected) $select.='selected';
-	            $select.='>'.$item->ref.'</option>';
-			}
-    	
-		$select.='</select>';
-		$select.='<script>$(function(){$("#select_'.$id.'").select2()})</script>';
-	    return $select;
-	}
-	public function select_disponibl($value='',$name)
-	{
-		$select .= '<select name="'.$name.'" id="'.$name.'" >';
-			$select.='<option value=""></option>';
-			$select.='<option value="En attent">En attent</option>';
-			$select.='<option value="Partiellement disponible">Partiellement disponible</option>';
-			$select.='<option value="Disponible">Disponible</option>';
-		$select .= '</select>';
-		
-		return $select;
-	}
 
 	public function get_types($id=0){
 		 global $conf;
@@ -423,6 +278,7 @@ class typeintervention extends Commonobject{
 	    $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql = "SELECT * FROM ".MAIN_DB_PREFIX.get_class($this);
+		$sql .= ' WHERE entity ='.$conf->entity;
     	$resql = $this->db->query($sql);
 
 		if ($resql) {

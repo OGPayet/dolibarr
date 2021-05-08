@@ -21,6 +21,8 @@ if ($action == 'update' && $request_method === 'POST') {
         $date = $date[2].'-'.$date[1].'-'.$date[0];
     }
 
+    $entity = GETPOST('entity')?GETPOST('entity'):$conf->entity;
+
     $object = new suivi_essence($db);
     $object->fetch($id);
     $kilometre_1 = $object->kilometrage;
@@ -33,6 +35,7 @@ if ($action == 'update' && $request_method === 'POST') {
     $object->fournisseur  =  $fournisseur;
     $object->ref_facture  =  $ref_facture;
     $object->remarques    =  $remarques;
+    $object->entity       =  $entity;
 
     // print_r($object);die();
 
@@ -66,6 +69,7 @@ if ($action == 'update' && $request_method === 'POST') {
             $objcout->fetch($table_element->rowid);
             $objcout->update($elem->rowid);
         }else{
+            $objcout->entity = $conf->entity;
             $objcout->create(1);
         }
         // create kilometrage
@@ -76,6 +80,7 @@ if ($action == 'update' && $request_method === 'POST') {
             $objkilom->kilometrage = $kilometre;
             $objkilom->vehicule = $vehicul;
             $objkilom->date = $date;
+            $objkilom->entity = $conf->entity;
 
             $test=$objkilom->create(1);
             if($test){
@@ -112,6 +117,7 @@ if($action == "edit"){
     print '<input type="hidden" name="action" value="update" />';
     print '<input type="hidden" name="id" value="'.$id.'" />';
     print '<input type="hidden" name="page" value="'.$page.'" />';
+    print '<input type="hidden" name="entity" value="'.$object->entity.'" />';
     print '<div class="div_1">';
         print '<div class="div_left">';
             print '<div class="title_div"> <span>'.$langs->trans("detail_vehicul").'</span> </div>';

@@ -24,10 +24,10 @@ class costsvehicule extends Commonobject{
 
 	public function create($echo_sql=0)
 	{
-
+		global $conf;
 		$sql  = "INSERT INTO " . MAIN_DB_PREFIX .get_class($this)." ( ";
 
-		$sql.= "type, vehicule, id_contrat, id_intervention, id_suiviessence, prix, date, notes)";
+		$sql.= "type, vehicule, id_contrat, id_intervention, id_suiviessence, prix, date, notes, entity)";
 		$sql.= ' VALUES (';
 
 			$sql.= ($this->type ? '"'.$this->db->escape($this->type).'"':'null');	
@@ -38,6 +38,7 @@ class costsvehicule extends Commonobject{
 			$sql.= ', '.($this->prix>0?$this->prix:'null');	
 	        $sql.= ', '.($this->date != '' ? '"'.$this->db->idate($this->date).'"' : 'null');
 			$sql.= ', '.($this->notes ? '"'.$this->db->escape($this->notes).'"':'null' );
+			$sql.= ', '.$conf->entity;
 
 		$sql .= " )";
 
@@ -66,7 +67,6 @@ class costsvehicule extends Commonobject{
 			return false;
 
         $sql = 'UPDATE ' . MAIN_DB_PREFIX .get_class($this). ' SET ';
-
         $sql .= ' type = '.($this->type ? '"'.$this->db->escape($this->type).'"' :'null');
 		$sql .= ', vehicule = '.($this->vehicule>0?$this->db->escape($this->vehicule):'null');
 		$sql .= ', id_contrat = '.($this->id_contrat>0?$this->db->escape($this->id_contrat):'null');
@@ -75,8 +75,9 @@ class costsvehicule extends Commonobject{
 		$sql .= ', prix = '.($this->prix>0?$this->db->escape($this->prix):'null');
 		$sql .= ', date = '.($this->date>0? '"'.$this->db->idate($this->date).'"' :'null');
 		$sql .= ', notes = '.($this->notes ? '"'.$this->db->escape($this->notes).'" ' :'null ');
-        $sql  = substr($sql, 0, -1);
-        $sql .= ' WHERE rowid = ' . $id;
+		$sql .= ', entity = '.$this->db->escape($this->entity);
+        $sql .= ' WHERE rowid = '.$id;
+        // $sql  = substr($sql, 0, -1);
         $resql = $this->db->query($sql);
 
         if ($resql) {
@@ -235,6 +236,7 @@ class costsvehicule extends Commonobject{
 
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '',$join='')
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 		$sql = "SELECT ".MAIN_DB_PREFIX.$this->table_element.".* FROM ";
 		$sql .= MAIN_DB_PREFIX .$this->table_element;
@@ -242,9 +244,9 @@ class costsvehicule extends Commonobject{
 		if (!empty($join)) {
 			$sql .= " ".$join; 
 		}
-		
+		$sql .= ' WHERE entity='.$conf->entity;
 		if (!empty($filter)) {
-			$sql .= " WHERE 1>0 ".$filter;
+			$sql .= " ".$filter;
 		}
 		
 		if (!empty($sortfield)) {
@@ -274,6 +276,7 @@ class costsvehicule extends Commonobject{
 				$line->prix 		 	 =  $obj->prix;
 				$line->date 		     =  $obj->date;
 				$line->notes 		     =  $obj->notes;
+				$line->entity 		     =  $obj->entity;
 
 				$this->rows[] 	= $line;
 			}
@@ -293,9 +296,11 @@ class costsvehicule extends Commonobject{
 
 	public function fetch($id)
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
 		$sql = 'SELECT * FROM ' . MAIN_DB_PREFIX .get_class($this). ' WHERE rowid = ' . $id;
+		$sql .= ' AND entity='.$conf->entity;
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
@@ -309,6 +314,7 @@ class costsvehicule extends Commonobject{
 				$this->prix 		 	 =  $obj->prix;
 				$this->date 		     =  $obj->date;
 				$this->notes 		     =  $obj->notes;
+				$this->entity 		     =  $obj->entity;
 				$this->fetch_optionals();
                	
                 // ....
@@ -340,6 +346,7 @@ class costsvehicule extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+		$sql .= ' WHERE entity='.$conf->entity;
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
 
@@ -400,52 +407,12 @@ class costsvehicule extends Commonobject{
         return $result;
     }
 
-    public function getcountrows(){
-        $tot = 0;
-        $sql = "SELECT COUNT(rowid) as tot FROM ".MAIN_DB_PREFIX.get_class($this);
-        $resql = $this->db->query($sql);
-
-        if($resql){
-            while ($obj = $this->db->fetch_object($resql)) 
-            {
-                $tot = $obj->tot;
-            }
-        }
-        return $tot;
-    }
-
-    public function getdateformat($date,$time=true){
-        
-        $d = explode(' ', $date);
-        $date = explode('-', $d[0]);
-        $d2 = explode(':', $d[1]);
-        $result = $date[2]."/".$date[1]."/".$date[0];
-        if ($time) {
-            $result .= " ".$d2[0].":".$d2[1];
-        }
-        return $result;
-    }
-
     public function getYears($date="date")
     {
+    	global $conf;
         $sql = 'SELECT YEAR('.$date.') as years FROM ' . MAIN_DB_PREFIX.get_class($this);
+        $sql .= ' WHERE entity = '.$conf->entity;
         $resql = $this->db->query($sql);
-        $years = array();
-        if ($resql) {
-            $num = $this->db->num_rows($resql);
-            while ($obj = $this->db->fetch_object($resql)) {
-                $years[$obj->years] = $obj->years;
-            }
-            $this->db->free($resql);
-        }
-
-        return $years;
-    }
-
-    public function getmonth($year)
-    {
-        $sql = 'SELECT MONTH(debut) as years FROM ' . MAIN_DB_PREFIX.get_class($this).' WHERE YEAR(debut) = '.$year;
-        $resql  = $this->db->query($sql);
         $years = array();
         if ($resql) {
             $num = $this->db->num_rows($resql);
@@ -470,6 +437,7 @@ class costsvehicule extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+    	$sql .= ' WHERE entity IN(0,'.$conf->entity.')';
     	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -497,6 +465,7 @@ class costsvehicule extends Commonobject{
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
     	$sql = "SELECT rowid ,ref,entity,label FROM ".MAIN_DB_PREFIX."product WHERE fk_product_type = 0";
+    	$sql .= ' AND entity IN ('.getEntity('product').')';
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
     	$select.='<option value="0"></option>'; 

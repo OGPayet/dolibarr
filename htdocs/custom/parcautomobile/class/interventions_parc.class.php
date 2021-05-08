@@ -269,25 +269,25 @@ class interventions_parc extends Commonobject{
 
 	public function create($echo_sql=0)
 	{
-
+		global $conf;
 		$sql  = "INSERT INTO " . MAIN_DB_PREFIX .get_class($this)." ( ";
 
-		$sql.= " typeintervention, vehicule, acheteur, kilometrage, fournisseur, ref_facture, prix, date, service_inclus, notes, datevalidate, checkmail )";
+		$sql.= " typeintervention, vehicule, acheteur, kilometrage, fournisseur, ref_facture, prix, date, service_inclus, notes, datevalidate, checkmail, entity )";
 
 		$sql.= " VALUES (";
 		$sql.= ($this->typeintervention>0?$this->typeintervention:"null");	
-		$sql.=  ", ".($this->vehicule>0?$this->vehicule:"null");	
-		$sql.=  ", ".($this->acheteur>0?$this->acheteur:"null");	
+		$sql.= ", ".($this->vehicule>0?$this->vehicule:"null");	
+		$sql.= ", ".($this->acheteur>0?$this->acheteur:"null");	
 		$sql.= ", ".($this->kilometrage>0?$this->kilometrage:"null");	
 		$sql.= ", ".($this->fournisseur>0?$this->fournisseur:"null");	
 		$sql.= ", ".($this->ref_facture?"'".$this->db->escape($this->ref_facture)."' ":"null");
 		$sql.= ", ".($this->prix>0?$this->prix:"null");	
-        $sql .= ", ".($this->date != '' ? "'".$this->db->idate($this->date)."' " : 'null');
+        $sql.= ", ".($this->date != '' ? "'".$this->db->idate($this->date)."' " : 'null');
 		$sql.= ", ".($this->service_inclus?"'".$this->db->escape($this->service_inclus)."' ":"null");
 		$sql.= ", ".($this->notes?"'".$this->db->escape($this->notes)."'":"null");
-        $sql .= ", ".($this->datevalidate != '' ? "'".$this->db->idate($this->datevalidate)."' " : 'null');
-        $sql .= ", ".($this->checkmail != '' ? "'".$this->db->idate($this->checkmail)."' " : 'null');
-
+        $sql.= ", ".($this->datevalidate != '' ? "'".$this->db->idate($this->datevalidate)."' " : 'null');
+        $sql.= ", ".($this->checkmail != '' ? "'".$this->db->idate($this->checkmail)."' " : 'null');
+        $sql.= ", ".$this->db->escape($conf->entity)." ";
 		$sql.= ")";
 		// die($sql);
 		$resql = $this->db->query($sql);
@@ -329,12 +329,10 @@ class interventions_parc extends Commonobject{
 		$sql .= ", notes = ".($this->notes  ? "'".$this->db->escape($this->notes)."' " :"null");
 		$sql .= ", datevalidate = ".($this->datevalidate ? "'".$this->db->idate($this->datevalidate)."'" :"null");
 		$sql .= ", checkmail = ".($this->checkmail? "'".$this->db->idate($this->checkmail)."'" :"null ");
+		$sql .= ", entity = ".$this->entity." ";
 
-
-        
         $sql  = substr($sql, 0, -1);
         $sql .= " WHERE rowid = " . $id;
-
         $resql = $this->db->query($sql);
         if ($resql) {
 			$result=$this->insertExtraFields();
@@ -498,6 +496,7 @@ class interventions_parc extends Commonobject{
 
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '',$join='')
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 		$sql = "SELECT ".MAIN_DB_PREFIX.$this->table_element.".* FROM ";
 		$sql .= MAIN_DB_PREFIX .$this->table_element;
@@ -505,9 +504,9 @@ class interventions_parc extends Commonobject{
 		if (!empty($join)) {
 			$sql .= " ".$join; 
 		}
-		
+		$sql .= " WHERE ".MAIN_DB_PREFIX.$this->table_element.".entity=".$conf->entity;
 		if (!empty($filter)) {
-			$sql .= " WHERE 1>0 ".$filter;
+			$sql .= " ".$filter;
 		}
 		
 		if (!empty($sortfield)) {
@@ -543,6 +542,7 @@ class interventions_parc extends Commonobject{
 				$line->ref_facture 		 =  $obj->ref_facture;
 				$line->fournisseur 		 =  $obj->fournisseur;
 				$line->kilometrage 		 =  $obj->kilometrage;
+				$line->entity 		     =  $obj->entity;
 				$line->service_inclus    =  $obj->service_inclus;
 
 				$this->rows[] 	= $line;
@@ -560,9 +560,11 @@ class interventions_parc extends Commonobject{
 
 	public function fetch($id)
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
 		$sql = 'SELECT * FROM ' . MAIN_DB_PREFIX .get_class($this). ' WHERE rowid = ' . $id;
+		$sql .= ' AND entity='.$conf->entity;
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
@@ -582,7 +584,9 @@ class interventions_parc extends Commonobject{
 				$this->ref_facture 		 =  $obj->ref_facture;
 				$this->fournisseur 		 =  $obj->fournisseur;
 				$this->kilometrage 		 =  $obj->kilometrage;
-				$this->service_inclus   =  $obj->service_inclus;
+				$this->kilometrage 		 =  $obj->kilometrage;
+				$this->service_inclus    =  $obj->service_inclus;
+				$this->entity            =  $obj->entity;
 				$this->fetch_optionals();
                	
                 // ....
@@ -614,6 +618,7 @@ class interventions_parc extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+		$sql .= " WHERE entity=".$conf->entity;
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
 
@@ -674,52 +679,12 @@ class interventions_parc extends Commonobject{
         return $result;
     }
 
-    public function getcountrows(){
-        $tot = 0;
-        $sql = "SELECT COUNT(rowid) as tot FROM ".MAIN_DB_PREFIX.get_class($this);
-        $resql = $this->db->query($sql);
-
-        if($resql){
-            while ($obj = $this->db->fetch_object($resql)) 
-            {
-                $tot = $obj->tot;
-            }
-        }
-        return $tot;
-    }
-
-    public function getdateformat($date,$time=true){
-        
-        $d = explode(' ', $date);
-        $date = explode('-', $d[0]);
-        $d2 = explode(':', $d[1]);
-        $result = $date[2]."/".$date[1]."/".$date[0];
-        if ($time) {
-            $result .= " ".$d2[0].":".$d2[1];
-        }
-        return $result;
-    }
-
     public function getYears($debut="debut")
     {
+    	global $conf;
         $sql = 'SELECT YEAR('.$debut.') as years FROM ' . MAIN_DB_PREFIX.get_class($this);
+        $sql .= ' WHERE entity='.$conf->entity;
         $resql = $this->db->query($sql);
-        $years = array();
-        if ($resql) {
-            $num = $this->db->num_rows($resql);
-            while ($obj = $this->db->fetch_object($resql)) {
-                $years[$obj->years] = $obj->years;
-            }
-            $this->db->free($resql);
-        }
-
-        return $years;
-    }
-
-    public function getmonth($year)
-    {
-        $sql = 'SELECT MONTH(debut) as years FROM ' . MAIN_DB_PREFIX.get_class($this).' WHERE YEAR(debut) = '.$year;
-        $resql  = $this->db->query($sql);
         $years = array();
         if ($resql) {
             $num = $this->db->num_rows($resql);
@@ -744,6 +709,7 @@ class interventions_parc extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+		$sql .= " WHERE entity IN (0,".$conf->entity.')';
     	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -771,6 +737,7 @@ class interventions_parc extends Commonobject{
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
     	$sql = "SELECT rowid ,ref,entity,label FROM ".MAIN_DB_PREFIX."product WHERE fk_product_type = 0";
+		$sql .= " AND entity IN (".getEntity('product').')';
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
     	$select.='<option value="0"></option>'; 

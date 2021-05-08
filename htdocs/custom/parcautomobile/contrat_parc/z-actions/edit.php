@@ -19,6 +19,7 @@ $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday'
         $type_montant = GETPOST('type_montant');
         $montant_recurrent = GETPOST('montant_recurrent');
         $conditions = GETPOST('conditions');
+        $entity = GETPOST('entity')?GETPOST('entity'):$conf->entity;
         // if(GETPOST('date_fac')){
         //     $date = explode('/', GETPOST('date_fc'));
         //     $date_fc=$date[2].'-'.$date[1].'-'.$date[0];
@@ -92,6 +93,7 @@ $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday'
         $object->conducteur        =  $conducteur;
         $object->condition         =  addslashes($conditions);
         $object->services_inclus   =  $services;
+        $object->entity  = $entity;
 
         // print_r($object);die();
         $ret = $extrafields->setOptionalsFromPost(null, $object);
@@ -157,7 +159,7 @@ $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday'
                     $couts->id_contrat = $id;
                     $couts->prix = $value['prix'];
                     $couts->date = $date_c;
-
+                    $couts->entity = $conf->entity;
                     // $data_cout=[
                     //     'id_contrat' => $id,
                     //     'vehicule'   => $vehicule_,
@@ -211,15 +213,16 @@ $date_d = dol_mktime(0, 0, 0, GETPOST('date_dmonth', 'int'), GETPOST('date_dday'
 if($action == "edit"){
 
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" enctype="multipart/form-data"  class="card_contract" >';
+    $contrat->fetchAll('','',0,0,'and rowid ='.$id);
+    $item = $contrat->rows[0];
 
     print '<input type="hidden" name="action" value="update" />';
     print '<input type="hidden" name="id" value="'.$id.'" />';
     print '<input type="hidden" name="page" value="'.$page.'" />';
+    print '<input type="hidden" name="entity" value="'.$item->entity.'" />';
     print '<table class="border nc_table_" width="100%">';
         print '<tbody>';
                 print '<tr>';
-                $contrat->fetchAll('','',0,0,'and rowid ='.$id);
-                $item = $contrat->rows[0];
 
                 $object = new contrat_parc($db);
                 $object->fetch($item->rowid);

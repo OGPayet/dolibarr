@@ -10,6 +10,7 @@
         $insert = array(
             'label'           =>  addslashes($label),
             'marque'          =>  $marque,
+            'entity'          =>  $conf->entity,
         );
         $avance = $modele->create(1,$insert);
         $modele->fetch($avance);

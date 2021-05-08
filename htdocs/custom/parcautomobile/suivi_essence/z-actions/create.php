@@ -24,6 +24,7 @@
         $object->fournisseur  =  $fournisseur;
         $object->ref_facture  =  $ref_facture;
         $object->remarques    =  $remarques;
+        $object->entity       =  $conf->entity;
 
         $ret = $extrafields->setOptionalsFromPost(null, $object);
         $avance = $object->create(1);
@@ -39,6 +40,7 @@
             $objcout->date = date('Y-m-d');
             $objcout->prix = $prixT;
             $objcout->type = $langs->trans("ravitaillement");
+            $objcout->entity = $conf->entity;
 
             $objcout->create(1);
         // create kilometrage
@@ -49,6 +51,7 @@
                 $objkilom->kilometrage = $kilometre;
                 $objkilom->vehicule = $vehicul;
                 $objkilom->date = $date;
+                $objkilom->entity = $conf->entity;
 
                 $test=$objkilom->create(1);
 

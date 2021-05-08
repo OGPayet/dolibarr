@@ -13,7 +13,7 @@ if ($action == 'update' && $request_method === 'POST') {
     $unite = GETPOST('unite');
     $date_=explode('/', GETPOST('date'));
     $date=$date_[2].'-'.$date_[1].'-'.$date_[0];
-
+    $entity = GETPOST('entity')?GETPOST('entity'):$conf->entity;
   
     $object = new kilometrage($db);
     $object->fetch($id);
@@ -22,6 +22,7 @@ if ($action == 'update' && $request_method === 'POST') {
     $object->vehicule = $vehicule;
     $object->unite  = $unite;
     $object->date = $date;
+    $object->entity = $entity;
 
     // print_r($object);die();
     $ret = $extrafields->setOptionalsFromPost(null, $object);
@@ -51,15 +52,16 @@ if ($action == 'update' && $request_method === 'POST') {
 if($action == "edit"){
 
     print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" enctype="multipart/form-data" >';
+    $object = new kilometrage($db);
+    $object->fetch($id);
+    $item = $object;
 
     print '<input type="hidden" name="action" value="update" />';
     print '<input type="hidden" name="id" value="'.$id.'" />';
     print '<input type="hidden" name="page" value="'.$page.'" />';
+    print '<input type="hidden" name="entity" value="'.$entity.'" />';
     print '<table class="border nc_table_" width="100%">';
         print '<tbody>';
-            $object = new kilometrage($db);
-            $object->fetch($id);
-            $item = $object;
 
             $extrafields = new ExtraFields($db);
             $extrafields->fetch_name_optionals_label($object->table_element);

@@ -105,9 +105,8 @@ class parcautomobile extends Commonobject{
 				$sql_value .= " , ".$alias.$value.$alias;
 			}
 		}
-
 		$sql .= substr($sql_column, 2)." ) VALUES ( ".substr($sql_value, 2)." )";
-    	print_r($sql);die();
+
 		$resql = $this->db->query($sql);
 		if (!$resql) {
 			$this->db->rollback();
@@ -170,12 +169,13 @@ class parcautomobile extends Commonobject{
     
 	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, $filter = '', $filtermode = 'AND')
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 		$sql = "SELECT * FROM ";
 		$sql .= MAIN_DB_PREFIX .get_class($this);
-
+		$sql .= ' WHERE entity='.$conf->entity;
 		if (!empty($filter)) {
-			$sql .= " WHERE 1>0 ".$filter;
+			$sql .= " ".$filter;
 		}
 		if (!empty($sortfield)) {
 			$sql .= $this->db->order($sortfield, $sortorder);
@@ -217,6 +217,7 @@ class parcautomobile extends Commonobject{
 				$line->nb_chevaux 			 =  $obj->nb_chevaux;
 				$line->tax 			 =  $obj->tax;
 				$line->puisance 			 =  $obj->puisance;
+				$line->entity 			 =  $obj->entity;
                 // ....
 
 				$this->rows[] 	= $line;
@@ -235,9 +236,11 @@ class parcautomobile extends Commonobject{
 
 	public function fetch($id)
 	{
+		global $conf;
 		dol_syslog(__METHOD__, LOG_DEBUG);
 
 		$sql = 'SELECT * FROM ' . MAIN_DB_PREFIX .get_class($this). ' WHERE rowid = ' . $id;
+		$sql .= ' AND entity='.$conf->entity;
 		$resql = $this->db->query($sql);
 		if ($resql) {
 			$numrows = $this->db->num_rows($resql);
@@ -265,6 +268,7 @@ class parcautomobile extends Commonobject{
 				$this->nb_chevaux 			 =  $obj->nb_chevaux;
 				$this->tax 			 =  $obj->tax;
 				$this->puisance 			 =  $obj->puisance;
+				$this->entity 			 =  $obj->entity;
 			
                 // ....
 			}
@@ -295,6 +299,7 @@ class parcautomobile extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql = "SELECT ".$val.",".$opt." FROM ".MAIN_DB_PREFIX.get_class($this);
+		$sql .= " WHERE entity = ".$conf->entity;
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
 
@@ -355,52 +360,12 @@ class parcautomobile extends Commonobject{
         return $result;
     }
 
-    public function getcountrows(){
-        $tot = 0;
-        $sql = "SELECT COUNT(rowid) as tot FROM ".MAIN_DB_PREFIX.get_class($this);
-        $resql = $this->db->query($sql);
-
-        if($resql){
-            while ($obj = $this->db->fetch_object($resql)) 
-            {
-                $tot = $obj->tot;
-            }
-        }
-        return $tot;
-    }
-
-    public function getdateformat($date,$time=true){
-        
-        $d = explode(' ', $date);
-        $date = explode('-', $d[0]);
-        $d2 = explode(':', $d[1]);
-        $result = $date[2]."/".$date[1]."/".$date[0];
-        if ($time) {
-            $result .= " ".$d2[0].":".$d2[1];
-        }
-        return $result;
-    }
-
     public function getYears($debut="debut")
     {
+    	global $conf;
         $sql = 'SELECT YEAR('.$debut.') as years FROM ' . MAIN_DB_PREFIX.get_class($this);
+		$sql .= " WHERE entity = ".$conf->entity;
         $resql = $this->db->query($sql);
-        $years = array();
-        if ($resql) {
-            $num = $this->db->num_rows($resql);
-            while ($obj = $this->db->fetch_object($resql)) {
-                $years[$obj->years] = $obj->years;
-            }
-            $this->db->free($resql);
-        }
-
-        return $years;
-    }
-
-    public function getmonth($year)
-    {
-        $sql = 'SELECT MONTH(debut) as years FROM ' . MAIN_DB_PREFIX.get_class($this).' WHERE YEAR(debut) = '.$year;
-        $resql  = $this->db->query($sql);
         $years = array();
         if ($resql) {
             $num = $this->db->num_rows($resql);
@@ -425,6 +390,7 @@ class parcautomobile extends Commonobject{
 	    if ($showempty) $moreforfilter.='<option value="0">&nbsp;</option>';
 
     	$sql= "SELECT * FROM ".MAIN_DB_PREFIX."user";
+    	$sql .= " AND entity IN (0,".$conf->entity.")";
     	$resql = $this->db->query($sql);
 		if ($resql) {
 			$num = $this->db->num_rows($resql);
@@ -452,6 +418,7 @@ class parcautomobile extends Commonobject{
 	    $select.='<option value="0">&nbsp;</option>';
 		global $conf;
     	$sql = "SELECT * FROM ".MAIN_DB_PREFIX."societe WHERE fournisseur = 1";
+    	$sql .= " AND entity IN (".getEntity('societe').")";
 		//echo $sql."<br>";
     	$resql = $this->db->query($sql);
     	$select.='<option value="0"></option>'; 

@@ -63,6 +63,7 @@ if (!$user->rights->parcautomobile->lire) {
 	accessforbidden();
 }
 
+$vehicules->upgradeModulePrcAutmobil();
 
 // Extra fields
 if (is_array($extrafields->attributes[$object->table_element]['label']) && count($extrafields->attributes[$object->table_element]['label']) > 0)
@@ -81,7 +82,7 @@ if (is_array($extrafields->attributes[$object->table_element]['label']) && count
 }
 
 
-$join = 'LEFT JOIN '.MAIN_DB_PREFIX.$object->table_element.'_extrafields as ef on ('.MAIN_DB_PREFIX.$object->table_element.'.rowid = ef.fk_object) ';
+$join = ' LEFT JOIN '.MAIN_DB_PREFIX.$object->table_element.'_extrafields as ef on ('.MAIN_DB_PREFIX.$object->table_element.'.rowid = ef.fk_object) ';
 
 
 $srch_ref 			= GETPOST('srch_ref');
