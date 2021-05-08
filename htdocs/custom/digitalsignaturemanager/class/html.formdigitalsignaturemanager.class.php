@@ -634,18 +634,18 @@ class FormDigitalSignatureManager
                     modal: true,
                     closeOnEscape: false,
                     buttons: {
-                        "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
-                            var form_dialog_confirm = $("form#form_dialog_confirm");
-                            form_dialog_confirm.find("input#confirm").val("yes");
-							form_dialog_confirm.submit();
-                            $(this).dialog("close");
-                        },
-                        "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
+                        "' . dol_escape_js($langs->trans('DigitalSignatureManagerCancel')) . '": function() {
                             if (' . ($useajax == 2 ? '1' : '0') . ' == 1) {
                                 var form_dialog_confirm = $("form#form_dialog_confirm");
                                 form_dialog_confirm.find("input#confirm").val("no");
                                 form_dialog_confirm.submit();
                             }
+                            $(this).dialog("close");
+                        },
+                        "' . dol_escape_js($langs->trans('DigitalSignatureManagerNext')) . '": function() {
+							var form_dialog_confirm = $("form#form_dialog_confirm");
+                            form_dialog_confirm.find("input#confirm").val("yes");
+							form_dialog_confirm.submit();
                             $(this).dialog("close");
                         }
                     }
@@ -669,7 +669,27 @@ class FormDigitalSignatureManager
                     modal: true,
                     closeOnEscape: false,
                     buttons: {
-                        "' . dol_escape_js($langs->transnoentities("Yes")) . '": function() {
+                        "' . dol_escape_js($langs->trans('DigitalSignatureManagerCancel')) . '": function() {
+					var options = "";
+					var inputko = ' . json_encode($inputko) . ';
+					var pageno="' . dol_escape_js(!empty($pageno) ? $pageno : '') . '";
+					if (inputko.length>0) {
+						$.each(inputko, function(i, inputname) {
+							var more = "";
+							if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
+							var inputvalue = $("#" + inputname + more).val();
+							if (typeof inputvalue == "undefined") { inputvalue=""; }
+							options += "&" + inputname + "=" + urlencode(inputvalue);
+						});
+					}
+					var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
+					//alert(urljump);
+						if (pageno.length > 0) { location.href = urljump; }
+								$(this).dialog("close");
+							}
+						}
+					},
+                        "' . dol_escape_js($langs->trans('DigitalSignatureManagerNext')) . '": function() {
 				var options="";
 				var inputok = ' . json_encode($inputok) . ';
 				var pageyes = "' . dol_escape_js(!empty($pageyes) ? $pageyes : '') . '";
@@ -677,7 +697,7 @@ class FormDigitalSignatureManager
 					$.each(inputok, function(i, inputname) {
 						var more = "";
 						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
-					    if ($("#" + inputname).attr("type") == "radio") { more = ":checked"; }
+						if ($("#" + inputname).attr("type") == "radio") { more = ":checked"; }
 						var inputvalue = $("#" + inputname + more).val();
 						if (typeof inputvalue == "undefined") { inputvalue=""; }
 						options += "&" + inputname + "=" + urlencode(inputvalue);
@@ -686,28 +706,8 @@ class FormDigitalSignatureManager
 				var urljump = pageyes + (pageyes.indexOf("?") < 0 ? "?" : "") + options;
 				//alert(urljump);
 					if (pageyes.length > 0) { location.href = urljump; }
-                            $(this).dialog("close");
-                        },
-                        "' . dol_escape_js($langs->transnoentities("No")) . '": function() {
-				var options = "";
-				var inputko = ' . json_encode($inputko) . ';
-				var pageno="' . dol_escape_js(!empty($pageno) ? $pageno : '') . '";
-				if (inputko.length>0) {
-					$.each(inputko, function(i, inputname) {
-						var more = "";
-						if ($("#" + inputname).attr("type") == "checkbox") { more = ":checked"; }
-						var inputvalue = $("#" + inputname + more).val();
-						if (typeof inputvalue == "undefined") { inputvalue=""; }
-						options += "&" + inputname + "=" + urlencode(inputvalue);
-					});
-				}
-				var urljump=pageno + (pageno.indexOf("?") < 0 ? "?" : "") + options;
-				//alert(urljump);
-					if (pageno.length > 0) { location.href = urljump; }
-                            $(this).dialog("close");
-                        }
-                    }
-                }
+							$(this).dialog("close");
+						}
                 );
 
 		var button = "' . $button . '";

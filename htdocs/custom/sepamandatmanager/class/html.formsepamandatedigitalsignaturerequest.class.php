@@ -111,6 +111,13 @@ class FormSepaMandateDigitalSignatureRequest
 	{
 		global $langs;
 		$questions = array();
+		$questions['questionsToCreateSepaMandateTitle'] = array(
+			'type' => 'other',
+			'label' => '<h3>' . $langs->trans('SepaMandateCreateNewOptionalSepaMandate') . '</h3>',
+			'value' => '',
+			'name' => 'questionsToCreateSepaMandateTitle',
+			'css' => 'minwidth300'
+		);
 		$companyAccounts = SepaMandatCompanyBankAccountLink::getIbanBicUniqueNumberForACompany($this->db, $companyId);
 		if (!empty($companyAccounts)) {
 			$questions[self::ACCOUNT_ID_FIELD_NAME] = array(
