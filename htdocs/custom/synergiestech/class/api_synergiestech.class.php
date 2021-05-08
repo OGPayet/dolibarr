@@ -139,6 +139,52 @@ class SynergiesTechApi extends DolibarrApi
 	}
 
 	/**
+     * Get connected user photo
+     *
+     * Return connected user photo
+     *
+     * @url	GET /userPhoto
+     * @throws 	RestException
+    */
+    function getUserPhoto() {
+        global $conf;
+
+		if (!DolibarrApiAccess::$user->rights->synergiestech->user->lirerestreint) {
+			throw new RestException(401, "You are not allowed to read restricted infos of users");
+		}
+
+        $info_user = clone DolibarrApiAccess::$user;
+        if (empty($info_user)) {
+            throw new RestException(404, 'User not found');
+        }
+		
+		$user_id = $info_user->id;
+		$user_photo = $info_user->photo;
+
+		if ($user_id && $user_photo) {
+			$sanitized_filename = dol_sanitizeFileName($user_photo);
+			$file = $conf->user->dir_output . '/' . $user_id . '/' . $sanitized_filename;
+			$file_osencoded = dol_osencode($file); // New file encoded in OS encoding charset
+			$filename = basename($file);
+
+			if (!file_exists($file_osencoded)) {
+				throw new RestException(404, 'Error file not found');
+			}
+
+			$type = mime_content_type($file_osencoded);
+
+			top_httphead($type);
+			header('Content-Description: File Transfer');
+			header('Content-Disposition: inline; filename="'.$filename.'"');
+			header('Cache-Control: Public, must-revalidate');
+			header('Pragma: public');
+			header('Content-Length: '.dol_filesize($file_osencoded));
+
+			readfileLowMemory($file_osencoded);
+		}
+    }
+
+	/**
 	 * Clean sensible object datas
 	 *
 	 * @param   object  $object    Object to clean
