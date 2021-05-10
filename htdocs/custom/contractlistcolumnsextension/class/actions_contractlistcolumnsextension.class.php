@@ -76,7 +76,7 @@ class ActionsContractListColumnsExtension
 	);
 
 	/**
-     * Status (long) translated label
+     * State translated label
     */
     public static $cacheTranslatedContractStateLabel = array();
 
