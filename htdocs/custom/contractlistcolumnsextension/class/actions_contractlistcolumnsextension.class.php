@@ -120,22 +120,22 @@ class ActionsContractListColumnsExtension
 			$now = dol_now();
 
 			switch ($this->getSelectedContractState()) {
-				case "1":
+				case self::STATUS_NOT_STARTED:
 					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=5", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=0", 1, 0).') > 0';
 					break;
-				case "2":
+				case self::STATUS_IN_PROGRESS:
 					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') > 0';
 					break;
-				case "3":
+				case self::STATUS_FINISHED:
 					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=0", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') = 0';
 					$sql .= ' AND (SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') > 0';
 					$sql .= ' OR SUM('.$db->ifsql("cd.statut=5", 1, 0).') > 0)';
 					break;
-				case "4":
+				case self::STATUS_INDEFINITE:
 					$sql = ' HAVING (SUM('.$db->ifsql("cd.statut=0", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') = 0';
