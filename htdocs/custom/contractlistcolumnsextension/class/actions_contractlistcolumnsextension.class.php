@@ -87,71 +87,6 @@ class ActionsContractListColumnsExtension
 		}
 	}
 
-    /**
-	 * Overloading the printFieldListSelect function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListSelect(&$parameters, &$object, &$action, $hookmanager)
-	{
-		global $db;
-
-		$contexts = explode(':', $parameters['context']);
-
-		if (in_array('contractlist', $contexts)) {
-			$now = dol_now();
-
-			//$sql = ', (SELECT SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') FROM llx_contratdet as cd) as nb_running';
-			
-			//$this->resprints = $sql;
-			//return 1;
-		}
-	}
-
-	/**
-	 * Overloading the printFieldListFrom function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListFrom(&$parameters, &$object, &$action, $hookmanager)
-	{
-		$contexts = explode(':', $parameters['context']);
-
-		if (in_array('contractlist', $contexts)) {
-		}
-
-		return 0;
-	}
-
-	/**
-	 * Overloading the printFieldListWhere function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListWhere(&$parameters, &$object, &$action, $hookmanager)
-	{
-		global $db;
-
-		$contexts = explode(':', $parameters['context']);
-
-		if (in_array('contractlist', $contexts)) {
-		}
-
-		return 0;
-	}
-
 	/**
 	 * Overloading the printFieldListHaving function : replacing the parent's function with the one below
 	 *
@@ -197,25 +132,6 @@ class ActionsContractListColumnsExtension
 
 			$this->resprints = $sql;
 			return 1;
-		}
-
-		return 0;
-	}
-
-	/**
-	 * Overloading the printFieldListGroupBy function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListGroupBy(&$parameters, &$object, &$action, $hookmanager)
-	{
-		$contexts = explode(':', $parameters['context']);
-
-		if (in_array('contractlist', $contexts)) {
 		}
 
 		return 0;
