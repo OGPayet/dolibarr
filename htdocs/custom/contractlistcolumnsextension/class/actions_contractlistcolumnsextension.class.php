@@ -55,6 +55,20 @@ class ActionsContractListColumnsExtension
 	 */
 	public $resprints;
 
+	const STATUS_NONE = 0;
+	const STATUS_NOT_STARTED = 1;
+	const STATUS_IN_PROGRESS = 2;
+	const STATUS_FINISHED = 3;
+	const STATUS_INDEFINITE = 4;
+
+	public $contractStateList = array(
+		self::STATUS_NONE => '',
+		self::STATUS_NOT_STARTED => "ModuleContractListNotStarted",
+		self::STATUS_IN_PROGRESS => "ModuleContractListInProgress",
+		self::STATUS_FINISHED => "ModuleContractListFinished",
+		self::STATUS_INDEFINITE => "ModuleContractListIndefinite"
+	);
+
 	/**
 	 * Constructor
 	 *
@@ -154,16 +168,8 @@ class ActionsContractListColumnsExtension
 
 		if (in_array('contractlist', $contexts)) {
 			if (!empty($parameters['arrayfields']['cd.statut']['checked'])) {
-				$contractStateList = array(
-					0 => '',
-					1 => $langs->trans("ModuleContractListNotStarted"),
-					2 => $langs->trans("ModuleContractListInProgress"),
-					3 => $langs->trans("ModuleContractListFinished"),
-					4 => $langs->trans("ModuleContractListIndefinite")
-				);
-
 				print '<td class="liste_titre maxwidthonsmartphone center">';
-				print $form->selectarray("search_contract_state", $contractStateList, $this->getSelectedContractState(), 0, 0, 0, '', 0, 0, 0);
+				print $form->selectarray("search_contract_state", $this->contractStateList, $this->getSelectedContractState(), 0, 0, 0, '', 0, 0, 0);
 				print '</td>';
 			}
 		}
