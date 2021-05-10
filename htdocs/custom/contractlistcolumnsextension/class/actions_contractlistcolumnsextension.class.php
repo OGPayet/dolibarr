@@ -55,19 +55,30 @@ class ActionsContractListColumnsExtension
 	 */
 	public $resprints;
 
-	const STATUS_NONE = 0;
+	/**
+     * State
+    */
+    const STATUS_NONE = 0;
 	const STATUS_NOT_STARTED = 1;
 	const STATUS_IN_PROGRESS = 2;
 	const STATUS_FINISHED = 3;
 	const STATUS_INDEFINITE = 4;
 
-	public $contractStateList = array(
+	/**
+     * Contract state translation key label
+    */
+	public static $contractStateLabel = array(
 		self::STATUS_NONE => '',
 		self::STATUS_NOT_STARTED => "ModuleContractListNotStarted",
 		self::STATUS_IN_PROGRESS => "ModuleContractListInProgress",
 		self::STATUS_FINISHED => "ModuleContractListFinished",
 		self::STATUS_INDEFINITE => "ModuleContractListIndefinite"
 	);
+
+	/**
+     * Status (long) translated label
+    */
+    public static $cacheTranslatedContractStateLabel = array();
 
 	/**
 	 * Constructor
@@ -169,7 +180,7 @@ class ActionsContractListColumnsExtension
 		if (in_array('contractlist', $contexts)) {
 			if (!empty($parameters['arrayfields']['cd.statut']['checked'])) {
 				print '<td class="liste_titre maxwidthonsmartphone center">';
-				print $form->selectarray("search_contract_state", $this->contractStateList, $this->getSelectedContractState(), 0, 0, 0, '', 0, 0, 0);
+				print $form->selectarray("search_contract_state", self::getStateLabelArrayTranslated(), $this->getSelectedContractState(), 0, 0, 0, '', 0, 0, 0);
 				print '</td>';
 			}
 		}
@@ -241,6 +252,33 @@ class ActionsContractListColumnsExtension
      */
     private function getSelectedContractState() {
 		return GETPOST('search_contract_state', 'alpha');
+	}
+
+	/**
+     * Function to get translated state
+     */
+    public static function getStateLabelArrayTranslated() {
+        if (empty(self::$cacheTranslatedContractStateLabel)) {
+			global $langs;
+
+			self::loadTranslatedState($langs);
+		}
+
+		return self::$cacheTranslatedContractStateLabel;
+    }
+
+    /**
+	 * Function to load translated state
+	 * @return void
+	 */
+	public static function loadTranslatedState($langs) {
+		foreach (self::$contractStateLabel as $value => $translateKey) {
+            self::$cacheTranslatedContractStateLabel[$value] = $translateKey;
+
+            if (method_exists($langs, "trans")) {
+                self::$cacheTranslatedContractStateLabel[$value] = $langs->trans($translateKey);
+            }
+        }
 	}
 }
 ?>
