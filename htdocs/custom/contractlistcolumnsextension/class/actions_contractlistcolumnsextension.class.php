@@ -56,6 +56,31 @@ class ActionsContractListColumnsExtension
 	public $resprints;
 
 	/**
+     * State
+    */
+    const STATUS_NONE = 0;
+	const STATUS_NOT_STARTED = 1;
+	const STATUS_IN_PROGRESS = 2;
+	const STATUS_FINISHED = 3;
+	const STATUS_INDEFINITE = 4;
+
+	/**
+     * Contract state translation key label
+    */
+	public static $contractStateLabel = array(
+		self::STATUS_NONE => '',
+		self::STATUS_NOT_STARTED => "ModuleContractListNotStarted",
+		self::STATUS_IN_PROGRESS => "ModuleContractListInProgress",
+		self::STATUS_FINISHED => "ModuleContractListFinished",
+		self::STATUS_INDEFINITE => "ModuleContractListIndefinite"
+	);
+
+	/**
+     * State translated label
+    */
+    public static $cacheTranslatedContractStateLabel = array();
+
+	/**
 	 * Constructor
 	 *
 	 * @param        DoliDB $db Database handler
@@ -87,71 +112,6 @@ class ActionsContractListColumnsExtension
 		}
 	}
 
-    /**
-	 * Overloading the printFieldListSelect function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListSelect(&$parameters, &$object, &$action, $hookmanager)
-	{
-		global $db;
-
-		$contexts = explode(':', $parameters['context']);
-
-		if (in_array('contractlist', $contexts)) {
-			$now = dol_now();
-
-			//$sql = ', (SELECT SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') FROM llx_contratdet as cd) as nb_running';
-			
-			//$this->resprints = $sql;
-			//return 1;
-		}
-	}
-
-	/**
-	 * Overloading the printFieldListFrom function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListFrom(&$parameters, &$object, &$action, $hookmanager)
-	{
-		$contexts = explode(':', $parameters['context']);
-
-		if (in_array('contractlist', $contexts)) {
-		}
-
-		return 0;
-	}
-
-	/**
-	 * Overloading the printFieldListWhere function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListWhere(&$parameters, &$object, &$action, $hookmanager)
-	{
-		global $db;
-
-		$contexts = explode(':', $parameters['context']);
-
-		if (in_array('contractlist', $contexts)) {
-		}
-
-		return 0;
-	}
-
 	/**
 	 * Overloading the printFieldListHaving function : replacing the parent's function with the one below
 	 *
@@ -171,22 +131,22 @@ class ActionsContractListColumnsExtension
 			$now = dol_now();
 
 			switch ($this->getSelectedContractState()) {
-				case "1":
+				case self::STATUS_NOT_STARTED:
 					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=5", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=0", 1, 0).') > 0';
 					break;
-				case "2":
+				case self::STATUS_IN_PROGRESS:
 					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') > 0';
 					break;
-				case "3":
+				case self::STATUS_FINISHED:
 					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=0", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') = 0';
 					$sql .= ' AND (SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') > 0';
 					$sql .= ' OR SUM('.$db->ifsql("cd.statut=5", 1, 0).') > 0)';
 					break;
-				case "4":
+				case self::STATUS_INDEFINITE:
 					$sql = ' HAVING (SUM('.$db->ifsql("cd.statut=0", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') = 0';
@@ -197,25 +157,6 @@ class ActionsContractListColumnsExtension
 
 			$this->resprints = $sql;
 			return 1;
-		}
-
-		return 0;
-	}
-
-	/**
-	 * Overloading the printFieldListGroupBy function : replacing the parent's function with the one below
-	 *
-	 * @param   array()         $parameters     Hook metadatas (context, etc...)
-	 * @param   CommonObject    &$object        The object to process (an invoice if you are in invoice module, a propale in propale's module, etc...)
-	 * @param   string          &$action        Current action (if set). Generally create or edit or null
-	 * @param   HookManager     $hookmanager    Hook manager propagated to allow calling another hook
-	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
-	 */
-	function printFieldListGroupBy(&$parameters, &$object, &$action, $hookmanager)
-	{
-		$contexts = explode(':', $parameters['context']);
-
-		if (in_array('contractlist', $contexts)) {
 		}
 
 		return 0;
@@ -238,16 +179,8 @@ class ActionsContractListColumnsExtension
 
 		if (in_array('contractlist', $contexts)) {
 			if (!empty($parameters['arrayfields']['cd.statut']['checked'])) {
-				$contractStateList = array(
-					0 => '',
-					1 => $langs->trans("ModuleContractListNotStarted"),
-					2 => $langs->trans("ModuleContractListInProgress"),
-					3 => $langs->trans("ModuleContractListFinished"),
-					4 => $langs->trans("ModuleContractListIndefinite")
-				);
-
 				print '<td class="liste_titre maxwidthonsmartphone center">';
-				print $form->selectarray("search_contract_state", $contractStateList, $this->getSelectedContractState(), 0, 0, 0, '', 0, 0, 0);
+				print $form->selectarray("search_contract_state", self::getStateLabelArrayTranslated(), $this->getSelectedContractState(), 0, 0, 0, '', 0, 0, 0);
 				print '</td>';
 			}
 		}
@@ -319,6 +252,33 @@ class ActionsContractListColumnsExtension
      */
     private function getSelectedContractState() {
 		return GETPOST('search_contract_state', 'alpha');
+	}
+
+	/**
+     * Function to get translated state
+     */
+    public static function getStateLabelArrayTranslated() {
+        if (empty(self::$cacheTranslatedContractStateLabel)) {
+			global $langs;
+
+			self::loadTranslatedState($langs);
+		}
+
+		return self::$cacheTranslatedContractStateLabel;
+    }
+
+    /**
+	 * Function to load translated state
+	 * @return void
+	 */
+	public static function loadTranslatedState($langs) {
+		foreach (self::$contractStateLabel as $value => $translateKey) {
+            self::$cacheTranslatedContractStateLabel[$value] = $translateKey;
+
+            if (method_exists($langs, "trans")) {
+                self::$cacheTranslatedContractStateLabel[$value] = $langs->trans($translateKey);
+            }
+        }
 	}
 }
 ?>
