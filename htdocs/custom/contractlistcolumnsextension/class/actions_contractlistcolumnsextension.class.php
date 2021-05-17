@@ -132,22 +132,22 @@ class ActionsContractListColumnsExtension
 
 			switch ($this->getSelectedContractState()) {
 				case self::STATUS_NOT_STARTED:
-					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') <= 0';
+					$sql = ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=5", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') <= 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=0", 1, 0).') > 0';
 					break;
 				case self::STATUS_IN_PROGRESS:
-					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') > 0';
+					$sql = ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') > 0';
 					break;
 				case self::STATUS_FINISHED:
-					$sql = ' HAVING SUM('.$db->ifsql("cd.statut=0", 1, 0).') = 0';
+					$sql = ' AND SUM('.$db->ifsql("cd.statut=0", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') = 0';
 					$sql .= ' AND (SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') > 0';
 					$sql .= ' OR SUM('.$db->ifsql("cd.statut=5", 1, 0).') > 0)';
 					break;
 				case self::STATUS_INDEFINITE:
-					$sql = ' HAVING (SUM('.$db->ifsql("cd.statut=0", 1, 0).') = 0';
+					$sql = ' AND (SUM('.$db->ifsql("cd.statut=0", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NULL OR cd.date_fin_validite >= '".$db->idate($now)."')", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=4 AND (cd.date_fin_validite IS NOT NULL AND cd.date_fin_validite < '".$db->idate($now)."')", 1, 0).') = 0';
 					$sql .= ' AND SUM('.$db->ifsql("cd.statut=5", 1, 0).') = 0)';
@@ -230,13 +230,13 @@ class ActionsContractListColumnsExtension
 				print '<td align="center" class="nowrap">';
 
 				if ($parameters['obj']->nb_running > 0) {
-					print $langs->trans("ModuleContractListInProgress");
+					print self::getStateLabelArrayTranslated()[self::STATUS_IN_PROGRESS];
 				} else if ($parameters['obj']->nb_running <= 0 && $parameters['obj']->nb_closed <= 0 && $parameters['obj']->nb_expired <= 0 && $parameters['obj']->nb_initial > 0) {
-					print $langs->trans("ModuleContractListNotStarted");
+					print self::getStateLabelArrayTranslated()[self::STATUS_NOT_STARTED];
 				} else if ($parameters['obj']->nb_running == 0 && $parameters['obj']->nb_initial == 0 && ($parameters['obj']->nb_expired > 0 || $parameters['obj']->nb_closed > 0)) {
-					print $langs->trans("ModuleContractListFinished");
+					print self::getStateLabelArrayTranslated()[self::STATUS_FINISHED];
 				} else if (($parameters['obj']->nb_running == 0 && $parameters['obj']->nb_initial == 0 && $parameters['obj']->nb_expired == 0 && $parameters['obj']->nb_closed == 0) || ($parameters['obj']->nb_initial > 0 && $parameters['obj']->nb_closed > 0)) {
-					print $langs->trans("ModuleContractListIndefinite");
+					print self::getStateLabelArrayTranslated()[self::STATUS_INDEFINITE];
 				}
 
 				print '</td>';
