@@ -472,8 +472,9 @@ class DigitalSignatureDocument extends CommonObject
 		$this->db->begin();
 		//We have to clean ecm database table as some file must be present into it and not on disk
 		$errors = ExtendedEcm::cleanEcmFileDatabase($this->db, $digitalSignatureRequest->getRelativePathToDolDataRootForFilesToSign(), $user);
+		$sql = 'fk_digitalsignaturerequest LIKE ' . $digitalSignatureRequest->id;
 
-		$digitalSignatureDocuments = $this->fetchAll('ASC', 'position', null, null, array('fk_digitalsignaturerequest' => $digitalSignatureRequest->id));
+		$digitalSignatureDocuments = $this->fetchAll('ASC', 'position', null, null, array('customsql' => $sql));
 		$errors = array_merge($errors, $this->errors);
 		$effectiveDigitalSignatureDocuments = array();
 		foreach($digitalSignatureDocuments as $document)

@@ -324,7 +324,8 @@ class DigitalSignaturePeople extends CommonObject
 			return 0;
 		}
 		$this->digitalSignatureRequest = $digitalSignatureRequest;
-		$result = $this->fetchAll('ASC', 'position', 0, 0, array('fk_digitalsignaturerequest' => $digitalSignatureRequest->id));
+		$sql = 'fk_digitalsignaturerequest LIKE ' . $digitalSignatureRequest->id;
+		$result = $this->fetchAll('ASC', 'position', 0, 0, array('customsql' => $sql));
 		if (is_array($result)) {
 			foreach ($result as $people) {
 				$people->digitalSignatureRequest = $digitalSignatureRequest;

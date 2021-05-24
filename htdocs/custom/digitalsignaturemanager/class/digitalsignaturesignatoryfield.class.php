@@ -318,7 +318,9 @@ class DigitalSignatureSignatoryField extends CommonObject
 		if(!$digitalSignatureRequest || !$digitalSignatureRequest->id) {
 			return 0;
 		}
-		$result = $this->fetchAll('ASC', 'rowid', 0, 0, array('fk_digitalsignaturerequest'=>$digitalSignatureRequest->id));
+		$sql = 'fk_digitalsignaturerequest LIKE ' . $digitalSignatureRequest->id;
+
+		$result = $this->fetchAll('ASC', 'rowid', 0, 0, array('customsql'=>$sql));
 		if(is_array($result)) {
 			foreach($result as $signatoryField) {
 				$signatoryField->digitalSignatureRequest = $digitalSignatureRequest;
